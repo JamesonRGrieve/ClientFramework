@@ -1,0 +1,8 @@
+# .github/labeler.yml
+documentation:
+  - '**/*.md'
+tests:
+  - 'tests/**/*'
+source:
+  - 'app/**/*'
+  - 'components/**/*'

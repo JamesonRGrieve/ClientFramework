@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/next-log/*": ["./src/lib/next-log/src/*"],
+      "@/zod2gql": ["./src/lib/zod2gql/src"],
+      "@/auth/*": ["./src/components/auth/src/*"],
+      "@/appwrapper/*": ["./src/components/appwrapper/src/*"],
+      "@/dynamic-form/*": ["./src/components/dynamic-form/src/*"],
+      "@/interactive/*": ["./src/interactive/src/*"],
+      "@/interface/*": ["./src/interface/*"],
+      "@/iteration/*": ["./src/iteration/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "next.config.js.old",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "app/theme.ts",
+    "components/jrg/auth/auth.config.js",
+    "components/interactive/interactive.config.js",
+    "components/interactive/components/Chat/Activity/Severtities.tsx"
+  ],
+  "exclude": ["node_modules"]
+}
