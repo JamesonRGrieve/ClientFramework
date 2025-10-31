@@ -172,7 +172,7 @@
     "prettier": "^3.5.3",
     "storybook": "^8.6.12",
     "tailwind-merge": "^3.2.0",
-    "tailwindcss": "^4.0.0",
+    "tailwindcss": "^4.1.14",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.8.3",
     "vitest": "^3.1.3"
