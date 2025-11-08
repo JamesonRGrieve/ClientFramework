@@ -1,4 +1,4 @@
-FROM node:23-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /client-build
 
 # Install build dependencies for native modules (sharp, usb, etc.)
@@ -37,7 +37,7 @@ ARG APP_URI
 RUN chmod +x ./env.sh && ./env.sh
 RUN npm run build
 
-FROM node:23-alpine AS runner
+FROM node:25-alpine AS runner
 WORKDIR /client
 ENV NODE_ENV=production
 
