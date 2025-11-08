@@ -13,8 +13,8 @@ export default function UserLayout({ children }: { children: ReactNode }): React
   return (
     <SidebarInset className='flex flex-col w-full h-full'>
       <header
-        className='sticky top-0 flex items-center justify-between gap-4 px-4 border-b md:px-6 bg-muted min-h-16'
-        style={{ paddingTop: 'env(safe-area-inset-top', height: 'calc(3.5rem + env(safe-area-inset-top))' }}
+        className='sticky top-0 flex items-center justify-center gap-4 px-4 border-b md:px-6 bg-muted min-h-16'
+        style={{ paddingTop: 'env(safe-area-inset-top)', height: 'calc(3.5rem + env(safe-area-inset-top))' }}
       >
         <Logo />
       </header>
