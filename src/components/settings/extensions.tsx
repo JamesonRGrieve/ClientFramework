@@ -13,6 +13,9 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import Extension from './extension';
 
+// System-defined extensions which should be read-only in the UI
+const SYSTEM_EXTENSIONS = ['text-to-speech', 'web-search', 'image-generation', 'analysis'];
+
 import { useTeam } from '@/auth/hooks/useTeam';
 import MarkdownBlock from '@/components/markdown/MarkdownBlock';
 import { Input } from '@/components/ui/input';
@@ -46,13 +49,14 @@ interface ExtensionSettings {
 
 export function Extensions() {
   const pathname = usePathname();
-  const { data: agentData, mutate: mutateAgent } = null;
+  const agentData: any = null;
+  const mutateAgent = () => {};
   const [searchText, setSearchText] = useState('');
   const router = useRouter();
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [error, setError] = useState<ErrorState>(null);
   const [showEnabledOnly, setShowEnabledOnly] = useState(false);
-  const agent_name = (getCookie('aginteractive-agent') || process.env.NEXT_PUBLIC_AGINTERACTIVE_AGENT) ?? agent;
+  const agent_name = (getCookie('aginteractive-agent') || process.env.NEXT_PUBLIC_AGINTERACTIVE_AGENT || agentData?.agent_name) ?? '';
   const { data: activeCompany, mutate: mutateCompany } = useTeam();
 
   const { data: providerData } = useProviders();
@@ -270,18 +274,22 @@ export function Extensions() {
                           ),
                         )
                         .filter((command) => !showEnabledOnly || command.enabled)
-                        .map((command) => (
-                          <Card key={command.command_name} className='p-4 border border-border/50'>
-                            <div className='flex items-center mb-2'>
-                              <Switch
-                                checked={command.enabled}
-                                onCheckedChange={(checked) => handleToggleCommand(command.friendly_name, checked)}
-                              />
-                              <h4 className='text-lg font-medium'>&nbsp;&nbsp;{command.friendly_name}</h4>
-                            </div>
-                            <MarkdownBlock content={command.description?.split('\nArgs')[0] || 'No description available'} />
-                          </Card>
-                        ))}
+                        .map((command) => {
+                          const isSystemExtension = SYSTEM_EXTENSIONS.includes(extension.extension_name) || false;
+                          return (
+                            <Card key={command.command_name} className='p-4 border border-border/50'>
+                              <div className='flex items-center mb-2'>
+                                <Switch
+                                  checked={command.enabled}
+                                  disabled={isSystemExtension}
+                                  onCheckedChange={isSystemExtension ? undefined : (checked) => handleToggleCommand(command.friendly_name, checked)}
+                                />
+                                <h4 className='text-lg font-medium'>&nbsp;&nbsp;{command.friendly_name}</h4>
+                              </div>
+                              <MarkdownBlock content={command.description?.split('\nArgs')[0] || 'No description available'} />
+                            </Card>
+                          );
+                        })}
                     </CardContent>
                   </Card>
                 ))}

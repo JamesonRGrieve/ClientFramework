@@ -42,6 +42,8 @@ export default function Extension({
         : false,
     );
   }, [extension.extension_name]);
+  // Treat known overrides as system-defined (read-only) unless an explicit flag is provided
+  const isSystemDefined = Object.keys(OVERRIDE_EXTENSIONS).includes(extension.extension_name) || extension?.system === true;
   return (
     <div className='flex flex-col gap-2 p-3 transition-colors border rounded-lg bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60'>
       <div className='flex items-center gap-2'>
@@ -61,23 +63,9 @@ export default function Extension({
           </div>
         </div>
 
-        {Object.keys(OVERRIDE_EXTENSIONS).includes(extension.extension_name) ? (
-          <Button
-            variant='outline'
-            size='sm'
-            className='gap-2'
-            onClick={() => {
-              setCookie(`aginteractive-${OVERRIDE_EXTENSIONS[extension.extension_name].name}`, (!state).toString(), {
-                domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN,
-                maxAge: 2147483647,
-                path: '/',
-              });
-              setState(!state);
-            }}
-          >
-            {state ? <PowerOff className='w-4 h-4' /> : <Power className='w-4 h-4' />}
-            {state ? 'Disable' : 'Enable'}
-          </Button>
+        {isSystemDefined ? (
+          // System-defined extensions are read-only: no connect/disconnect/enable controls
+          <div className='text-sm text-muted-foreground'>System extension (read-only)</div>
         ) : connected ? (
           <Button variant='outline' size='sm' className='gap-2' onClick={() => onDisconnect(extension)}>
             <Unlink className='w-4 h-4' />
