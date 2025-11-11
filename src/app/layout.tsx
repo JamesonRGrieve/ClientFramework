@@ -13,22 +13,22 @@ import { metadata, viewport } from './metadata';
 
 // const inter = Inter({ subsets: ['latin'] });
 
-export { metadata, viewport };
-
 export default async function RootLayout({ children }: { children: ReactNode }): Promise<ReactNode> {
   const cookieStore = await cookies();
   const theme = cookieStore.get('theme')?.value ?? process.env.NEXT_PUBLIC_THEME_DEFAULT_MODE;
   const appearance = cookieStore.get('appearance')?.value ?? '';
+  const htmlThemeClass = theme === 'dark' || theme === 'colorblind' || theme === 'colorblind-dark' ? theme : '';
+
   if (process.env.LANDING_ONLY) {
     return (
-      <html lang='en'>
+      <html lang='en' className={htmlThemeClass} suppressHydrationWarning>
         <Head />
         <body className={cn(/*inter.className,*/ theme, appearance)}>{children}</body>
       </html>
     );
   }
   return (
-    <html lang='en'>
+    <html lang='en' className={htmlThemeClass} suppressHydrationWarning>
       <Head />
       <body className={cn(/*inter.className,*/ theme, appearance)}>
         <SidebarContentProvider>
