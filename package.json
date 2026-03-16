@@ -123,7 +123,7 @@
     "react-markdown": "^9.1.0",
     "react-qr-code": "^2.0.18",
     "react-simple-oauth2-login": "^0.5.4",
-    "react-syntax-highlighter": "^15.6.6",
+    "react-syntax-highlighter": "^16.1.0",
     "remark-gfm": "^4.0.1",
     "rimraf": "^6.1.0",
     "sharp": "^0.34.5",
