@@ -1,6 +1,6 @@
 'use client';
 
-import { useTeam } from '@/auth/hooks/useTeam';
+import { useTeam } from '@jgrieve/auth/hooks/useTeam';
 import MarkdownBlock from '@/components/markdown/MarkdownBlock';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';

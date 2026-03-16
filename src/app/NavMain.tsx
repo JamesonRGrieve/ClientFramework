@@ -2,7 +2,7 @@
 
 import { ChevronRightIcon } from '@radix-ui/react-icons';
 
-import { useTeam } from '@/auth/hooks/useTeam';
+import { useTeam } from '@jgrieve/auth/hooks/useTeam';
 import { items } from '@/components/auth/src/NavMenu';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {

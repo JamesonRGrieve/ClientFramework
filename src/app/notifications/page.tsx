@@ -1,6 +1,6 @@
 'use client';
 
-import { SidebarPage } from '@/appwrapper/SidebarPage';
+import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
 import { EmptyNotifications, Notifications } from '@/components/appwrapper/src/Notifications';
 import { useState } from 'react';
 

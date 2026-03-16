@@ -1,4 +1,4 @@
-import log from '@/next-log/log';
+import log from '@jgrieve/next-log/log';
 import mermaid from 'mermaid';
 import React from 'react';
 // https://codesandbox.io/p/sandbox/react-with-mermaid-ex9f7?file=%2Fsrc%2FMermaid.js%3A1%2C1-64%2C1

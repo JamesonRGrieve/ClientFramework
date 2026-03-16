@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'next/navigation';
 import { getCookie } from 'cookies-next';
-import DynamicForm from '@/dynamic-form/DynamicForm';
+import DynamicForm from '@jgrieve/dynamic-form/DynamicForm';
 import { DataTable } from '../../../components/wais/data/data-table';
 import { DataTableColumnHeader } from '../../../components/wais/data/data-table-column-header';
 import { Button } from '@/components/ui/button';

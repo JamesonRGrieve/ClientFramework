@@ -1,7 +1,7 @@
-import { SidebarPage } from '@/appwrapper/SidebarPage';
+import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
 import { SidebarContent } from '@/components/appwrapper/src/SidebarContentManager';
-import Team from '@/auth/management/Team';
-import TeamUsers from '@/auth/management/TeamUsers';
+import Team from '@jgrieve/auth/management/Team';
+import TeamUsers from '@jgrieve/auth/management/TeamUsers';
 
 export default function TeamPage() {
   return (

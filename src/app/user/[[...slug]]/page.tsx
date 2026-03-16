@@ -1,4 +1,4 @@
-import AuthRouter from '@/auth/Router';
+import AuthRouter from '@jgrieve/auth/Router';
 import { Suspense } from 'react';
 
 // Properly handle params as an async value in Next.js 15

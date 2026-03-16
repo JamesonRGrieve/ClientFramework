@@ -1,6 +1,6 @@
 'use client';
 
-import { ConnectedServices } from '@/auth/management/ConnectedServices';
+import { ConnectedServices } from '@jgrieve/auth/management/ConnectedServices';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -16,7 +16,7 @@ import Extension from './extension';
 // System-defined extensions which should be read-only in the UI
 const SYSTEM_EXTENSIONS = ['text-to-speech', 'web-search', 'image-generation', 'analysis'];
 
-import { useTeam } from '@/auth/hooks/useTeam';
+import { useTeam } from '@jgrieve/auth/hooks/useTeam';
 import MarkdownBlock from '@/components/markdown/MarkdownBlock';
 import { Input } from '@/components/ui/input';
 

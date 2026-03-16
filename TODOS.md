@@ -207,6 +207,9 @@
 - [ ] 3.5.9 Create missing `src/index.ts` entry point (package.json references it but it doesn't exist)
 - [ ] 3.5.10 Fix empty else block in `Register.tsx:86` — silent failure on non-200/201 status
 - [ ] 3.5.11 Add error handling in `mfa/EMail.tsx:25-58` — API call not wrapped in try-catch
+- [ ] 3.5.12 `management/Profile.tsx` (dev) — new `@/components/theme/ThemeToggle` import adds cross-link to non-submodule code; violates self-containment
+- [ ] 3.5.13 `management/Profile.tsx` (dev) — `extraComponents` prop passed to DynamicForm with `readUserField('theme')` needs verification that DynamicForm supports this API
+- [ ] 3.5.14 `management/Profile.tsx` (dev) — 30+ inline grid layout numbers (`colSpan`, `colSpanMd`, `colStartXl`, `rowStartMd`, etc.) added to field definitions; extract to a layout config constant or helper
 
 ### 3.6 Accessibility
 - [ ] 3.6.1 Fix `Identify.tsx:97` — `htmlFor='E-Mail Address'` should be an element ID, not descriptive text
@@ -222,7 +225,7 @@
 - [ ] 3.7.3 `auth.middleware.ts:62-108` — multiple invitations processed simultaneously could create duplicate cookies/redirects
 
 ### 3.8 Self-Containment
-- [ ] 3.8.1 Audit and eliminate cross-linking: imports from `@/components/ui/*`, `@/components/assert/*`, `@/components/wais/*`, `@/components/dynamic-form/*`, `@/lib/*`, `@/next-log/*`, `@/zod2gql`, `@/hooks/*`
+- [ ] 3.8.1 Audit and eliminate cross-linking: imports from `@/components/ui/*`, `@/components/assert/*`, `@/components/wais/*`, `@/components/dynamic-form/*`, `@/components/theme/*`, `@/lib/*`, `@/next-log/*`, `@/zod2gql`, `@/hooks/*`
 - [ ] 3.8.2 Ensure the module can function via `npm link` without parent framework context
 
 ---

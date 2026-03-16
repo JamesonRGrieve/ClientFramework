@@ -1,11 +1,11 @@
-import Head from '@/appwrapper/Head';
-import { SidebarContentProvider } from '@/appwrapper/SidebarContentManager';
-import { SidebarContext } from '@/appwrapper/SidebarContext';
-import { SidebarMain } from '@/appwrapper/SidebarMain';
+import Head from '@jgrieve/appwrapper/Head';
+import { SidebarContentProvider } from '@jgrieve/appwrapper/SidebarContentManager';
+import { SidebarContext } from '@jgrieve/appwrapper/SidebarContext';
+import { SidebarMain } from '@jgrieve/appwrapper/SidebarMain';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
-import '@/zod2gql';
+import 'zod2gql';
 import { cookies } from 'next/headers';
 import { ReactNode } from 'react';
 import './globals.css';

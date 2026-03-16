@@ -1,6 +1,6 @@
 'use client';
 
-import { SidebarPage } from '@/appwrapper/SidebarPage';
+import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { getCookie } from 'cookies-next';
 import Link from 'next/link';

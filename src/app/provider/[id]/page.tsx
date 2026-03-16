@@ -1,4 +1,4 @@
-import { SidebarPage } from '@/appwrapper/SidebarPage';
+import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
 import { SidebarContent } from '@/components/appwrapper/src/SidebarContentManager';
 import ProviderSidebar from './providerSideBar';
 import ProviderInstances from './providers';

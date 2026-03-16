@@ -1,4 +1,4 @@
-import { SidebarPage } from '@/appwrapper/SidebarPage';
+import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
 import MarkdownBlock from '@/components/markdown/MarkdownBlock';
 import fs from 'fs';
 import path from 'path';

@@ -1,4 +1,4 @@
-import z from '@/zod2gql';
+import z from 'zod2gql';
 
 export const ProviderSettingSchema = z.object({ name: z.string().min(1), value: z.unknown() });
 
