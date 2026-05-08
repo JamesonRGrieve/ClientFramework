@@ -54,12 +54,78 @@ Submodule rules:
 
 ## Commands
 
+This project uses **pnpm** (pinned via `packageManager` in `package.json`). Do not use `npm` or `yarn` — the lockfile is `pnpm-lock.yaml`.
+
 ```bash
-npm install               # Install dependencies
-npm run dev               # Dev server on port 1109
-npm run build             # Production build
-npm run lint              # ESLint
-npm run lint-fix          # ESLint with auto-fix
-npm run fix               # Prettier + ESLint auto-fix
-npm run prettier-fix      # Prettier format only
+pnpm install                  # Install dependencies (regenerates pnpm-lock.yaml)
+pnpm dev                      # Dev server on port 1109
+pnpm build                    # Production build
+pnpm lint                     # ESLint
+pnpm lint-fix                 # ESLint with auto-fix
+pnpm fix                      # Prettier + ESLint auto-fix
+pnpm prettier-fix             # Prettier format only
+
+# Quality gates
+pnpm typecheck                # tsc --noEmit
+pnpm test                     # vitest run
+pnpm test:watch               # vitest watch
+pnpm test:coverage            # vitest with v8 coverage
+pnpm test:storybook:integration  # Build storybook + run Playwright
+
+# Ratchets — run before commit; CI runs them too
+pnpm lint:ratchet             # ESLint warning count vs .eslint-warning-baseline
+pnpm typecheck:ratchet        # tsc error count vs .tsc-error-baseline
+pnpm ts:ratchet               # per-dir `: any` / `as any` / `@ts-*` vs .ts-coverage-baseline
+pnpm ts:coverage              # writes .ts-coverage.json + prints markdown table
+
+# When a ratchet metric drops, lower the baseline in the same commit:
+pnpm lint:ratchet:update
+pnpm typecheck:ratchet:update
+pnpm ts:ratchet:update
+
+# Storybook
+pnpm storybook                # dev server on 3001
+pnpm storybook-build          # static build to storybook-static/
 ```
+
+## Quality gates: the ratchet system
+
+Every quality dimension worth tracking has (1) a coverage script that reports the current count and (2) a ratchet script that compares the count to a committed baseline. Ratchets are a **one-way valve**: a PR may improve a metric, but no PR may regress one. Bypassing with `--no-verify` requires explicit user authorization.
+
+When a metric drops on your branch, the ratchet prints a hint reminding you to update the baseline in the same commit (`pnpm <metric>:ratchet:update`). The new floor sticks; future PRs can only go lower.
+
+### Inventory
+
+| Metric | Ratchet | Baseline file |
+| --- | --- | --- |
+| ESLint warning count | `pnpm lint:ratchet` | `.eslint-warning-baseline` |
+| `tsc --noEmit` error count | `pnpm typecheck:ratchet` | `.tsc-error-baseline` |
+| Per-directory TS-strictness escapes | `pnpm ts:ratchet` | `.ts-coverage-baseline` |
+
+ESLint **errors** (as opposed to warnings) always fail the lint ratchet — they're a hard gate. Set rules to `"warn"` in `.eslintrc.json` if you want them ratcheted; reserve `"error"` for things no one should ever introduce.
+
+### TS-strictness coverage
+
+`scripts/ts-coverage.mjs` counts four manual-suppression patterns in every `*.ts` / `*.tsx` file under `src/`, excluding submodule paths (`src/components/auth`, `src/lib/zod2gql`, `src/lib/next-log`), `*.stories.*`, `*.test.*`, and `*.d.ts`:
+
+- bare `: any` annotations
+- ` as any` casts
+- `@ts-expect-error` directives
+- `@ts-ignore` directives
+
+Counts are aggregated by top-level directory under `src/` (`app`, `components`, `lib`, `hooks`, `extensions`, `_root`). The ratchet refuses commits that increase any (metric, directory) pair. New directories are added at their current count without failing.
+
+### Casting policy
+
+- **Never resort to `any`** for convenience, even for complex hook signatures. Use generics or precise interfaces.
+- **Fix the root cause**, not the symptom. If the compiler complains about a 'possibly undefined' property, tighten the underlying type rather than sprinkling `??` and `?.` through call sites. Inference is always preferred over casting.
+- **`@ts-expect-error` requires a description** (≥5 chars) per ESLint config. `@ts-ignore` and `@ts-nocheck` are forbidden.
+- Existing suppressions may stay until the underlying issue is fixed, but every PR should reduce — never grow — the count.
+
+## Testing & stories
+
+- **Vitest covers all functionality.** Pure logic (utilities, hooks, helpers, API clients, validators) gets unit tests. `pnpm test` must pass before commit. Tests live as `*.test.ts(x)` co-located with the source, or under `tests/`.
+- **Storybook stories for every component.** Sheets, dialogs, panels, chat cards, HUD widgets — each gets a `*.stories.tsx`. Use the factories in `stories/mocks/` (when added) to produce realistic mock data instead of hand-authoring large mock objects per story.
+- **Interactive testing in stories.** Stories with behavior use Storybook's `play` function (or Vitest + happy-dom against rendered output) to assert on clicks, form submission, drag/drop. A "renders without throwing" story is not enough for an interactive component.
+- **Composition testing.** Full-page stories render header + sidebar + content together so layout regressions and Tailwind class conflicts show up in visual review.
+- The `pnpm test:storybook:integration` pipeline builds Storybook and runs Playwright against the static output (`tests/storybook/*.spec.ts`).
