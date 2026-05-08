@@ -33,22 +33,24 @@ This repository is a template framework. Downstream projects merge from it regul
 
 ## Submodules
 
-This project uses five git submodules — each is an independent repo with its own package.json:
+This project uses two git submodules. The other previously-split modules — `appwrapper`, `dynamic-form`, `next-log` — were inlined because they were heavily coupled to framework internals and never published as standalone packages; the submodule overhead exceeded the unrealized reuse benefit.
 
 ```
-src/components/appwrapper/    → github.com/JamesonRGrieve/appwrapper
 src/components/auth/          → github.com/JamesonRGrieve/auth
-src/components/dynamic-form/  → github.com/JamesonRGrieve/dynamic-form
-src/lib/next-log/             → github.com/JamesonRGrieve/next-log
 src/lib/zod2gql/              → github.com/JamesonRGrieve/zod2gql
 ```
 
+- **`auth`** stays separate because downstream forks may swap it wholesale (Auth0, Clerk, custom) and the cleaner the boundary the easier that swap.
+- **`zod2gql`** stays separate because it's the one genuinely reusable utility — zero framework coupling, candidate for npm publication.
+
+Submodule rules:
+
 - **After cloning**, initialize submodules: `git submodule update --init --recursive`.
-- **To pull latest** for all submodules: `git submodule update --remote --merge`.
-- **Path aliases** in `tsconfig.json` map `@/auth/*`, `@/appwrapper/*`, `@/dynamic-form/*`, `@/next-log/*`, and `@/zod2gql` to their respective `src/` directories inside each submodule.
-- **Submodule changes are separate commits.** If you modify code inside a submodule, commit and push within that submodule first, then update the parent repo's submodule pointer with a separate commit. Don't mix submodule pointer updates with other parent-repo changes.
-- **Don't edit submodule code to fix a parent-repo problem.** If the issue is in the parent repo's usage, fix it there. Only modify submodule code for bugs or features that belong to that library.
-- **No cross-linking between submodules.** Each submodule must be a self-contained node module that could function equally well via `npm link` or `npm install`. A submodule must never import from or depend on another submodule. They exist as submodules only to simplify development.
+- **To pull latest**: `git submodule update --remote --merge`.
+- **Path aliases** in `tsconfig.json` map `@/auth/*` and `@/zod2gql` to the `src/` directories inside each submodule. Path aliases for the inlined modules (`@/appwrapper/*`, `@/dynamic-form/*`, `@/next-log/*`) point at their now-local directories under `src/components/` and `src/lib/`; imports remain unchanged from the submodule era.
+- **Submodule changes are separate commits.** If you modify code inside a submodule, commit and push within that submodule first, then update the parent repo's submodule pointer with a separate commit.
+- **Don't edit submodule code to fix a parent-repo problem.** If the issue is in the parent repo's usage, fix it there.
+- **`auth` currently imports from inlined modules and parent app code** (e.g. `@/dynamic-form/*`, `@/next-log/log`, `@/app/NavMain`). This violates the "self-contained" rule but reflects historical reality. Future cleanup: move framework-side glue into the parent so `auth` only depends on its own surface plus `@/zod2gql`.
 
 ## Commands
 
