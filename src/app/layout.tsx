@@ -3,6 +3,7 @@ import { SidebarContentProvider } from '@/appwrapper/SidebarContentManager';
 import { SidebarContext } from '@/appwrapper/SidebarContext';
 import { SidebarMain } from '@/appwrapper/SidebarMain';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { DeprecationBanner } from '@/components/api/DeprecationBanner';
 import { Toaster } from '@/components/ui/toaster';
 import { ExtensionProviders, Slot } from '@/extensions';
 import { cn } from '@/lib/utils';
@@ -43,6 +44,7 @@ export default async function RootLayout({ children }: { children: ReactNode }):
               <Slot id='app.body.append' />
             </SidebarProvider>
           </SidebarContentProvider>
+          <DeprecationBanner />
         </ExtensionProviders>
       </body>
     </html>

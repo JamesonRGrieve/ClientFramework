@@ -2,6 +2,7 @@
 
 import { ChevronRightIcon } from '@radix-ui/react-icons';
 
+import { adminNavItems } from '@/app/admin/nav';
 import { useTeam } from '@/auth/hooks/useTeam';
 import { items as coreNavItems } from '@/components/auth/src/NavMenu';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -21,7 +22,7 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-const items = [...coreNavItems, ...getExtensionNav()];
+const items = [...coreNavItems, ...adminNavItems, ...getExtensionNav()];
 
 export const navItems = items;
 export type Item = {
