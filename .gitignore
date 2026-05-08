@@ -40,3 +40,15 @@ test.ipynb
 
 __pycache__
 yarn.lock
+package-lock.json
+
+# pnpm
+.pnpm-store
+
+# ratchet artifacts (regenerated; baseline files are committed)
+.ts-coverage.json
+
+# storybook
+storybook-static
+playwright-report
+test-results

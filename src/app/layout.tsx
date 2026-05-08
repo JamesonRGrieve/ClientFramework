@@ -3,7 +3,9 @@ import { SidebarContentProvider } from '@/appwrapper/SidebarContentManager';
 import { SidebarContext } from '@/appwrapper/SidebarContext';
 import { SidebarMain } from '@/appwrapper/SidebarMain';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { DeprecationBanner } from '@/components/api/DeprecationBanner';
 import { Toaster } from '@/components/ui/toaster';
+import { ExtensionProviders, Slot } from '@/extensions';
 import { cn } from '@/lib/utils';
 import '@/zod2gql';
 import { cookies } from 'next/headers';
@@ -31,15 +33,19 @@ export default async function RootLayout({ children }: { children: ReactNode }):
     <html lang='en' className={htmlThemeClass} suppressHydrationWarning>
       <Head />
       <body className={cn(/*inter.className,*/ theme, appearance)}>
-        <SidebarContentProvider>
-          <SidebarProvider className='flex-1'>
-            <SidebarMain side='left' />
-            {children}
-            <Toaster />
-            {/* <ThemeSetter /> */}
-            <SidebarContext side='right' />
-          </SidebarProvider>
-        </SidebarContentProvider>
+        <ExtensionProviders>
+          <SidebarContentProvider>
+            <SidebarProvider className='flex-1'>
+              <SidebarMain side='left' />
+              {children}
+              <Toaster />
+              {/* <ThemeSetter /> */}
+              <SidebarContext side='right' />
+              <Slot id='app.body.append' />
+            </SidebarProvider>
+          </SidebarContentProvider>
+          <DeprecationBanner />
+        </ExtensionProviders>
       </body>
     </html>
   );

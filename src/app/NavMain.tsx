@@ -2,9 +2,11 @@
 
 import { ChevronRightIcon } from '@radix-ui/react-icons';
 
+import { adminNavItems } from '@/app/admin/nav';
 import { useTeam } from '@/auth/hooks/useTeam';
-import { items } from '@/components/auth/src/NavMenu';
+import { items as coreNavItems } from '@/components/auth/src/NavMenu';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Slot, getExtensionNav } from '@/extensions';
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -19,6 +21,8 @@ import {
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+
+const items = [...coreNavItems, ...adminNavItems, ...getExtensionNav()];
 
 export const navItems = items;
 export type Item = {
@@ -123,8 +127,9 @@ export function NavMain() {
         </SidebarMenu>
       </div>
 
-      {/* Sticky bottom section for Documentation */}
+      {/* Sticky bottom section for Documentation + extension contributions */}
       <div className='sticky bottom-0 pt-2 w-full'>
+        <Slot id='nav.footer' />
         <SidebarMenu>
           {bottomItems.map((item) => (
             <Collapsible key={item.title} asChild defaultOpen={item.isActive} className='group/collapsible'>

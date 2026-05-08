@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { useAuth, useJWTQueryParam, useOAuth2 } from '@/auth/auth.middleware';
 import { MiddlewareHook } from '@/auth/types/MiddlewareHook';
 import { getRequestedURI } from '@/auth/utils';
+import { extensionMiddleware } from '@/extensions/middleware';
 import log from '@/next-log/log';
 
 //import assert from 'assert';
@@ -44,7 +45,7 @@ export default async function Middleware(req: NextRequest): Promise<NextResponse
   log([`MIDDLEWARE INVOKED AT ${req.nextUrl.pathname}`], {
     server: 1,
   });
-  const hooks = [useNextAPIBypass, useOAuth2, useJWTQueryParam, useAuth];
+  const hooks = [useNextAPIBypass, useOAuth2, useJWTQueryParam, useAuth, ...extensionMiddleware];
   for (const hook of hooks) {
     const hookResult = await hook(req);
     if (hookResult.activated) {
