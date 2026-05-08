@@ -33,7 +33,10 @@
     "symmetry": "node scripts/coverage-symmetry.mjs",
     "symmetry:ratchet": "node scripts/symmetry-ratchet.mjs",
     "symmetry:ratchet:update": "node scripts/symmetry-ratchet.mjs --update",
-    "check": "npm run lint && npm run typecheck && npm run symmetry"
+    "js-coverage": "node scripts/js-coverage.mjs",
+    "js-coverage:ratchet": "node scripts/js-coverage-ratchet.mjs",
+    "js-coverage:ratchet:update": "node scripts/js-coverage-ratchet.mjs --update",
+    "check": "npm run lint:ratchet && npm run typecheck:ratchet && npm run symmetry:ratchet && npm run js-coverage:ratchet"
   },
   "repository": {
     "type": "git",

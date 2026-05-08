@@ -1,0 +1,8 @@
+{
+  "count": 3,
+  "files": [
+    "src/components/appwrapper/postcss.config.js",
+    "src/components/appwrapper/tailwind.config.js",
+    "src/lib/next-log/postcss.config.js"
+  ]
+}
