@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { useAuth, useJWTQueryParam, useOAuth2 } from '@jgrieve/auth/auth.middleware';
 import { MiddlewareHook } from '@jgrieve/auth/types/MiddlewareHook';
 import { getRequestedURI } from '@jgrieve/auth/utils';
-import log from '@jgrieve/next-log/log';
+import log from '@/lib/log';
 
 //import assert from 'assert';
 

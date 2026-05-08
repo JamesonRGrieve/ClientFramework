@@ -1,5 +1,5 @@
 import { createGraphQLClient } from '@jgrieve/auth/hooks/lib';
-import log from '@jgrieve/next-log/log';
+import log from '@/lib/log';
 import useSWR, { SWRResponse } from 'swr';
 import { z } from 'zod';
 import { Provider, ProviderSchema } from './z';

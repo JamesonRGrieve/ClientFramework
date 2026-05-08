@@ -25,7 +25,7 @@ import axios from 'axios';
 import { getCookie } from 'cookies-next';
 import { useToast } from '@/hooks/useToast';
 import { useParams, useRouter } from 'next/navigation';
-import { useUser } from '@/components/auth/src/hooks/useUser';
+import { useUser } from '@jgrieve/auth/hooks/useUser';
 import { useProviderInstance, useProviderInstances } from './useProviders';
 import { ArrowBigLeft } from 'lucide-react';
 

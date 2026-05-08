@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "rimraf ./.next && next dev -p 1109",
     "basic": "rimraf ./.next && next dev -p 3000",
+    "prebuild": "bash scripts/prebuild-link-siblings.sh",
     "build": "rimraf ./.next && next build",
     "clean-build": "rimraf ./.next & rimraf ./node_nodules && npm install && npm run build && npm start",
     "compile": "tsc --jsx react-jsx --project tsconfig.compile.json && shx mkdir -p ./dist/style && npx postcss ./app/globals.css -o ./dist/style/globals.css",
@@ -23,7 +24,16 @@
     "storybook-deploy": "storybook build && gh-pages -d storybook-static",
     "storybook-test": "test-storybook --url http://localhost:3001",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint:ratchet": "node scripts/lint-ratchet.mjs",
+    "lint:ratchet:update": "node scripts/lint-ratchet.mjs --update",
+    "typecheck:ratchet": "node scripts/typecheck-ratchet.mjs",
+    "typecheck:ratchet:update": "node scripts/typecheck-ratchet.mjs --update",
+    "symmetry": "node scripts/coverage-symmetry.mjs",
+    "symmetry:ratchet": "node scripts/symmetry-ratchet.mjs",
+    "symmetry:ratchet:update": "node scripts/symmetry-ratchet.mjs --update",
+    "check": "npm run lint && npm run typecheck && npm run symmetry"
   },
   "repository": {
     "type": "git",
