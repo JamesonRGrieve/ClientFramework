@@ -178,7 +178,6 @@
     "sonarjs/no-identical-expressions": "warn", // Warn on identical expressions on both sides of a binary operator.
     "sonarjs/no-identical-functions": "warn", // Warn on identical functions.
     "sonarjs/no-inverted-boolean-check": "warn", // Disallow inverted boolean checks in if-else blocks.
-    "sonarjs/no-one-iteration-loop": "warn", // Warn on loops that will iterate only once.
     "sonarjs/no-redundant-boolean": "warn", // Warn on redundant boolean expressions.
     "sonarjs/no-small-switch": "warn", // Warn on small switch statements.
     "sonarjs/no-unused-collection": "warn", // Warn on collections that are not used.
