@@ -5,18 +5,17 @@
 ### Cloning
 
 ```sh
-git clone git@github.com:JamesonRGrieve/ClientFramework.git --recursive
+git clone git@github.com:JamesonRGrieve/ClientFramework.git
 ```
-
-**This repository uses submodules and the `--recursive` flag is important!**
 
 ### Requirements
 
 - NodeJS >= 20
+- pnpm (pinned via `packageManager` in `package.json`)
 
 ```sh
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 ### Environment

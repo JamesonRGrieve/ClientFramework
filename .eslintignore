@@ -1,3 +1,7 @@
 app
 next.config.js
 public/sw.js
+src/lib/next-log
+storybook-static
+.next
+dist
