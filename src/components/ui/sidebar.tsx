@@ -326,7 +326,9 @@ const SidebarRail = React.forwardRef<
 
   const handleResize = React.useCallback(
     (e: MouseEvent) => {
-      if (!isResizing) return;
+      if (!isResizing) {
+        return;
+      }
       e.preventDefault();
 
       const delta = side === 'left' ? e.pageX - startXRef.current : startXRef.current - e.pageX;

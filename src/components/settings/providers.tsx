@@ -1,6 +1,11 @@
 'use client';
 
 import { useTeam } from '@jgrieve/auth/hooks/useTeam';
+import axios from 'axios';
+import { getCookie } from 'cookies-next';
+import { Plus, Wrench } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { LuUnlink as Unlink } from 'react-icons/lu';
 import MarkdownBlock from '@/components/markdown/MarkdownBlock';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -16,11 +21,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useProviders } from '@/hooks/useProvider';
-import axios from 'axios';
-import { getCookie } from 'cookies-next';
-import { Plus, Wrench } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { LuUnlink as Unlink } from 'react-icons/lu';
 
 // Types remain the same
 type Command = {
@@ -74,7 +74,7 @@ export function Providers() {
         {
           agent_name: agent_name,
           settings: settings,
-        } as ExtensionSettings,
+        },
         {
           headers: {
             'Content-Type': 'application/json',
@@ -116,112 +116,112 @@ export function Providers() {
     <div className='space-y-6'>
       <div className='grid gap-4'>
         {providers.connected?.map?.((provider) => (
-            <div
-              key={provider.name}
-              className='flex flex-col gap-4 p-4 transition-colors border rounded-lg bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60'
-            >
-              <div className='flex items-center gap-4'>
-                <div className='flex items-center flex-1 min-w-0 gap-3.5'>
-                  <Wrench className='shrink-0 w-5 h-5 text-muted-foreground' />
-                  <div>
-                    <h4 className='font-medium truncate'>{provider.name}</h4>
-                    <p className='text-sm text-muted-foreground'>Connected</p>
-                  </div>
+          <div
+            key={provider.name}
+            className='flex flex-col gap-4 p-4 transition-colors border rounded-lg bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60'
+          >
+            <div className='flex items-center gap-4'>
+              <div className='flex items-center flex-1 min-w-0 gap-3.5'>
+                <Wrench className='shrink-0 w-5 h-5 text-muted-foreground' />
+                <div>
+                  <h4 className='font-medium truncate'>{provider.name}</h4>
+                  <p className='text-sm text-muted-foreground'>Connected</p>
                 </div>
-                <Button variant='outline' size='sm' className='gap-2' onClick={() => handleDisconnect(provider.name)}>
-                  <Unlink className='w-4 h-4' />
-                  Disconnect
-                </Button>
               </div>
-              <div className='text-sm text-muted-foreground'>
-                <MarkdownBlock content={provider.description} />
-              </div>
+              <Button variant='outline' size='sm' className='gap-2' onClick={async () => handleDisconnect(provider.name)}>
+                <Unlink className='w-4 h-4' />
+                Disconnect
+              </Button>
             </div>
-          ))}
+            <div className='text-sm text-muted-foreground'>
+              <MarkdownBlock content={provider.description} />
+            </div>
+          </div>
+        ))}
 
         {providers.available?.map?.((provider) => (
-            <div
-              key={provider.name}
-              className='flex flex-col gap-4 p-4 transition-colors border rounded-lg bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60'
-            >
-              <div className='flex items-center gap-4'>
-                <div className='flex items-center flex-1 min-w-0 gap-3.5'>
-                  <Wrench className='shrink-0 w-5 h-5 text-muted-foreground' />
-                  <div>
-                    <h4 className='font-medium truncate'>{provider.friendlyName}</h4>
-                    <p className='text-sm text-muted-foreground'>Not Connected</p>
-                  </div>
+          <div
+            key={provider.name}
+            className='flex flex-col gap-4 p-4 transition-colors border rounded-lg bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60'
+          >
+            <div className='flex items-center gap-4'>
+              <div className='flex items-center flex-1 min-w-0 gap-3.5'>
+                <Wrench className='shrink-0 w-5 h-5 text-muted-foreground' />
+                <div>
+                  <h4 className='font-medium truncate'>{provider.friendlyName}</h4>
+                  <p className='text-sm text-muted-foreground'>Not Connected</p>
                 </div>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant='outline'
-                      size='sm'
-                      className='gap-2'
-                      onClick={() => {
-                        // Initialize settings with the default values from provider.settings
-                        setSettings(
-                          provider.settings.reduce((acc, setting) => {
-                            acc[setting.name] = setting.value;
-                            return acc;
-                          }, {}),
-                        );
-                      }}
-                    >
-                      <Plus className='w-4 h-4' />
-                      Connect
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className='sm:max-w-[425px]'>
-                    <DialogHeader>
-                      <DialogTitle>Configure {provider.name}</DialogTitle>
-                      <DialogDescription>
-                        Enter the required credentials to enable this service. {provider.description}
-                      </DialogDescription>
-                    </DialogHeader>
-
-                    <div className='grid gap-4 py-4'>
-                      {provider.settings.map((prov) => (
-                        <div key={prov.name} className='grid gap-2'>
-                          <Label htmlFor={prov.name}>{prov.name}</Label>
-                          <Input
-                            id={prov.name}
-                            type={
-                              prov.name.toLowerCase().includes('key') || prov.name.toLowerCase().includes('password')
-                                ? 'password'
-                                : 'text'
-                            }
-                            defaultValue={prov.value}
-                            value={settings[prov.name]}
-                            onChange={(e) =>
-                              setSettings((prev) => ({
-                                ...prev,
-                                [prov.name]: e.target.value,
-                              }))
-                            }
-                            placeholder={`Enter ${prov.name.toLowerCase()}`}
-                          />
-                        </div>
-                      ))}
-                    </div>
-
-                    <DialogFooter>
-                      <Button onClick={() => handleSaveSettings(provider.name, settings)}>Connect Provider</Button>
-                    </DialogFooter>
-
-                    {error && (
-                      <Alert variant={error.type === 'success' ? 'default' : 'destructive'}>
-                        <AlertDescription>{error.message}</AlertDescription>
-                      </Alert>
-                    )}
-                  </DialogContent>
-                </Dialog>
               </div>
-              <div className='text-sm text-muted-foreground'>
-                <MarkdownBlock content={provider.description || 'No description available'} />
-              </div>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    className='gap-2'
+                    onClick={() => {
+                      // Initialize settings with the default values from provider.settings
+                      setSettings(
+                        provider.settings.reduce((acc, setting) => {
+                          acc[setting.name] = setting.value;
+                          return acc;
+                        }, {}),
+                      );
+                    }}
+                  >
+                    <Plus className='w-4 h-4' />
+                    Connect
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className='sm:max-w-[425px]'>
+                  <DialogHeader>
+                    <DialogTitle>Configure {provider.name}</DialogTitle>
+                    <DialogDescription>
+                      Enter the required credentials to enable this service. {provider.description}
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className='grid gap-4 py-4'>
+                    {provider.settings.map((prov) => (
+                      <div key={prov.name} className='grid gap-2'>
+                        <Label htmlFor={prov.name}>{prov.name}</Label>
+                        <Input
+                          id={prov.name}
+                          type={
+                            prov.name.toLowerCase().includes('key') || prov.name.toLowerCase().includes('password')
+                              ? 'password'
+                              : 'text'
+                          }
+                          defaultValue={prov.value}
+                          value={settings[prov.name]}
+                          onChange={(e) =>
+                            setSettings((prev) => ({
+                              ...prev,
+                              [prov.name]: e.target.value,
+                            }))
+                          }
+                          placeholder={`Enter ${prov.name.toLowerCase()}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  <DialogFooter>
+                    <Button onClick={async () => handleSaveSettings(provider.name, settings)}>Connect Provider</Button>
+                  </DialogFooter>
+
+                  {error && (
+                    <Alert variant={error.type === 'success' ? 'default' : 'destructive'}>
+                      <AlertDescription>{error.message}</AlertDescription>
+                    </Alert>
+                  )}
+                </DialogContent>
+              </Dialog>
             </div>
-          ))}
+            <div className='text-sm text-muted-foreground'>
+              <MarkdownBlock content={provider.description || 'No description available'} />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

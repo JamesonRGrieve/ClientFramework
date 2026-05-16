@@ -22,7 +22,7 @@ export function ThemeToggle({ initialTheme }: { initialTheme?: string }) {
         ? 'default'
         : 'light';
 
-  const Icon = icons[key as keyof typeof icons];
+  const Icon = icons[key];
 
   return (
     <DropdownMenu>

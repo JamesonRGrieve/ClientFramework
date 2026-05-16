@@ -89,7 +89,7 @@ export function DisclosureTrigger({ children, className }: { children: React.Rea
 
   return (
     <>
-      {React.Children.map(children, (child) => {
+      {React.Children.map(children, async (child) => {
         return React.isValidElement(child)
           ? React.cloneElement(child, {
               onClick: toggle,

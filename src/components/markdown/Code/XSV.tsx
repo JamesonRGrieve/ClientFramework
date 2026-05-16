@@ -168,7 +168,8 @@ export const RendererXSV = ({
               </select>
             </div>
             <div>
-              <button type="button"
+              <button
+                type='button'
                 className='px-2 py-1 border rounded mr-2'
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
@@ -178,7 +179,8 @@ export const RendererXSV = ({
               <span>
                 Page {currentPage} of {Math.ceil(filteredRows.length / pageSize)}
               </span>
-              <button type="button"
+              <button
+                type='button'
                 className='px-2 py-1 border rounded ml-2'
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === Math.ceil(filteredRows.length / pageSize)}
@@ -189,7 +191,8 @@ export const RendererXSV = ({
           </div>
           {setLoading && (
             <div className='mt-4'>
-              <button type="button"
+              <button
+                type='button'
                 className='flex items-center px-4 py-2 border border-blue-500 text-blue-500 rounded hover:bg-blue-100'
                 onClick={() => setOpen(true)}
               >
@@ -214,10 +217,11 @@ export const RendererXSV = ({
                   placeholder='What would you like insights on?'
                 />
                 <div className='flex justify-end'>
-                  <button type="button" className='px-4 py-2 text-red-500 mr-2' onClick={() => setOpen(false)}>
+                  <button type='button' className='px-4 py-2 text-red-500 mr-2' onClick={() => setOpen(false)}>
                     Cancel
                   </button>
-                  <button type="button"
+                  <button
+                    type='button'
                     className='px-4 py-2 bg-blue-500 text-white rounded'
                     onClick={() => {
                       getInsights(userMessage);

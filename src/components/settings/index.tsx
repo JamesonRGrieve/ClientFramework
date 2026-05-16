@@ -32,7 +32,9 @@ export function Settings() {
     router.replace(`${pathname}?${params.toString()}`);
   };
 
-  if (!isDialogOpen) return <></>;
+  if (!isDialogOpen) {
+    return <></>;
+  }
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={closeDialog}>

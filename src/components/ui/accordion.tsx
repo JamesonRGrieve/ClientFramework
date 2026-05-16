@@ -37,7 +37,7 @@ type AccordionItemProps = {
 export const AccordionItem = ({ value, children, className = '' }: AccordionItemProps) => {
   return (
     <div className={`border-b border-border ${className}`}>
-      {React.Children.map(children, (child) =>
+      {React.Children.map(children, async (child) =>
         React.isValidElement(child) ? React.cloneElement(child as React.ReactElement, { parentValue: value }) : child,
       )}
     </div>

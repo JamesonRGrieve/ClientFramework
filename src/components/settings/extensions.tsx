@@ -1,24 +1,24 @@
 'use client';
 
 import { ConnectedServices } from '@jgrieve/auth/management/ConnectedServices';
+import axios from 'axios';
+import { getCookie } from 'cookies-next';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+import { useTeam } from '@jgrieve/auth/hooks/useTeam';
+import Extension from './extension';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useProviders } from '@/hooks/useProvider';
-import axios from 'axios';
-import { getCookie } from 'cookies-next';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
-import Extension from './extension';
+
+import MarkdownBlock from '@/components/markdown/MarkdownBlock';
+import { Input } from '@/components/ui/input';
 
 // System-defined extensions which should be read-only in the UI
 const SYSTEM_EXTENSIONS = ['text-to-speech', 'web-search', 'image-generation', 'analysis'];
-
-import { useTeam } from '@jgrieve/auth/hooks/useTeam';
-import MarkdownBlock from '@/components/markdown/MarkdownBlock';
-import { Input } from '@/components/ui/input';
 
 // Types remain the same
 type Command = {
@@ -56,7 +56,8 @@ export function Extensions() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [error, setError] = useState<ErrorState>(null);
   const [showEnabledOnly, setShowEnabledOnly] = useState(false);
-  const agent_name = (getCookie('aginteractive-agent') || process.env.NEXT_PUBLIC_AGINTERACTIVE_AGENT || agentData?.agent_name) ?? '';
+  const agent_name =
+    (getCookie('aginteractive-agent') || process.env.NEXT_PUBLIC_AGINTERACTIVE_AGENT || agentData?.agent_name) ?? '';
   const { data: activeCompany, mutate: mutateCompany } = useTeam();
 
   const { data: providerData } = useProviders();
@@ -150,7 +151,7 @@ export function Extensions() {
         {
           agent_name: agent_name,
           settings: settings,
-        } as ExtensionSettings,
+        },
         {
           headers: {
             'Content-Type': 'application/json',
@@ -282,11 +283,17 @@ export function Extensions() {
                                 <Switch
                                   checked={command.enabled}
                                   disabled={isSystemExtension}
-                                  onCheckedChange={isSystemExtension ? undefined : (checked) => handleToggleCommand(command.friendly_name, checked)}
+                                  onCheckedChange={
+                                    isSystemExtension
+                                      ? undefined
+                                      : async (checked) => handleToggleCommand(command.friendly_name, checked)
+                                  }
                                 />
                                 <h4 className='text-lg font-medium'>&nbsp;&nbsp;{command.friendly_name}</h4>
                               </div>
-                              <MarkdownBlock content={command.description?.split('\nArgs')[0] || 'No description available'} />
+                              <MarkdownBlock
+                                content={command.description?.split('\nArgs')[0] || 'No description available'}
+                              />
                             </Card>
                           );
                         })}

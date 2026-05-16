@@ -31,7 +31,9 @@ export default function MarkdownBlock({ content, role, createdAt }: any): ReactN
 
   function parseMarkdownTable(markdown: string) {
     const tableLines = markdown.split('\n').filter((line) => line.includes('|'));
-    if (tableLines.length === 0) return { columns: [], rows: [] };
+    if (tableLines.length === 0) {
+      return { columns: [], rows: [] };
+    }
 
     const headers = tableLines[0]
       .split('|')

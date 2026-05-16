@@ -199,19 +199,19 @@ export default function CodeBlock({
 
         {Object.keys(languageRenders).includes(language) && (
           <div className='flex'>
-            <button type="button" className={`px-4 py-2 ${tab === 0 ? 'bg-muted' : ''}`} onClick={() => setTab(0)}>
+            <button type='button' className={`px-4 py-2 ${tab === 0 ? 'bg-muted' : ''}`} onClick={() => setTab(0)}>
               Rendered
             </button>
-            <button type="button" className={`px-4 py-2 ${tab === 1 ? 'bg-muted' : ''}`} onClick={() => setTab(1)}>
+            <button type='button' className={`px-4 py-2 ${tab === 1 ? 'bg-muted' : ''}`} onClick={() => setTab(1)}>
               Source
             </button>
           </div>
         )}
         <div className='flex items-center'>
-          <button type="button" onClick={copyCode} className='p-2 rounded-full hover:bg-muted'>
+          <button type='button' onClick={copyCode} className='p-2 rounded-full hover:bg-muted'>
             <Copy className='w-5 h-5' />
           </button>
-          <button type="button" onClick={downloadCode} className='p-2 rounded-full hover:bg-muted'>
+          <button type='button' onClick={downloadCode} className='p-2 rounded-full hover:bg-muted'>
             <Download className='w-5 h-5' />
           </button>
           <span className='ml-2 text-sm'>

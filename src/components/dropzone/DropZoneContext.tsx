@@ -1,5 +1,5 @@
 import type React from 'react';
-import { createContext, useContext, useState, useCallback, useEffect, type PropsWithChildren, useRef } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, type PropsWithChildren, useRef } from 'react';
 
 interface DropZoneContextType {
   isDragActive: boolean;

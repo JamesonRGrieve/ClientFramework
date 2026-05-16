@@ -40,7 +40,7 @@ vi.mock('cookies-next', () => ({
 }));
 
 // Global fetch stub
-globalThis.fetch = vi.fn(() =>
+globalThis.fetch = vi.fn(async () =>
   Promise.resolve(
     new Response(JSON.stringify({}), {
       status: 200,

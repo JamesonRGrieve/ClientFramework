@@ -6,7 +6,9 @@ TimeAgo.addDefaultLocale(en);
 const timeAgo = new TimeAgo('en-US');
 
 export const formatTimeAgo = (date: Date | string, style: FormatStyleName = 'twitter'): string => {
-  if (!date) return '';
+  if (!date) {
+    return '';
+  }
   try {
     const parsedDate = typeof date === 'string' ? new Date(date) : date;
     return timeAgo.format(parsedDate, style);
