@@ -12,8 +12,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getCookie, setCookie } from 'cookies-next';
-import { Plus, Power, PowerOff, Unlink, Wrench } from 'lucide-react';
+import { getCookie, } from 'cookies-next';
+import { Plus, Unlink, Wrench } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const OVERRIDE_EXTENSIONS = {

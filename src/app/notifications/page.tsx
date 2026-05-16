@@ -32,7 +32,7 @@ export const dummyNotifications = [
 ];
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, _setNotifications] = useState([]);
   return (
     <SidebarPage title='Notifications'>
       {notifications.length > 0 ? <Notifications notifications={notifications} /> : <EmptyNotifications />}

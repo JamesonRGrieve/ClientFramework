@@ -7,12 +7,12 @@ import { useEffect, useState } from 'react';
 import { LuBook, LuCommand, LuGraduationCap, LuMic, LuPaperclip, LuThumbsDown, LuThumbsUp } from 'react-icons/lu';
 
 export default function GettingStartedPage() {
-  const [hasStarted, setHasStarted] = useState(false);
+  const [_hasStarted, setHasStarted] = useState(false);
   useEffect(() => {
     if (getCookie('client-has-started') === 'true') {
       setHasStarted(true);
     }
-  }, [getCookie('client-has-started')]);
+  }, []);
 
   return (
     <SidebarPage title='Getting Started'>

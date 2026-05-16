@@ -64,7 +64,7 @@ export function Extensions() {
   // Filter extensions for the enabled commands view
   const extensions = searchParams.get('mode') === 'company' ? activeCompany?.extensions || [] : agentData?.extensions || [];
   const extensionsWithCommands = extensions.filter((ext) => ext.commands?.length > 0);
-  const allEnabledCommands = extensions.flatMap((ext) =>
+  const _allEnabledCommands = extensions.flatMap((ext) =>
     ext.commands.filter((cmd) => cmd.enabled).map((cmd) => ({ ...cmd, extension_name: ext.extension_name })),
   );
   // Categorize extensions for the available tab
@@ -88,14 +88,14 @@ export function Extensions() {
       (provider) =>
         provider.settings &&
         Object.entries(provider.settings).every(
-          ([key, defaultValue]) =>
+          ([key, _defaultValue]) =>
             !['KEY', 'SECRET', 'PASSWORD', 'TOKEN'].some((this_key) => key.endsWith(this_key)) ||
             (['KEY', 'SECRET', 'PASSWORD', 'TOKEN'].some((this_key) => key.endsWith(this_key)) &&
               agentData?.settings[key] &&
               agentData?.settings[key] === 'HIDDEN'),
         ),
     );
-    return agentData && agentData.settings
+    return agentData?.settings
       ? {
           // Connected providers have all their settings fields present with non-default values
           connectedProviders: connected,
@@ -142,7 +142,7 @@ export function Extensions() {
     }
   };
 
-  const handleSaveSettings = async (extensionName: string, settings: Record<string, string>) => {
+  const handleSaveSettings = async (_extensionName: string, settings: Record<string, string>) => {
     try {
       setError(null);
       const response = await axios.put<{ status: number; data: any }>(
@@ -188,7 +188,7 @@ export function Extensions() {
             ext.description.toLowerCase().includes(text.toLowerCase()),
         );
   }
-  const filterCommands = useCallback(
+  const _filterCommands = useCallback(
     (commands) => {
       return searchText
         ? commands
@@ -204,7 +204,7 @@ export function Extensions() {
     if (!searchParams.get('tab')) {
       router.push(`${pathname}?tab=extensions`);
     }
-  }, [searchParams]);
+  }, [searchParams, router.push, pathname]);
   const { connectedExtensions, availableExtensions } = categorizeExtensions(extensions);
   const { connectedProviders, availableProviders } = categorizeProviders(Object.values(providerData));
   return (

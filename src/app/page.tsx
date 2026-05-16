@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 
 import { cookies } from 'next/headers';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 
 export default async function Home() {
   return (

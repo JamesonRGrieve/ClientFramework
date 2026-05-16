@@ -1,6 +1,6 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import { LuCopy as Copy } from 'react-icons/lu';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { Checkbox } from '@/components/ui/checkbox';

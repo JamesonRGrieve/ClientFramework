@@ -2,15 +2,14 @@
 
 import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
 import { SidebarInset } from '@/components/ui/sidebar';
-import { getCookie } from 'cookies-next';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-export default function BadGateway({}: {}) {
-  const [link, setLink] = useState('/');
+export default function BadGateway() {
+  const [link, _setLink] = useState('/');
   useEffect(() => {
     // setLink(getCookie('href')?.toString() ?? '/');
-  }, [getCookie('href')]);
+  }, []);
   return (
     <SidebarInset>
       <SidebarPage title=''>

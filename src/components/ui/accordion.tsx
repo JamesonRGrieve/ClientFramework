@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext, ReactNode, useRef, useEffect } from 'react';
+import React, { useState, createContext, useContext, type ReactNode, useRef, useEffect } from 'react';
 import { LuChevronDown as ExpandMore } from 'react-icons/lu';
 
 type AccordionContextType = {
@@ -52,7 +52,7 @@ type AccordionTriggerProps = {
 
 export const AccordionTrigger = ({ children, className = '', parentValue }: AccordionTriggerProps) => {
   const context = useContext(AccordionContext);
-  const trigger = useRef(null);
+  const trigger = useRef<HTMLButtonElement>(null);
   if (!context) {
     throw new Error('AccordionTrigger must be used within an Accordion');
   }
@@ -62,19 +62,21 @@ export const AccordionTrigger = ({ children, className = '', parentValue }: Acco
   useEffect(() => {
     trigger.current?.scrollIntoView({ behavior: isOpen ? 'smooth' : 'instant' });
   }, [isOpen]);
+  const handleToggle = (): void => {
+    if (parentValue) {
+      toggleOpen(parentValue);
+    }
+  };
   return (
-    <div
+    <button
       ref={trigger}
+      type='button'
       className={className || `flex items-center justify-between w-full cursor-pointer`}
-      onClick={() => {
-        if (parentValue) {
-          toggleOpen(parentValue);
-        }
-      }}
+      onClick={handleToggle}
     >
       {children}
       <ExpandMore className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-    </div>
+    </button>
   );
 };
 

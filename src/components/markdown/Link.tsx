@@ -1,11 +1,12 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import React, { ReactNode, useRef } from 'react';
+import type React from 'react';
+import { type ReactNode, useRef } from 'react'
 // import Plyr from 'plyr-react';
 // import 'plyr-react/plyr.css';
 
-const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>): void => {
+const _handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>): void => {
   const href = e.currentTarget.getAttribute('href');
   if (href?.startsWith('#')) {
     e.preventDefault();
@@ -28,7 +29,7 @@ type MarkdownLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement>;
 export default function MarkdownLink({ children, href, className, ...props }: MarkdownLinkProps): ReactNode {
   const isExternal = href && !href.startsWith('#');
   const youtubeId = href ? getYoutubeId(href) : null;
-  const isVideo = href?.match(/\.(mp4|webm|ogg)$/i);
+  const _isVideo = href?.match(/\.(mp4|webm|ogg)$/i);
   const targetRef = useRef<HTMLAnchorElement>(null);
   if (youtubeId) {
     return (

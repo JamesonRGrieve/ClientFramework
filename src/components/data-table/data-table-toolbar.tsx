@@ -1,6 +1,6 @@
 'use client';
 
-import { Table } from '@tanstack/react-table';
+import type { Table } from '@tanstack/react-table';
 import { LuX as X } from 'react-icons/lu';
 import { DataTableViewOptions } from './data-table-view-options';
 import { DataTableFilter } from './data-table-filter';

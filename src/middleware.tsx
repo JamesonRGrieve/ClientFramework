@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { useAuth, useJWTQueryParam, useOAuth2 } from '@jgrieve/auth/auth.middleware';
-import { MiddlewareHook } from '@jgrieve/auth/types/MiddlewareHook';
+import type { MiddlewareHook } from '@jgrieve/auth/types/MiddlewareHook';
 import { getRequestedURI } from '@jgrieve/auth/utils';
 import log from '@/lib/log';
 

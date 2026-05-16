@@ -1,6 +1,6 @@
 import { getCookie } from 'cookies-next';
 import axios from 'axios';
-import useSWR, { SWRResponse } from 'swr';
+import useSWR, { type SWRResponse } from 'swr';
 
 export interface ProviderInstance {
   provider_id: string;
@@ -41,7 +41,7 @@ export function useProviderInstances(): SWRResponse<ProviderInstance[]> {
         );
         
         return response.data.provider_instances || [];
-      } catch (error) {
+      } catch (_error) {
         return [];
       }
     },
@@ -72,7 +72,7 @@ export function useProviderInstance(id: string | undefined): SWRResponse<Provide
           }
         );
         return response.data.provider_instance || null;
-      } catch (error) {
+      } catch (_error) {
         return null;
       }
     },

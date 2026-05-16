@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'next/navigation';
 import { getCookie } from 'cookies-next';
@@ -45,7 +45,6 @@ function Providers() {
               className="border rounded px-2 py-1 w-24"
               value={editValue}
               onChange={e => setEditValue(e.target.value)}
-              autoFocus
             />
           );
         }
@@ -100,7 +99,7 @@ function Providers() {
                     title: 'Success',
                     description: 'Setting updated successfully!',
                   });
-                } catch (err) {
+                } catch (_err) {
                   toast({
                     title: 'Error',
                     description: 'Failed to update setting',

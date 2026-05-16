@@ -3,7 +3,7 @@ import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
 import { SidebarInset } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 export default function UserLayout({ children }: { children: ReactNode }): ReactNode {
   const pathname = usePathname();

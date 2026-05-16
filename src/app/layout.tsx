@@ -7,9 +7,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import 'zod2gql';
 import { cookies } from 'next/headers';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import './globals.css';
-import { metadata, viewport } from './metadata';
 
 // const inter = Inter({ subsets: ['latin'] });
 

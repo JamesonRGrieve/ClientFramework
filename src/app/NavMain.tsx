@@ -53,7 +53,7 @@ export function NavMain() {
   const bottomItems = itemsWithActiveState.filter((i) => i.title === 'Documentation');
 
   const sidebarItemClickHanlder = (open: boolean, item: Item) => {
-    if (item?.items && item.items?.length) {
+    if (item?.items?.length) {
       if (!open) toggleSidebar();
     }
     if (item.url) router.push(item.url);
@@ -97,8 +97,8 @@ export function NavMain() {
                                   href={
                                     subItem.queryParams
                                       ? Object.entries(subItem.queryParams).reduce(
-                                          (url, [key, value]) => url + `${key}=${value}&`,
-                                          subItem.url + '?',
+                                          (url, [key, value]) => `${url}${key}=${value}&`,
+                                          `${subItem.url}?`,
                                         )
                                       : subItem.url
                                   }
@@ -106,7 +106,7 @@ export function NavMain() {
                                 >
                                   <span className='flex items-center gap-2'>
                                     {subItem.icon && <subItem.icon className='w-4 h-4' />}
-                                    {subItem.max_role && company?.name + ' '}
+                                    {subItem.max_role && `${company?.name} `}
                                     {subItem.title}
                                   </span>
                                 </Link>

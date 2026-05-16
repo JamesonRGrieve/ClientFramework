@@ -1,4 +1,4 @@
-import { ReactNode, useMemo } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { DataTable } from '../data-table';

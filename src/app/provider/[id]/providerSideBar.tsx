@@ -7,7 +7,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -20,7 +19,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { LuPencil, LuPlus, LuUsers, LuTrash2 } from 'react-icons/lu';
+import { LuPencil, LuPlus, LuTrash2 } from 'react-icons/lu';
 import axios from 'axios';
 import { getCookie } from 'cookies-next';
 import { useToast } from '@/hooks/useToast';
@@ -107,7 +106,7 @@ export const ProviderSidebar = () => {
         setProviders(data || []);
         // Do not select any provider by default
         setSelectedProviderId(null);
-      } catch (err) {
+      } catch (_err) {
         setProviders([]);
       }
     };
@@ -116,7 +115,7 @@ export const ProviderSidebar = () => {
 
   function handleProviderChange(providerId: string | null) {
     setSelectedProviderId(providerId);
-    const filtered =providerInstances!.filter(
+    const filtered =providerInstances?.filter(
       (instance:ProviderInstance) => instance.provider_id === providerId
     )
     if (filtered.length > 0) {
@@ -130,7 +129,7 @@ export const ProviderSidebar = () => {
 
   // Handlers
   const handleSelectInstance = (id: string) => {
-    const found = providerInstances!.find((p) => p.id === id);
+    const found = providerInstances?.find((p) => p.id === id);
     if (found){
       setSelectedInstance(found);
       router.push(`/provider/${found.id}`);
@@ -214,7 +213,7 @@ export const ProviderSidebar = () => {
       if (createdInstance) {
         router.push(`/provider/${createdInstance.id}`);
       }
-    } catch (error) {
+    } catch (_error) {
       setIsCreateDialogOpen(false);
       toast({
         title: 'Error',
@@ -240,7 +239,7 @@ export const ProviderSidebar = () => {
       // Use mutate to refresh provider instances from the API
       await mutateProviderInstances();
       
-      const list = providerInstances!.filter((instance: ProviderInstance) => instance.provider_id === selectedProviderId && instance.id !== selectedInstance.id);
+      const list = providerInstances?.filter((instance: ProviderInstance) => instance.provider_id === selectedProviderId && instance.id !== selectedInstance.id);
       if(list.length > 0) {
         setSelectedInstance(list[0]);
         router.push(`/provider/${list[0].id}`);
@@ -329,8 +328,8 @@ export const ProviderSidebar = () => {
             onValueChange={handleSelectInstance}
             disabled={
               (selectedProviderId
-                ? providerInstances!.filter((instance: ProviderInstance) => instance.provider_id === selectedProviderId).length === 0
-                : providerInstances!.length === 0)
+                ? providerInstances?.filter((instance: ProviderInstance) => instance.provider_id === selectedProviderId).length === 0
+                : providerInstances?.length === 0)
             }
           >
             <SelectTrigger>
@@ -338,9 +337,9 @@ export const ProviderSidebar = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {(selectedProviderId ? providerInstances!
-                  .filter((instance: ProviderInstance) => instance.provider_id === selectedProviderId)
-                : providerInstances!).map((instance: ProviderInstance) => (
+                {((selectedProviderId
+                  ? providerInstances?.filter((instance: ProviderInstance) => instance.provider_id === selectedProviderId)
+                  : providerInstances) ?? []).map((instance: ProviderInstance) => (
                     <SelectItem key={instance.id} value={instance.id}>
                       {instance.name}
                     </SelectItem>

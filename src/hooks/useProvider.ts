@@ -1,8 +1,8 @@
 import { createGraphQLClient } from '@jgrieve/auth/hooks/lib';
 import log from '@/lib/log';
-import useSWR, { SWRResponse } from 'swr';
+import useSWR, { type SWRResponse } from 'swr';
 import { z } from 'zod';
-import { Provider, ProviderSchema } from './z';
+import { type Provider, ProviderSchema } from './z';
 
 // ============================================================================
 // Provider Related Hooks

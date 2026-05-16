@@ -8,7 +8,7 @@ type Segment = {
 };
 function reprocess(processed: Segment[], rule: any, type: BlockType) {
   return processed
-    .map((value) => {
+    .flatMap((value) => {
       if (value.type === undefined) {
         const result = rule(value.content).map((value: string, index: number) => ({
           type: index % 2 === 1 ? type : undefined,
@@ -21,14 +21,13 @@ function reprocess(processed: Segment[], rule: any, type: BlockType) {
       } else {
         return [value];
       }
-    })
-    .flat();
+    });
 }
 function splitUnEscaped(text: string, delimiter: string) {
   return text
-    .replaceAll('\\' + delimiter, '´')
+    .replaceAll(`\\${delimiter}`, '´')
     .split(delimiter)
-    .map((section) => section.replaceAll('´', '\\' + delimiter));
+    .map((section) => section.replaceAll('´', `\\${delimiter}`));
 }
 export default function textToMarkdown(text: string) {
   // Only split code on code blocks (not inline code)

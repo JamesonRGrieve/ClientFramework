@@ -2,7 +2,7 @@
 
 import { ViewVerticalIcon } from '@radix-ui/react-icons';
 import { Slot } from '@radix-ui/react-slot';
-import { VariantProps, cva } from 'class-variance-authority';
+import { type VariantProps, cva } from 'class-variance-authority';
 import { setCookie } from 'cookies-next';
 import * as React from 'react';
 import { useIsMobile } from '@jgrieve/appwrapper/hooks/useMobile';
@@ -14,12 +14,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-const SIDEBAR_COOKIE_NAME = 'sidebar:state';
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
+const _SIDEBAR_COOKIE_NAME = 'sidebar:state';
+const _SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = '16rem';
 const SIDEBAR_WIDTH_MOBILE = '18rem';
 const SIDEBAR_WIDTH_ICON = '3rem';
-const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
+const _SIDEBAR_KEYBOARD_SHORTCUT = 'b';
 type SidebarContextMap = {
   left?: SidebarContext;
   right?: SidebarContext;
@@ -82,40 +82,46 @@ const SidebarProvider = React.forwardRef<
     const [leftOpen, setLeftOpen] = React.useState(defaultLeftOpen);
     const [rightOpen, setRightOpen] = React.useState(defaultRightOpen);
 
-    const createSetOpen = (side: SidebarSide, onOpenChange?: (open: boolean) => void) => {
-      return (value: boolean | ((value: boolean) => boolean)) => {
-        const openState = typeof value === 'function' ? value(side === 'left' ? leftOpen : rightOpen) : value;
+    const createSetOpen = React.useCallback(
+      (side: SidebarSide, onOpenChange?: (open: boolean) => void) => {
+        return (value: boolean | ((value: boolean) => boolean)) => {
+          const openState = typeof value === 'function' ? value(side === 'left' ? leftOpen : rightOpen) : value;
 
-        if (onOpenChange) {
-          onOpenChange(openState);
-        } else if (side === 'left') {
-          setLeftOpen(openState);
-        } else {
-          setRightOpen(openState);
-        }
-
-        setCookie(`sidebar-${side}-state`, openState, {
-          path: '/',
-          maxAge: 60 * 60 * 24 * 7,
-          domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN,
-        });
-      };
-    };
-
-    const createToggleSidebar = (side: SidebarSide) => {
-      return () => {
-        if (isMobile) {
-          if (side === 'left') {
-            setLeftOpenMobile((prev) => !prev);
+          if (onOpenChange) {
+            onOpenChange(openState);
+          } else if (side === 'left') {
+            setLeftOpen(openState);
           } else {
-            setRightOpenMobile((prev) => !prev);
+            setRightOpen(openState);
           }
-        } else {
-          const setOpen = createSetOpen(side, side === 'left' ? onLeftOpenChange : onRightOpenChange);
-          setOpen((prev) => !prev);
-        }
-      };
-    };
+
+          setCookie(`sidebar-${side}-state`, openState, {
+            path: '/',
+            maxAge: 60 * 60 * 24 * 7,
+            domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN,
+          });
+        };
+      },
+      [leftOpen, rightOpen],
+    );
+
+    const createToggleSidebar = React.useCallback(
+      (side: SidebarSide) => {
+        return () => {
+          if (isMobile) {
+            if (side === 'left') {
+              setLeftOpenMobile((prev) => !prev);
+            } else {
+              setRightOpenMobile((prev) => !prev);
+            }
+          } else {
+            const setOpen = createSetOpen(side, side === 'left' ? onLeftOpenChange : onRightOpenChange);
+            setOpen((prev) => !prev);
+          }
+        };
+      },
+      [isMobile, createSetOpen, onLeftOpenChange, onRightOpenChange],
+    );
 
     const contextValue = React.useMemo<SidebarContextMap>(
       () => ({
@@ -152,6 +158,8 @@ const SidebarProvider = React.forwardRef<
         rightOpenMobile,
         onLeftOpenChange,
         onRightOpenChange,
+        createToggleSidebar,
+        createSetOpen,
       ],
     );
 

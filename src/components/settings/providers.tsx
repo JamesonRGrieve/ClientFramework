@@ -64,9 +64,9 @@ export function Providers() {
       connected: [],
       available: [],
     };
-  }, [providerData]);
+  }, []);
 
-  const handleSaveSettings = async (extensionName: string, settings: Record<string, string>) => {
+  const handleSaveSettings = async (_extensionName: string, settings: Record<string, string>) => {
     try {
       setError(null);
       const response = await axios.put<{ status: number; data: any }>(
@@ -115,8 +115,7 @@ export function Providers() {
   return (
     <div className='space-y-6'>
       <div className='grid gap-4'>
-        {providers.connected?.map &&
-          providers.connected.map((provider) => (
+        {providers.connected?.map?.((provider) => (
             <div
               key={provider.name}
               className='flex flex-col gap-4 p-4 transition-colors border rounded-lg bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60'
@@ -140,8 +139,7 @@ export function Providers() {
             </div>
           ))}
 
-        {providers.available?.map &&
-          providers.available.map((provider) => (
+        {providers.available?.map?.((provider) => (
             <div
               key={provider.name}
               className='flex flex-col gap-4 p-4 transition-colors border rounded-lg bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60'

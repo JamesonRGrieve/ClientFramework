@@ -3,7 +3,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { getCookie } from 'cookies-next';
 import 'katex/dist/katex.min.css';
 import { ChevronDown, Copy, Download } from 'lucide-react';
-import { ReactNode, useRef, useState } from 'react';
+import { type ReactNode, useRef, useState } from 'react';
 import Latex from 'react-latex-next';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { a11yDark, a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
@@ -81,8 +81,9 @@ const fileExtensions = {
 
 const languageRenders = {
   markdown: (content) => <MarkdownBlock content={content} />,
+  // biome-ignore lint/security/noDangerouslySetInnerHtml: renders user-supplied HTML code blocks inside a sandboxed markdown context
   html: (content) => <div dangerouslySetInnerHTML={{ __html: content }} />,
-  csv: (content, setLoading) => {
+  csv: (content, _setLoading) => {
     const csvData = (
       content.constructor === Array
         ? content.length > 1
@@ -104,7 +105,7 @@ const languageRenders = {
 
     return <DataTable columns={createColumns(result.columns)} data={result.rows} />;
   },
-  tsv: (content, setLoading) => {
+  tsv: (content, _setLoading) => {
     const tsvData = (content.constructor === Array ? (content.length > 1 ? content : content[0]) : content.split('\n'))
       .filter((row) => row.trim())
       .map((row) => row.trim());
@@ -117,9 +118,9 @@ const languageRenders = {
 
     return <DataTable columns={createColumns(result.columns)} data={result.rows} />;
   },
-  gantt: (content) => <Mermaid chart={'gantt\n' + content} />,
-  sequence: (content) => <Mermaid chart={'sequenceDiagram\n' + content} />,
-  flow: (content) => <Mermaid chart={'flowchart TD\n' + content} />,
+  gantt: (content) => <Mermaid chart={`gantt\n${content}`} />,
+  sequence: (content) => <Mermaid chart={`sequenceDiagram\n${content}`} />,
+  flow: (content) => <Mermaid chart={`flowchart TD\n${content}`} />,
   mermaid: (content) => <Mermaid chart={content} />,
   latex: (content) => <Latex>{content[0]}</Latex>,
 };
@@ -162,7 +163,9 @@ export default function CodeBlock({
   const copyCode = () => {
     if (codeBlockRef.current) {
       const actualCode = codeBlockRef.current.querySelector('code')?.cloneNode(true) as HTMLElement;
-      actualCode.querySelectorAll('.react-syntax-highlighter-line-number').forEach((el) => el.remove());
+      actualCode.querySelectorAll('.react-syntax-highlighter-line-number').forEach((el) => {
+        el.remove();
+      });
       navigator.clipboard.writeText(actualCode.innerText);
     }
   };
@@ -170,7 +173,9 @@ export default function CodeBlock({
   const downloadCode = () => {
     if (codeBlockRef.current) {
       const actualCode = codeBlockRef.current.querySelector('code')?.cloneNode(true) as HTMLElement;
-      actualCode.querySelectorAll('.react-syntax-highlighter-line-number').forEach((el) => el.remove());
+      actualCode.querySelectorAll('.react-syntax-highlighter-line-number').forEach((el) => {
+        el.remove();
+      });
       const element = document.createElement('a');
       const file = new Blob([actualCode.innerText], { type: 'text/plain;charset=utf-8' });
       element.href = URL.createObjectURL(file);
@@ -194,19 +199,19 @@ export default function CodeBlock({
 
         {Object.keys(languageRenders).includes(language) && (
           <div className='flex'>
-            <button className={`px-4 py-2 ${tab === 0 ? 'bg-muted' : ''}`} onClick={() => setTab(0)}>
+            <button type="button" className={`px-4 py-2 ${tab === 0 ? 'bg-muted' : ''}`} onClick={() => setTab(0)}>
               Rendered
             </button>
-            <button className={`px-4 py-2 ${tab === 1 ? 'bg-muted' : ''}`} onClick={() => setTab(1)}>
+            <button type="button" className={`px-4 py-2 ${tab === 1 ? 'bg-muted' : ''}`} onClick={() => setTab(1)}>
               Source
             </button>
           </div>
         )}
         <div className='flex items-center'>
-          <button onClick={copyCode} className='p-2 rounded-full hover:bg-muted'>
+          <button type="button" onClick={copyCode} className='p-2 rounded-full hover:bg-muted'>
             <Copy className='w-5 h-5' />
           </button>
-          <button onClick={downloadCode} className='p-2 rounded-full hover:bg-muted'>
+          <button type="button" onClick={downloadCode} className='p-2 rounded-full hover:bg-muted'>
             <Download className='w-5 h-5' />
           </button>
           <span className='ml-2 text-sm'>
