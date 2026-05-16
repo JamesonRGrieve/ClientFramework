@@ -13,7 +13,9 @@
     "server-wrapper.js",
     "scripts/**/*.{mjs,js}",
     "src/**/*.stories.{ts,tsx}",
-    "src/**/*.test.{ts,tsx}"
+    "src/**/*.test.{ts,tsx}",
+    "src/__tests__/setup.ts",
+    "src/components/ui/**/*.{ts,tsx}"
   ],
   "project": ["src/**/*.{ts,tsx,js,jsx}", "!src/**/*.d.ts"],
   "ignore": [
