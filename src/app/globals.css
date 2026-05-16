@@ -57,6 +57,15 @@
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
 
+  /* Custom-scrollbar tokens. Centralised so the body / track / thumb rules
+     stay in lockstep and remain customisable per downstream theme. */
+  --scrollbar-thumb: rgba(80, 80, 120, 0.5);
+  --scrollbar-thumb-hover: rgba(80, 80, 120, 0.7);
+  --scrollbar-width: 8px;
+  --scrollbar-radius: 6px;
+  --container-padding-inline: 2rem;
+  --container-max-width: 1400px;
+
   @keyframes accordion-down {
     from {
       height: 0;
@@ -77,12 +86,12 @@
 
 @utility container {
   margin-inline: auto;
-  padding-inline: 2rem;
+  padding-inline: var(--container-padding-inline);
   @media (width >= --theme(--breakpoint-sm)) {
     max-width: none;
   }
   @media (width >= 1400px) {
-    max-width: 1400px;
+    max-width: var(--container-max-width);
   }
 }
 
@@ -335,7 +344,7 @@
     display: flex;
     flex-direction: column;
     scrollbar-width: thin;
-    scrollbar-color: rgba(80, 80, 120, 0.5) transparent;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
   }
   .mobile-sidebar {
     padding-bottom: env(safe-area-inset-bottom);
@@ -353,7 +362,7 @@ html.scrolled .only-after-scroll {
 
 /* macOS-like overlay scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: var(--scrollbar-width);
   background: transparent;
   position: absolute;
   right: 0;
@@ -374,12 +383,12 @@ body.scrolling ::-webkit-scrollbar {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(80, 80, 120, 0.5);
-  border-radius: 6px;
+  background: var(--scrollbar-thumb);
+  border-radius: var(--scrollbar-radius);
   transition: background 0.3s;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(80, 80, 120, 0.7);
+  background: var(--scrollbar-thumb-hover);
 }
 ::-webkit-scrollbar-track {
   background: transparent;
