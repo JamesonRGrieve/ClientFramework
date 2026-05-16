@@ -15,6 +15,16 @@ const SRC = resolve(process.cwd(), 'src');
 const OUT = resolve(process.cwd(), '.js-coverage.json');
 
 const SKIP_DIRS = new Set(['node_modules', 'dist', '__generated__']);
+// Submodule roots — each is an independent npm package with its own ratchets;
+// their `.js` config files (postcss.config.js, tailwind.config.js, etc.) are
+// owned by the submodule and must not count against this repo's coverage.
+const SKIP_SUBPATHS = [
+    'src/components/appwrapper',
+    'src/components/auth',
+    'src/components/dynamic-form',
+    'src/lib/next-log',
+    'src/lib/zod2gql',
+].map((p) => resolve(process.cwd(), p));
 const JS_RE = /\.(js|jsx|mjs|cjs)$/;
 const DECLARATION_RE = /\.d\.ts$/;
 
@@ -27,6 +37,9 @@ function walk(dir, acc = []) {
     }
     for (const entry of entries) {
         const p = join(dir, entry);
+        if (SKIP_SUBPATHS.some((s) => p === s || p.startsWith(`${s}/`))) {
+            continue;
+        }
         const st = statSync(p);
         if (st.isDirectory()) {
             if (SKIP_DIRS.has(entry)) continue;
