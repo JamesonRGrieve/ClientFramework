@@ -1,3 +1,11 @@
 app
 next.config.js
 public/sw.js
+# Submodules — each has its own lint pipeline + own ESLint config.
+# Linting them from the parent triggers stale plugin-extends issues
+# (flat-config-only plugins like no-use-extend-native fail to load).
+src/components/appwrapper
+src/components/auth
+src/components/dynamic-form
+src/lib/next-log
+src/lib/zod2gql

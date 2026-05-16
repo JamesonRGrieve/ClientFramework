@@ -51,12 +51,19 @@ This repo currently lacks `scripts/` ratchet runners. Adopt the canonical implem
 
 ## Commands
 
+The package manager is **pnpm**. Do not use `npm` — the `package-lock.json` is gone; only `pnpm-lock.yaml` is committed.
+
 ```bash
-npm install               # Install dependencies
-npm run dev               # Dev server on port 1109
-npm run build             # Production build
-npm run lint              # ESLint
-npm run lint-fix          # ESLint with auto-fix
-npm run fix               # Prettier + ESLint auto-fix
-npm run prettier-fix      # Prettier format only
+pnpm install              # Install dependencies
+pnpm dev                  # Dev server on port 1109
+pnpm build                # Production build
+pnpm lint                 # ESLint (delegates to next lint)
+pnpm lint-fix             # ESLint with auto-fix
+pnpm fix                  # Prettier + ESLint auto-fix
+pnpm prettier-fix         # Prettier format only
+pnpm check                # Aggregate: lockfile + all ratchets
 ```
+
+### Submodules and lint
+
+`next lint` ignores all five submodule paths (see `.eslintignore`). Each submodule has its own ESLint pipeline and is responsible for linting itself. The parent never tries to load a submodule's `.eslintrc.*` and is therefore not affected by stale plugin references inside a submodule (e.g. flat-config-only plugins that the legacy loader can no longer resolve).

@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Next.js framework bundle",
+    "path": ".next/static/chunks/framework-*.js",
+    "limit": "200 KB"
+  },
+  {
+    "name": "Next.js main bundle",
+    "path": ".next/static/chunks/main-*.js",
+    "limit": "150 KB"
+  },
+  {
+    "name": "App entrypoint",
+    "path": ".next/static/chunks/main-app-*.js",
+    "limit": "250 KB"
+  },
+  {
+    "name": "All app chunks",
+    "path": ".next/static/chunks/app/**/*.js",
+    "limit": "1.5 MB"
+  }
+]

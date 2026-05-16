@@ -23,6 +23,7 @@ const updateMode = args.includes('--update');
 // because the project still uses .eslintrc.json. We invoke next lint with
 // --format json and write to a tmp file. next lint exits non-zero on warnings.
 let lintOutput;
+let runError;
 const lintOutputPath = resolve(tmpdir(), `client-framework-eslint-${process.pid}.json`);
 try {
     execSync(
@@ -35,18 +36,26 @@ try {
         },
     );
 } catch (err) {
-    if (existsSync(lintOutputPath)) {
-        lintOutput = readFileSync(lintOutputPath, 'utf8');
-    } else {
-        lintOutput = err.stdout?.toString() || '';
-    }
+    runError = err;
 }
 
-if (!lintOutput && existsSync(lintOutputPath)) {
-    lintOutput = readFileSync(lintOutputPath, 'utf8');
-}
+// Only the --output-file is a trustworthy source of ESLint JSON. next lint's
+// stdout/stderr is a mix of Next.js config dumps, warnings, and human errors
+// and must NOT be parsed as JSON. If the file is missing, the linter crashed
+// before producing a report — bail with a descriptive error.
 if (existsSync(lintOutputPath)) {
+    lintOutput = readFileSync(lintOutputPath, 'utf8');
     unlinkSync(lintOutputPath);
+} else {
+    console.error('[lint-ratchet] FAIL: next lint did not write the --output-file.');
+    console.error('  This means ESLint crashed before producing a report.');
+    console.error('  Run `pnpm lint` directly to see the underlying error.');
+    if (runError?.stderr) {
+        console.error('---stderr (tail)---');
+        const stderr = runError.stderr.toString();
+        console.error(stderr.slice(Math.max(0, stderr.length - 2000)));
+    }
+    process.exit(2);
 }
 
 let results;

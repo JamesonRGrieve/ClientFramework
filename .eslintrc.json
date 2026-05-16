@@ -40,6 +40,9 @@
     "import/no-named-as-default": "warn", // Warn on using named export as the default export.
     "jsx-a11y/aria-role": "warn", // Enforce the use of valid values for the role attribute.
     "jsx-a11y/no-redundant-roles": "warn", // Enforce that elements with ARIA roles must use a valid, non-abstract ARIA role.
+    "jsx-a11y/click-events-have-key-events": "warn", // Demoted from error — tracked via ratchet.
+    "jsx-a11y/heading-has-content": "warn", // Demoted from error — tracked via ratchet (Radix headings receive content via children).
+    "react/no-unknown-property": ["warn", { "ignore": ["cmdk-input-wrapper"] }], // cmdk custom attribute.
     "@typescript-eslint/ban-ts-comment": "warn",
     "prettier/prettier": [
       "warn",
@@ -178,7 +181,6 @@
     "sonarjs/no-identical-expressions": "warn", // Warn on identical expressions on both sides of a binary operator.
     "sonarjs/no-identical-functions": "warn", // Warn on identical functions.
     "sonarjs/no-inverted-boolean-check": "warn", // Disallow inverted boolean checks in if-else blocks.
-    "sonarjs/no-one-iteration-loop": "warn", // Warn on loops that will iterate only once.
     "sonarjs/no-redundant-boolean": "warn", // Warn on redundant boolean expressions.
     "sonarjs/no-small-switch": "warn", // Warn on small switch statements.
     "sonarjs/no-unused-collection": "warn", // Warn on collections that are not used.
@@ -191,12 +193,113 @@
 
     "yoda": ["warn", "never"], // Require or disallow “Yoda” conditions.
     "@typescript-eslint/consistent-type-assertions": "warn", // Enforce consistent type assertions.
+    "@typescript-eslint/consistent-type-imports": ["warn", { "prefer": "type-imports" }],
+    "@typescript-eslint/consistent-type-exports": ["warn", { "fixMixedExportsWithInlineTypeSpecifier": true }],
+    "@typescript-eslint/no-import-type-side-effects": "warn",
+    "@typescript-eslint/method-signature-style": ["warn", "property"],
+    "@typescript-eslint/no-useless-empty-export": "warn",
     "@typescript-eslint/no-empty-interface": "warn", // Disallow the declaration of empty interfaces.
     "@typescript-eslint/no-explicit-any": "warn", // Warn against the use of the 'any' type.
     "@typescript-eslint/no-for-in-array": "warn", // Disallow iterating over an array with a for-in loop.
     "@typescript-eslint/no-non-null-assertion": "warn", // Disallow non-null assertions using the '!' postfix operator.
+    "@typescript-eslint/no-non-null-asserted-optional-chain": "warn",
+    "@typescript-eslint/no-confusing-non-null-assertion": "warn",
     "@typescript-eslint/no-unnecessary-type-assertion": "warn", // Disallow unnecessary type assertions.
+    "@typescript-eslint/no-unnecessary-type-arguments": "warn",
+    "@typescript-eslint/no-unnecessary-boolean-literal-compare": "warn",
+    "@typescript-eslint/no-meaningless-void-operator": "warn",
+    "@typescript-eslint/no-mixed-enums": "warn",
+    "@typescript-eslint/no-duplicate-type-constituents": "warn",
+    "@typescript-eslint/no-redundant-type-constituents": "warn",
+    "@typescript-eslint/no-deprecated": "warn",
+    "@typescript-eslint/no-unsafe-function-type": "warn",
     "@typescript-eslint/no-unused-vars": "warn", // Warn on unused variables.
+    "@typescript-eslint/dot-notation": ["warn", { "allowIndexSignaturePropertyAccess": true }],
+    "dot-notation": "off",
+
+    "@typescript-eslint/no-unsafe-assignment": "warn",
+    "@typescript-eslint/no-unsafe-member-access": "warn",
+    "@typescript-eslint/no-unsafe-call": "warn",
+    "@typescript-eslint/no-unsafe-return": "warn",
+    "@typescript-eslint/no-unsafe-argument": "warn",
+    "@typescript-eslint/no-floating-promises": "warn",
+    "@typescript-eslint/no-misused-promises": "warn",
+    "@typescript-eslint/await-thenable": "warn",
+    "@typescript-eslint/require-await": "warn",
+    "@typescript-eslint/unbound-method": "warn",
+    "@typescript-eslint/no-base-to-string": "warn",
+    "@typescript-eslint/restrict-template-expressions": "warn",
+    "@typescript-eslint/restrict-plus-operands": "warn",
+    "@typescript-eslint/no-unnecessary-condition": "warn",
+    "@typescript-eslint/strict-boolean-expressions": [
+      "warn",
+      {
+        "allowString": true,
+        "allowNumber": true,
+        "allowNullableObject": true,
+        "allowNullableBoolean": false,
+        "allowNullableString": false,
+        "allowNullableNumber": false,
+        "allowAny": false
+      }
+    ],
+    "@typescript-eslint/prefer-nullish-coalescing": ["warn", { "ignorePrimitives": { "string": true } }],
+    "@typescript-eslint/prefer-optional-chain": "warn",
+    "@typescript-eslint/switch-exhaustiveness-check": "warn",
+    "@typescript-eslint/no-unsafe-enum-comparison": "warn",
+    "@typescript-eslint/prefer-enum-initializers": "warn",
+    "@typescript-eslint/prefer-reduce-type-parameter": "warn",
+    "@typescript-eslint/prefer-return-this-type": "warn",
+    "@typescript-eslint/prefer-includes": "warn",
+    "@typescript-eslint/prefer-string-starts-ends-with": "warn",
+    "@typescript-eslint/prefer-find": "warn",
+    "@typescript-eslint/prefer-readonly": "warn",
+    "@typescript-eslint/require-array-sort-compare": ["warn", { "ignoreStringArrays": true }],
+    "@typescript-eslint/promise-function-async": "warn",
+    "@typescript-eslint/return-await": ["warn", "in-try-catch"],
+    "no-shadow": "off",
+    "@typescript-eslint/no-shadow": ["warn", { "builtinGlobals": false, "hoist": "all" }],
+
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "TSAsExpression > TSTypeReference[typeName.name='Record'] > TSTypeParameterInstantiation > TSAnyKeyword",
+        "message": "Avoid `as Record<string, any>`. Type the value precisely; use `Record<string, unknown>` only at framework boundaries."
+      },
+      {
+        "selector": "TSAsExpression > TSUnknownKeyword",
+        "message": "Avoid `as unknown` to bypass type errors. Validate at the boundary and propagate the narrow type."
+      },
+      {
+        "selector": "TSAsExpression[typeAnnotation.type='TSAnyKeyword']",
+        "message": "Avoid `as any`. Fix the type at its source."
+      }
+    ],
+
+    "no-template-curly-in-string": "warn",
+    "no-unreachable-loop": "warn",
+    "no-await-in-loop": "warn",
+    "no-promise-executor-return": "warn",
+    "require-atomic-updates": "warn",
+    "array-callback-return": "warn",
+    "no-constructor-return": "warn",
+    "default-case-last": "warn",
+    "grouped-accessor-pairs": "warn",
+    "no-loss-of-precision": "warn",
+    "no-constant-binary-expression": "warn",
+    "no-lonely-if": "warn",
+    "no-unneeded-ternary": "warn",
+    "prefer-arrow-callback": ["warn", { "allowNamedFunctions": true }],
+    "prefer-rest-params": "warn",
+    "prefer-const": "warn",
+    "no-var": "warn",
+    "complexity": ["warn", 25],
+    "max-depth": ["warn", 5],
+    "curly": ["warn", "all"],
+    "prefer-template": "warn",
+    "no-throw-literal": "warn",
+    "import/no-cycle": ["warn", { "maxDepth": 4, "ignoreExternal": true }],
+    "import/no-self-import": "warn",
     "import/extensions": ["warn", "never"], // Ensure consistent use of file extension within the import path.
     "import/first": "warn", // Ensure all imports appear before other statements.
     "import/no-duplicates": "warn", // Report repeated import of the same module in multiple places.

@@ -1,0 +1,42 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "defaultSeverity": "warning",
+  "rules": {
+    "no-descending-specificity": null,
+    "selector-class-pattern": null,
+    "no-empty-source": null,
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": [
+          "tailwind",
+          "apply",
+          "variants",
+          "responsive",
+          "screen",
+          "layer",
+          "config",
+          "theme",
+          "source",
+          "utility",
+          "variant",
+          "custom-variant",
+          "reference",
+          "plugin",
+          "import"
+        ]
+      }
+    ]
+  },
+  "ignoreFiles": [
+    "node_modules/**",
+    ".next/**",
+    "dist/**",
+    "storybook-static/**",
+    "src/components/auth/**",
+    "src/components/appwrapper/**",
+    "src/components/dynamic-form/**",
+    "src/lib/next-log/**",
+    "src/lib/zod2gql/**"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "entry": [
+    "src/app/**/{page,layout,template,error,loading,not-found,route,default,head,manifest,sitemap,robots,opengraph-image,twitter-image,icon,apple-icon}.{ts,tsx,js,jsx}",
+    "src/app/**/{global-error,_app,_document}.{ts,tsx,js,jsx}",
+    "src/middleware.{ts,tsx,js,jsx}",
+    "next.config.js",
+    "postcss.config.js",
+    "tailwind.config.js",
+    "vitest.config.ts",
+    ".storybook/main.{ts,tsx,js,jsx}",
+    ".storybook/preview.{ts,tsx,js,jsx}",
+    "server-wrapper.js",
+    "scripts/**/*.{mjs,js}",
+    "src/**/*.stories.{ts,tsx}",
+    "src/**/*.test.{ts,tsx}"
+  ],
+  "project": ["src/**/*.{ts,tsx,js,jsx}", "!src/**/*.d.ts"],
+  "ignore": [
+    "src/components/auth/**",
+    "src/components/appwrapper/**",
+    "src/components/dynamic-form/**",
+    "src/lib/next-log/**",
+    "src/lib/zod2gql/**",
+    "next-env.d.ts"
+  ],
+  "ignoreDependencies": [
+    "@tailwindcss/oxide-*",
+    "lightningcss-*"
+  ],
+  "ignoreBinaries": ["docker-compose"]
+}
