@@ -18,16 +18,15 @@ const BASELINE_PATH = resolve(process.cwd(), '.eslint-warning-baseline');
 const args = process.argv.slice(2);
 const updateMode = args.includes('--update');
 
-// This repo uses `next lint` (Next.js wrapper around ESLint, legacy .eslintrc.json).
-// Direct `./node_modules/.bin/eslint` does not work with the v9 default loader
-// because the project still uses .eslintrc.json. We invoke next lint with
-// --format json and write to a tmp file. next lint exits non-zero on warnings.
+// This repo uses the modern ESLint flat config (eslint.config.mjs). We invoke
+// the ESLint CLI directly with --format json and write to a tmp file. ESLint
+// exits non-zero on warnings/errors; only the --output-file is parsed.
 let lintOutput;
 let runError;
 const lintOutputPath = resolve(tmpdir(), `client-framework-eslint-${process.pid}.json`);
 try {
     execSync(
-        `./node_modules/.bin/next lint --format json --output-file "${lintOutputPath}"`,
+        `./node_modules/.bin/eslint . --format json --output-file "${lintOutputPath}"`,
         {
             encoding: 'utf8',
             stdio: ['ignore', 'pipe', 'pipe'],
@@ -39,15 +38,15 @@ try {
     runError = err;
 }
 
-// Only the --output-file is a trustworthy source of ESLint JSON. next lint's
-// stdout/stderr is a mix of Next.js config dumps, warnings, and human errors
-// and must NOT be parsed as JSON. If the file is missing, the linter crashed
+// Only the --output-file is a trustworthy source of ESLint JSON. ESLint's
+// stdout/stderr may carry parser diagnostics and human-readable errors and
+// must NOT be parsed as JSON. If the file is missing, the linter crashed
 // before producing a report — bail with a descriptive error.
 if (existsSync(lintOutputPath)) {
     lintOutput = readFileSync(lintOutputPath, 'utf8');
     unlinkSync(lintOutputPath);
 } else {
-    console.error('[lint-ratchet] FAIL: next lint did not write the --output-file.');
+    console.error('[lint-ratchet] FAIL: eslint did not write the --output-file.');
     console.error('  This means ESLint crashed before producing a report.');
     console.error('  Run `pnpm lint` directly to see the underlying error.');
     if (runError?.stderr) {

@@ -57,13 +57,32 @@ The package manager is **pnpm**. Do not use `npm` — the `package-lock.json` is
 pnpm install              # Install dependencies
 pnpm dev                  # Dev server on port 1109
 pnpm build                # Production build
-pnpm lint                 # ESLint (delegates to next lint)
+pnpm lint                 # ESLint (flat config, eslint.config.mjs)
 pnpm lint-fix             # ESLint with auto-fix
 pnpm fix                  # Prettier + ESLint auto-fix
 pnpm prettier-fix         # Prettier format only
 pnpm check                # Aggregate: lockfile + all ratchets
 ```
 
+### ESLint: modern flat config
+
+This repo uses the **ESLint v9 flat config** (`eslint.config.mjs`) invoked via the ESLint CLI (`eslint .`) — `next lint` and the legacy `.eslintrc.json` / `.eslintignore` have been removed (`next lint` is deprecated in Next 15+). The full prior ruleset is preserved and bridged via `@eslint/eslintrc`'s `FlatCompat` for shareable configs without native flat presets (`next/core-web-vitals`, `plugin:storybook/recommended`, `plugin:@vitest/legacy-recommended`). Type-aware rules use `parserOptions.projectService` (TS-ESLint v8) instead of a hard-coded `project` path.
+
 ### Submodules and lint
 
-`next lint` ignores all five submodule paths (see `.eslintignore`). Each submodule has its own ESLint pipeline and is responsible for linting itself. The parent never tries to load a submodule's `.eslintrc.*` and is therefore not affected by stale plugin references inside a submodule (e.g. flat-config-only plugins that the legacy loader can no longer resolve).
+The flat config's top-level `ignores` excludes all five submodule paths plus the app-router boilerplate, build output and tooling files. Each submodule has its own ESLint pipeline and is responsible for linting itself; the parent never loads a submodule's config.
+
+---
+
+## Ratchet Re-seed Required
+
+The ESLint configuration was hardened toward foundry parity (workspace `../CLAUDE.md` §7.5): added `plugin:storybook/recommended`, the full `@typescript-eslint/naming-convention` rule set, `@typescript-eslint/no-use-before-define`, `no-new-native-nonconstructor`, `no-duplicate-imports`, `no-self-assign`, an explicit `@typescript-eslint/no-shadow` pair, a 4th `no-restricted-syntax` selector (`unknown` outside `catch`), and a Vitest test-file override (`@vitest/eslint-plugin`). The config was also migrated from legacy `.eslintrc.json` + `next lint` to the modern flat config (`eslint.config.mjs`, `eslint .`); the lint-ratchet now drives the ESLint CLI directly.
+
+Because new warn-level rules were added, the lint baseline will report more warnings than `.eslint-warning-baseline` currently records. After `pnpm install` (which installs the newly added `@vitest/eslint-plugin`), re-seed the lint baseline:
+
+```bash
+pnpm install
+pnpm lint:ratchet:update   # re-seeds .eslint-warning-baseline
+```
+
+Commit the regenerated `.eslint-warning-baseline` in the **same commit** as these config changes (workspace `../CLAUDE.md` §7.3 — a baseline bump rides with the change that necessitated it). Do not bypass the ratchet with `--no-verify`.
