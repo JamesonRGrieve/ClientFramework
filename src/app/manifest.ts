@@ -7,6 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
     start_url: '/',
     display: 'standalone',
+    display_override: ['standalone', 'minimal-ui'],
     orientation: 'portrait-primary',
     background_color: '#fff',
     theme_color: '#fff',

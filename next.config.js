@@ -144,6 +144,34 @@ const configs = [
   useStripeConfig,
   useProductionSkipLintingConfig,
 ];
+
+// Import next-pwa for PWA configuration
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development',
+  cacheId: 'inventory-pwa',
+  // Additional PWA settings
+  workboxOptions: {
+    // Disable precaching for dynamic content
+    // This ensures that API calls are handled correctly
+    runtimeCaching: [
+      {
+        urlPattern: /^https:\/\/api\.example\.com/,
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: 'api-cache',
+          expiration: {
+            maxEntries: 50,
+            maxAgeSeconds: 60 * 60 * 24, // 24 hours
+          },
+        },
+      },
+    ],
+  },
+});
+
 const nextConfig = configs.reduce((accumulator, config) => mergeConfigs(accumulator, config()), {
   output: 'standalone',
   env: {},
@@ -173,6 +201,10 @@ const nextConfig = configs.reduce((accumulator, config) => mergeConfigs(accumula
     ];
   },
 });
-console.log(nextConfig);
+
+// Apply PWA configuration
+const finalConfig = withPWA(nextConfig);
+
+console.log(finalConfig);
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-module.exports = nextConfig;
+module.exports = finalConfig;
