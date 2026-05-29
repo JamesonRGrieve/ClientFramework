@@ -4,7 +4,7 @@ import axios from 'axios';
 import { getCookie } from 'cookies-next';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import Extension from './extension';
+import Extension, { type ExtensionData } from './extension';
 import { ConnectedServices } from '@jgrieve/auth/management/ConnectedServices';
 import { useTeam } from '@jgrieve/auth/hooks/useTeam';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -164,7 +164,7 @@ export function Extensions(): React.JSX.Element {
     }
   };
 
-  const handleDisconnect = async (extension: Extension): Promise<void> => {
+  const handleDisconnect = async (extension: ExtensionData): Promise<void> => {
     const emptySettings = extension.settings.reduce<Record<string, string>>(
       (acc, setting) => ({ ...acc, [setting]: '' }),
       {},

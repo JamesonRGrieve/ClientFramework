@@ -137,7 +137,12 @@ export default [
       'react-hooks/exhaustive-deps': ['warn', { additionalHooks: 'useRecoilCallback' }],
       'react/no-set-state': 'warn',
       'react/no-string-refs': 'warn',
-      'security/detect-object-injection': 'warn',
+      // Disabled to align with the canonical workspace configs (auth/, dynamic-form/),
+      // which do not enable eslint-plugin-security. `detect-object-injection` flags every
+      // computed member access (`obj[key]`) including type-safe, controlled-key access over
+      // Record<string, unknown> (deep-merge / path utilities, field-keyed form state) — a
+      // documented false-positive source, not part of the §7.5 authoritative ruleset.
+      'security/detect-object-injection': 'off',
       'sonarjs/no-duplicated-branches': 'warn',
       'unused-imports/no-unused-vars': 'off',
       '@typescript-eslint/explicit-function-return-type': 'warn',

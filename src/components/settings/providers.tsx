@@ -1,6 +1,5 @@
 'use client';
 
-import { useTeam } from '@jgrieve/auth/hooks/useTeam';
 import axios from 'axios';
 import { getCookie } from 'cookies-next';
 import { Plus, Wrench } from 'lucide-react';
@@ -21,64 +20,45 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useProviders } from '@/hooks/useProvider';
-
-// Types remain the same
-type Command = {
-  friendly_name: string;
-  description: string;
-  command_name: string;
-  command_args: Record<string, string>;
-  enabled?: boolean;
-  extension_name?: string;
-};
-
-type Extension = {
-  extension_name: string;
-  description: string;
-  settings: string[];
-  commands: Command[];
-};
+import type { Provider } from '@/hooks/z';
 
 type ErrorState = {
   type: 'success' | 'error';
   message: string;
 } | null;
 
-interface ExtensionSettings {
-  agent_name: string;
-  settings: Record<string, string>;
-}
+const readJwt = (): string => {
+  const jwt = getCookie('jwt');
+  return typeof jwt === 'string' ? jwt : '';
+};
 
-export function Providers() {
+const SECRET_KEYWORDS = ['API_KEY', 'SECRET', 'PASSWORD', 'TOKEN'];
+
+export function Providers(): React.JSX.Element {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [error, setError] = useState<ErrorState>(null);
-  const agent_name = (getCookie('aginterface-agent') || process.env.NEXT_PUBLIC_AGINTERACTIVE_AGENT) ?? agent;
-  const { data: activeCompany } = useTeam();
+  const cookieAgent = getCookie('aginterface-agent');
+  const cookieAgentName = typeof cookieAgent === 'string' ? cookieAgent : '';
+  const agentName = cookieAgentName !== '' ? cookieAgentName : (process.env.NEXT_PUBLIC_AGINTERACTIVE_AGENT ?? '');
   const { data: providerData } = useProviders();
 
-  // Filter connected providers
-  const providers = useMemo(() => {
-    // Return empty arrays if no data
+  // Connected / available provider lists are not wired up in this template;
+  // downstream apps populate them. Typed so the renderers stay type-safe.
+  const providers = useMemo<{ connected: Provider[]; available: Provider[] }>(() => ({ connected: [], available: [] }), []);
 
-    return {
-      connected: [],
-      available: [],
-    };
-  }, []);
-
-  const handleSaveSettings = async (_extensionName: string, settings: Record<string, string>) => {
+  const handleSaveSettings = async (_providerName: string, newSettings: Record<string, string>): Promise<void> => {
     try {
       setError(null);
-      const response = await axios.put<{ status: number; data: any }>(
-        `${process.env.NEXT_PUBLIC_API_URI}/api/agent/${agent_name}`,
+      const response = await axios.put<{ status: number; data: Record<string, unknown> }>(
+        `${process.env.NEXT_PUBLIC_API_URI}/api/agent/${agentName}`,
         {
-          agent_name: agent_name,
-          settings: settings,
+          agent_name: agentName,
+          settings: newSettings,
         },
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: getCookie('jwt'),
+            Authorization: readJwt(),
           },
         },
       );
@@ -90,32 +70,30 @@ export function Providers() {
         });
         window.location.reload();
       }
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { detail?: string } }; message?: string };
       setError({
         type: 'error',
-        message: error.response?.data?.detail || error.message || 'Failed to connect extension',
+        message: axiosErr.response?.data?.detail ?? axiosErr.message ?? 'Failed to connect extension',
       });
     }
   };
 
-  const handleDisconnect = async (name: string) => {
+  const handleDisconnect = async (name: string): Promise<void> => {
     const extension = providerData?.find((ext) => ext.name === name);
-    const emptySettings = extension.settings
-      .filter((setting) => {
-        return ['API_KEY', 'SECRET', 'PASSWORD', 'TOKEN'].some((keyword) =>
-          setting.name.replaceAll('TOKENS', '').includes(keyword),
-        );
-      })
-      .reduce((acc, setting) => {
-        return { ...acc, [setting.name]: '' };
-      }, {});
+    if (extension === undefined) {
+      return;
+    }
+    const emptySettings = (extension.settings ?? [])
+      .filter((setting) => SECRET_KEYWORDS.some((keyword) => setting.name.replaceAll('TOKENS', '').includes(keyword)))
+      .reduce<Record<string, string>>((acc, setting) => ({ ...acc, [setting.name]: '' }), {});
     await handleSaveSettings(extension.name, emptySettings);
   };
 
   return (
     <div className='space-y-6'>
       <div className='grid gap-4'>
-        {providers.connected?.map?.((provider) => (
+        {providers.connected.map((provider) => (
           <div
             key={provider.name}
             className='flex flex-col gap-4 p-4 transition-colors border rounded-lg bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60'
@@ -128,18 +106,18 @@ export function Providers() {
                   <p className='text-sm text-muted-foreground'>Connected</p>
                 </div>
               </div>
-              <Button variant='outline' size='sm' className='gap-2' onClick={async () => handleDisconnect(provider.name)}>
+              <Button variant='outline' size='sm' className='gap-2' onClick={() => void handleDisconnect(provider.name)}>
                 <Unlink className='w-4 h-4' />
                 Disconnect
               </Button>
             </div>
             <div className='text-sm text-muted-foreground'>
-              <MarkdownBlock content={provider.description} />
+              <MarkdownBlock content={provider.description ?? ''} />
             </div>
           </div>
         ))}
 
-        {providers.available?.map?.((provider) => (
+        {providers.available.map((provider) => (
           <div
             key={provider.name}
             className='flex flex-col gap-4 p-4 transition-colors border rounded-lg bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60'
@@ -161,8 +139,8 @@ export function Providers() {
                     onClick={() => {
                       // Initialize settings with the default values from provider.settings
                       setSettings(
-                        provider.settings.reduce((acc, setting) => {
-                          acc[setting.name] = setting.value;
+                        (provider.settings ?? []).reduce<Record<string, string>>((acc, setting) => {
+                          acc[setting.name] = typeof setting.value === 'string' ? setting.value : '';
                           return acc;
                         }, {}),
                       );
@@ -181,7 +159,7 @@ export function Providers() {
                   </DialogHeader>
 
                   <div className='grid gap-4 py-4'>
-                    {provider.settings.map((prov) => (
+                    {(provider.settings ?? []).map((prov) => (
                       <div key={prov.name} className='grid gap-2'>
                         <Label htmlFor={prov.name}>{prov.name}</Label>
                         <Input
@@ -191,7 +169,7 @@ export function Providers() {
                               ? 'password'
                               : 'text'
                           }
-                          defaultValue={prov.value}
+                          defaultValue={typeof prov.value === 'string' ? prov.value : ''}
                           value={settings[prov.name]}
                           onChange={(e) =>
                             setSettings((prev) => ({
@@ -206,10 +184,10 @@ export function Providers() {
                   </div>
 
                   <DialogFooter>
-                    <Button onClick={async () => handleSaveSettings(provider.name, settings)}>Connect Provider</Button>
+                    <Button onClick={() => void handleSaveSettings(provider.name, settings)}>Connect Provider</Button>
                   </DialogFooter>
 
-                  {error && (
+                  {error !== null && (
                     <Alert variant={error.type === 'success' ? 'default' : 'destructive'}>
                       <AlertDescription>{error.message}</AlertDescription>
                     </Alert>
@@ -218,7 +196,13 @@ export function Providers() {
               </Dialog>
             </div>
             <div className='text-sm text-muted-foreground'>
-              <MarkdownBlock content={provider.description || 'No description available'} />
+              <MarkdownBlock
+                content={
+                  provider.description !== undefined && provider.description !== ''
+                    ? provider.description
+                    : 'No description available'
+                }
+              />
             </div>
           </div>
         ))}

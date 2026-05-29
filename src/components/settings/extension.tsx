@@ -16,50 +16,73 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-const OVERRIDE_EXTENSIONS = {
+const OVERRIDE_EXTENSIONS: Record<string, { name: string; label: string }> = {
   'text-to-speech': { name: 'tts', label: 'Text to Speech' },
   'web-search': { name: 'websearch', label: 'Web Search' },
   'image-generation': { name: 'create-image', label: 'Image Generation' },
   analysis: { name: 'analyze-user-input', label: 'File Analysis' },
 };
 
+export type ExtensionData = {
+  extension_name: string;
+  friendly_name?: string;
+  description?: string;
+  settings: string[];
+  system?: boolean;
+};
+
+type ExtensionErrorState = {
+  type: 'success' | 'error';
+  message: string;
+} | null;
+
+interface ExtensionProps {
+  extension: ExtensionData;
+  connected?: boolean;
+  onDisconnect: (extension: ExtensionData) => void | Promise<void>;
+  onConnect: (extensionName: string, settings: Record<string, string>) => void | Promise<void>;
+  settings?: Record<string, string>;
+  setSettings: (updater: Record<string, string> | ((prev: Record<string, string>) => Record<string, string>)) => void;
+  error?: ExtensionErrorState;
+  setSelectedExtension?: (extensionName: string) => void;
+}
+
 export default function Extension({
   extension,
-  connected,
+  connected = false,
   onDisconnect,
   onConnect,
   settings = {},
   setSettings,
-  error,
-  setSelectedExtension = () => {},
-}) {
+  error = null,
+  setSelectedExtension = () => {
+    /* no-op default */
+  },
+}: ExtensionProps): React.JSX.Element {
   const [state, setState] = useState(false);
 
   useEffect(() => {
-    setState(
-      Object.keys(OVERRIDE_EXTENSIONS).includes(extension.extension_name)
-        ? getCookie(`aginteractive-${OVERRIDE_EXTENSIONS[extension.extension_name].name}`) === 'true'
-        : false,
-    );
+    const override = OVERRIDE_EXTENSIONS[extension.extension_name] as { name: string; label: string } | undefined;
+    setState(override !== undefined && getCookie(`aginteractive-${override.name}`) === 'true');
   }, [extension.extension_name]);
   // Treat known overrides as system-defined (read-only) unless an explicit flag is provided
-  const isSystemDefined = Object.keys(OVERRIDE_EXTENSIONS).includes(extension.extension_name) || extension?.system === true;
+  const isOverride = Object.keys(OVERRIDE_EXTENSIONS).includes(extension.extension_name);
+  const isSystemDefined = isOverride || extension.system === true;
+  const displayName =
+    extension.friendly_name !== undefined && extension.friendly_name !== ''
+      ? extension.friendly_name
+      : extension.extension_name;
+  const statusLabel = isOverride ? (state ? 'Enabled' : 'Disabled') : connected ? 'Connected' : 'Not Connected';
+  // Map-based lookup avoids dynamic object-index access (security/detect-object-injection).
+  const settingsMap = new Map(Object.entries(settings));
   return (
     <div className='flex flex-col gap-2 p-3 transition-colors border rounded-lg bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60'>
       <div className='flex items-center gap-2'>
         <div className='flex items-center flex-1 min-w-0 gap-3.5'>
           <Wrench className='shrink-0 w-5 h-5 text-muted-foreground' />
           <div>
-            <h4 className='font-medium truncate'>{extension.friendly_name || extension.extension_name}</h4>
-            <p className='text-sm text-muted-foreground'>
-              {Object.keys(OVERRIDE_EXTENSIONS).includes(extension.extension_name)
-                ? state
-                  ? 'Enabled'
-                  : 'Disabled'
-                : connected
-                  ? 'Connected'
-                  : 'Not Connected'}
-            </p>
+            <h4 className='font-medium truncate'>{displayName}</h4>
+            <p className='text-sm text-muted-foreground'>{statusLabel}</p>
           </div>
         </div>
 
@@ -80,7 +103,9 @@ export default function Extension({
                 className='gap-2'
                 onClick={() => {
                   setSelectedExtension(extension.extension_name);
-                  setSettings(extension.settings.reduce((acc, setting) => ({ ...acc, [setting]: '' }), {}));
+                  setSettings(
+                    extension.settings.reduce<Record<string, string>>((acc, setting) => ({ ...acc, [setting]: '' }), {}),
+                  );
                 }}
               >
                 <Plus className='w-4 h-4' />
@@ -89,7 +114,7 @@ export default function Extension({
             </DialogTrigger>
             <DialogContent className='sm:max-w-[425px]'>
               <DialogHeader>
-                <DialogTitle>Configure {extension.friendly_name || extension.extension_name}</DialogTitle>
+                <DialogTitle>Configure {displayName}</DialogTitle>
                 <DialogDescription>Enter the required credentials to enable this service.</DialogDescription>
               </DialogHeader>
 
@@ -104,7 +129,7 @@ export default function Extension({
                           ? 'password'
                           : 'text'
                       }
-                      value={settings[setting] || ''}
+                      value={settingsMap.get(setting) ?? ''}
                       onChange={(e) =>
                         setSettings((prev) => ({
                           ...prev,
@@ -121,7 +146,7 @@ export default function Extension({
                 <Button onClick={() => onConnect(extension.extension_name, settings)}>Connect Extension</Button>
               </DialogFooter>
 
-              {error && (
+              {error !== null && (
                 <Alert variant={error.type === 'success' ? 'default' : 'destructive'}>
                   <AlertDescription>{error.message}</AlertDescription>
                 </Alert>
@@ -131,7 +156,13 @@ export default function Extension({
         )}
       </div>
       <div className='text-sm text-muted-foreground'>
-        <MarkdownBlock content={extension.description || 'No description available'} />
+        <MarkdownBlock
+          content={
+            extension.description !== undefined && extension.description !== ''
+              ? extension.description
+              : 'No description available'
+          }
+        />
       </div>
     </div>
   );
