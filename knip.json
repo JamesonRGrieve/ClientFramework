@@ -22,7 +22,6 @@
     "src/components/auth/**",
     "src/components/appwrapper/**",
     "src/components/dynamic-form/**",
-    "src/lib/next-log/**",
     "src/lib/zod2gql/**",
     "next-env.d.ts"
   ],

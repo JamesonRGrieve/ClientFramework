@@ -24,7 +24,6 @@ const SKIP_DIRS = new Set([
     'auth',
     'appwrapper',
     'dynamic-form',
-    'next-log',
     'zod2gql',
 ]);
 

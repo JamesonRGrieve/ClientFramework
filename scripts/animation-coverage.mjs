@@ -20,7 +20,7 @@ import { join, relative } from 'node:path';
 
 const EXCLUDED_DIRS = new Set([
     'node_modules', '.next', 'dist', 'storybook-static', 'coverage',
-    'appwrapper', 'auth', 'dynamic-form', 'next-log', 'zod2gql',
+    'appwrapper', 'auth', 'dynamic-form', 'zod2gql',
 ]);
 
 function walk(dir, out = []) {

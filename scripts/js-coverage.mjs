@@ -22,7 +22,6 @@ const SKIP_SUBPATHS = [
     'src/components/appwrapper',
     'src/components/auth',
     'src/components/dynamic-form',
-    'src/lib/next-log',
     'src/lib/zod2gql',
 ].map((p) => resolve(process.cwd(), p));
 const JS_RE = /\.(js|jsx|mjs|cjs)$/;

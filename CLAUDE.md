@@ -12,19 +12,18 @@ This repository is a template framework. Downstream projects merge from it regul
 
 ## Submodules
 
-This project uses five git submodules — each is an independent repo with its own `package.json`:
+This project uses four git submodules — each is an independent repo with its own `package.json`:
 
 ```
 src/components/appwrapper/    → github.com/JamesonRGrieve/appwrapper
 src/components/auth/          → github.com/JamesonRGrieve/auth
 src/components/dynamic-form/  → github.com/JamesonRGrieve/dynamic-form
-src/lib/next-log/             → github.com/JamesonRGrieve/next-log
 src/lib/zod2gql/              → github.com/JamesonRGrieve/zod2gql
 ```
 
 - **After cloning**, initialize submodules: `git submodule update --init --recursive`.
 - **To pull latest** for all submodules: `git submodule update --remote --merge`.
-- **Path aliases** in `tsconfig.json` map `@/auth/*`, `@/appwrapper/*`, `@/dynamic-form/*`, `@/next-log/*`, and `@/zod2gql` to their respective `src/` directories inside each submodule.
+- **Path aliases** in `tsconfig.json` map `@/auth/*`, `@/appwrapper/*`, `@/dynamic-form/*`, and `@/zod2gql` to their respective `src/` directories inside each submodule.
 - **Submodule changes are separate commits** (workspace rule). Modify, commit, push in the submodule first; bump the parent's pointer in a separate commit.
 - **Don't edit submodule code to fix a parent-repo problem.** If the issue is in the parent repo's usage, fix it there. Only modify submodule code for bugs or features that belong to that library.
 - **No cross-linking between submodules.** Each submodule must be a self-contained npm package — no submodule imports from another submodule.
@@ -39,7 +38,7 @@ src/lib/zod2gql/              → github.com/JamesonRGrieve/zod2gql
 - **No HTML string interpolation with external data.** Never pass untrusted values into `dangerouslySetInnerHTML` or any DOM API that parses HTML. Build content with React components and text nodes instead.
 - **Lifecycle resource cleanup.** Capture all timer IDs from `setTimeout` / `setInterval` and clear them in cleanup functions returned from `useEffect`. Dispose subscriptions and listeners on unmount.
 - **No magic numbers.** Extract timeouts, poll intervals, and other numeric constants to named `const` declarations at the top of the file.
-- **No `console.log` in committed code.** Use `console.warn` / `console.error` / `next-log` for diagnostics.
+- **No `console.log` in committed code.** Use `console.warn` / `console.error` for diagnostics.
 
 ---
 

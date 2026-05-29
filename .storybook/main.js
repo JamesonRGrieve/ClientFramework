@@ -26,7 +26,6 @@ const config = {
       config.resolve.alias = {
         ...config.resolve.alias,
         '@': rootDir,
-        '@jgrieve/next-log': path.resolve(rootDir, 'lib/next-log/src'),
         'zod2gql': path.resolve(rootDir, 'lib/zod2gql/src'),
         '@jgrieve/auth': path.resolve(rootDir, 'components/auth/src'),
         '@jgrieve/appwrapper': path.resolve(rootDir, 'components/appwrapper/src'),

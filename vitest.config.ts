@@ -14,7 +14,6 @@ export default defineConfig({
       '@jgrieve/appwrapper': path.resolve(__dirname, './src/components/appwrapper/src'),
       '@jgrieve/auth': path.resolve(__dirname, './src/components/auth/src'),
       '@jgrieve/dynamic-form': path.resolve(__dirname, './src/components/dynamic-form/src'),
-      '@jgrieve/next-log': path.resolve(__dirname, './src/lib/next-log/src'),
       zod2gql: path.resolve(__dirname, './src/lib/zod2gql/src'),
     },
   },

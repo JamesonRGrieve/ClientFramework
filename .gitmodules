@@ -1,6 +1,3 @@
-[submodule "src/lib/next-log"]
-path = src/lib/next-log
-url = https://github.com/JamesonRGrieve/next-log.git
 [submodule "src/components/auth"]
 path = src/components/auth
 url = https://github.com/JamesonRGrieve/auth.git
