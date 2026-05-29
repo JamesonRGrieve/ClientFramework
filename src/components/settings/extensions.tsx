@@ -1,18 +1,17 @@
 'use client';
 
-import { ConnectedServices } from '@jgrieve/auth/management/ConnectedServices';
 import axios from 'axios';
 import { getCookie } from 'cookies-next';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
-import { useTeam } from '@jgrieve/auth/hooks/useTeam';
+import { useEffect, useState } from 'react';
 import Extension from './extension';
+import { ConnectedServices } from '@jgrieve/auth/management/ConnectedServices';
+import { useTeam } from '@jgrieve/auth/hooks/useTeam';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useProviders } from '@/hooks/useProvider';
 
 import MarkdownBlock from '@/components/markdown/MarkdownBlock';
 import { Input } from '@/components/ui/input';
@@ -42,79 +41,68 @@ type ErrorState = {
   message: string;
 } | null;
 
-interface ExtensionSettings {
-  agent_name: string;
-  settings: Record<string, string>;
-}
+type AgentData = {
+  agent_name?: string;
+  extensions?: Extension[];
+} | null;
 
-export function Extensions() {
+const readJwt = (): string => {
+  const jwt = getCookie('jwt');
+  return typeof jwt === 'string' ? jwt : '';
+};
+
+/** No-op handler for the read-only built-in extensions, which are not editable. */
+const noop = (): void => {
+  /* read-only built-in extension: nothing to do */
+};
+
+export function Extensions(): React.JSX.Element {
   const pathname = usePathname();
-  const agentData: any = null;
-  const mutateAgent = () => {};
+  // Agent-scoped data is not wired up in this template; downstream apps inject
+  // it. Typed via `as` so the literal `null` does not narrow away the shape.
+  const agentData = null as AgentData;
+  const mutateAgent = (): void => {
+    /* no-op until agent data is wired up downstream */
+  };
   const [searchText, setSearchText] = useState('');
   const router = useRouter();
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [error, setError] = useState<ErrorState>(null);
   const [showEnabledOnly, setShowEnabledOnly] = useState(false);
-  const agent_name =
-    (getCookie('aginteractive-agent') || process.env.NEXT_PUBLIC_AGINTERACTIVE_AGENT || agentData?.agent_name) ?? '';
+  const cookieAgent = getCookie('aginteractive-agent');
+  const cookieAgentName = typeof cookieAgent === 'string' ? cookieAgent : '';
+  const agentName =
+    cookieAgentName !== '' ? cookieAgentName : (process.env.NEXT_PUBLIC_AGINTERACTIVE_AGENT ?? agentData?.agent_name ?? '');
   const { data: activeCompany, mutate: mutateCompany } = useTeam();
-
-  const { data: providerData } = useProviders();
   const searchParams = useSearchParams();
   // Filter extensions for the enabled commands view
-  const extensions = searchParams.get('mode') === 'company' ? activeCompany?.extensions || [] : agentData?.extensions || [];
-  const extensionsWithCommands = extensions.filter((ext) => ext.commands?.length > 0);
-  const _allEnabledCommands = extensions.flatMap((ext) =>
-    ext.commands.filter((cmd) => cmd.enabled).map((cmd) => ({ ...cmd, extension_name: ext.extension_name })),
-  );
+  const companyExtensions = (activeCompany as { extensions?: Extension[] } | undefined)?.extensions ?? [];
+  const extensions: Extension[] = searchParams.get('mode') === 'company' ? companyExtensions : (agentData?.extensions ?? []);
+  const extensionsWithCommands = extensions.filter((ext) => ext.commands.length > 0);
   // Categorize extensions for the available tab
-  const categorizeExtensions = (exts: Extension[]) => {
+  const categorizeExtensions = (
+    exts: Extension[],
+  ): { connectedExtensions: Extension[]; availableExtensions: Extension[] } => {
     return {
       // Connected extensions are those with settings and at least one command
       connectedExtensions: filterExtensions(
-        exts.filter((ext) => ext.settings?.length > 0 && ext.commands?.length > 0),
+        exts.filter((ext) => ext.settings.length > 0 && ext.commands.length > 0),
         searchText,
       ),
       // Available extensions are those with settings that aren't connected yet
       availableExtensions: filterExtensions(
-        exts.filter((ext) => ext.settings?.length > 0 && !ext.commands?.length),
+        exts.filter((ext) => ext.settings.length > 0 && ext.commands.length === 0),
         searchText,
       ),
     };
   };
-  // Categorize extensions for the available tab
-  const categorizeProviders = (providers: any[]) => {
-    const connected = providers.filter(
-      (provider) =>
-        provider.settings &&
-        Object.entries(provider.settings).every(
-          ([key, _defaultValue]) =>
-            !['KEY', 'SECRET', 'PASSWORD', 'TOKEN'].some((this_key) => key.endsWith(this_key)) ||
-            (['KEY', 'SECRET', 'PASSWORD', 'TOKEN'].some((this_key) => key.endsWith(this_key)) &&
-              agentData?.settings[key] &&
-              agentData?.settings[key] === 'HIDDEN'),
-        ),
-    );
-    return agentData?.settings
-      ? {
-          // Connected providers have all their settings fields present with non-default values
-          connectedProviders: connected,
-          // Available providers are those that have settings but at least one field is missing or has default value
-          availableProviders: providers.filter((provider) => !connected.includes(provider)),
-        }
-      : {
-          connectedProviders: [],
-          availableProviders: [],
-        };
-  };
 
-  const handleToggleCommand = async (commandName: string, enabled: boolean) => {
+  const handleToggleCommand = async (commandName: string, enabled: boolean): Promise<void> => {
     try {
       const result = await axios.patch(
         searchParams.get('mode') === 'company'
           ? `${process.env.NEXT_PUBLIC_API_URI}/v1/companies/${activeCompany?.id}/command`
-          : `${process.env.NEXT_PUBLIC_API_URI}/api/agent/${agent_name}/command`,
+          : `${process.env.NEXT_PUBLIC_API_URI}/api/agent/${agentName}/command`,
 
         {
           command_name: commandName,
@@ -122,20 +110,20 @@ export function Extensions() {
         },
         {
           headers: {
-            Authorization: getCookie('jwt'),
+            Authorization: readJwt(),
           },
         },
       );
 
       if (result.status === 200) {
         if (searchParams.get('mode') === 'company') {
-          mutateCompany();
+          void mutateCompany();
         } else {
           mutateAgent();
         }
       }
-    } catch (error) {
-      console.error('Failed to toggle command:', error);
+    } catch (err) {
+      console.error('Failed to toggle command:', err);
       setError({
         type: 'error',
         message: 'Failed to toggle command. Please try again.',
@@ -143,19 +131,19 @@ export function Extensions() {
     }
   };
 
-  const handleSaveSettings = async (_extensionName: string, settings: Record<string, string>) => {
+  const handleSaveSettings = async (_extensionName: string, newSettings: Record<string, string>): Promise<void> => {
     try {
       setError(null);
-      const response = await axios.put<{ status: number; data: any }>(
-        `${process.env.NEXT_PUBLIC_API_URI}/api/agent/${agent_name}`,
+      const response = await axios.put<{ status: number; data: Record<string, unknown> }>(
+        `${process.env.NEXT_PUBLIC_API_URI}/api/agent/${agentName}`,
         {
-          agent_name: agent_name,
-          settings: settings,
+          agent_name: agentName,
+          settings: newSettings,
         },
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: getCookie('jwt'),
+            Authorization: readJwt(),
           },
         },
       );
@@ -167,50 +155,42 @@ export function Extensions() {
         });
         window.location.reload();
       }
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { detail?: string } }; message?: string };
       setError({
         type: 'error',
-        message: error.response?.data?.detail || error.message || 'Failed to connect extension',
+        message: axiosErr.response?.data?.detail ?? axiosErr.message ?? 'Failed to connect extension',
       });
     }
   };
 
-  const handleDisconnect = async (extension: Extension) => {
-    const emptySettings = extension.settings.reduce((acc, setting) => ({ ...acc, [setting]: '' }), {});
+  const handleDisconnect = async (extension: Extension): Promise<void> => {
+    const emptySettings = extension.settings.reduce<Record<string, string>>(
+      (acc, setting) => ({ ...acc, [setting]: '' }),
+      {},
+    );
     await handleSaveSettings(extension.extension_name, emptySettings);
   };
 
-  function filterExtensions(extensions, text) {
-    return text
-      ? extensions
-      : extensions.filter(
+  function filterExtensions(exts: Extension[], text: string): Extension[] {
+    return text !== ''
+      ? exts
+      : exts.filter(
           (ext) =>
             ext.extension_name.toLowerCase().includes(text.toLowerCase()) ||
             ext.description.toLowerCase().includes(text.toLowerCase()),
         );
   }
-  const _filterCommands = useCallback(
-    (commands) => {
-      return searchText
-        ? commands
-        : commands.filter(
-            (cmd) =>
-              cmd.friendly_name.toLowerCase().includes(searchText.toLowerCase()) ||
-              cmd.description.toLowerCase().includes(searchText.toLowerCase()),
-          );
-    },
-    [searchText],
-  );
   useEffect(() => {
-    if (!searchParams.get('tab')) {
+    const tab = searchParams.get('tab');
+    if (tab === null || tab === '') {
       router.push(`${pathname}?tab=extensions`);
     }
-  }, [searchParams, router.push, pathname]);
+  }, [searchParams, router, pathname]);
   const { connectedExtensions, availableExtensions } = categorizeExtensions(extensions);
-  const { connectedProviders, availableProviders } = categorizeProviders(Object.values(providerData));
   return (
     <div className='space-y-6'>
-      <Tabs defaultValue={searchParams.get('tab') || 'extensions'} className='space-y-4'>
+      <Tabs defaultValue={searchParams.get('tab') ?? 'extensions'} className='space-y-4'>
         <div className='flex items-center gap-2'>
           <TabsList>
             <TabsTrigger value='extensions' onClick={() => router.push(`${pathname}?tab=extensions`)}>
@@ -264,35 +244,41 @@ export function Extensions() {
                     <CardHeader>
                       <CardTitle>{extension.extension_name}</CardTitle>
                       <CardDescription>
-                        <MarkdownBlock content={extension.description || 'No description available'} />
+                        <MarkdownBlock
+                          content={extension.description !== '' ? extension.description : 'No description available'}
+                        />
                       </CardDescription>
                     </CardHeader>
                     <CardContent className='space-y-4'>
                       {extension.commands
                         .filter((command) =>
                           [command.command_name, command.extension_name, command.friendly_name, command.description].some(
-                            (value) => value?.toLowerCase().includes(searchText.toLowerCase()),
+                            (value) => (value ?? '').toLowerCase().includes(searchText.toLowerCase()),
                           ),
                         )
-                        .filter((command) => !showEnabledOnly || command.enabled)
+                        .filter((command) => !showEnabledOnly || command.enabled === true)
                         .map((command) => {
-                          const isSystemExtension = SYSTEM_EXTENSIONS.includes(extension.extension_name) || false;
+                          const isSystemExtension = SYSTEM_EXTENSIONS.includes(extension.extension_name);
                           return (
                             <Card key={command.command_name} className='p-4 border border-border/50'>
                               <div className='flex items-center mb-2'>
                                 <Switch
-                                  checked={command.enabled}
+                                  checked={command.enabled === true}
                                   disabled={isSystemExtension}
                                   onCheckedChange={
                                     isSystemExtension
                                       ? undefined
-                                      : async (checked) => handleToggleCommand(command.friendly_name, checked)
+                                      : (checked): void => void handleToggleCommand(command.friendly_name, checked)
                                   }
                                 />
                                 <h4 className='text-lg font-medium'>&nbsp;&nbsp;{command.friendly_name}</h4>
                               </div>
                               <MarkdownBlock
-                                content={command.description?.split('\nArgs')[0] || 'No description available'}
+                                content={
+                                  command.description !== ''
+                                    ? command.description.split('\nArgs')[0]
+                                    : 'No description available'
+                                }
                               />
                             </Card>
                           );
@@ -340,12 +326,12 @@ export function Extensions() {
                   key={ext.extension_name}
                   extension={ext}
                   connected={false}
-                  onConnect={() => {}}
-                  onDisconnect={() => {}}
+                  onConnect={noop}
+                  onDisconnect={noop}
                   settings={{}}
-                  setSettings={() => {}}
+                  setSettings={noop}
                   error={null}
-                  setSelectedExtension={() => {}}
+                  setSelectedExtension={noop}
                 />
               ))}
             {searchParams.get('mode') !== 'company' && <ConnectedServices />}
