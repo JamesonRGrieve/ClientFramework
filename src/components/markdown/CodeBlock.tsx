@@ -1,8 +1,8 @@
 'use client';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { getCookie } from 'cookies-next';
 import 'katex/dist/katex.min.css';
 import { ChevronDown, Copy, Download } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { type ReactNode, useRef, useState } from 'react';
 import Latex from 'react-latex-next';
 import SyntaxHighlighter from 'react-syntax-highlighter';
@@ -11,10 +11,14 @@ import { DataTable } from '../data-table';
 import { createColumns } from '../data-table/data-table-columns';
 import Mermaid from './Code/Mermaid';
 import { parseXSVData } from './Code/ParseXSVData';
-import MarkdownBlock from './MarkdownBlock';
 import TabPanel from './TabPanel';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
-const fileExtensions = {
+// Lazy import to break the MarkdownBlock <-> CodeBlock import cycle: a code
+// fence may itself contain markdown, and markdown renders code fences.
+const MarkdownBlock = dynamic(async () => import('./MarkdownBlock'), { ssr: false });
+
+const fileExtensions: Record<string, string> = {
   '': 'txt',
   text: 'txt',
   python: 'py',
@@ -79,50 +83,54 @@ const fileExtensions = {
   latex: 'latex',
 };
 
-const languageRenders = {
-  markdown: (content) => <MarkdownBlock content={content} />,
-  // biome-ignore lint/security/noDangerouslySetInnerHtml: renders user-supplied HTML code blocks inside a sandboxed markdown context
-  html: (content) => <div dangerouslySetInnerHTML={{ __html: content }} />,
-  csv: (content, _setLoading) => {
-    const csvData = (
-      content.constructor === Array
-        ? content.length > 1
-          ? content
-          : content[0]
-        : content
-            .split('\n')
-            .filter((row) => row.trim())
-            .map((row) => row.trim())
-    )
-      .filter((row) => row.trim())
-      .map((row) => row.trim());
+type RenderContent = string | string[];
+type LanguageRenderer = (content: RenderContent, setLoading?: (loading: boolean) => void) => ReactNode;
 
-    const result = parseXSVData(csvData, ',');
+/** Normalise the renderer input to an array of trimmed, non-empty rows. */
+const toRows = (content: RenderContent): string[] => {
+  const rows = Array.isArray(content)
+    ? content.length > 1
+      ? content
+      : (content[0]?.split('\n') ?? [])
+    : content.split('\n');
+  return rows.map((row) => row.trim()).filter((row) => row !== '');
+};
 
+/** Detect a fenced language from the first line when none was provided. */
+const detectLanguage = (language: string, raw: string): { language: string; code: string } => {
+  if (language !== '' && language !== 'Text') {
+    return { language, code: raw };
+  }
+  const languages = Object.entries(fileExtensions).flat();
+  const potentialLanguage = raw.split('\n')[0].trim();
+  if (languages.includes(potentialLanguage)) {
+    return { language: potentialLanguage, code: raw.substring(raw.indexOf('\n') + 1) };
+  }
+  return { language, code: raw };
+};
+
+const languageRenders: Record<string, LanguageRenderer> = {
+  markdown: (content) => <MarkdownBlock content={Array.isArray(content) ? content.join('\n') : content} />,
+  html: (content) => <CodeBlock language='html'>{Array.isArray(content) ? content.join('\n') : content}</CodeBlock>,
+  csv: (content) => {
+    const result = parseXSVData(toRows(content), ',');
     if ('error' in result) {
       return <div>Error: {result.error}</div>;
     }
-
     return <DataTable columns={createColumns(result.columns)} data={result.rows} />;
   },
-  tsv: (content, _setLoading) => {
-    const tsvData = (content.constructor === Array ? (content.length > 1 ? content : content[0]) : content.split('\n'))
-      .filter((row) => row.trim())
-      .map((row) => row.trim());
-
-    const result = parseXSVData(tsvData, '\t');
-
+  tsv: (content) => {
+    const result = parseXSVData(toRows(content), '\t');
     if ('error' in result) {
       return <div>Error: {result.error}</div>;
     }
-
     return <DataTable columns={createColumns(result.columns)} data={result.rows} />;
   },
-  gantt: (content) => <Mermaid chart={`gantt\n${content}`} />,
-  sequence: (content) => <Mermaid chart={`sequenceDiagram\n${content}`} />,
-  flow: (content) => <Mermaid chart={`flowchart TD\n${content}`} />,
-  mermaid: (content) => <Mermaid chart={content} />,
-  latex: (content) => <Latex>{content[0]}</Latex>,
+  gantt: (content) => <Mermaid chart={`gantt\n${Array.isArray(content) ? content.join('\n') : content}`} />,
+  sequence: (content) => <Mermaid chart={`sequenceDiagram\n${Array.isArray(content) ? content.join('\n') : content}`} />,
+  flow: (content) => <Mermaid chart={`flowchart TD\n${Array.isArray(content) ? content.join('\n') : content}`} />,
+  mermaid: (content) => <Mermaid chart={Array.isArray(content) ? content.join('\n') : content} />,
+  latex: (content) => <Latex>{Array.isArray(content) ? (content[0] ?? '') : content}</Latex>,
 };
 
 export type CodeBlockProps = {
@@ -138,46 +146,52 @@ export default function CodeBlock({
   children,
   language = 'Text',
   fileName,
-  setLoading,
+  setLoading: _setLoading,
   ...props
 }: CodeBlockProps): ReactNode {
   const codeBlockRef = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState(0);
   const [isOpen, setIsOpen] = useState(true);
 
+  const rawChildren = children ?? '';
+
   if (inline) {
-    return <span className='bg-gray-200 dark:bg-gray-700 rounded-md px-1 py-0.5 font-mono'>{children}</span>;
+    return <span className='bg-gray-200 dark:bg-gray-700 rounded-md px-1 py-0.5 font-mono'>{rawChildren}</span>;
   }
 
-  if (!language || language === 'Text') {
-    const languages = Object.entries(fileExtensions).flat();
-    const potentialLanguage = children.split('\n')[0].trim();
-    if (languages.includes(potentialLanguage)) {
-      language = potentialLanguage;
-      children = children.substring(children.indexOf('\n') + 1);
+  const { language: resolvedLanguage, code: codeContent } = detectLanguage(language, rawChildren);
+
+  const fileExtension = fileExtensions[resolvedLanguage.toLowerCase()] ?? 'txt';
+  const fileNameWithExtension = `${fileName !== undefined && fileName !== '' ? fileName : 'code'}.${fileExtension}`;
+  const hasRenderer = Object.hasOwn(languageRenders, resolvedLanguage);
+  const renderer = hasRenderer ? languageRenders[resolvedLanguage] : undefined;
+  const themeCookie = getCookie('theme');
+  const isDarkTheme = typeof themeCookie === 'string' && themeCookie.includes('dark');
+
+  const extractCode = (): string | null => {
+    const codeEl = codeBlockRef.current?.querySelector('code');
+    if (codeEl === null || codeEl === undefined) {
+      return null;
     }
-  }
+    const clone = codeEl.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll('.react-syntax-highlighter-line-number').forEach((el) => {
+      el.remove();
+    });
+    return clone.innerText;
+  };
 
-  const fileNameWithExtension = `${fileName || 'code'}.${fileExtensions[String(language.toLowerCase())] || 'txt'}`;
-
-  const copyCode = () => {
-    if (codeBlockRef.current) {
-      const actualCode = codeBlockRef.current.querySelector('code')?.cloneNode(true) as HTMLElement;
-      actualCode.querySelectorAll('.react-syntax-highlighter-line-number').forEach((el) => {
-        el.remove();
-      });
-      navigator.clipboard.writeText(actualCode.innerText);
+  const copyCode = (): void => {
+    const text = extractCode();
+    if (text !== null) {
+      void navigator.clipboard.writeText(text);
     }
   };
 
-  const downloadCode = () => {
-    if (codeBlockRef.current) {
-      const actualCode = codeBlockRef.current.querySelector('code')?.cloneNode(true) as HTMLElement;
-      actualCode.querySelectorAll('.react-syntax-highlighter-line-number').forEach((el) => {
-        el.remove();
-      });
+  const downloadCode = (): void => {
+    const text = extractCode();
+    if (text !== null) {
       const element = document.createElement('a');
-      const file = new Blob([actualCode.innerText], { type: 'text/plain;charset=utf-8' });
+      const file = new Blob([text], { type: 'text/plain;charset=utf-8' });
       element.href = URL.createObjectURL(file);
       element.download = fileNameWithExtension;
       document.body.appendChild(element);
@@ -197,7 +211,7 @@ export default function CodeBlock({
           <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`} />
         </CollapsibleTrigger>
 
-        {Object.keys(languageRenders).includes(language) && (
+        {renderer !== undefined && (
           <div className='flex'>
             <button type='button' className={`px-4 py-2 ${tab === 0 ? 'bg-muted' : ''}`} onClick={() => setTab(0)}>
               Rendered
@@ -215,33 +229,33 @@ export default function CodeBlock({
             <Download className='w-5 h-5' />
           </button>
           <span className='ml-2 text-sm'>
-            {fileNameWithExtension || 'text.txt'} | {language || ''}
+            {fileNameWithExtension} | {resolvedLanguage}
           </span>
         </div>
       </div>
 
       <CollapsibleContent className='transition-all duration-300 ease-in-out'>
-        {Object.keys(languageRenders).includes(language) && (
+        {renderer !== undefined && (
           <TabPanel value={tab} index={0}>
-            <div className='code-container'>{languageRenders[language.toString()](children, setLoading)}</div>
+            <div className='code-container'>{renderer(codeContent, _setLoading)}</div>
           </TabPanel>
         )}
 
-        <TabPanel value={tab} index={Object.keys(languageRenders).includes(language) ? 1 : 0}>
+        <TabPanel value={tab} index={renderer !== undefined ? 1 : 0}>
           <div className='code-container' ref={codeBlockRef}>
-            {language.toLowerCase() in fileExtensions ? (
+            {resolvedLanguage.toLowerCase() in fileExtensions ? (
               <SyntaxHighlighter
                 {...props}
-                language={language.toLowerCase()}
-                style={getCookie('theme')?.includes('dark') ? a11yDark : a11yLight}
+                language={resolvedLanguage.toLowerCase()}
+                style={isDarkTheme ? a11yDark : a11yLight}
                 showLineNumbers
                 wrapLongLines
               >
-                {children}
+                {codeContent}
               </SyntaxHighlighter>
             ) : (
               <code className='code-block' {...props}>
-                {children}
+                {codeContent}
               </code>
             )}
           </div>

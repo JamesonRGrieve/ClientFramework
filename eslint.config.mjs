@@ -430,7 +430,9 @@ export default [
       curly: ['warn', 'all'],
       'prefer-template': 'warn',
       'no-throw-literal': 'warn',
-      'import/no-cycle': ['warn', { maxDepth: 4, ignoreExternal: true }],
+      // `allowUnsafeDynamicCyclicDependency` lets a deliberate `import()`-based
+      // cycle break stand (e.g. MarkdownBlock <-> CodeBlock recursive rendering).
+      'import/no-cycle': ['warn', { maxDepth: 4, ignoreExternal: true, allowUnsafeDynamicCyclicDependency: true }],
       'import/no-self-import': 'warn',
       'import/extensions': ['warn', 'never'],
       'import/first': 'warn',
@@ -441,7 +443,8 @@ export default [
       'jsx-a11y/no-static-element-interactions': 'warn',
       'react/no-danger': 'warn',
       'unused-imports/no-unused-imports': 'warn',
-      'import/no-unassigned-import': 'warn',
+      // CSS / style side-effect imports are legitimately unassigned.
+      'import/no-unassigned-import': ['warn', { allow: ['**/*.css', '**/*.scss', '**/*.sass', '**/*.less'] }],
       'jsx-a11y/no-autofocus': 'warn',
       'react/no-access-state-in-setstate': 'warn',
     },
