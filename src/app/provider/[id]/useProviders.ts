@@ -1,5 +1,5 @@
-import { getCookie } from 'cookies-next';
 import axios from 'axios';
+import { getCookie } from 'cookies-next';
 import useSWR, { type SWRResponse } from 'swr';
 
 export interface ProviderInstance {
@@ -17,58 +17,57 @@ export interface ProviderInstance {
   enabled: boolean;
 }
 
+const readJwt = (): string => {
+  const jwt = getCookie('jwt');
+  return typeof jwt === 'string' ? jwt : '';
+};
+
 /**
  * Hook to fetch provider instances for the current team
  * @returns SWR response containing array of provider instances
  */
 export function useProviderInstances(): SWRResponse<ProviderInstance[]> {
   return useSWR<ProviderInstance[]>(
-    ['/provider-instances', getCookie('auth-team'), getCookie('jwt')],
+    `/v1/provider/instance`,
     async (): Promise<ProviderInstance[]> => {
       const teamId = getCookie('auth-team');
-      if (!teamId) return [];
-      try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URI}/v1/provider/instance?target_team_id=${teamId}`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${getCookie('jwt')}`,
-            },
+      const response = await axios.get<{ provider_instances?: ProviderInstance[] }>(
+        `${process.env.NEXT_PUBLIC_API_URI}/v1/provider/instance`,
+        {
+          params: { team_id: teamId },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${readJwt()}`,
           },
-        );
-
-        return response.data.provider_instances || [];
-      } catch (_error) {
-        return [];
-      }
+        },
+      );
+      return response.data.provider_instances ?? [];
     },
-    { fallbackData: [] },
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    },
   );
 }
 
-/**
- * Hook to fetch a specific provider instance by ID
- * @param id The provider instance ID
- * @returns SWR response containing the provider instance
- */
 export function useProviderInstance(id: string | undefined): SWRResponse<ProviderInstance | null> {
   return useSWR<ProviderInstance | null>(
-    id ? ['/provider-instance', id, getCookie('jwt')] : null,
+    id !== undefined && id !== '' ? `/v1/provider/instance/${id}` : null,
     async (): Promise<ProviderInstance | null> => {
-      if (!id) return null;
-      try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URI}/v1/provider/instance/${id}`, {
+      const response = await axios.get<{ provider_instance?: ProviderInstance }>(
+        `${process.env.NEXT_PUBLIC_API_URI}/v1/provider/instance/${id}`,
+        {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${getCookie('jwt')}`,
+            Authorization: `Bearer ${readJwt()}`,
           },
-        });
-        return response.data.provider_instance || null;
-      } catch (_error) {
-        return null;
-      }
+        },
+      );
+      return response.data.provider_instance ?? null;
     },
-    { fallbackData: null },
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    },
   );
 }
