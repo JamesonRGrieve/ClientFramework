@@ -1,0 +1,18 @@
+pnpm-lock.yaml
+node_modules/
+dist/
+.next/
+storybook-static/
+coverage/
+*.tsbuildinfo
+*-coverage.json
+.symmetry-coverage.json
+# Generated PWA / service-worker artifacts (next-pwa / workbox output)
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/worker-*.js
+src/components/auth/
+src/components/appwrapper/
+src/components/dynamic-form/
+src/lib/zod2gql/

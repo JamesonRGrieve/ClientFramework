@@ -19,48 +19,48 @@ const updateMode = args.includes('--update');
 
 let tscOutput;
 try {
-    tscOutput = execSync('./node_modules/.bin/tsc --noEmit --pretty false', {
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'pipe'],
-        maxBuffer: 64 * 1024 * 1024,
-    });
+  tscOutput = execSync('./node_modules/.bin/tsc --noEmit --pretty false', {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    maxBuffer: 64 * 1024 * 1024,
+  });
 } catch (err) {
-    tscOutput = (err.stdout?.toString() || '') + (err.stderr?.toString() || '');
+  tscOutput = (err.stdout?.toString() || '') + (err.stderr?.toString() || '');
 }
 
 const errorLines = tscOutput.split('\n').filter((line) => /error TS\d+/.test(line));
 const current = errorLines.length;
 
 if (updateMode) {
-    writeFileSync(BASELINE_PATH, `${current}\n`, 'utf8');
-    console.log(`[typecheck-ratchet] baseline updated to ${current}`);
-    process.exit(0);
+  writeFileSync(BASELINE_PATH, `${current}\n`, 'utf8');
+  console.log(`[typecheck-ratchet] baseline updated to ${current}`);
+  process.exit(0);
 }
 
 if (!existsSync(BASELINE_PATH)) {
-    writeFileSync(BASELINE_PATH, `${current}\n`, 'utf8');
-    console.log(`[typecheck-ratchet] baseline file missing — initialised at ${current}`);
-    process.exit(0);
+  writeFileSync(BASELINE_PATH, `${current}\n`, 'utf8');
+  console.log(`[typecheck-ratchet] baseline file missing — initialised at ${current}`);
+  process.exit(0);
 }
 
 const baseline = parseInt(readFileSync(BASELINE_PATH, 'utf8').trim(), 10);
 if (Number.isNaN(baseline)) {
-    console.error(`[typecheck-ratchet] cannot parse baseline at ${BASELINE_PATH}`);
-    process.exit(2);
+  console.error(`[typecheck-ratchet] cannot parse baseline at ${BASELINE_PATH}`);
+  process.exit(2);
 }
 
 if (current > baseline) {
-    console.error(`[typecheck-ratchet] FAIL: tsc errors increased ${baseline} -> ${current} (+${current - baseline}).`);
-    console.error('Either fix the new errors or, if intentional, run: pnpm typecheck:ratchet:update');
-    console.error('---first 20 error lines---');
-    console.error(errorLines.slice(0, 20).join('\n'));
-    process.exit(1);
+  console.error(`[typecheck-ratchet] FAIL: tsc errors increased ${baseline} -> ${current} (+${current - baseline}).`);
+  console.error('Either fix the new errors or, if intentional, run: pnpm typecheck:ratchet:update');
+  console.error('---first 20 error lines---');
+  console.error(errorLines.slice(0, 20).join('\n'));
+  process.exit(1);
 }
 
 if (current < baseline) {
-    console.log(`[typecheck-ratchet] OK: tsc errors decreased ${baseline} -> ${current} (-${baseline - current}).`);
-    console.log('Lower the baseline in the same commit: pnpm typecheck:ratchet:update');
-    process.exit(0);
+  console.log(`[typecheck-ratchet] OK: tsc errors decreased ${baseline} -> ${current} (-${baseline - current}).`);
+  console.log('Lower the baseline in the same commit: pnpm typecheck:ratchet:update');
+  process.exit(0);
 }
 
 console.log(`[typecheck-ratchet] OK: tsc errors unchanged at ${current}.`);

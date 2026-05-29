@@ -11,7 +11,6 @@ import { useToast } from '@/hooks/useToast';
 import { LuPencil, LuCheck } from 'react-icons/lu';
 import { useProviderInstance, useProviderInstances } from './useProviders';
 
-
 function Providers() {
   const { toast } = useToast();
   const { id } = useParams();
@@ -20,31 +19,30 @@ function Providers() {
   const [providerInstanceUsage, setProviderInstanceUsage] = useState<any>(null);
   const [editRowId, setEditRowId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>('');
-  const {mutate} = useProviderInstances();
-  const {data:providerInstance ,isLoading} = useProviderInstance(String(id));
+  const { mutate } = useProviderInstances();
+  const { data: providerInstance, isLoading } = useProviderInstance(String(id));
 
-  
   const settingsArray = providerInstanceSettings ? [providerInstanceSettings] : [];
-  
+
   // DataTable columns for settings
   const settingsColumns = [
     {
       accessorKey: 'key',
-      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Key" />,
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title='Key' />,
       cell: ({ row }: any) => <span>{row.getValue('key')}</span>,
       meta: { headerName: 'Key' },
     },
     {
       accessorKey: 'value',
-      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Value" />,
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title='Value' />,
       cell: ({ row }: any) => {
         const rowId = row.original.id;
         if (editRowId === rowId) {
           return (
             <input
-              className="border rounded px-2 py-1 w-24"
+              className='border rounded px-2 py-1 w-24'
               value={editValue}
-              onChange={e => setEditValue(e.target.value)}
+              onChange={(e) => setEditValue(e.target.value)}
             />
           );
         }
@@ -54,23 +52,22 @@ function Providers() {
     },
     {
       accessorKey: 'updated_at',
-      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Updated At" />,
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title='Updated At' />,
       cell: ({ row }: any) => <span>{new Date(row.getValue('updated_at')).toLocaleString()}</span>,
       meta: { headerName: 'Updated At' },
     },
     {
       id: 'actions',
-      header: ({ column }: any) => <DataTableColumnHeader column={column} title="Action" />,
+      header: ({ column }: any) => <DataTableColumnHeader column={column} title='Action' />,
       cell: ({ row }: any) => {
         const rowId = row.original.id;
         const prevVal = providerInstanceSettings.value;
         if (editRowId === rowId) {
-          
           return (
             <Button
-              variant="ghost"
-              size="icon"
-              title="Confirm"
+              variant='ghost'
+              size='icon'
+              title='Confirm'
               onClick={async () => {
                 setProviderInstanceSettings((prev: any) => {
                   const updated = { ...prev };
@@ -93,7 +90,7 @@ function Providers() {
                         'Content-Type': 'application/json',
                         Authorization: `Bearer ${getCookie('jwt')}`,
                       },
-                    }
+                    },
                   );
                   toast({
                     title: 'Success',
@@ -106,28 +103,28 @@ function Providers() {
                     variant: 'destructive',
                   });
                   setProviderInstanceSettings((prev: any) => {
-                  const updated = { ...prev };
-                  updated.value = prevVal;
-                  return updated;
-                });
+                    const updated = { ...prev };
+                    updated.value = prevVal;
+                    return updated;
+                  });
                 }
               }}
             >
-              <LuCheck className="w-4 h-4 text-green-600" />
+              <LuCheck className='w-4 h-4 text-green-600' />
             </Button>
           );
         }
         return (
           <Button
-            variant="ghost"
-            size="icon"
+            variant='ghost'
+            size='icon'
             onClick={() => {
               setEditRowId(rowId);
               setEditValue(row.original.value);
             }}
-            title="Edit"
+            title='Edit'
           >
-            <LuPencil className="w-4 h-4" />
+            <LuPencil className='w-4 h-4' />
           </Button>
         );
       },
@@ -169,11 +166,7 @@ function Providers() {
       const settingPromise = axios.get(`${process.env.NEXT_PUBLIC_API_URI}/v1/provider-instance/${id}/setting`, { headers });
       const usagePromise = axios.get(`${process.env.NEXT_PUBLIC_API_URI}/v1/provider-instance/usage/${id}`, { headers });
 
-      const [settingResult, usageResult] = await Promise.allSettled([
-        settingPromise,
-        usagePromise,
-      ]);
-
+      const [settingResult, usageResult] = await Promise.allSettled([settingPromise, usagePromise]);
 
       if (settingResult.status === 'fulfilled') {
         setProviderInstanceSettings(settingResult.value.data.provider_instance_setting);
@@ -193,23 +186,23 @@ function Providers() {
   }, [id]);
 
   if (!id) {
-    return <div className="flex items-center justify-center h-64 text-lg font-semibold">Please select a instance</div>;
+    return <div className='flex items-center justify-center h-64 text-lg font-semibold'>Please select a instance</div>;
   }
 
   if (loading || isLoading) {
-    return <div className="flex items-center justify-center h-64 text-lg font-semibold">Loading...</div>;
+    return <div className='flex items-center justify-center h-64 text-lg font-semibold'>Loading...</div>;
   }
 
   if (!providerInstance) {
-    return <div className="flex items-center justify-center h-64 text-lg font-semibold">No data found.</div>;
+    return <div className='flex items-center justify-center h-64 text-lg font-semibold'>No data found.</div>;
   }
 
   return (
-    <div className="w-full px-2 md:px-8 py-6 space-y-8">
+    <div className='w-full px-2 md:px-8 py-6 space-y-8'>
       {/* Instance Details Section */}
-      <section className="border rounded-lg p-4 bg-white shadow w-full">
-        <h2 className="text-lg font-bold mb-2">Provider Instance Details</h2>
-        <div className="max-w-lg w-full">
+      <section className='border rounded-lg p-4 bg-white shadow w-full'>
+        <h2 className='text-lg font-bold mb-2'>Provider Instance Details</h2>
+        <div className='max-w-lg w-full'>
           <DynamicForm
             fields={{
               name: {
@@ -232,7 +225,7 @@ function Providers() {
               },
             }}
             toUpdate={providerInstance}
-            submitButtonText="Update"
+            submitButtonText='Update'
             onConfirm={async (formData) => {
               await axios.put(
                 `${process.env.NEXT_PUBLIC_API_URI}/v1/provider/instance/${providerInstance.id}`,
@@ -250,29 +243,32 @@ function Providers() {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${getCookie('jwt')}`,
                   },
-                }
+                },
               );
               mutate();
             }}
           />
         </div>
-        
-        <div className="grid grid-cols-2 gap-2 text-sm mt-4">
+
+        <div className='grid grid-cols-2 gap-2 text-sm mt-4'>
           {/* <div><span className="font-medium">Provider:</span> {providerInstance.provider?.name || ''}</div>
           <div><span className="font-medium">Team:</span> {providerInstance.team?.name || ''}</div> */}
-          <div><span className="font-medium">Created At:</span> {new Date(providerInstance.created_at).toLocaleString()}</div>
-          <div><span className="font-medium">Updated At:</span> {new Date(providerInstance.updated_at).toLocaleString()}</div>
+          <div>
+            <span className='font-medium'>Created At:</span> {new Date(providerInstance.created_at).toLocaleString()}
           </div>
+          <div>
+            <span className='font-medium'>Updated At:</span> {new Date(providerInstance.updated_at).toLocaleString()}
+          </div>
+        </div>
       </section>
 
       {/* Settings Section */}
-      <section className="border rounded-lg p-4 bg-white shadow w-full">
-        
-        {(!settingsArray || settingsArray.length === 0 || !settingsArray[0]) ? (
+      <section className='border rounded-lg p-4 bg-white shadow w-full'>
+        {!settingsArray || settingsArray.length === 0 || !settingsArray[0] ? (
           <>
-            <h4 className="text-2xl font-bold mr-auto mb-2">Instance Settings</h4>
-            <div className="flex items-center justify-center p-4 border rounded-md text-center">
-              <span className="text-sm text-muted-foreground">No settings configured for this instance.</span>
+            <h4 className='text-2xl font-bold mr-auto mb-2'>Instance Settings</h4>
+            <div className='flex items-center justify-center p-4 border rounded-md text-center'>
+              <span className='text-sm text-muted-foreground'>No settings configured for this instance.</span>
             </div>
           </>
         ) : (
@@ -289,10 +285,15 @@ function Providers() {
       </section>
 
       {/* Usage Section as Data Grid */}
-      <section className="border rounded-lg p-4 bg-white shadow w-full">
-       
+      <section className='border rounded-lg p-4 bg-white shadow w-full'>
         <DataTable
-          data={Array.isArray(providerInstanceUsage) ? providerInstanceUsage : providerInstanceUsage ? [providerInstanceUsage] : []}
+          data={
+            Array.isArray(providerInstanceUsage)
+              ? providerInstanceUsage
+              : providerInstanceUsage
+                ? [providerInstanceUsage]
+                : []
+          }
           meta={{ title: 'Instance Usage', hideSelectionCount: true, emptyMessage: 'No data' }}
           columns={usageColumns}
         />

@@ -12,8 +12,7 @@ module.exports = {
     {
       name: 'no-orphans',
       severity: 'warn',
-      comment:
-        'Files with no incoming imports are likely dead code. Either delete or wire them into the build.',
+      comment: 'Files with no incoming imports are likely dead code. Either delete or wire them into the build.',
       from: {
         orphan: true,
         pathNot: [

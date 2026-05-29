@@ -17,8 +17,6 @@ export interface ProviderInstance {
   enabled: boolean;
 }
 
-
-
 /**
  * Hook to fetch provider instances for the current team
  * @returns SWR response containing array of provider instances
@@ -37,9 +35,9 @@ export function useProviderInstances(): SWRResponse<ProviderInstance[]> {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${getCookie('jwt')}`,
             },
-          }
+          },
         );
-        
+
         return response.data.provider_instances || [];
       } catch (_error) {
         return [];
@@ -48,8 +46,6 @@ export function useProviderInstances(): SWRResponse<ProviderInstance[]> {
     { fallbackData: [] },
   );
 }
-
-
 
 /**
  * Hook to fetch a specific provider instance by ID
@@ -62,15 +58,12 @@ export function useProviderInstance(id: string | undefined): SWRResponse<Provide
     async (): Promise<ProviderInstance | null> => {
       if (!id) return null;
       try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URI}/v1/provider/instance/${id}`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${getCookie('jwt')}`,
-            },
-          }
-        );
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URI}/v1/provider/instance/${id}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getCookie('jwt')}`,
+          },
+        });
         return response.data.provider_instance || null;
       } catch (_error) {
         return null;

@@ -1,53 +1,53 @@
 {
-    "$schema": "https://biomejs.dev/schemas/2.3.2/schema.json",
-    "assist": { "actions": { "source": { "organizeImports": "on" } } },
-    "linter": {
-        "enabled": true,
-        "rules": {
-            "recommended": true,
-            "suspicious": {
-                "noRedeclare": "off",
-                "noExplicitAny": "warn"
-            },
-            "complexity": {
-                "noThisInStatic": "off",
-                "useLiteralKeys": "off"
-            },
-            "style": {
-                "useFilenamingConvention": {
-                    "level": "warn",
-                    "options": {
-                        "filenameCases": ["kebab-case", "camelCase", "PascalCase"],
-                        "strictCase": false,
-                        "requireAscii": true
-                    }
-                }
-            }
-        },
-        "includes": [
-            "src/**",
-            "!**/node_modules",
-            "!**/dist",
-            "!**/.next",
-            "!**/coverage",
-            "!**/*.test.ts",
-            "!**/*.test.tsx",
-            "!**/*.spec.ts",
-            "!**/*.stories.ts",
-            "!**/*.stories.tsx",
-            "!src/components/appwrapper/**",
-            "!src/components/auth/**",
-            "!src/components/dynamic-form/**",
-            "!src/lib/zod2gql/**"
-        ]
-    },
-    "formatter": {
-        "enabled": false
-    },
-    "css": {
-        "parser": {
-            "cssModules": true,
-            "tailwindDirectives": true
+  "$schema": "https://biomejs.dev/schemas/2.3.2/schema.json",
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "suspicious": {
+        "noRedeclare": "off",
+        "noExplicitAny": "warn"
+      },
+      "complexity": {
+        "noThisInStatic": "off",
+        "useLiteralKeys": "off"
+      },
+      "style": {
+        "useFilenamingConvention": {
+          "level": "warn",
+          "options": {
+            "filenameCases": ["kebab-case", "camelCase", "PascalCase"],
+            "strictCase": false,
+            "requireAscii": true
+          }
         }
+      }
+    },
+    "includes": [
+      "src/**",
+      "!**/node_modules",
+      "!**/dist",
+      "!**/.next",
+      "!**/coverage",
+      "!**/*.test.ts",
+      "!**/*.test.tsx",
+      "!**/*.spec.ts",
+      "!**/*.stories.ts",
+      "!**/*.stories.tsx",
+      "!src/components/appwrapper/**",
+      "!src/components/auth/**",
+      "!src/components/dynamic-form/**",
+      "!src/lib/zod2gql/**"
+    ]
+  },
+  "formatter": {
+    "enabled": false
+  },
+  "css": {
+    "parser": {
+      "cssModules": true,
+      "tailwindDirectives": true
     }
+  }
 }

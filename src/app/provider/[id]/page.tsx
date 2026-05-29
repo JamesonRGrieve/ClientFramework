@@ -7,10 +7,10 @@ export default function TeamPage() {
   return (
     <SidebarPage title='Provider Management'>
       <div className='overflow-x-auto px-4'>
-        <ProviderInstances/>
+        <ProviderInstances />
       </div>
       <SidebarContent title='Provider Instance Details'>
-        <ProviderSidebar/>
+        <ProviderSidebar />
       </SidebarContent>
     </SidebarPage>
   );

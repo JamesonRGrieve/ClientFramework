@@ -26,7 +26,7 @@ const config = {
       config.resolve.alias = {
         ...config.resolve.alias,
         '@': rootDir,
-        'zod2gql': path.resolve(rootDir, 'lib/zod2gql/src'),
+        zod2gql: path.resolve(rootDir, 'lib/zod2gql/src'),
         '@jgrieve/auth': path.resolve(rootDir, 'components/auth/src'),
         '@jgrieve/appwrapper': path.resolve(rootDir, 'components/appwrapper/src'),
         '@jgrieve/dynamic-form': path.resolve(rootDir, 'components/dynamic-form/src'),

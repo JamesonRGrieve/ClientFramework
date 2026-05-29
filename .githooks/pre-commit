@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Pre-commit gate — workspace CLAUDE.md §8.
+# Blocks the commit unless the formatter, full ratchet suite, and tests
+# pass. Do NOT bypass with --no-verify without explicit authorization.
+pnpm run precommit

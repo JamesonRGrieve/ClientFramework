@@ -25,9 +25,6 @@
     "src/lib/zod2gql/**",
     "next-env.d.ts"
   ],
-  "ignoreDependencies": [
-    "@tailwindcss/oxide-*",
-    "lightningcss-*"
-  ],
+  "ignoreDependencies": ["@tailwindcss/oxide-*", "lightningcss-*"],
   "ignoreBinaries": ["docker-compose"]
 }

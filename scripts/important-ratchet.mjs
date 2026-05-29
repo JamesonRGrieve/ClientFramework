@@ -17,36 +17,36 @@ const ROOTS = ['src'];
 const STYLE_EXTS = new Set(['.css', '.scss', '.sass', '.less']);
 const CODE_EXTS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']);
 const SKIP_DIRS = new Set([
-    'node_modules',
-    '.next',
-    'dist',
-    'storybook-static',
-    'auth',
-    'appwrapper',
-    'dynamic-form',
-    'zod2gql',
+  'node_modules',
+  '.next',
+  'dist',
+  'storybook-static',
+  'auth',
+  'appwrapper',
+  'dynamic-form',
+  'zod2gql',
 ]);
 
 function walk(dir, out) {
-    let entries;
+  let entries;
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return;
+  }
+  for (const name of entries) {
+    if (name.startsWith('.')) continue;
+    if (SKIP_DIRS.has(name)) continue;
+    const p = join(dir, name);
+    let st;
     try {
-        entries = readdirSync(dir);
+      st = statSync(p);
     } catch {
-        return;
+      continue;
     }
-    for (const name of entries) {
-        if (name.startsWith('.')) continue;
-        if (SKIP_DIRS.has(name)) continue;
-        const p = join(dir, name);
-        let st;
-        try {
-            st = statSync(p);
-        } catch {
-            continue;
-        }
-        if (st.isDirectory()) walk(p, out);
-        else out.push(p);
-    }
+    if (st.isDirectory()) walk(p, out);
+    else out.push(p);
+  }
 }
 
 const allFiles = [];
@@ -56,57 +56,59 @@ const perFile = {};
 let total = 0;
 
 for (const path of allFiles) {
-    const ext = path.slice(path.lastIndexOf('.'));
-    let count = 0;
-    if (STYLE_EXTS.has(ext)) {
-        const text = readFileSync(path, 'utf8');
-        count = (text.match(/!important/g) ?? []).length;
-    } else if (CODE_EXTS.has(ext)) {
-        const text = readFileSync(path, 'utf8');
-        // Look for !important inside string-ish style= attributes
-        const styleAttrs = text.match(/style\s*=\s*(["'`{])[\s\S]*?\1/g) ?? [];
-        for (const block of styleAttrs) {
-            count += (block.match(/!important/g) ?? []).length;
-        }
-    } else {
-        continue;
+  const ext = path.slice(path.lastIndexOf('.'));
+  let count = 0;
+  if (STYLE_EXTS.has(ext)) {
+    const text = readFileSync(path, 'utf8');
+    count = (text.match(/!important/g) ?? []).length;
+  } else if (CODE_EXTS.has(ext)) {
+    const text = readFileSync(path, 'utf8');
+    // Look for !important inside string-ish style= attributes
+    const styleAttrs = text.match(/style\s*=\s*(["'`{])[\s\S]*?\1/g) ?? [];
+    for (const block of styleAttrs) {
+      count += (block.match(/!important/g) ?? []).length;
     }
-    if (count > 0) perFile[path] = count;
-    total += count;
+  } else {
+    continue;
+  }
+  if (count > 0) perFile[path] = count;
+  total += count;
 }
 
 writeFileSync(
-    COVERAGE,
-    JSON.stringify({ generatedAt: new Date().toISOString(), perFile, totalImportant: total }, null, 2) + '\n',
+  COVERAGE,
+  JSON.stringify({ generatedAt: new Date().toISOString(), perFile, totalImportant: total }, null, 2) + '\n',
 );
 
 if (updateMode) {
-    writeFileSync(BASELINE, `${total}\n`, 'utf8');
-    console.log(`[important-ratchet] baseline updated to ${total}`);
-    process.exit(0);
+  writeFileSync(BASELINE, `${total}\n`, 'utf8');
+  console.log(`[important-ratchet] baseline updated to ${total}`);
+  process.exit(0);
 }
 
 if (!existsSync(BASELINE)) {
-    writeFileSync(BASELINE, `${total}\n`, 'utf8');
-    console.log(`[important-ratchet] baseline initialised at ${total}`);
-    process.exit(0);
+  writeFileSync(BASELINE, `${total}\n`, 'utf8');
+  console.log(`[important-ratchet] baseline initialised at ${total}`);
+  process.exit(0);
 }
 
 const baseline = Number(readFileSync(BASELINE, 'utf8').trim());
 if (Number.isNaN(baseline)) {
-    console.error(`[important-ratchet] cannot parse baseline at ${BASELINE}`);
-    process.exit(2);
+  console.error(`[important-ratchet] cannot parse baseline at ${BASELINE}`);
+  process.exit(2);
 }
 
 if (total > baseline) {
-    console.error(`[important-ratchet] FAIL: !important count rose ${baseline} -> ${total} (+${total - baseline}).`);
-    console.error('Each !important is a cascade workaround. Prefer specificity, source order, or refactoring the rule.');
-    process.exit(1);
+  console.error(`[important-ratchet] FAIL: !important count rose ${baseline} -> ${total} (+${total - baseline}).`);
+  console.error('Each !important is a cascade workaround. Prefer specificity, source order, or refactoring the rule.');
+  process.exit(1);
 }
 
 if (total < baseline) {
-    console.log(`[important-ratchet] OK: !important dropped ${baseline} -> ${total}. Lower the baseline: npm run important:ratchet:update`);
-    process.exit(0);
+  console.log(
+    `[important-ratchet] OK: !important dropped ${baseline} -> ${total}. Lower the baseline: npm run important:ratchet:update`,
+  );
+  process.exit(0);
 }
 
 console.log(`[important-ratchet] OK: !important unchanged at ${total}.`);

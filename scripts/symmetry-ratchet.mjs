@@ -24,59 +24,59 @@ const updateMode = args.includes('--update');
 execSync('node scripts/coverage-symmetry.mjs', { stdio: 'inherit' });
 
 if (!existsSync(COVERAGE_PATH)) {
-    console.error(`[symmetry-ratchet] missing ${COVERAGE_PATH}`);
-    process.exit(2);
+  console.error(`[symmetry-ratchet] missing ${COVERAGE_PATH}`);
+  process.exit(2);
 }
 
 const coverage = JSON.parse(readFileSync(COVERAGE_PATH, 'utf8'));
 const current = {
-    componentsMissingStories: coverage.componentsMissingStoriesCount,
-    sourcesMissingTests: coverage.sourcesMissingTestsCount,
+  componentsMissingStories: coverage.componentsMissingStoriesCount,
+  sourcesMissingTests: coverage.sourcesMissingTestsCount,
 };
 
 if (updateMode) {
-    writeFileSync(BASELINE_PATH, `${JSON.stringify(current, null, 2)}\n`, 'utf8');
-    console.log(`[symmetry-ratchet] baseline updated to ${JSON.stringify(current)}`);
-    process.exit(0);
+  writeFileSync(BASELINE_PATH, `${JSON.stringify(current, null, 2)}\n`, 'utf8');
+  console.log(`[symmetry-ratchet] baseline updated to ${JSON.stringify(current)}`);
+  process.exit(0);
 }
 
 if (!existsSync(BASELINE_PATH)) {
-    writeFileSync(BASELINE_PATH, `${JSON.stringify(current, null, 2)}\n`, 'utf8');
-    console.log(`[symmetry-ratchet] baseline file missing — initialised at ${JSON.stringify(current)}`);
-    process.exit(0);
+  writeFileSync(BASELINE_PATH, `${JSON.stringify(current, null, 2)}\n`, 'utf8');
+  console.log(`[symmetry-ratchet] baseline file missing — initialised at ${JSON.stringify(current)}`);
+  process.exit(0);
 }
 
 let baseline;
 try {
-    baseline = JSON.parse(readFileSync(BASELINE_PATH, 'utf8'));
+  baseline = JSON.parse(readFileSync(BASELINE_PATH, 'utf8'));
 } catch (err) {
-    console.error(`[symmetry-ratchet] cannot parse baseline at ${BASELINE_PATH}: ${err.message}`);
-    process.exit(2);
+  console.error(`[symmetry-ratchet] cannot parse baseline at ${BASELINE_PATH}: ${err.message}`);
+  process.exit(2);
 }
 
 let regressed = false;
 for (const key of ['componentsMissingStories', 'sourcesMissingTests']) {
-    const c = current[key] ?? 0;
-    const b = baseline[key] ?? 0;
-    if (c > b) {
-        console.error(`[symmetry-ratchet] FAIL: ${key} ${b} -> ${c} (+${c - b})`);
-        regressed = true;
-    } else if (c < b) {
-        console.log(`[symmetry-ratchet] improved: ${key} ${b} -> ${c} (-${b - c})`);
-    } else {
-        console.log(`[symmetry-ratchet] unchanged: ${key} = ${c}`);
-    }
+  const c = current[key] ?? 0;
+  const b = baseline[key] ?? 0;
+  if (c > b) {
+    console.error(`[symmetry-ratchet] FAIL: ${key} ${b} -> ${c} (+${c - b})`);
+    regressed = true;
+  } else if (c < b) {
+    console.log(`[symmetry-ratchet] improved: ${key} ${b} -> ${c} (-${b - c})`);
+  } else {
+    console.log(`[symmetry-ratchet] unchanged: ${key} = ${c}`);
+  }
 }
 
 if (regressed) {
-    console.error('Either add the missing stories/tests or, if intentional, run: pnpm symmetry:ratchet:update');
-    process.exit(1);
+  console.error('Either add the missing stories/tests or, if intentional, run: pnpm symmetry:ratchet:update');
+  process.exit(1);
 }
 
 const dropped =
-    current.componentsMissingStories < (baseline.componentsMissingStories ?? 0) ||
-    current.sourcesMissingTests < (baseline.sourcesMissingTests ?? 0);
+  current.componentsMissingStories < (baseline.componentsMissingStories ?? 0) ||
+  current.sourcesMissingTests < (baseline.sourcesMissingTests ?? 0);
 if (dropped) {
-    console.log('Lower the baseline in the same commit: pnpm symmetry:ratchet:update');
+  console.log('Lower the baseline in the same commit: pnpm symmetry:ratchet:update');
 }
 process.exit(0);

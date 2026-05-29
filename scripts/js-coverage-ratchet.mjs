@@ -20,42 +20,44 @@ const updateMode = args.includes('--update');
 execSync('node scripts/js-coverage.mjs', { stdio: 'inherit' });
 
 if (!existsSync(COVERAGE_PATH)) {
-    console.error(`[js-coverage-ratchet] missing ${COVERAGE_PATH}`);
-    process.exit(2);
+  console.error(`[js-coverage-ratchet] missing ${COVERAGE_PATH}`);
+  process.exit(2);
 }
 
 const coverage = JSON.parse(readFileSync(COVERAGE_PATH, 'utf8'));
 const current = coverage.count;
 
 if (updateMode) {
-    writeFileSync(BASELINE_PATH, `${current}\n`, 'utf8');
-    console.log(`[js-coverage-ratchet] baseline updated to ${current}`);
-    process.exit(0);
+  writeFileSync(BASELINE_PATH, `${current}\n`, 'utf8');
+  console.log(`[js-coverage-ratchet] baseline updated to ${current}`);
+  process.exit(0);
 }
 
 if (!existsSync(BASELINE_PATH)) {
-    writeFileSync(BASELINE_PATH, `${current}\n`, 'utf8');
-    console.log(`[js-coverage-ratchet] baseline file missing — initialised at ${current}`);
-    process.exit(0);
+  writeFileSync(BASELINE_PATH, `${current}\n`, 'utf8');
+  console.log(`[js-coverage-ratchet] baseline file missing — initialised at ${current}`);
+  process.exit(0);
 }
 
 const baseline = parseInt(readFileSync(BASELINE_PATH, 'utf8').trim(), 10);
 if (Number.isNaN(baseline)) {
-    console.error(`[js-coverage-ratchet] cannot parse baseline at ${BASELINE_PATH}`);
-    process.exit(2);
+  console.error(`[js-coverage-ratchet] cannot parse baseline at ${BASELINE_PATH}`);
+  process.exit(2);
 }
 
 if (current > baseline) {
-    console.error(`[js-coverage-ratchet] FAIL: non-TS file count increased ${baseline} -> ${current} (+${current - baseline}).`);
-    console.error('Convert the new file(s) to .ts/.tsx before adding new behavior.');
-    console.error(`See ${COVERAGE_PATH} for the full file list.`);
-    process.exit(1);
+  console.error(
+    `[js-coverage-ratchet] FAIL: non-TS file count increased ${baseline} -> ${current} (+${current - baseline}).`,
+  );
+  console.error('Convert the new file(s) to .ts/.tsx before adding new behavior.');
+  console.error(`See ${COVERAGE_PATH} for the full file list.`);
+  process.exit(1);
 }
 
 if (current < baseline) {
-    console.log(`[js-coverage-ratchet] OK: non-TS file count decreased ${baseline} -> ${current} (-${baseline - current}).`);
-    console.log('Lower the baseline in the same commit: pnpm js-coverage:ratchet:update');
-    process.exit(0);
+  console.log(`[js-coverage-ratchet] OK: non-TS file count decreased ${baseline} -> ${current} (-${baseline - current}).`);
+  console.log('Lower the baseline in the same commit: pnpm js-coverage:ratchet:update');
+  process.exit(0);
 }
 
 console.log(`[js-coverage-ratchet] OK: non-TS file count unchanged at ${current}.`);
