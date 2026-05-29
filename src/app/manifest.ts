@@ -2,15 +2,15 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: process.env.NEXT_PUBLIC_APP_NAME,
-    short_name: process.env.NEXT_PUBLIC_APP_NAME,
-    description: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
+    name: process.env.NEXT_PUBLIC_APP_NAME || 'Client Framework App',
+    short_name: process.env.NEXT_PUBLIC_APP_NAME || 'Client Framework',
+    description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || 'Client Framework Application',
     start_url: '/',
     display: 'standalone',
     display_override: ['standalone', 'minimal-ui'],
     orientation: 'portrait-primary',
-    background_color: '#fff',
-    theme_color: '#fff',
+    background_color: '#ffffff',
+    theme_color: '#000000',
     icons: [
       {
         src: '/favicon.ico',
