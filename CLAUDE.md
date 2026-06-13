@@ -6,13 +6,13 @@ This is a **Next.js application template**. Downstream projects merge from it re
 
 ## Design Philosophy
 
-This repository is a template framework. Downstream projects merge from it regularly. Every design decision must minimize the need for downstream repos to modify framework-owned files or directories. **Avoid merge conflicts with downstream implementors at all costs.** Prefer configuration, extension points, and convention-based overrides so that downstream customization happens in files the framework never touches.
+Template/downstream-merge discipline is canonical in `/home/jameson/source/ai-prompts/react-next.md` §6. This repo *is* that template: every design decision minimizes the surface downstream consumers must modify — prefer configuration, extension points, and convention-based overrides over edits to framework-owned files.
 
 ---
 
 ## Submodules
 
-This project uses four git submodules — each is an independent repo with its own `package.json`:
+Framework-package submodule discipline (init/pull, per-submodule lint pipelines, separate-commit pointer bumps, fix-defects-where-they-live, no cross-linking) is canonical in `/home/jameson/source/ai-prompts/react-next.md` §7. This repo's concrete submodules — each an independent repo with its own `package.json`:
 
 ```
 src/components/appwrapper/    → github.com/JamesonRGrieve/appwrapper
@@ -21,24 +21,15 @@ src/components/dynamic-form/  → github.com/JamesonRGrieve/dynamic-form
 src/lib/zod2gql/              → github.com/JamesonRGrieve/zod2gql
 ```
 
-- **After cloning**, initialize submodules: `git submodule update --init --recursive`.
-- **To pull latest** for all submodules: `git submodule update --remote --merge`.
-- **Path aliases** in `tsconfig.json` map `@/auth/*`, `@/appwrapper/*`, `@/dynamic-form/*`, and `@/zod2gql` to their respective `src/` directories inside each submodule.
-- **Submodule changes are separate commits** (workspace rule). Modify, commit, push in the submodule first; bump the parent's pointer in a separate commit.
-- **Don't edit submodule code to fix a parent-repo problem.** If the issue is in the parent repo's usage, fix it there. Only modify submodule code for bugs or features that belong to that library.
-- **No cross-linking between submodules.** Each submodule must be a self-contained npm package — no submodule imports from another submodule.
+- **Path aliases** in `tsconfig.json` map `@/auth/*`, `@/appwrapper/*`, `@/dynamic-form/*`, and `@/zod2gql` to their respective `src/` directories inside each submodule. The in-repo `next-log` package (`@jgrieve/next-log`, `src/lib/next-log`) is the framework's logger.
 
 ---
 
-## Repo-Specific Notes (in addition to workspace §7)
+## Repo-Specific Notes (in addition to `/home/jameson/source/ai-prompts/typescript.md` + `/home/jameson/source/ai-prompts/react-next.md`)
 
-- **Object-oriented bias.** Stateful services, models, and lifecycle objects use classes. Use interfaces and generics to define contracts. Prefer composition via injected dependencies over standalone functions with implicit coupling.
-- **Promise hygiene.** Every `async` call must be `await`ed, `.catch()`-ed, or explicitly marked `void`. Unhandled rejections silently swallow errors.
-- **No inline HTML event handlers.** Never use `onclick`, `onload`, etc. in dynamically constructed HTML. Use React event handlers or `addEventListener`.
-- **No HTML string interpolation with external data.** Never pass untrusted values into `dangerouslySetInnerHTML` or any DOM API that parses HTML. Build content with React components and text nodes instead.
-- **Lifecycle resource cleanup.** Capture all timer IDs from `setTimeout` / `setInterval` and clear them in cleanup functions returned from `useEffect`. Dispose subscriptions and listeners on unmount.
-- **No magic numbers.** Extract timeouts, poll intervals, and other numeric constants to named `const` declarations at the top of the file.
-- **No `console.log` in committed code.** Use `console.warn` / `console.error` for diagnostics.
+The generic hooks (`react-next.md` §3 — promise hygiene, lifecycle resource cleanup, no magic numbers in effects), security (`react-next.md` §5 — no inline HTML event handlers, no HTML-string interpolation with external data), and composition (`react-next.md` §1 — OO bias for stateful services, functions+hooks for UI) bullets are canonical there. Repo-local additions:
+
+- **Logger.** Server-side logging uses the in-repo `next-log` package (`@jgrieve/next-log`, `src/lib/next-log`) — no ad-hoc `console.log` in committed code; `console.warn` / `console.error` are reserved for genuine diagnostics.
 
 ---
 
@@ -65,11 +56,10 @@ pnpm check                # Aggregate: lockfile + all ratchets
 
 ### ESLint: modern flat config
 
-This repo uses the **ESLint v9 flat config** (`eslint.config.mjs`) invoked via the ESLint CLI (`eslint .`) — `next lint` and the legacy `.eslintrc.json` / `.eslintignore` have been removed (`next lint` is deprecated in Next 15+). The full prior ruleset is preserved and bridged via `@eslint/eslintrc`'s `FlatCompat` for shareable configs without native flat presets (`next/core-web-vitals`, `plugin:storybook/recommended`, `plugin:@vitest/legacy-recommended`). Type-aware rules use `parserOptions.projectService` (TS-ESLint v8) instead of a hard-coded `project` path.
+Flat-config baseline (ESLint v9 `eslint.config.mjs` driven by `eslint .` rather than the deprecated `next lint`; `parserOptions.projectService` instead of a hard-coded `project` path; submodule paths and app-router boilerplate ignored) is canonical in `/home/jameson/source/ai-prompts/react-next.md` §8. Repo-local specifics:
 
-### Submodules and lint
-
-The flat config's top-level `ignores` excludes all five submodule paths plus the app-router boilerplate, build output and tooling files. Each submodule has its own ESLint pipeline and is responsible for linting itself; the parent never loads a submodule's config.
+- The full prior ruleset is preserved and bridged via `@eslint/eslintrc`'s `FlatCompat` for shareable configs without native flat presets: `next/core-web-vitals`, `plugin:storybook/recommended`, `plugin:@vitest/legacy-recommended`.
+- The flat config's top-level `ignores` excludes all five submodule paths plus the app-router boilerplate, build output, and tooling files. Each submodule has its own ESLint pipeline and lints itself; the parent never loads a submodule's config.
 
 ---
 
