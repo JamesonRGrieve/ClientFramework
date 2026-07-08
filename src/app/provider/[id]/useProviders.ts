@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getCookie } from 'cookies-next';
 import useSWR, { type SWRResponse } from 'swr';
 
-export interface ProviderInstance {
+export type ProviderInstance = {
   provider_id: string;
   team_id: string;
   user_id: string;
@@ -15,7 +15,7 @@ export interface ProviderInstance {
   model_name: string;
   api_key: string;
   enabled: boolean;
-}
+};
 
 const readJwt = (): string => {
   const jwt = getCookie('jwt');

@@ -1,7 +1,7 @@
-import { createGraphQLClient } from '@jgrieve/auth/hooks/lib';
 import useSWR, { type SWRResponse } from 'swr';
-import { z } from 'zod';
 import { type Provider, ProviderSchema } from './z';
+import { createGraphQLClient } from '@jgrieve/auth/hooks/lib';
+import z, { GQLType } from 'zod2gql';
 import log from '@/lib/log';
 
 // ============================================================================
@@ -20,14 +20,14 @@ export function useProvider(providerName?: string): SWRResponse<Provider | null>
     providerName ? [`/provider`, providerName] : null,
     async (): Promise<Provider | null> => {
       try {
-        const query = ProviderSchema.toGQL('query', 'GetProvider', {
+        const query = ProviderSchema.toGQL(GQLType.Query, {
+          operationName: 'GetProvider',
+          variables: { providerName: providerName ?? null },
+        });
+        const response = await client.request<Record<string, unknown>>(query, {
           providerName,
         });
-        const response = await client.request<Provider>(query, {
-          providerName,
-        });
-        const validated = ProviderSchema.parse(response);
-        return validated.provider;
+        return ProviderSchema.parse(response.provider);
       } catch (error) {
         log(['GQL useProvider() Error', error], {
           client: 1,
@@ -50,8 +50,8 @@ export function useProviders(): SWRResponse<Provider[]> {
     '/providers',
     async (): Promise<Provider[]> => {
       try {
-        const query = ProviderSchema.toGQL('query', 'GetProviders');
-        const response = await client.request<Provider[]>(query);
+        const query = ProviderSchema.toGQL(GQLType.Query, { operationName: 'GetProviders' });
+        const response = await client.request<Record<string, unknown>>(query);
         log(['GQL useProviders() Response', response], {
           client: 3,
         });

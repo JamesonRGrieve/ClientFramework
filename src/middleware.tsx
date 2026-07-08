@@ -6,13 +6,25 @@ import log from '@/lib/log';
 
 //import assert from 'assert';
 
-export const mergeConfigs = (obj1: any, obj2: any): any =>
-  Object.keys(obj2).reduce(
-    (acc, key) => ({
-      ...acc,
-      [key]:
-        typeof obj2[key] === 'object' && obj2[key] !== null && obj1[key] ? mergeConfigs(obj1[key], obj2[key]) : obj2[key],
-    }),
+type JsonObject = { [key: string]: JsonValue };
+type JsonValue = string | number | boolean | null | JsonValue[] | JsonObject;
+
+export const mergeConfigs = (obj1: JsonObject, obj2: JsonObject): JsonObject =>
+  Object.keys(obj2).reduce<JsonObject>(
+    (acc, key) => {
+      const left = obj1[key];
+      const right = obj2[key];
+      acc[key] =
+        typeof right === 'object' &&
+        right !== null &&
+        !Array.isArray(right) &&
+        typeof left === 'object' &&
+        left !== null &&
+        !Array.isArray(left)
+          ? mergeConfigs(left, right)
+          : right;
+      return acc;
+    },
     { ...obj1 },
   );
 

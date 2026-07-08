@@ -1,19 +1,21 @@
+import { type ReactNode, Suspense } from 'react';
 import AuthRouter from '@jgrieve/auth/Router';
-import { Suspense } from 'react';
+
+interface UserRouterProps {
+  params: Promise<{ slug?: string[] }>;
+}
 
 // Properly handle params as an async value in Next.js 15
-export default async function UserRouter({ params }: { params: Promise<{ slug?: string[] }> | { slug?: string[] } }) {
+export default async function UserRouter({ params }: UserRouterProps): Promise<ReactNode> {
   // Await the params to satisfy Next.js 15 requirements
   const resolvedParams = await params;
-
-  console.log('UserRouter rendering with resolved params:', resolvedParams);
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <AuthRouter
         params={{
           // Pass slug without accessing it directly from the original params
-          slug: resolvedParams?.slug || [],
+          slug: resolvedParams.slug ?? [],
         }}
         corePagesConfig={{
           register: {

@@ -2,7 +2,7 @@
 
 import { type ReactNode, useContext, useEffect, useState } from 'react';
 import { LuLightbulb as LightBulbIcon } from 'react-icons/lu';
-import { InteractiveConfigContext } from '../../@/interactiveConfigContext';
+import { InteractiveConfigContext } from './interactiveConfigContext';
 
 interface Column {
   field: string;
@@ -91,8 +91,11 @@ export const RendererXSV = ({
     setFilteredColumns(columns);
   }, [columns]);
 
-  const getInsights = async (userMessage: string): Promise<void> => {
-    setLoading(true);
+  const getInsights = async (message: string): Promise<void> => {
+    if (!context) {
+      return;
+    }
+    setLoading?.(true);
     const stringifiedColumns = filteredColumns.map((header) => header.field);
     const stringifiedRows = filteredRows.map((row) =>
       [row.id, ...filteredColumns.map((header) => row[header.field])].join(
@@ -100,14 +103,14 @@ export const RendererXSV = ({
       ),
     );
 
-    await context.sdk.runChain('Data Analysis', userMessage, context.agent, false, 1, {
+    await context.sdk.runChain('Data Analysis', message, context.agent, false, 1, {
       conversation_name: context.overrides.conversation,
       text: [
         ['id', ...stringifiedColumns].join(separator.toString() === '/\\t/' ? '\t' : separator.toString()),
         ...stringifiedRows,
       ].join('\n'),
     });
-    setLoading(false);
+    setLoading?.(false);
   };
 
   const handlePageChange = (newPage: number) => {

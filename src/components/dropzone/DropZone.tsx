@@ -4,16 +4,15 @@ import { DropZoneProvider, useDropZone } from './DropZoneContext';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
-interface DropZoneProps {
+interface DropZoneProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onUpload'> {
   onUpload: (files: File[]) => void;
-  [key: string]: any;
 }
 
 const DropZone: React.FC<PropsWithChildren<DropZoneProps>> & {
   Active: React.FC<PropsWithChildren>;
 } = ({ children, onUpload, className, ...props }) => {
   const activeChildProvided = Children.toArray(children).some(
-    (child) => React.isValidElement(child) && child.props['data-type'] === 'active-dropzone',
+    (child) => React.isValidElement<{ 'data-type'?: string }>(child) && child.props['data-type'] === 'active-dropzone',
   );
 
   return (

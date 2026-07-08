@@ -9,7 +9,13 @@ import MarkdownImage from './Image';
 import MarkdownLink from './Link';
 import textToMarkdown from './Preprocessor';
 
-export default function MarkdownBlock({ content, role, createdAt }: any): ReactNode {
+export interface MarkdownBlockProps {
+  content: string;
+  role?: string;
+  createdAt?: string;
+}
+
+export default function MarkdownBlock({ content, role, createdAt }: MarkdownBlockProps): ReactNode {
   const renderMessage = (message: string): string => {
     return message
       ? message
@@ -25,7 +31,7 @@ export default function MarkdownBlock({ content, role, createdAt }: any): ReactN
 
   const fileName = useMemo(
     () =>
-      `${role}-${(createdAt || Date.now().toString()).replace(/ /g, '-').replace(/:/g, '-').replace(/,/g, '').split('.')[0]}`,
+      `${role ?? ''}-${(createdAt ?? Date.now().toString()).replace(/ /g, '-').replace(/:/g, '-').replace(/,/g, '').split('.')[0]}`,
     [role, createdAt],
   );
 
@@ -64,65 +70,65 @@ export default function MarkdownBlock({ content, role, createdAt }: any): ReactN
       // Switch to https://github.com/ariabuckles/simple-markdown ?
       textToMarkdown(content.toString()).map((segment) =>
         segment.type === undefined ? (
-          <ReactMarkdown
-            key={segment.content}
-            remarkPlugins={[[remarkGfm]]}
-            className='react-markdown'
-            // disallowedElements={['code']}
-            components={{
-              h1({ children }) {
-                return <MarkdownHeading tag='h1'>{children}</MarkdownHeading>;
-              },
-              h2({ children }) {
-                return <MarkdownHeading tag='h2'>{children}</MarkdownHeading>;
-              },
-              h3({ children }) {
-                return <MarkdownHeading tag='h3'>{children}</MarkdownHeading>;
-              },
-              h4({ children }) {
-                return <MarkdownHeading tag='h4'>{children}</MarkdownHeading>;
-              },
-              h5({ children }) {
-                return <MarkdownHeading tag='h5'>{children}</MarkdownHeading>;
-              },
-              h6({ children }) {
-                return <MarkdownHeading tag='h6'>{children}</MarkdownHeading>;
-              },
-              p({ children }) {
-                return <p className='my-4'>{children}</p>;
-              },
-              a({ children, ...props }) {
-                return <MarkdownLink {...props}>{children}</MarkdownLink>;
-              },
-              ul({ children }) {
-                return <ul className='p-0 ml-6 list-disc list-outside'>{children}</ul>;
-              },
-              ol({ children }) {
-                return <ol className='p-0 ml-8 list-decimal list-outside'>{children}</ol>;
-              },
-              li({ children }) {
-                return <li className='my-1'>{children}</li>;
-              },
-              table() {
-                const { columns, rows } = parseMarkdownTable(segment.content);
-                return (
-                  <div className='w-full'>
-                    <DataTable columns={createColumns(columns)} data={rows} />
-                  </div>
-                );
-              },
-              code({ children }) {
-                return (
-                  <span className='inline p-1 mx-1 font-mono rounded-lg text-muted-foreground bg-muted'>{children}</span>
-                );
-              },
-              img({ src, alt }) {
-                return <MarkdownImage src={src} alt={alt} />;
-              },
-            }}
-          >
-            {renderMessage(segment.content)}
-          </ReactMarkdown>
+          <div key={segment.content} className='react-markdown'>
+            <ReactMarkdown
+              remarkPlugins={[[remarkGfm]]}
+              // disallowedElements={['code']}
+              components={{
+                h1({ children }) {
+                  return <MarkdownHeading tag='h1'>{children}</MarkdownHeading>;
+                },
+                h2({ children }) {
+                  return <MarkdownHeading tag='h2'>{children}</MarkdownHeading>;
+                },
+                h3({ children }) {
+                  return <MarkdownHeading tag='h3'>{children}</MarkdownHeading>;
+                },
+                h4({ children }) {
+                  return <MarkdownHeading tag='h4'>{children}</MarkdownHeading>;
+                },
+                h5({ children }) {
+                  return <MarkdownHeading tag='h5'>{children}</MarkdownHeading>;
+                },
+                h6({ children }) {
+                  return <MarkdownHeading tag='h6'>{children}</MarkdownHeading>;
+                },
+                p({ children }) {
+                  return <p className='my-4'>{children}</p>;
+                },
+                a({ children, ...props }) {
+                  return <MarkdownLink {...props}>{children}</MarkdownLink>;
+                },
+                ul({ children }) {
+                  return <ul className='p-0 ml-6 list-disc list-outside'>{children}</ul>;
+                },
+                ol({ children }) {
+                  return <ol className='p-0 ml-8 list-decimal list-outside'>{children}</ol>;
+                },
+                li({ children }) {
+                  return <li className='my-1'>{children}</li>;
+                },
+                table() {
+                  const { columns, rows } = parseMarkdownTable(segment.content);
+                  return (
+                    <div className='w-full'>
+                      <DataTable columns={createColumns(columns)} data={rows} />
+                    </div>
+                  );
+                },
+                code({ children }) {
+                  return (
+                    <span className='inline p-1 mx-1 font-mono rounded-lg text-muted-foreground bg-muted'>{children}</span>
+                  );
+                },
+                img({ src, alt }) {
+                  return <MarkdownImage src={typeof src === 'string' ? src : undefined} alt={alt} />;
+                },
+              }}
+            >
+              {renderMessage(segment.content)}
+            </ReactMarkdown>
+          </div>
         ) : (
           <CodeBlock key={segment.content} inline={segment.type === 'code'} fileName={fileName}>
             {segment.content}

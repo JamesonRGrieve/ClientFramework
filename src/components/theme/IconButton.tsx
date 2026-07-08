@@ -1,9 +1,16 @@
 // IconButton.tsx
-import { Button } from '@/components/ui/button';
+import type { ComponentType, ReactNode } from 'react';
+import { Button, type ButtonProps } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-export default function IconButton({ Icon, label, description, ...props }) {
+interface IconButtonProps extends ButtonProps {
+  Icon: ComponentType<{ className?: string }>;
+  label: ReactNode;
+  description: ReactNode;
+}
+
+export default function IconButton({ Icon, label, description, ...props }: IconButtonProps): React.JSX.Element {
   return (
     <Tooltip>
       <TooltipTrigger asChild>

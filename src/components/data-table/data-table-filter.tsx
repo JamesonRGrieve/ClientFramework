@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { type JSX, useState } from 'react';
 import { LuFilter as Filter } from 'react-icons/lu';
 import type { Table } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';

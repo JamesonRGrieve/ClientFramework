@@ -1,5 +1,7 @@
 // app/api/audio/route.js
-export async function GET(request) {
+import type { NextRequest } from 'next/server';
+
+export async function GET(request: NextRequest): Promise<Response> {
   const url = new URL(request.url).searchParams.get('url');
   if (!url) return new Response('Missing URL', { status: 400 });
 

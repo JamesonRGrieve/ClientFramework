@@ -1,38 +1,12 @@
 'use client';
 
+import { type ReactNode, useState } from 'react';
 import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
 import { EmptyNotifications, Notifications } from '@/components/appwrapper/src/Notifications';
-import { useState } from 'react';
+import type { NotificationFixture } from '@/lib/notifications-fixtures';
 
-export const dummyNotifications = [
-  {
-    conversationId: '1',
-    conversationName: 'Project Discussion',
-    messageId: 'm1',
-    message: 'Alice mentioned you in the discussion',
-    timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 minutes ago
-    role: 'mention',
-  },
-  {
-    conversationId: '2',
-    conversationName: 'Team Updates',
-    messageId: 'm2',
-    message: 'Bob shared a new document',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(), // 1 hour ago
-    role: 'share',
-  },
-  {
-    conversationId: '3',
-    conversationName: 'Bug Reports',
-    messageId: 'm3',
-    message: 'Critical issue needs attention',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
-    role: 'alert',
-  },
-];
-
-export default function NotificationsPage() {
-  const [notifications, _setNotifications] = useState([]);
+export default function NotificationsPage(): ReactNode {
+  const [notifications] = useState<NotificationFixture[]>([]);
   return (
     <SidebarPage title='Notifications'>
       {notifications.length > 0 ? <Notifications notifications={notifications} /> : <EmptyNotifications />}

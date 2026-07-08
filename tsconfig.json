@@ -21,6 +21,8 @@
       }
     ],
     "paths": {
+      "next": ["./node_modules/next"],
+      "next/*": ["./node_modules/next/*"],
       "@/*": ["./src/*"],
       "zod2gql": ["./src/lib/zod2gql/src"],
       "@jgrieve/auth/*": ["./src/components/auth/src/*"],

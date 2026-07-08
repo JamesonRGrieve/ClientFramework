@@ -14,8 +14,8 @@ type AccordionProps = {
   type?: 'single' | 'multiple';
 };
 
-export const Accordion = ({ children, defaultValue = null, type = 'single' }: AccordionProps) => {
-  const [openValue, setOpenValue] = useState<string | null>(defaultValue);
+export const Accordion = ({ children, defaultValue, type = 'single' }: AccordionProps) => {
+  const [openValue, setOpenValue] = useState<string | null>(defaultValue ?? null);
 
   const toggleOpen = (value: string) => {
     setOpenValue((current) => (type === 'single' ? (current === value ? null : value) : current === value ? null : value));
@@ -37,8 +37,8 @@ type AccordionItemProps = {
 export const AccordionItem = ({ value, children, className = '' }: AccordionItemProps) => {
   return (
     <div className={`border-b border-border ${className}`}>
-      {React.Children.map(children, async (child) =>
-        React.isValidElement(child) ? React.cloneElement(child as React.ReactElement, { parentValue: value }) : child,
+      {React.Children.map(children, (child) =>
+        React.isValidElement<{ parentValue?: string }>(child) ? React.cloneElement(child, { parentValue: value }) : child,
       )}
     </div>
   );

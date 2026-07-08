@@ -1,14 +1,16 @@
 'use client';
-import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
-import { SidebarInset } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { SidebarInset } from '@/components/ui/sidebar';
+import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
 
 export default function UserLayout({ children }: { children: ReactNode }): ReactNode {
   const pathname = usePathname();
 
-  if (pathname === '/user/manage') return <ManagePageWrapper>{children}</ManagePageWrapper>;
+  if (pathname === '/user/manage') {
+    return <ManagePageWrapper>{children}</ManagePageWrapper>;
+  }
 
   return (
     <SidebarInset className='flex flex-col w-full h-full'>
@@ -34,7 +36,7 @@ function ManagePageWrapper({ children }: { children: ReactNode }) {
   );
 }
 
-export const Logo = () => {
+function Logo(): ReactNode {
   return (
     <div className='flex items-center'>
       <Link href='/' className='flex items-center gap-2 text-lg font-semibold md:text-lg text-foreground'>
@@ -42,4 +44,4 @@ export const Logo = () => {
       </Link>
     </div>
   );
-};
+}

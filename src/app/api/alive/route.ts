@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
 
-export async function GET(_request) {
-  return NextResponse.json(global.__RUNTIME_CONFIG__ || {});
+const RUNTIME_CONFIG_KEY = '__RUNTIME_CONFIG__';
+
+type RuntimeConfig = Record<string, unknown>;
+
+export function GET(): NextResponse {
+  const runtimeGlobal = globalThis as typeof globalThis & Record<string, RuntimeConfig | undefined>;
+  return NextResponse.json(runtimeGlobal[RUNTIME_CONFIG_KEY] ?? {});
 }
