@@ -7,17 +7,17 @@
     "unlisted"
   ],
   "totals": {
-    "total": 92
+    "total": 95
   },
   "counts": {
-    "files": 17,
+    "files": 19,
     "dependencies": 22,
     "devDependencies": 34,
     "optionalPeerDependencies": 0,
     "unlisted": 0,
     "unresolved": 1,
     "binaries": 3,
-    "exports": 9,
+    "exports": 10,
     "types": 3,
     "enumMembers": 0,
     "classMembers": 0,
