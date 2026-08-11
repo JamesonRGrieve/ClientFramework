@@ -23,7 +23,7 @@ let APP_URI,
 
 const useBasicConfig = () => ({
   env: {
-    NEXT_PUBLIC_APP_NAME: process.env.APP_NAME || 'Client Framework',
+    NEXT_PUBLIC_APP_NAME: process.env.APP_NAME || 'Zephyrex',
     NEXT_PUBLIC_APP_DESCRIPTION: process.env.APP_DESCRIPTION || 'A Framework for Clients.',
     APP_URI: (APP_URI = process.env.APP_URI || 'http://localhost:1109'),
     NEXT_PUBLIC_APP_URI: APP_URI,
