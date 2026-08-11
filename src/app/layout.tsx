@@ -1,21 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import Head from '@jgrieve/appwrapper/Head';
-import { SidebarContentProvider } from '@jgrieve/appwrapper/SidebarContentManager';
 import { SidebarContext } from '@jgrieve/appwrapper/SidebarContext';
 import { SidebarMain } from '@jgrieve/appwrapper/SidebarMain';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { Toaster } from '@/components/ui/toaster';
+import { ZephyrexApp } from '@/lib/zephyrex';
 import { cn } from '@/lib/utils';
 import '@zephyrex/zod2gql';
 import { cookies } from 'next/headers';
 import type { ReactNode } from 'react';
+import config from '@/zephyrex.config';
 import './globals.css';
-
-// const inter = Inter({ subsets: ['latin'] });
 
 export default async function RootLayout({ children }: { children: ReactNode }): Promise<ReactNode> {
   const cookieStore = await cookies();
-  const theme = cookieStore.get('theme')?.value ?? process.env.NEXT_PUBLIC_THEME_DEFAULT_MODE;
+  const theme = cookieStore.get('theme')?.value ?? config.app.defaultTheme ?? 'dark';
   const appearance = cookieStore.get('appearance')?.value ?? '';
   const htmlThemeClass = theme === 'dark' || theme === 'colorblind' || theme === 'colorblind-dark' ? theme : '';
 
@@ -23,23 +20,19 @@ export default async function RootLayout({ children }: { children: ReactNode }):
     return (
       <html lang='en' className={htmlThemeClass} suppressHydrationWarning>
         <Head />
-        <body className={cn(/*inter.className,*/ theme, appearance)}>{children}</body>
+        <body className={cn(theme, appearance)}>{children}</body>
       </html>
     );
   }
   return (
     <html lang='en' className={htmlThemeClass} suppressHydrationWarning>
       <Head />
-      <body className={cn(/*inter.className,*/ theme, appearance)}>
-        <SidebarContentProvider>
-          <SidebarProvider className='flex-1'>
-            <SidebarMain side='left' />
-            {children}
-            <Toaster />
-            {/* <ThemeSetter /> */}
-            <SidebarContext side='right' />
-          </SidebarProvider>
-        </SidebarContentProvider>
+      <body className={cn(theme, appearance)}>
+        <ZephyrexApp config={config}>
+          <SidebarMain side='left' />
+          {children}
+          <SidebarContext side='right' />
+        </ZephyrexApp>
       </body>
     </html>
   );

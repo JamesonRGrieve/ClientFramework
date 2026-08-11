@@ -84,8 +84,39 @@
   },
   "homepage": "http://jamesonrgrieve.github.io/ClientFramework",
   "files": [
-    "dist"
+    "dist",
+    "src/lib/zephyrex"
   ],
+  "exports": {
+    ".": {
+      "types": "./src/lib/zephyrex/index.ts",
+      "default": "./src/lib/zephyrex/index.ts"
+    },
+    "./types": {
+      "types": "./src/lib/zephyrex/types.ts",
+      "default": "./src/lib/zephyrex/types.ts"
+    },
+    "./auth": {
+      "types": "./src/components/auth/src/index.ts",
+      "default": "./src/components/auth/src/index.ts"
+    },
+    "./auth/*": {
+      "types": "./src/components/auth/src/*.ts",
+      "default": "./src/components/auth/src/*.ts"
+    },
+    "./ui/*": {
+      "types": "./src/components/ui/*.tsx",
+      "default": "./src/components/ui/*.tsx"
+    },
+    "./forms": {
+      "types": "./src/components/dynamic-form/src/index.ts",
+      "default": "./src/components/dynamic-form/src/index.ts"
+    },
+    "./forms/*": {
+      "types": "./src/components/dynamic-form/src/*.tsx",
+      "default": "./src/components/dynamic-form/src/*.tsx"
+    }
+  },
   "_moduleAliases": {
     "@": "."
   },
