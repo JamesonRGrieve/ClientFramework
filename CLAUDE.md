@@ -1,86 +1,107 @@
-# Claude Code Instructions — zephyrex
+# Claude Code Instructions — zephyrex (client)
 
-Next.js application template. Downstream projects merge from it regularly. Workspace-level standards live in `../CLAUDE.md` and apply here. This file documents rules **specific** to this repo.
+Installable Next.js framework package (`npm install zephyrex`). Downstream projects consume it as a dependency and define their own extensions — they do not fork or merge from this repo.
 
 ## Stack Standards
 
 Read **before your first edit** in this repo:
 
-- `/home/jameson/Source/ai-prompts/typescript.md` — TypeScript language, casting, ratchets, Biome, ESLint, tsconfig, test structure, pre-commit pipeline
-- `/home/jameson/Source/ai-prompts/react-next.md` — React/Next.js component layering, hooks, accessibility, security, template discipline, submodules, app-router, state/data-fetching, CSS/theme ratchets
-
-These are the canonical home of their rules. This file does not restate them — it adds repo-specific detail only.
+- `/home/jameson/Source/ai-prompts/typescript.md` — TypeScript, casting, ratchets, Biome, ESLint, tsconfig, test structure, pre-commit
+- `/home/jameson/Source/ai-prompts/react-next.md` — React/Next.js component layering, hooks, a11y, security, state/data-fetching, CSS/theme
 
 ---
 
-## Design Philosophy
-
-This repo _is_ the template described in `react-next.md` §6: every design decision minimizes the surface downstream consumers must modify — prefer configuration, extension points, and convention-based overrides over edits to framework-owned files.
-
----
-
-## Submodules
-
-Submodule discipline is canonical in `react-next.md` §7. This repo's concrete submodules — each an independent repo with its own `package.json`:
+## Architecture
 
 ```
-src/components/appwrapper/    → github.com/JamesonRGrieve/appwrapper  (absorbed into this repo)
-src/components/auth/          → github.com/JamesonRGrieve/auth        (@zephyrex/auth)
-src/components/dynamic-form/  → github.com/JamesonRGrieve/dynamic-form (@jgrieve/forms)
-src/lib/zod2gql/              → github.com/JamesonRGrieve/zod2gql     (@zephyrex/zod2gql)
+src/lib/zephyrex/           Core package exports (ZephyrexApp, hooks, types, extensions)
+src/components/ui/          shadcn/ui primitives (35 components)
+src/components/appwrapper/  Shell components (sidebar, header, footer, nav) — absorbed submodule
+src/components/auth/        → symlink to ../auth repo (@zephyrex/auth)
+src/components/dynamic-form/ → symlink to ../dynamic-form repo (@jgrieve/forms)
+src/lib/zod2gql/            → symlink to ../zod2gql repo (@zephyrex/zod2gql)
+src/app/                    Template app (reference consumer)
+e2e/                        Playwright integration tests (client↔server)
 ```
 
-**Path aliases** in `tsconfig.json` map `@zephyrex/auth/*`, `@jgrieve/appwrapper/*`, `@jgrieve/forms/*`, and `@zephyrex/zod2gql` to their respective `src/` directories inside each submodule.
+### Package Exports
+
+```typescript
+import { ZephyrexApp, ZephyrexRouter, createMiddleware } from 'zephyrex';
+import { useClient, useUser, useRole, useTeams } from 'zephyrex';
+import { PageWithSlots, usePageSlots } from 'zephyrex';
+import { allExtensions } from 'zephyrex/extensions';
+import { authMfaExtension } from 'zephyrex/extensions/auth_mfa';
+```
+
+### Consumer Pattern
+
+A consumer app is ~6 files:
+
+- `zephyrex.config.ts` — `ZephyrexConfig` with server URL, app name, extensions, pages, nav
+- `layout.tsx` — wraps children with `<ZephyrexApp config={config}>`
+- `middleware.ts` — `export default createMiddleware()`
+- `[...slug]/page.tsx` — `<ZephyrexRouter>` for extension routes
+- `extensions/*.tsx` — custom `ZephyrexClientExtension` definitions
+
+### Extension System
+
+59 client extensions match 1:1 with server extensions. Each extension can provide:
+- `pages` — routes to register
+- `navItems` — sidebar entries
+- `settingsPanel` — settings UI component
+- `middleware` — middleware hooks
+- `providers` — React context providers
+- `pageSlots` — inject before/after/replace/sidebar content into built-in pages
+
+### Page Injection
+
+Every built-in page supports slot injection via `PageWithSlots`:
+
+```typescript
+const myExtension: ZephyrexClientExtension = {
+  pageSlots: {
+    'team': [{ position: 'after', component: TeamAnalytics }],
+    'settings': [{ position: 'sidebar', component: QuickStats }],
+  },
+};
+```
 
 ---
 
-## Repo-Specific Notes
+## Sibling Packages
 
-- **Logger.** Server-side logging uses the in-repo `next-log` package (`@jgrieve/next-log`, `src/lib/next-log`) — no ad-hoc `console.log` in committed code; `console.warn` / `console.error` are reserved for genuine diagnostics.
+| Package | npm name | Source |
+|---------|----------|-------|
+| Auth | `@zephyrex/auth` | `../auth` (symlinked to `src/components/auth/`) |
+| Forms | `@jgrieve/forms` | `../dynamic-form` (symlinked to `src/components/dynamic-form/`) |
+| Zod→GQL | `@zephyrex/zod2gql` | `../zod2gql` (symlinked to `src/lib/zod2gql/`) |
+| Server | `zephyrex` (PyPI) | `../server-framework` |
+
+Path aliases in `tsconfig.json` map `@zephyrex/auth/*`, `@jgrieve/forms/*`, `@zephyrex/zod2gql`, and `@jgrieve/appwrapper/*` to their source directories.
 
 ---
 
 ## Commands
 
-The package manager is **pnpm**. Do not use `npm` — only `pnpm-lock.yaml` is committed.
-
 ```bash
 pnpm install              # Install dependencies
 pnpm dev                  # Dev server on port 1109
-pnpm build                # Production build
-pnpm lint                 # ESLint (flat config, eslint.config.mjs)
-pnpm lint-fix             # ESLint with auto-fix
-pnpm fix                  # Prettier + ESLint auto-fix
-pnpm prettier-fix         # Prettier format only
-pnpm check                # Aggregate: lockfile + all ratchets
+pnpm build                # Production build (Next 16 Turbopack)
+pnpm test                 # Vitest unit tests
+pnpm test:e2e             # Playwright integration tests (spawns server + client)
+pnpm storybook            # Storybook on port 3001
+pnpm check                # All ratchets
 ```
 
 ---
 
-## ESLint: Flat Config
+## PWA
 
-Flat-config baseline is canonical in `react-next.md` §8. Repo-local specifics:
-
-- The full prior ruleset is preserved and bridged via `@eslint/eslintrc`'s `FlatCompat` for shareable configs without native flat presets: `next/core-web-vitals`, `plugin:storybook/recommended`, `plugin:@vitest/legacy-recommended`.
-- The flat config's top-level `ignores` excludes all five submodule paths plus the app-router boilerplate, build output, and tooling files. Each submodule has its own ESLint pipeline and lints itself; the parent never loads a submodule's config.
+Uses `@serwist/next` (replaces dead `next-pwa`). Service worker at `src/app/sw.ts`, manifest at `src/app/manifest.ts`. Disabled in development, active in production builds.
 
 ---
 
-## Ratchet Status
+## License
 
-This repo currently lacks `scripts/` ratchet runners. Adopt the canonical implementations from `dynamic-form/scripts/` (`lint-ratchet.mjs`, `typecheck-ratchet.mjs`, `coverage-symmetry.mjs`, `symmetry-ratchet.mjs`) and seed `.eslint-warning-baseline`, `.tsc-error-baseline`, `.symmetry-baseline` from current state. Track in `todo.json`.
-
----
-
-## Ratchet Re-seed Required
-
-The ESLint configuration was hardened toward foundry parity (`typescript.md` §5): added `plugin:storybook/recommended`, the full `@typescript-eslint/naming-convention` rule set, `@typescript-eslint/no-use-before-define`, `no-new-native-nonconstructor`, `no-duplicate-imports`, `no-self-assign`, an explicit `@typescript-eslint/no-shadow` pair, a 4th `no-restricted-syntax` selector (`unknown` outside `catch`), and a Vitest test-file override (`@vitest/eslint-plugin`). The config was also migrated from legacy `.eslintrc.json` + `next lint` to the modern flat config (`eslint.config.mjs`, `eslint .`).
-
-Because new warn-level rules were added, the lint baseline will report more warnings than `.eslint-warning-baseline` currently records. After `pnpm install`, re-seed:
-
-```bash
-pnpm install
-pnpm lint:ratchet:update   # re-seeds .eslint-warning-baseline
-```
-
-Commit the regenerated `.eslint-warning-baseline` in the **same commit** as these config changes (`typescript.md` §3 — a baseline bump rides with the change that necessitated it).
+AGPL-3.0-or-later. SPDX header on every source file.
