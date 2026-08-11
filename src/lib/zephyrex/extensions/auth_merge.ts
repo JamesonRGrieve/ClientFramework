@@ -4,7 +4,10 @@ import { AutoSettingsPanel } from '../ExtensionRegistry';
 
 export const authMergeExtension: ZephyrexClientExtension = {
   name: 'auth_merge',
-  displayName: 'Auth Merge',
+  displayName: 'Account Merge',
+  description: 'Merge multiple accounts into one',
   serverExtension: 'auth_merge',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'Auth Merge' }),
+  managementTabs: [
+    { id: 'merge', label: 'Merge Accounts', component: () => AutoSettingsPanel({ extensionName: 'Account Merge' }), requireRole: 'admin', priority: 60 },
+  ],
 };

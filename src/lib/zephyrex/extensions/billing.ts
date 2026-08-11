@@ -6,5 +6,6 @@ export const billingExtension: ZephyrexClientExtension = {
   displayName: 'Billing',
   description: 'Subscription billing and pricing tables',
   serverExtension: 'billing',
-  navItems: [{ title: 'Billing', url: '/user/subscribe' }],
+  // Shares UI with payment extension — PricingTable
+  navItems: [{ title: 'Billing', url: '/user/manage' }],
 };

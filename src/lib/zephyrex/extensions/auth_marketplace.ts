@@ -4,7 +4,10 @@ import { AutoSettingsPanel } from '../ExtensionRegistry';
 
 export const authMarketplaceExtension: ZephyrexClientExtension = {
   name: 'auth_marketplace',
-  displayName: 'Auth Marketplace',
+  displayName: 'Marketplace',
+  description: 'Extension and integration marketplace',
   serverExtension: 'auth_marketplace',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'Auth Marketplace' }),
+  managementTabs: [
+    { id: 'marketplace', label: 'Marketplace', component: () => AutoSettingsPanel({ extensionName: 'Marketplace' }), priority: 70 },
+  ],
 };

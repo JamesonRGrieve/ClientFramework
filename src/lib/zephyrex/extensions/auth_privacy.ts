@@ -4,7 +4,10 @@ import { AutoSettingsPanel } from '../ExtensionRegistry';
 
 export const authPrivacyExtension: ZephyrexClientExtension = {
   name: 'auth_privacy',
-  displayName: 'Auth Privacy',
+  displayName: 'Privacy Settings',
+  description: 'User privacy controls and data management',
   serverExtension: 'auth_privacy',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'Auth Privacy' }),
+  managementTabs: [
+    { id: 'privacy', label: 'Privacy', component: () => AutoSettingsPanel({ extensionName: 'Privacy' }), priority: 35 },
+  ],
 };

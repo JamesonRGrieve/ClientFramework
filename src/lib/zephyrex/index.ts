@@ -44,6 +44,12 @@ export type { SearchInputProps } from './components/SearchInput';
 export { PageSlotsProvider, usePageSlots, PageWithSlots } from './PageSlots';
 export type { PageSlotDefinition, PageSlots } from './PageSlots';
 
+// Auth Flow Injection
+export { AuthFlowProvider, useAuthFlowInjections } from './AuthFlowRegistry';
+
+// Management Tab Injection
+export { ManagementTabProvider, useManagementTabs } from './ManagementTabRegistry';
+
 // Extension System
 export { useActiveExtensions, AutoSettingsPanel } from './ExtensionRegistry';
 
@@ -54,4 +60,6 @@ export type {
   RouteDefinition,
   NavItemDefinition,
   MiddlewareHook,
+  AuthFlowInjection,
+  ManagementTab,
 } from './types';

@@ -6,6 +6,8 @@ import { SidebarProvider } from '../../components/ui/sidebar';
 import { Toaster } from '../../components/ui/toaster';
 import { TooltipProvider } from '../../components/ui/tooltip';
 import { SidebarContentProvider } from '../../components/appwrapper/src/SidebarContentManager';
+import { AuthFlowProvider } from './AuthFlowRegistry';
+import { ManagementTabProvider } from './ManagementTabRegistry';
 import type { ZephyrexConfig } from './types';
 import { ZephyrexProvider } from './ZephyrexProvider';
 
@@ -16,16 +18,22 @@ export function ZephyrexApp({
   config: ZephyrexConfig;
   children: ReactNode;
 }) {
+  const extensions = config.extensions ?? [];
+
   return (
     <ZephyrexProvider config={config}>
-      <TooltipProvider>
-        <SidebarContentProvider>
-          <SidebarProvider>
-            {children}
-            <Toaster />
-          </SidebarProvider>
-        </SidebarContentProvider>
-      </TooltipProvider>
+      <AuthFlowProvider extensions={extensions}>
+        <ManagementTabProvider extensions={extensions}>
+          <TooltipProvider>
+            <SidebarContentProvider>
+              <SidebarProvider>
+                {children}
+                <Toaster />
+              </SidebarProvider>
+            </SidebarContentProvider>
+          </TooltipProvider>
+        </ManagementTabProvider>
+      </AuthFlowProvider>
     </ZephyrexProvider>
   );
 }
