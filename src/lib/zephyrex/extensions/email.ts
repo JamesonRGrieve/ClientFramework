@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ZephyrexClientExtension } from '../types';
-import { AutoSettingsPanel } from '../ExtensionRegistry';
 
 export const emailExtension: ZephyrexClientExtension = {
   name: 'email',
   displayName: 'Email',
+  description: 'Email sending via SendGrid or other providers',
   serverExtension: 'email',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'Email' }),
+  // Email is a server-side provider. Admin configuration via
+  // provider settings at /settings/extensions.
 };

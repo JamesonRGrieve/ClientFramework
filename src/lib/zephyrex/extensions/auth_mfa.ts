@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ZephyrexClientExtension } from '../types';
-import { AutoSettingsPanel } from '../ExtensionRegistry';
 
 export const authMfaExtension: ZephyrexClientExtension = {
   name: 'auth_mfa',
-  displayName: 'Auth Mfa',
+  displayName: 'Multi-Factor Authentication',
+  description: 'TOTP, email, and SMS verification',
   serverExtension: 'auth_mfa',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'Auth Mfa' }),
+  // MFA setup/verify components render automatically in the auth flow
+  // via @zephyrex/auth's Router when the server returns otp_uri,
+  // verify_email, or verify_sms flags during registration.
 };

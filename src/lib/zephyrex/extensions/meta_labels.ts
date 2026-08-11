@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ZephyrexClientExtension } from '../types';
-import { AutoSettingsPanel } from '../ExtensionRegistry';
 
 export const metaLabelsExtension: ZephyrexClientExtension = {
   name: 'meta_labels',
-  displayName: 'Meta Labels',
+  displayName: 'Labels',
+  description: 'Tag and label management for entities',
   serverExtension: 'meta_labels',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'Meta Labels' }),
+  // Label CRUD via /v1/label API. Could add a tag picker component
+  // that injects into entity detail pages via pageSlots.
 };

@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import { lazy } from 'react';
 import type { ZephyrexClientExtension } from '../types';
-import { AutoSettingsPanel } from '../ExtensionRegistry';
+
+const Invitations = lazy(() => import('@zephyrex/auth/management/Invitations'));
 
 export const authInvitationsExtension: ZephyrexClientExtension = {
   name: 'auth_invitations',
-  displayName: 'Auth Invitations',
+  displayName: 'Invitations',
+  description: 'Team invitation management',
   serverExtension: 'auth_invitations',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'Auth Invitations' }),
+  navItems: [{ title: 'Invitations', url: '/user/manage' }],
 };
