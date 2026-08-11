@@ -115,6 +115,22 @@
     "./forms/*": {
       "types": "./src/components/dynamic-form/src/*.tsx",
       "default": "./src/components/dynamic-form/src/*.tsx"
+    },
+    "./extensions": {
+      "types": "./src/lib/zephyrex/extensions/index.ts",
+      "default": "./src/lib/zephyrex/extensions/index.ts"
+    },
+    "./extensions/*": {
+      "types": "./src/lib/zephyrex/extensions/*.ts",
+      "default": "./src/lib/zephyrex/extensions/*.ts"
+    },
+    "./hooks": {
+      "types": "./src/lib/zephyrex/hooks.ts",
+      "default": "./src/lib/zephyrex/hooks.ts"
+    },
+    "./client": {
+      "types": "./src/lib/zephyrex/client.ts",
+      "default": "./src/lib/zephyrex/client.ts"
     }
   },
   "_moduleAliases": {

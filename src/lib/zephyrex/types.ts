@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ComponentType, ReactNode } from 'react';
 import type { NextRequest, NextResponse } from 'next/server';
+import type { PageSlots } from './PageSlots';
 
 export interface RouteDefinition {
   path: string;
@@ -29,6 +30,7 @@ export interface ZephyrexClientExtension {
   settingsPanel?: ComponentType;
   middleware?: MiddlewareHook[];
   providers?: ComponentType<{ children: ReactNode }>[];
+  pageSlots?: PageSlots;
 }
 
 export interface ZephyrexConfig {
@@ -51,5 +53,6 @@ export interface ZephyrexConfig {
   extensions?: ZephyrexClientExtension[];
   pages?: RouteDefinition[];
   navItems?: NavItemDefinition[];
+  pageSlots?: PageSlots;
   overrides?: Record<string, ComponentType>;
 }

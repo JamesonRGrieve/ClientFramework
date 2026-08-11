@@ -2,10 +2,10 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { Toaster } from '@/components/ui/toaster';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { SidebarContentProvider } from '@jgrieve/appwrapper/SidebarContentManager';
+import { SidebarProvider } from '../../components/ui/sidebar';
+import { Toaster } from '../../components/ui/toaster';
+import { TooltipProvider } from '../../components/ui/tooltip';
+import { SidebarContentProvider } from '../../components/appwrapper/src/SidebarContentManager';
 import type { ZephyrexConfig } from './types';
 import { ZephyrexProvider } from './ZephyrexProvider';
 

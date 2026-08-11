@@ -3,6 +3,8 @@
 
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import type { ZephyrexConfig, NavItemDefinition, RouteDefinition, ZephyrexClientExtension } from './types';
+import type { PageSlots } from './PageSlots';
+import { PageSlotsProvider } from './PageSlots';
 
 interface ZephyrexContextValue {
   config: ZephyrexConfig;
@@ -19,6 +21,17 @@ export function useZephyrexConfig(): ZephyrexContextValue {
     throw new Error('useZephyrexConfig must be used within a ZephyrexProvider');
   }
   return ctx;
+}
+
+function mergePageSlots(...slotSources: (PageSlots | undefined)[]): PageSlots {
+  const merged: PageSlots = {};
+  for (const source of slotSources) {
+    if (!source) continue;
+    for (const [page, slots] of Object.entries(source)) {
+      merged[page] = [...(merged[page] ?? []), ...slots];
+    }
+  }
+  return merged;
 }
 
 export function ZephyrexProvider({
@@ -41,6 +54,15 @@ export function ZephyrexProvider({
     };
   }, [config]);
 
+  const pageSlots = useMemo(
+    () =>
+      mergePageSlots(
+        config.pageSlots,
+        ...(config.extensions ?? []).map((ext) => ext.pageSlots),
+      ),
+    [config],
+  );
+
   let tree = <>{children}</>;
 
   const extensionProviders = (config.extensions ?? []).flatMap((ext) => ext.providers ?? []);
@@ -48,5 +70,9 @@ export function ZephyrexProvider({
     tree = <Provider>{tree}</Provider>;
   }
 
-  return <ZephyrexContext value={value}>{tree}</ZephyrexContext>;
+  return (
+    <ZephyrexContext value={value}>
+      <PageSlotsProvider slots={pageSlots}>{tree}</PageSlotsProvider>
+    </ZephyrexContext>
+  );
 }
