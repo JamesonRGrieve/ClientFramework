@@ -27,9 +27,22 @@ e2e/                        Playwright integration tests (client↔server)
 ### Package Exports
 
 ```typescript
+// App shell
 import { ZephyrexApp, ZephyrexRouter, createMiddleware } from 'zephyrex';
-import { useClient, useUser, useRole, useTeams } from 'zephyrex';
+
+// Data hooks
+import { useClient, useUser, useRole, useTeams, useProviders, useNotifications } from 'zephyrex';
+
+// Feature hooks
+import { useSearch, useFileUpload, useSubscription, useOnline } from 'zephyrex';
+
+// Components
+import { RequireRole, ErrorBoundary, NotificationBell, SearchInput } from 'zephyrex';
+
+// Page injection
 import { PageWithSlots, usePageSlots } from 'zephyrex';
+
+// Extensions (59 matching server 1:1)
 import { allExtensions } from 'zephyrex/extensions';
 import { authMfaExtension } from 'zephyrex/extensions/auth_mfa';
 ```

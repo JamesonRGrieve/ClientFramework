@@ -10,7 +10,7 @@ export { createMiddleware } from './createMiddleware';
 export { ZephyrexClient, ApiError } from './client';
 export type { ZephyrexClientConfig } from './client';
 
-// Hooks
+// Data Hooks
 export {
   ClientProvider,
   useClient,
@@ -24,11 +24,27 @@ export {
 } from './hooks';
 export type { User, Team, ServerExtension, Provider, Notification } from './hooks';
 
-// Page injection
+// Feature Hooks
+export { useSearch } from './useSearch';
+export type { SearchResult } from './useSearch';
+export { useFileUpload } from './useFileUpload';
+export type { UploadResult, UploadProgress } from './useFileUpload';
+export { useSubscription } from './useSubscription';
+export type { SubscriptionOptions } from './useSubscription';
+export { useOnline } from './useOnline';
+
+// Components
+export { RequireRole } from './components/RequireRole';
+export { ErrorBoundary } from './components/ErrorBoundary';
+export { NotificationBell } from './components/NotificationBell';
+export { SearchInput } from './components/SearchInput';
+export type { SearchInputProps } from './components/SearchInput';
+
+// Page Injection
 export { PageSlotsProvider, usePageSlots, PageWithSlots } from './PageSlots';
 export type { PageSlotDefinition, PageSlots } from './PageSlots';
 
-// Extension system
+// Extension System
 export { useActiveExtensions, AutoSettingsPanel } from './ExtensionRegistry';
 
 // Types
