@@ -3,9 +3,9 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: process.env.NEXT_PUBLIC_APP_NAME || 'Client Framework App',
-    short_name: process.env.NEXT_PUBLIC_APP_NAME || 'Client Framework',
-    description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || 'Client Framework Application',
+    name: process.env.NEXT_PUBLIC_APP_NAME || 'Zephyrex App',
+    short_name: process.env.NEXT_PUBLIC_APP_NAME || 'Zephyrex',
+    description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || 'Zephyrex Application',
     start_url: '/',
     display: 'standalone',
     display_override: ['standalone', 'minimal-ui'],
