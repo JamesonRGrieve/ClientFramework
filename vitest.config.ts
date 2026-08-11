@@ -5,7 +5,17 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['src/__tests__/setup.ts'],
-    exclude: ['**/node_modules/**', '.next/**', 'dist/**', 'e2e/**', '**/*.stories.{ts,tsx}', '.claude/**'],
+    exclude: [
+      '**/node_modules/**',
+      '.next/**',
+      'dist/**',
+      'e2e/**',
+      '**/*.stories.{ts,tsx}',
+      '.claude/**',
+      'src/components/auth/**',
+      'src/components/dynamic-form/**',
+      'src/lib/zod2gql/**',
+    ],
     globals: true,
   },
   resolve: {

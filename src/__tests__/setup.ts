@@ -40,6 +40,21 @@ vi.mock('cookies-next', () => ({
   deleteCookie: vi.fn(),
 }));
 
+// jsdom environment polyfills — these APIs don't exist in jsdom
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: (query: string) => ({
+    matches: query.includes('dark'),
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }),
+});
+
 // Global fetch stub
 globalThis.fetch = vi.fn(async () =>
   Promise.resolve(

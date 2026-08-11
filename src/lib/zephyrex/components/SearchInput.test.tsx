@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { SearchInput } from './SearchInput';
 
+// SearchInput is a pure UI component — no providers needed, no mocks needed.
 describe('SearchInput', () => {
   it('renders with placeholder', () => {
     render(<SearchInput onSearch={vi.fn()} placeholder="Find users" />);
@@ -23,7 +24,7 @@ describe('SearchInput', () => {
     expect(screen.getByLabelText('Clear search')).toBeInTheDocument();
   });
 
-  it('clear button resets value', async () => {
+  it('clear button resets value and calls onClear', async () => {
     const onSearch = vi.fn();
     const onClear = vi.fn();
     render(<SearchInput onSearch={onSearch} onClear={onClear} debounceMs={0} />);
