@@ -1,4 +1,5 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { OTPInput, OTPInputContext } from 'input-otp';
 import * as React from 'react';

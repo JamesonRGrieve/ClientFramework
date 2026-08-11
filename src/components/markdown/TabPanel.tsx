@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import type React from 'react';
 import type { ReactNode } from 'react';
 

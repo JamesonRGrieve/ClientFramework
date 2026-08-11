@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import TimeAgo, { type FormatStyleName } from 'javascript-time-ago';
 import en from 'javascript-time-ago/locale/en';
 

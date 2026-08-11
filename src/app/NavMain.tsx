@@ -1,11 +1,12 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { ChevronRightIcon } from '@radix-ui/react-icons';
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useTeam } from '@jgrieve/auth/hooks/useTeam';
-import { type Item as NavItem, items } from '@jgrieve/auth/NavMenu';
+import { useTeam } from '@zephyrex/auth/hooks/useTeam';
+import { type Item as NavItem, items } from '@zephyrex/auth/NavMenu';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   SidebarGroup,

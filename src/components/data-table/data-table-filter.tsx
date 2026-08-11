@@ -1,4 +1,5 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { type JSX, useState } from 'react';
 import { LuFilter as Filter } from 'react-icons/lu';

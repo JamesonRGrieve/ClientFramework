@@ -1,4 +1,5 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { useToast } from '@/hooks/useToast';
 import { Toast, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport } from '@/components/ui/toast';

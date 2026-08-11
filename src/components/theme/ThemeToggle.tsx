@@ -1,4 +1,5 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { LuEye as Eye, LuMoon as Moon, LuSun as Sun } from 'react-icons/lu';
 import { useTheme } from './useTheme';

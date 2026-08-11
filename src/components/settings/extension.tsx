@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import { getCookie } from 'cookies-next';
 import { Plus, Unlink, Wrench } from 'lucide-react';
 import { useEffect, useState } from 'react';

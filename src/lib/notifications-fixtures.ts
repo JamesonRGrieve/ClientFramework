@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 const MINUTE_MS = 1000 * 60;
 const HOUR_MS = MINUTE_MS * 60;
 const DAY_MS = HOUR_MS * 24;

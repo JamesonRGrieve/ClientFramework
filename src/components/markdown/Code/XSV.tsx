@@ -1,4 +1,5 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { type ReactNode, useContext, useEffect, useState } from 'react';
 import { LuLightbulb as LightBulbIcon } from 'react-icons/lu';

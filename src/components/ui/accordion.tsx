@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import React, { useState, createContext, useContext, type ReactNode, useRef, useEffect } from 'react';
 import { LuChevronDown as ExpandMore } from 'react-icons/lu';
 

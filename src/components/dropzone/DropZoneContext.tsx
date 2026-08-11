@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import type React from 'react';
 import { createContext, useContext, useState, useCallback, useEffect, type PropsWithChildren, useRef } from 'react';
 

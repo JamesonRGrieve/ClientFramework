@@ -1,4 +1,4 @@
-# Claude Code Instructions — client-framework
+# Claude Code Instructions — zephyrex
 
 Next.js application template. Downstream projects merge from it regularly. Workspace-level standards live in `../CLAUDE.md` and apply here. This file documents rules **specific** to this repo.
 
@@ -24,13 +24,13 @@ This repo _is_ the template described in `react-next.md` §6: every design decis
 Submodule discipline is canonical in `react-next.md` §7. This repo's concrete submodules — each an independent repo with its own `package.json`:
 
 ```
-src/components/appwrapper/    → github.com/JamesonRGrieve/appwrapper
-src/components/auth/          → github.com/JamesonRGrieve/auth
-src/components/dynamic-form/  → github.com/JamesonRGrieve/dynamic-form
-src/lib/zod2gql/              → github.com/JamesonRGrieve/zod2gql
+src/components/appwrapper/    → github.com/JamesonRGrieve/appwrapper  (absorbed into this repo)
+src/components/auth/          → github.com/JamesonRGrieve/auth        (@zephyrex/auth)
+src/components/dynamic-form/  → github.com/JamesonRGrieve/dynamic-form (@jgrieve/forms)
+src/lib/zod2gql/              → github.com/JamesonRGrieve/zod2gql     (@zephyrex/zod2gql)
 ```
 
-**Path aliases** in `tsconfig.json` map `@/auth/*`, `@/appwrapper/*`, `@/dynamic-form/*`, and `@/zod2gql` to their respective `src/` directories inside each submodule.
+**Path aliases** in `tsconfig.json` map `@zephyrex/auth/*`, `@jgrieve/appwrapper/*`, `@jgrieve/forms/*`, and `@zephyrex/zod2gql` to their respective `src/` directories inside each submodule.
 
 ---
 

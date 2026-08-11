@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import axios from 'axios';
 import { getCookie } from 'cookies-next';
 import useSWR, { type SWRResponse } from 'swr';

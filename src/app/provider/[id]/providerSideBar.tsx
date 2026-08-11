@@ -1,4 +1,5 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import { useState, useEffect } from 'react';
 import { LuPencil, LuPlus, LuTrash2 } from 'react-icons/lu';
 import axios from 'axios';
@@ -19,7 +20,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useToast } from '@/hooks/useToast';
-import { useUser } from '@jgrieve/auth/hooks/useUser';
+import { useUser } from '@zephyrex/auth/hooks/useUser';
 
 interface ProviderInstance {
   provider_id: string;

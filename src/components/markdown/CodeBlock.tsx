@@ -1,9 +1,9 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import { getCookie } from 'cookies-next';
 import 'katex/dist/katex.min.css';
 import { ChevronDown, Copy, Download } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import { type ReactNode, useRef, useState } from 'react';
+import { type ReactNode, Suspense, lazy, useRef, useState } from 'react';
 import Latex from 'react-latex-next';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { a11yDark, a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
@@ -16,7 +16,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 
 // Lazy import to break the MarkdownBlock <-> CodeBlock import cycle: a code
 // fence may itself contain markdown, and markdown renders code fences.
-const MarkdownBlock = dynamic(async () => import('./MarkdownBlock'), { ssr: false });
+const MarkdownBlock = lazy(() => import('./MarkdownBlock'));
 
 const fileExtensions: Record<string, string> = {
   '': 'txt',
@@ -110,7 +110,7 @@ const detectLanguage = (language: string, raw: string): { language: string; code
 };
 
 const languageRenders: Record<string, LanguageRenderer> = {
-  markdown: (content) => <MarkdownBlock content={Array.isArray(content) ? content.join('\n') : content} />,
+  markdown: (content) => <Suspense fallback={null}><MarkdownBlock content={Array.isArray(content) ? content.join('\n') : content} /></Suspense>,
   html: (content) => <CodeBlock language='html'>{Array.isArray(content) ? content.join('\n') : content}</CodeBlock>,
   csv: (content) => {
     const result = parseXSVData(toRows(content), ',');

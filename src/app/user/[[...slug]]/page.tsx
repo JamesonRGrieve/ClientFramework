@@ -1,5 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import { type ReactNode, Suspense } from 'react';
-import AuthRouter from '@jgrieve/auth/Router';
+import AuthRouter from '@zephyrex/auth/Router';
 
 interface UserRouterProps {
   params: Promise<{ slug?: string[] }>;

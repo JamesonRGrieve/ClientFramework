@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import { NextResponse } from 'next/server';
 
 const RUNTIME_CONFIG_KEY = '__RUNTIME_CONFIG__';

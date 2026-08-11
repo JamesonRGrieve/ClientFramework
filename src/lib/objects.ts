@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 type PlainObject = Record<string, unknown>;
 
 /** True when `value` is a non-array object (i.e. a mergeable plain object). */

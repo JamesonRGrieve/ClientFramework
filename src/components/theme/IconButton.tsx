@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 // IconButton.tsx
 import type { ComponentType, ReactNode } from 'react';
 import { Button, type ButtonProps } from '@/components/ui/button';

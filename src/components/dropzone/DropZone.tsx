@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import React, { Children, type PropsWithChildren } from 'react';
 import { LuX } from 'react-icons/lu';
 import { DropZoneProvider, useDropZone } from './DropZoneContext';

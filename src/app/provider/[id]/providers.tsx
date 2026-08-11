@@ -1,4 +1,5 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /* eslint-disable react/no-unstable-nested-components -- column cell/header renderers are tanstack render props, not React components. */
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import axios from 'axios';
@@ -9,7 +10,7 @@ import { LuCheck, LuPencil } from 'react-icons/lu';
 import { DataTable } from '../../../components/wais/data/data-table';
 import { DataTableColumnHeader } from '../../../components/wais/data/data-table-column-header';
 import { useProviderInstance, useProviderInstances } from './useProviders';
-import DynamicForm from '@jgrieve/dynamic-form/DynamicForm';
+import DynamicForm from '@jgrieve/forms/DynamicForm';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/useToast';
 

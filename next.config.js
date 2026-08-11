@@ -29,13 +29,7 @@ const useBasicConfig = () => ({
   },
 });
 const useProductionSkipLintingConfig = () => ({
-  eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: ENV !== 'development',
-  },
   typescript: {
-    // Warning: Dangerously allow production builds to successfully complete even if your project has type errors.
     ignoreBuildErrors: ENV !== 'development',
   },
 });
@@ -145,32 +139,8 @@ const configs = [
   useProductionSkipLintingConfig,
 ];
 
-// Import next-pwa for PWA configuration
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
-  cacheId: 'inventory-pwa',
-  // Additional PWA settings
-  workboxOptions: {
-    // Disable precaching for dynamic content
-    // This ensures that API calls are handled correctly
-    runtimeCaching: [
-      {
-        urlPattern: /^https:\/\/api\.example\.com/,
-        handler: 'NetworkFirst',
-        options: {
-          cacheName: 'api-cache',
-          expiration: {
-            maxEntries: 50,
-            maxAgeSeconds: 60 * 60 * 24, // 24 hours
-          },
-        },
-      },
-    ],
-  },
-});
+// next-pwa removed — incompatible with Next 16. Re-add PWA support via
+// @ducanh2912/next-pwa or serwist when needed.
 
 const nextConfig = configs.reduce((accumulator, config) => mergeConfigs(accumulator, config()), {
   output: 'standalone',
@@ -200,11 +170,9 @@ const nextConfig = configs.reduce((accumulator, config) => mergeConfigs(accumula
       },
     ];
   },
+  turbopack: {
+    root: require('path').resolve(__dirname, '..'),
+  },
 });
 
-// Apply PWA configuration
-const finalConfig = withPWA(nextConfig);
-
-console.log(finalConfig);
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-module.exports = finalConfig;
+module.exports = nextConfig;

@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import { type NextRequest, NextResponse } from 'next/server';
-import { useAuth, useJWTQueryParam, useOAuth2 } from '@jgrieve/auth/auth.middleware';
-import type { MiddlewareHook } from '@jgrieve/auth/types/MiddlewareHook';
-import { getRequestedURI } from '@jgrieve/auth/utils';
+import { useAuth, useJWTQueryParam, useOAuth2 } from '@zephyrex/auth/auth.middleware';
+import type { MiddlewareHook } from '@zephyrex/auth/types/MiddlewareHook';
+import { getRequestedURI } from '@zephyrex/auth/utils';
 import log from '@/lib/log';
 
 //import assert from 'assert';

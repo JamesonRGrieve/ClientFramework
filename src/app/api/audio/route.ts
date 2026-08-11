@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 // app/api/audio/route.js
 import type { NextRequest } from 'next/server';
 

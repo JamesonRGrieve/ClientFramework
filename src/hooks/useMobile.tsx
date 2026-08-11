@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import * as React from 'react';
 
 const MOBILE_BREAKPOINT = 768;

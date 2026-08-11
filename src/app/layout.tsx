@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import Head from '@jgrieve/appwrapper/Head';
 import { SidebarContentProvider } from '@jgrieve/appwrapper/SidebarContentManager';
 import { SidebarContext } from '@jgrieve/appwrapper/SidebarContext';
@@ -5,7 +6,7 @@ import { SidebarMain } from '@jgrieve/appwrapper/SidebarMain';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
-import 'zod2gql';
+import '@zephyrex/zod2gql';
 import { cookies } from 'next/headers';
 import type { ReactNode } from 'react';
 import './globals.css';

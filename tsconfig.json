@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "es2020",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -13,7 +17,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -21,16 +25,36 @@
       }
     ],
     "paths": {
-      "next": ["./node_modules/next"],
-      "next/*": ["./node_modules/next/*"],
-      "@/*": ["./src/*"],
-      "zod2gql": ["./src/lib/zod2gql/src"],
-      "@jgrieve/auth/*": ["./src/components/auth/src/*"],
-      "@jgrieve/appwrapper/*": ["./src/components/appwrapper/src/*"],
-      "@jgrieve/dynamic-form/*": ["./src/components/dynamic-form/src/*"],
-      "@/interactive/*": ["./src/interactive/src/*"],
-      "@/interface/*": ["./src/interface/*"],
-      "@/iteration/*": ["./src/iteration/*"]
+      "next": [
+        "./node_modules/next"
+      ],
+      "next/*": [
+        "./node_modules/next/*"
+      ],
+      "@/*": [
+        "./src/*"
+      ],
+      "@zephyrex/zod2gql": [
+        "./src/lib/zod2gql/src"
+      ],
+      "@zephyrex/auth/*": [
+        "./src/components/auth/src/*"
+      ],
+      "@jgrieve/appwrapper/*": [
+        "./src/components/appwrapper/src/*"
+      ],
+      "@jgrieve/forms/*": [
+        "./src/components/dynamic-form/src/*"
+      ],
+      "@/interactive/*": [
+        "./src/interactive/src/*"
+      ],
+      "@/interface/*": [
+        "./src/interface/*"
+      ],
+      "@/iteration/*": [
+        "./src/iteration/*"
+      ]
     }
   },
   "include": [
@@ -42,7 +66,10 @@
     "app/theme.ts",
     "components/jrg/auth/auth.config.js",
     "components/interactive/interactive.config.js",
-    "components/interactive/components/Chat/Activity/Severtities.tsx"
+    "components/interactive/components/Chat/Activity/Severtities.tsx",
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

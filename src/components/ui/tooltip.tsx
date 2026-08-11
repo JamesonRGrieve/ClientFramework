@@ -1,4 +1,5 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import * as React from 'react';

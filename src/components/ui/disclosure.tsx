@@ -1,4 +1,5 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import { AnimatePresence, motion, MotionConfig, type Transition, type Variant, type Variants } from 'motion/react';
 import * as React from 'react';
 import { createContext, useContext, useEffect, useId, useState } from 'react';

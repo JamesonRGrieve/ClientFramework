@@ -1,4 +1,5 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

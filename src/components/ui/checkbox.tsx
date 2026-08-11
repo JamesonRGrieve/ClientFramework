@@ -1,4 +1,5 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
 import * as React from 'react';

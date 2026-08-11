@@ -1,4 +1,5 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Table } from '@tanstack/react-table';
 import { X } from 'lucide-react';
 

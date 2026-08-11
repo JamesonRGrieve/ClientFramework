@@ -1,4 +1,5 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Extensions } from './extensions';
 import Training from './training';

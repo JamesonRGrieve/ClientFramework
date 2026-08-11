@@ -1,12 +1,13 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 import axios from 'axios';
 import { getCookie } from 'cookies-next';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Extension, { type ExtensionData } from './extension';
-import { ConnectedServices } from '@jgrieve/auth/management/ConnectedServices';
-import { useTeam } from '@jgrieve/auth/hooks/useTeam';
+import { ConnectedServices } from '@zephyrex/auth/management/ConnectedServices';
+import { useTeam } from '@zephyrex/auth/hooks/useTeam';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';

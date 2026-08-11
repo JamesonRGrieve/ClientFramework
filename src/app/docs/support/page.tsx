@@ -1,7 +1,8 @@
 'use client';
+// SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
-import { useUser } from '@jgrieve/auth/hooks/useUser';
+import { useUser } from '@zephyrex/auth/hooks/useUser';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
