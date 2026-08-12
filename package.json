@@ -121,8 +121,8 @@
       "default": "./src/lib/zephyrex/extensions/index.ts"
     },
     "./extensions/*": {
-      "types": "./src/lib/zephyrex/extensions/*.ts",
-      "default": "./src/lib/zephyrex/extensions/*.ts"
+      "types": "./src/lib/zephyrex/extensions/*/index.ts",
+      "default": "./src/lib/zephyrex/extensions/*/index.ts"
     },
     "./hooks": {
       "types": "./src/lib/zephyrex/hooks.ts",
