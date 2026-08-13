@@ -1,10 +1,4 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ZephyrexClientExtension } from '../types';
-import { AutoSettingsPanel } from '../ExtensionRegistry';
+import { createExtension } from '../createExtension';
 
-export const scimProviderExtension: ZephyrexClientExtension = {
-  name: 'scim_provider',
-  displayName: 'Scim Provider',
-  serverExtension: 'scim_provider',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'Scim Provider' }),
-};
+export const scimProviderExtension = createExtension('scim_provider');

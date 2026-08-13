@@ -1,10 +1,4 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ZephyrexClientExtension } from '../types';
-import { AutoSettingsPanel } from '../ExtensionRegistry';
+import { createExtension } from '../createExtension';
 
-export const databaseExtension: ZephyrexClientExtension = {
-  name: 'database',
-  displayName: 'Database',
-  serverExtension: 'database',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'Database' }),
-};
+export const databaseExtension = createExtension('database');

@@ -1,10 +1,4 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ZephyrexClientExtension } from '../types';
-import { AutoSettingsPanel } from '../ExtensionRegistry';
+import { createExtension } from '../createExtension';
 
-export const samlProviderExtension: ZephyrexClientExtension = {
-  name: 'saml_provider',
-  displayName: 'Saml Provider',
-  serverExtension: 'saml_provider',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'Saml Provider' }),
-};
+export const samlProviderExtension = createExtension('saml_provider');

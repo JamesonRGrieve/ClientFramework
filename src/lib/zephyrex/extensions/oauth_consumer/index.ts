@@ -1,10 +1,4 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ZephyrexClientExtension } from '../types';
-import { AutoSettingsPanel } from '../ExtensionRegistry';
+import { createExtension } from '../createExtension';
 
-export const oauthConsumerExtension: ZephyrexClientExtension = {
-  name: 'oauth_consumer',
-  displayName: 'Oauth Consumer',
-  serverExtension: 'oauth_consumer',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'Oauth Consumer' }),
-};
+export const oauthConsumerExtension = createExtension('oauth_consumer');

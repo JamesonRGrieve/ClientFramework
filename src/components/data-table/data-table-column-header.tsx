@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Column } from '@tanstack/react-table';
-import {
-  LuArrowDown as ArrowDown,
-  LuArrowUp as ArrowUp,
-  LuChevronsUpDown as ChevronsUpDown,
-  LuEyeOff as EyeOff,
-} from 'react-icons/lu';
+import { ArrowDown, ArrowUp, ChevronsUpDown, EyeOff } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -50,21 +45,21 @@ export function DataTableColumnHeader<TData, TValue>({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='start'>
-            <DropdownMenuItem onClick={() => column.toggleSorting(false)} key='table-asc'>
+            <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
               <ArrowUp className='h-3.5 w-3.5 mr-2 text-muted-foreground' />
               Asc
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => column.toggleSorting(true)} key='table-desc'>
+            <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
               <ArrowDown className='h-3.5 w-3.5 mr-2 text-muted-foreground' />
               Desc
             </DropdownMenuItem>
-            <DropdownMenuSeparator key='table-sep-1' />
-            <DropdownMenuItem onClick={() => column.clearSorting()} key='table-clear'>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => column.clearSorting()}>
               <ChevronsUpDown className='w-4 h-4 mr-2 text-muted-foreground' />
               Clear Sorting
             </DropdownMenuItem>
-            <DropdownMenuSeparator key='table-sep-2' />
-            <DropdownMenuItem onClick={() => column.toggleVisibility(false)} key='table-hide'>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
               <EyeOff className='h-3.5 w-3.5 mr-2 text-muted-foreground' />
               Hide
             </DropdownMenuItem>

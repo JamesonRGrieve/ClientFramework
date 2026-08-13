@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { type JSX, useState } from 'react';
-import { LuFilter as Filter } from 'react-icons/lu';
+import { Filter } from 'lucide-react';
 import type { Table } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -45,7 +45,7 @@ export function DataTableFilter<TData>({ table }: { table: Table<TData> }): JSX.
 
   return (
     <Dialog>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <Button variant='outline' size='sm' className='rounded-lg'>
           <Filter className='w-4 h-4 mr-2' />
           Filter

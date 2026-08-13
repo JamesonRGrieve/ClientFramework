@@ -1,50 +1,30 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { useState } from 'react';
-import { setCookie } from 'cookies-next';
+import { useCookiePreference } from './useCookiePreference';
 
-const defaultThemes = ['default', 'dark', 'colorblind', 'colorblind-dark'];
+const THEME_DEFAULTS = ['light', 'dark', 'colorblind', 'colorblind-dark'];
+
+const normalizeTheme = (value: string): string => {
+  if (value === 'default' || value === 'light' || !value) return 'light';
+  return value;
+};
+
+const shouldAddThemeClass = (value: string): boolean => value !== 'light';
 
 export const useTheme = (customThemes?: string[], initialTheme?: string) => {
-  const [themes, setThemes] = useState(() => {
-    return Array.from(new Set([...defaultThemes, ...(customThemes ?? [])]));
+  const { options, current, setCurrent } = useCookiePreference({
+    cookieName: 'theme',
+    defaults: [...THEME_DEFAULTS, ...(customThemes ?? [])],
+    initialValue: initialTheme,
+    target: 'html',
+    normalize: normalizeTheme,
+    shouldAddClass: shouldAddThemeClass,
   });
-
-  const [currentTheme, setCurrentTheme] = useState(() => {
-    const t = initialTheme ?? 'default';
-    return t === 'default' || t === 'light' || !t ? 'light' : t;
-  });
-
-  const setTheme = (newTheme: string) => {
-    // apply theme class to <html> for maximum compatibility
-    const classList = document.documentElement.classList;
-
-    // normalize: "default"/"light" => no class
-    const isLight = newTheme === 'default' || newTheme === 'light' || !newTheme;
-    const normalized = isLight ? 'light' : newTheme;
-
-    // remove any previously applied theme classes
-    classList.remove('default', 'light', 'dark', 'colorblind', 'colorblind-dark');
-
-    // only add a class for non-light themes
-    if (!isLight) {
-      classList.add(normalized);
-    }
-
-    // persist normalized theme for SSR
-    setCookie('theme', normalized, {
-      expires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-      domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN,
-    });
-
-    setCurrentTheme(normalized);
-  };
 
   return {
-    themes,
-    currentTheme,
-    setThemes,
-    setTheme,
+    themes: options,
+    currentTheme: current,
+    setTheme: setCurrent,
   };
 };

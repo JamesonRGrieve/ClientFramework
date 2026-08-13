@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type { Table } from '@tanstack/react-table';
-import { LuX as X } from 'react-icons/lu';
+import { X } from 'lucide-react';
 import { DataTableViewOptions } from './data-table-view-options';
 import { DataTableFilter } from './data-table-filter';
 import { DataTableExport } from './data-table-export';
@@ -14,9 +14,11 @@ interface DataTableToolbarProps<TData> {
 
 export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
+  const title = (table.options.meta as Record<string, unknown> | undefined)?.title as string | undefined;
 
   return (
     <div className='flex items-center justify-end gap-2'>
+      {title && <h4 className='text-2xl font-bold mr-auto'>{title}</h4>}
       {isFiltered && (
         <Button variant='ghost' onClick={() => table.resetColumnFilters()} size='sm' className='h-8 px-2'>
           Reset

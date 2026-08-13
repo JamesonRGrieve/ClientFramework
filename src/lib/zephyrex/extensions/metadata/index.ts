@@ -1,10 +1,4 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ZephyrexClientExtension } from '../types';
-import { AutoSettingsPanel } from '../ExtensionRegistry';
+import { createExtension } from '../createExtension';
 
-export const metadataExtension: ZephyrexClientExtension = {
-  name: 'metadata',
-  displayName: 'Metadata',
-  serverExtension: 'metadata',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'Metadata' }),
-};
+export const metadataExtension = createExtension('metadata');

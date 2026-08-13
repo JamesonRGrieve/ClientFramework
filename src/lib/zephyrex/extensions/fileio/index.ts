@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ZephyrexClientExtension } from '../types';
-import { AutoSettingsPanel } from '../ExtensionRegistry';
+import { createExtension } from '../createExtension';
 
-export const fileioExtension: ZephyrexClientExtension = {
-  name: 'fileio',
+export const fileioExtension = createExtension('fileio', {
   displayName: 'File Storage',
   description: 'File upload and object storage',
-  serverExtension: 'fileio',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'File Storage' }),
-};
+});

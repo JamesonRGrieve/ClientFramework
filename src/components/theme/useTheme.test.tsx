@@ -6,7 +6,7 @@ import { useTheme } from './useTheme';
 describe('useTheme', () => {
   it('returns default themes', () => {
     const { result } = renderHook(() => useTheme());
-    expect(result.current.themes).toContain('default');
+    expect(result.current.themes).toContain('light');
     expect(result.current.themes).toContain('dark');
     expect(result.current.themes).toContain('colorblind');
   });

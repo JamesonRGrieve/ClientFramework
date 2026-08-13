@@ -1,10 +1,4 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ZephyrexClientExtension } from '../types';
-import { AutoSettingsPanel } from '../ExtensionRegistry';
+import { createExtension } from '../createExtension';
 
-export const proxyAuthConsumerExtension: ZephyrexClientExtension = {
-  name: 'proxy_auth_consumer',
-  displayName: 'Proxy Auth Consumer',
-  serverExtension: 'proxy_auth_consumer',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'Proxy Auth Consumer' }),
-};
+export const proxyAuthConsumerExtension = createExtension('proxy_auth_consumer');

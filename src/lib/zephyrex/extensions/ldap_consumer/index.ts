@@ -1,10 +1,4 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ZephyrexClientExtension } from '../types';
-import { AutoSettingsPanel } from '../ExtensionRegistry';
+import { createExtension } from '../createExtension';
 
-export const ldapConsumerExtension: ZephyrexClientExtension = {
-  name: 'ldap_consumer',
-  displayName: 'Ldap Consumer',
-  serverExtension: 'ldap_consumer',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'Ldap Consumer' }),
-};
+export const ldapConsumerExtension = createExtension('ldap_consumer');

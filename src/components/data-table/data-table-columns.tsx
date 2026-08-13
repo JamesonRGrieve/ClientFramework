@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type { ColumnDef } from '@tanstack/react-table';
-import { LuCopy as Copy } from 'react-icons/lu';
+import { Copy } from 'lucide-react';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -60,28 +60,7 @@ export function createColumns<TData, TValue>(columns: ColumnData[]): ColumnDef<T
                 <p>Copy Data</p>
               </TooltipContent>
             </Tooltip>
-            {/* <Tooltip title='View Details'>
-              <Button variant='outline' size='icon' className='w-8 h-8 bg-transparent'>
-                <SquareArrowOutUpRight className='w-3 h-3' />
-              </Button>
-            </Tooltip> */}
           </div>
-          {/* <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant='ghost' className='w-8 h-8 p-0 border md:hidden'>
-                <span className='sr-only'>Open menu</span>
-                <MoreHorizontal />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align='end'>
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(JSON.stringify(row.original))}>
-                Copy Data
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>View details</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu> */}
         </TooltipProvider>
       );
     },

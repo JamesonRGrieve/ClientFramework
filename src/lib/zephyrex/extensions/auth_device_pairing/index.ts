@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ZephyrexClientExtension } from '../types';
+import { createExtension } from '../createExtension';
 
-export const authDevicePairingExtension: ZephyrexClientExtension = {
-  name: 'auth_device_pairing',
+export const authDevicePairingExtension = createExtension('auth_device_pairing', {
   displayName: 'Device Pairing',
   description: 'QR code device pairing for cross-device authentication',
-  serverExtension: 'auth_device_pairing',
-};
+});

@@ -1,63 +1,187 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-export { aclRbacExtension } from './acl_rbac';
-export { auditRetentionExtension } from './audit_retention';
-export { authApiKeysExtension } from './auth_api_keys';
-export { authDevicePairingExtension } from './auth_device_pairing';
-export { authInvitationsExtension } from './auth_invitations';
-export { authKerberosExtension } from './auth_kerberos';
-export { authLdapExtension } from './auth_ldap';
-export { authLockoutExtension } from './auth_lockout';
-export { authMagicLinkExtension } from './auth_magic_link';
-export { authMarketplaceExtension } from './auth_marketplace';
-export { authMergeExtension } from './auth_merge';
-export { authMfaExtension } from './auth_mfa';
-export { authNotificationsExtension } from './auth_notifications';
-export { authOauthExtension } from './auth_oauth';
-export { authPrivacyExtension } from './auth_privacy';
-export { authRadiusExtension } from './auth_radius';
-export { authRecoveryQuestionsExtension } from './auth_recovery_questions';
-export { authSamlExtension } from './auth_saml';
-export { authSessionExtension } from './auth_session';
-export { authWebauthnExtension } from './auth_webauthn';
-export { backupRestoreExtension } from './backup_restore';
-export { billingExtension } from './billing';
-export { databaseExtension } from './database';
-export { databaseMemoryExtension } from './database_memory';
-export { emailExtension } from './email';
-export { federationExtension } from './federation';
-export { fileioExtension } from './fileio';
-export { forwardAuthConsumerExtension } from './forward_auth_consumer';
-export { forwardAuthProviderExtension } from './forward_auth_provider';
-export { genealogyExtension } from './genealogy';
-export { kerberosConsumerExtension } from './kerberos_consumer';
-export { kerberosProviderExtension } from './kerberos_provider';
-export { ldapConsumerExtension } from './ldap_consumer';
-export { ldapProviderExtension } from './ldap_provider';
-export { metadataExtension } from './metadata';
-export { metaLabelsExtension } from './meta_labels';
-export { metaLoggingExtension } from './meta_logging';
-export { oauthConsumerExtension } from './oauth_consumer';
-export { oauthProviderExtension } from './oauth_provider';
-export { oidcConsumerExtension } from './oidc_consumer';
-export { oidcProviderExtension } from './oidc_provider';
-export { paymentExtension } from './payment';
-export { privacyExtension } from './privacy';
-export { proxyAuthConsumerExtension } from './proxy_auth_consumer';
-export { proxyAuthProviderExtension } from './proxy_auth_provider';
-export { quotaExtension } from './quota';
-export { radiusConsumerExtension } from './radius_consumer';
-export { radiusProviderExtension } from './radius_provider';
-export { rpgLogExtension } from './rpg_log';
-export { rpgStateExtension } from './rpg_state';
-export { samlConsumerExtension } from './saml_consumer';
-export { samlProviderExtension } from './saml_provider';
-export { scimConsumerExtension } from './scim_consumer';
-export { scimProviderExtension } from './scim_provider';
-export { webauthnConsumerExtension } from './webauthn_consumer';
-export { webauthnProviderExtension } from './webauthn_provider';
-export { webhooksExtension } from './webhooks';
-export { x509ConsumerExtension } from './x509_consumer';
-export { x509ProviderExtension } from './x509_provider';
-
 import type { ZephyrexClientExtension } from '../types';
-export const allExtensions: ZephyrexClientExtension[] = [ aclRbacExtension, auditRetentionExtension, authApiKeysExtension, authDevicePairingExtension, authInvitationsExtension, authKerberosExtension, authLdapExtension, authLockoutExtension, authMagicLinkExtension, authMarketplaceExtension, authMergeExtension, authMfaExtension, authNotificationsExtension, authOauthExtension, authPrivacyExtension, authRadiusExtension, authRecoveryQuestionsExtension, authSamlExtension, authSessionExtension, authWebauthnExtension, backupRestoreExtension, billingExtension, databaseExtension, databaseMemoryExtension, emailExtension, federationExtension, fileioExtension, forwardAuthConsumerExtension, forwardAuthProviderExtension, genealogyExtension, kerberosConsumerExtension, kerberosProviderExtension, ldapConsumerExtension, ldapProviderExtension, metadataExtension, metaLabelsExtension, metaLoggingExtension, oauthConsumerExtension, oauthProviderExtension, oidcConsumerExtension, oidcProviderExtension, paymentExtension, privacyExtension, proxyAuthConsumerExtension, proxyAuthProviderExtension, quotaExtension, radiusConsumerExtension, radiusProviderExtension, rpgLogExtension, rpgStateExtension, samlConsumerExtension, samlProviderExtension, scimConsumerExtension, scimProviderExtension, webauthnConsumerExtension, webauthnProviderExtension, webhooksExtension, x509ConsumerExtension, x509ProviderExtension ];
+import { aclRbacExtension } from './acl_rbac';
+import { auditRetentionExtension } from './audit_retention';
+import { authApiKeysExtension } from './auth_api_keys';
+import { authDevicePairingExtension } from './auth_device_pairing';
+import { authInvitationsExtension } from './auth_invitations';
+import { authKerberosExtension } from './auth_kerberos';
+import { authLdapExtension } from './auth_ldap';
+import { authLockoutExtension } from './auth_lockout';
+import { authMagicLinkExtension } from './auth_magic_link';
+import { authMarketplaceExtension } from './auth_marketplace';
+import { authMergeExtension } from './auth_merge';
+import { authMfaExtension } from './auth_mfa';
+import { authNotificationsExtension } from './auth_notifications';
+import { authOauthExtension } from './auth_oauth';
+import { authPrivacyExtension } from './auth_privacy';
+import { authRadiusExtension } from './auth_radius';
+import { authRecoveryQuestionsExtension } from './auth_recovery_questions';
+import { authSamlExtension } from './auth_saml';
+import { authSessionExtension } from './auth_session';
+import { authWebauthnExtension } from './auth_webauthn';
+import { backupRestoreExtension } from './backup_restore';
+import { billingExtension } from './billing';
+import { databaseExtension } from './database';
+import { databaseMemoryExtension } from './database_memory';
+import { emailExtension } from './email';
+import { federationExtension } from './federation';
+import { fileioExtension } from './fileio';
+import { forwardAuthConsumerExtension } from './forward_auth_consumer';
+import { forwardAuthProviderExtension } from './forward_auth_provider';
+import { genealogyExtension } from './genealogy';
+import { kerberosConsumerExtension } from './kerberos_consumer';
+import { kerberosProviderExtension } from './kerberos_provider';
+import { ldapConsumerExtension } from './ldap_consumer';
+import { ldapProviderExtension } from './ldap_provider';
+import { metadataExtension } from './metadata';
+import { metaLabelsExtension } from './meta_labels';
+import { metaLoggingExtension } from './meta_logging';
+import { oauthConsumerExtension } from './oauth_consumer';
+import { oauthProviderExtension } from './oauth_provider';
+import { oidcConsumerExtension } from './oidc_consumer';
+import { oidcProviderExtension } from './oidc_provider';
+import { paymentExtension } from './payment';
+import { privacyExtension } from './privacy';
+import { proxyAuthConsumerExtension } from './proxy_auth_consumer';
+import { proxyAuthProviderExtension } from './proxy_auth_provider';
+import { quotaExtension } from './quota';
+import { radiusConsumerExtension } from './radius_consumer';
+import { radiusProviderExtension } from './radius_provider';
+import { rpgLogExtension } from './rpg_log';
+import { rpgStateExtension } from './rpg_state';
+import { samlConsumerExtension } from './saml_consumer';
+import { samlProviderExtension } from './saml_provider';
+import { scimConsumerExtension } from './scim_consumer';
+import { scimProviderExtension } from './scim_provider';
+import { webauthnConsumerExtension } from './webauthn_consumer';
+import { webauthnProviderExtension } from './webauthn_provider';
+import { webhooksExtension } from './webhooks';
+import { x509ConsumerExtension } from './x509_consumer';
+import { x509ProviderExtension } from './x509_provider';
+
+export {
+  aclRbacExtension,
+  auditRetentionExtension,
+  authApiKeysExtension,
+  authDevicePairingExtension,
+  authInvitationsExtension,
+  authKerberosExtension,
+  authLdapExtension,
+  authLockoutExtension,
+  authMagicLinkExtension,
+  authMarketplaceExtension,
+  authMergeExtension,
+  authMfaExtension,
+  authNotificationsExtension,
+  authOauthExtension,
+  authPrivacyExtension,
+  authRadiusExtension,
+  authRecoveryQuestionsExtension,
+  authSamlExtension,
+  authSessionExtension,
+  authWebauthnExtension,
+  backupRestoreExtension,
+  billingExtension,
+  databaseExtension,
+  databaseMemoryExtension,
+  emailExtension,
+  federationExtension,
+  fileioExtension,
+  forwardAuthConsumerExtension,
+  forwardAuthProviderExtension,
+  genealogyExtension,
+  kerberosConsumerExtension,
+  kerberosProviderExtension,
+  ldapConsumerExtension,
+  ldapProviderExtension,
+  metadataExtension,
+  metaLabelsExtension,
+  metaLoggingExtension,
+  oauthConsumerExtension,
+  oauthProviderExtension,
+  oidcConsumerExtension,
+  oidcProviderExtension,
+  paymentExtension,
+  privacyExtension,
+  proxyAuthConsumerExtension,
+  proxyAuthProviderExtension,
+  quotaExtension,
+  radiusConsumerExtension,
+  radiusProviderExtension,
+  rpgLogExtension,
+  rpgStateExtension,
+  samlConsumerExtension,
+  samlProviderExtension,
+  scimConsumerExtension,
+  scimProviderExtension,
+  webauthnConsumerExtension,
+  webauthnProviderExtension,
+  webhooksExtension,
+  x509ConsumerExtension,
+  x509ProviderExtension,
+};
+
+export { createExtension } from './createExtension';
+
+export const allExtensions: ZephyrexClientExtension[] = [
+  aclRbacExtension,
+  auditRetentionExtension,
+  authApiKeysExtension,
+  authDevicePairingExtension,
+  authInvitationsExtension,
+  authKerberosExtension,
+  authLdapExtension,
+  authLockoutExtension,
+  authMagicLinkExtension,
+  authMarketplaceExtension,
+  authMergeExtension,
+  authMfaExtension,
+  authNotificationsExtension,
+  authOauthExtension,
+  authPrivacyExtension,
+  authRadiusExtension,
+  authRecoveryQuestionsExtension,
+  authSamlExtension,
+  authSessionExtension,
+  authWebauthnExtension,
+  backupRestoreExtension,
+  billingExtension,
+  databaseExtension,
+  databaseMemoryExtension,
+  emailExtension,
+  federationExtension,
+  fileioExtension,
+  forwardAuthConsumerExtension,
+  forwardAuthProviderExtension,
+  genealogyExtension,
+  kerberosConsumerExtension,
+  kerberosProviderExtension,
+  ldapConsumerExtension,
+  ldapProviderExtension,
+  metadataExtension,
+  metaLabelsExtension,
+  metaLoggingExtension,
+  oauthConsumerExtension,
+  oauthProviderExtension,
+  oidcConsumerExtension,
+  oidcProviderExtension,
+  paymentExtension,
+  privacyExtension,
+  proxyAuthConsumerExtension,
+  proxyAuthProviderExtension,
+  quotaExtension,
+  radiusConsumerExtension,
+  radiusProviderExtension,
+  rpgLogExtension,
+  rpgStateExtension,
+  samlConsumerExtension,
+  samlProviderExtension,
+  scimConsumerExtension,
+  scimProviderExtension,
+  webauthnConsumerExtension,
+  webauthnProviderExtension,
+  webhooksExtension,
+  x509ConsumerExtension,
+  x509ProviderExtension,
+];

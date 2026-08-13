@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Table } from '@tanstack/react-table';
-import {
-  LuChevronLeft as ChevronLeft,
-  LuChevronRight as ChevronRight,
-  LuChevronsLeft as ChevronsLeft,
-  LuChevronsRight as ChevronsRight,
-} from 'react-icons/lu';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 

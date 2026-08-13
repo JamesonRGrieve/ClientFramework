@@ -6,7 +6,7 @@ import { Slot } from '@radix-ui/react-slot';
 import { type VariantProps, cva } from 'class-variance-authority';
 import { setCookie } from 'cookies-next';
 import * as React from 'react';
-import { useIsMobile } from '@jgrieve/appwrapper/hooks/useMobile';
+import { useIsMobile } from '@/hooks/useMobile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';

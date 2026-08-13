@@ -1,10 +1,4 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ZephyrexClientExtension } from '../types';
-import { AutoSettingsPanel } from '../ExtensionRegistry';
+import { createExtension } from '../createExtension';
 
-export const oidcProviderExtension: ZephyrexClientExtension = {
-  name: 'oidc_provider',
-  displayName: 'Oidc Provider',
-  serverExtension: 'oidc_provider',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'Oidc Provider' }),
-};
+export const oidcProviderExtension = createExtension('oidc_provider');

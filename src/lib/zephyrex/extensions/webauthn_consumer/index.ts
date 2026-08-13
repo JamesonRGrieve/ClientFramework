@@ -1,10 +1,4 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ZephyrexClientExtension } from '../types';
-import { AutoSettingsPanel } from '../ExtensionRegistry';
+import { createExtension } from '../createExtension';
 
-export const webauthnConsumerExtension: ZephyrexClientExtension = {
-  name: 'webauthn_consumer',
-  displayName: 'Webauthn Consumer',
-  serverExtension: 'webauthn_consumer',
-  settingsPanel: () => AutoSettingsPanel({ extensionName: 'Webauthn Consumer' }),
-};
+export const webauthnConsumerExtension = createExtension('webauthn_consumer');

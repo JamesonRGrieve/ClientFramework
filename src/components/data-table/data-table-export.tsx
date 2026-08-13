@@ -1,7 +1,7 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { LuDownload as Download } from 'react-icons/lu';
+import { Download } from 'lucide-react';
 import type { Table } from '@tanstack/react-table';
 
 import { Button } from '@/components/ui/button';
@@ -36,8 +36,6 @@ export function DataTableExport<TData>({ table }: { table: Table<TData> }) {
     document.body.removeChild(link);
   };
 
-  // const downloadPDF = () => {};
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -49,9 +47,6 @@ export function DataTableExport<TData>({ table }: { table: Table<TData> }) {
       <DropdownMenuContent align='end'>
         <DropdownMenuLabel>Export As</DropdownMenuLabel>
         <DropdownMenuItem onClick={downloadCSV}>CSV (.csv)</DropdownMenuItem>
-        {/* <DropdownMenuItem onClick={() =>}>PDF (.pdf)</DropdownMenuItem> */}
-        {/* <DropdownMenuSeparator /> */}
-        {/* <DropdownMenuItem onClick={() => {}}>Print</DropdownMenuItem> */}
       </DropdownMenuContent>
     </DropdownMenu>
   );
