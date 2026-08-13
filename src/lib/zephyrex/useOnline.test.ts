@@ -11,15 +11,21 @@ describe('useOnline', () => {
 
   it('responds to offline event', () => {
     const { result } = renderHook(() => useOnline());
-    act(() => { window.dispatchEvent(new Event('offline')); });
+    act(() => {
+      window.dispatchEvent(new Event('offline'));
+    });
     expect(result.current).toBe(false);
   });
 
   it('responds to online event', () => {
     const { result } = renderHook(() => useOnline());
-    act(() => { window.dispatchEvent(new Event('offline')); });
+    act(() => {
+      window.dispatchEvent(new Event('offline'));
+    });
     expect(result.current).toBe(false);
-    act(() => { window.dispatchEvent(new Event('online')); });
+    act(() => {
+      window.dispatchEvent(new Event('online'));
+    });
     expect(result.current).toBe(true);
   });
 });

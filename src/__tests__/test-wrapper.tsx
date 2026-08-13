@@ -20,9 +20,7 @@ export function TestWrapper({ children, config }: { children: ReactNode; config?
 
   return (
     <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-      <ZephyrexApp config={mergedConfig}>
-        {children}
-      </ZephyrexApp>
+      <ZephyrexApp config={mergedConfig}>{children}</ZephyrexApp>
     </SWRConfig>
   );
 }

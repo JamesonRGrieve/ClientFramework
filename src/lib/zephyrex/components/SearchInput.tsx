@@ -49,21 +49,21 @@ export function SearchInput({
 
   return (
     <div className={`relative flex items-center ${className ?? ''}`}>
-      <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
+      <Search className='absolute left-3 h-4 w-4 text-muted-foreground' />
       <input
-        type="search"
+        type='search'
         value={value}
         onChange={handleChange}
         placeholder={placeholder}
-        className="h-9 w-full rounded-md border border-input bg-background pl-9 pr-9 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className='h-9 w-full rounded-md border border-input bg-background pl-9 pr-9 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
       />
       {value && (
         <button
           onClick={handleClear}
-          className="absolute right-2 rounded-sm p-0.5 hover:bg-accent"
-          aria-label="Clear search"
+          className='absolute right-2 rounded-sm p-0.5 hover:bg-accent'
+          aria-label='Clear search'
         >
-          <X className="h-3 w-3" />
+          <X className='h-3 w-3' />
         </button>
       )}
     </div>

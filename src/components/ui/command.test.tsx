@@ -5,11 +5,7 @@ import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, Command
 
 describe('Command', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <Command>
-        content
-      </Command>
-    );
+    const { container } = render(<Command>content</Command>);
     expect(container).toBeInTheDocument();
   });
 });

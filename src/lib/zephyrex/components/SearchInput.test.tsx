@@ -7,7 +7,7 @@ import { SearchInput } from './SearchInput';
 // SearchInput is a pure UI component — no providers needed, no mocks needed.
 describe('SearchInput', () => {
   it('renders with placeholder', () => {
-    render(<SearchInput onSearch={vi.fn()} placeholder="Find users" />);
+    render(<SearchInput onSearch={vi.fn()} placeholder='Find users' />);
     expect(screen.getByPlaceholderText('Find users')).toBeInTheDocument();
   });
 

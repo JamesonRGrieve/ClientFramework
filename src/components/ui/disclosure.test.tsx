@@ -5,11 +5,7 @@ import { Disclosure, DisclosureTrigger, DisclosureContent } from './disclosure';
 
 describe('Disclosure', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <Disclosure>
-        content
-      </Disclosure>
-    );
+    const { container } = render(<Disclosure>content</Disclosure>);
     expect(container).toBeInTheDocument();
   });
 });

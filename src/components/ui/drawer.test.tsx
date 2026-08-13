@@ -5,11 +5,7 @@ import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle, Drawer
 
 describe('Drawer', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <Drawer>
-        content
-      </Drawer>
-    );
+    const { container } = render(<Drawer>content</Drawer>);
     expect(container).toBeInTheDocument();
   });
 });

@@ -5,14 +5,14 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import IconButton from './IconButton';
 
 function TestIcon({ className }: { className?: string }) {
-  return <span className={className} data-testid="icon" />;
+  return <span className={className} data-testid='icon' />;
 }
 
 describe('IconButton', () => {
   it('renders label text', () => {
     render(
       <TooltipProvider>
-        <IconButton Icon={TestIcon} label="Light" description="Switch to light mode" />
+        <IconButton Icon={TestIcon} label='Light' description='Switch to light mode' />
       </TooltipProvider>,
     );
     expect(screen.getByText('Light')).toBeInTheDocument();
@@ -21,7 +21,7 @@ describe('IconButton', () => {
   it('renders the icon', () => {
     render(
       <TooltipProvider>
-        <IconButton Icon={TestIcon} label="Dark" description="Switch to dark mode" />
+        <IconButton Icon={TestIcon} label='Dark' description='Switch to dark mode' />
       </TooltipProvider>,
     );
     expect(screen.getByTestId('icon')).toBeInTheDocument();

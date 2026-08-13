@@ -29,21 +29,22 @@ describe('Button', () => {
   });
 
   it('applies variant classes', () => {
-    render(<Button variant="destructive">Delete</Button>);
+    render(<Button variant='destructive'>Delete</Button>);
     expect(screen.getByRole('button')).toHaveClass('bg-destructive');
   });
 
   it('applies size classes', () => {
-    render(<Button size="sm">Small</Button>);
+    render(<Button size='sm'>Small</Button>);
     expect(screen.getByRole('button')).toHaveClass('h-9');
   });
 
   it('renders as child when asChild is true', () => {
     render(
       <Button asChild>
-        <a href="/test">Link Button</a>
+        <span data-testid='child'>Slot child</span>
       </Button>,
     );
-    expect(screen.getByRole('link', { name: 'Link Button' })).toBeInTheDocument();
+    expect(screen.getByTestId('child')).toBeInTheDocument();
+    expect(screen.getByTestId('child').tagName).toBe('SPAN');
   });
 });

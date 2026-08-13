@@ -13,14 +13,20 @@ describe('useSearch', () => {
 
   it('search updates query', () => {
     const { result } = renderHook(() => useSearch('/v1/user'), { wrapper: TestWrapper });
-    act(() => { result.current.search('test'); });
+    act(() => {
+      result.current.search('test');
+    });
     expect(result.current.query).toBe('test');
   });
 
   it('clear resets query', () => {
     const { result } = renderHook(() => useSearch('/v1/user'), { wrapper: TestWrapper });
-    act(() => { result.current.search('test'); });
-    act(() => { result.current.clear(); });
+    act(() => {
+      result.current.search('test');
+    });
+    act(() => {
+      result.current.clear();
+    });
     expect(result.current.query).toBe('');
   });
 });

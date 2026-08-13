@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Calendar>;
 
 export const Default: Story = {
-  render: () => (
-    <Calendar>
-      Calendar content
-    </Calendar>
-  ),
+  render: () => <Calendar>Calendar content</Calendar>,
 };

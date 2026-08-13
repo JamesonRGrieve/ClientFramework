@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Dialog>;
 
 export const Default: Story = {
-  render: () => (
-    <Dialog>
-      Dialog content
-    </Dialog>
-  ),
+  render: () => <Dialog>Dialog content</Dialog>,
 };

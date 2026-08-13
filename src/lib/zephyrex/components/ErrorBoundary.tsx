@@ -43,18 +43,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       const isServerDown = error instanceof ApiError && error.status >= 500;
 
       return (
-        <div className="flex min-h-[200px] flex-col items-center justify-center gap-4 p-8">
-          <h2 className="text-xl font-semibold">
-            {isServerDown ? 'Server Unavailable' : 'Something went wrong'}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {isServerDown
-              ? 'The server is not responding. Please try again later.'
-              : error.message}
+        <div className='flex min-h-[200px] flex-col items-center justify-center gap-4 p-8'>
+          <h2 className='text-xl font-semibold'>{isServerDown ? 'Server Unavailable' : 'Something went wrong'}</h2>
+          <p className='text-sm text-muted-foreground'>
+            {isServerDown ? 'The server is not responding. Please try again later.' : error.message}
           </p>
           <button
             onClick={this.retry}
-            className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+            className='rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90'
           >
             Try Again
           </button>

@@ -34,13 +34,7 @@ function mergePageSlots(...slotSources: (PageSlots | undefined)[]): PageSlots {
   return merged;
 }
 
-export function ZephyrexProvider({
-  config,
-  children,
-}: {
-  config: ZephyrexConfig;
-  children: ReactNode;
-}) {
+export function ZephyrexProvider({ config, children }: { config: ZephyrexConfig; children: ReactNode }) {
   const value = useMemo<ZephyrexContextValue>(() => {
     const extensions = config.extensions ?? [];
     const extensionRoutes = extensions.flatMap((ext) => ext.pages ?? []);
@@ -55,11 +49,7 @@ export function ZephyrexProvider({
   }, [config]);
 
   const pageSlots = useMemo(
-    () =>
-      mergePageSlots(
-        config.pageSlots,
-        ...(config.extensions ?? []).map((ext) => ext.pageSlots),
-      ),
+    () => mergePageSlots(config.pageSlots, ...(config.extensions ?? []).map((ext) => ext.pageSlots)),
     [config],
   );
 

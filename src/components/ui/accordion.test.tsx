@@ -5,11 +5,7 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './
 
 describe('Accordion', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <Accordion>
-        content
-      </Accordion>
-    );
+    const { container } = render(<Accordion>content</Accordion>);
     expect(container).toBeInTheDocument();
   });
 });

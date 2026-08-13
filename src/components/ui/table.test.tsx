@@ -5,11 +5,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 
 describe('Table', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <Table>
-        content
-      </Table>
-    );
+    const { container } = render(<Table>content</Table>);
     expect(container).toBeInTheDocument();
   });
 });

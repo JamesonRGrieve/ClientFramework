@@ -5,11 +5,7 @@ import { Popover, PopoverTrigger, PopoverContent } from './popover';
 
 describe('Popover', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <Popover>
-        content
-      </Popover>
-    );
+    const { container } = render(<Popover>content</Popover>);
     expect(container).toBeInTheDocument();
   });
 });

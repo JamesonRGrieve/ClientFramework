@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Tooltip>;
 
 export const Default: Story = {
-  render: () => (
-    <Tooltip>
-      Tooltip content
-    </Tooltip>
-  ),
+  render: () => <Tooltip>Tooltip content</Tooltip>,
 };

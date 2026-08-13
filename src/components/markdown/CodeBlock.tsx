@@ -110,7 +110,11 @@ const detectLanguage = (language: string, raw: string): { language: string; code
 };
 
 const languageRenders: Record<string, LanguageRenderer> = {
-  markdown: (content) => <Suspense fallback={null}><MarkdownBlock content={Array.isArray(content) ? content.join('\n') : content} /></Suspense>,
+  markdown: (content) => (
+    <Suspense fallback={null}>
+      <MarkdownBlock content={Array.isArray(content) ? content.join('\n') : content} />
+    </Suspense>
+  ),
   html: (content) => <CodeBlock language='html'>{Array.isArray(content) ? content.join('\n') : content}</CodeBlock>,
   csv: (content) => {
     const result = parseXSVData(toRows(content), ',');

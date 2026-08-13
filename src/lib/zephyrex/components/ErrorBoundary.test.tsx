@@ -11,13 +11,19 @@ function ThrowError({ error }: { error: Error }) {
 
 describe('ErrorBoundary', () => {
   const originalError = console.error;
-  beforeEach(() => { console.error = vi.fn(); });
-  afterEach(() => { console.error = originalError; });
+  beforeEach(() => {
+    console.error = vi.fn();
+  });
+  afterEach(() => {
+    console.error = originalError;
+  });
 
   it('renders children when no error', () => {
     render(
       <TestWrapper>
-        <ErrorBoundary><span>OK</span></ErrorBoundary>
+        <ErrorBoundary>
+          <span>OK</span>
+        </ErrorBoundary>
       </TestWrapper>,
     );
     expect(screen.getByText('OK')).toBeInTheDocument();

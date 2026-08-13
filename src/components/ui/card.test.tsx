@@ -5,11 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 
 describe('Card', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <Card>
-        content
-      </Card>
-    );
+    const { container } = render(<Card>content</Card>);
     expect(container).toBeInTheDocument();
   });
 });

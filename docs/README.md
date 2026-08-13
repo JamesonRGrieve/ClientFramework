@@ -31,9 +31,11 @@ import config from '@/zephyrex.config';
 
 export default function Layout({ children }) {
   return (
-    <html lang="en"><body>
-      <ZephyrexApp config={config}>{children}</ZephyrexApp>
-    </body></html>
+    <html lang='en'>
+      <body>
+        <ZephyrexApp config={config}>{children}</ZephyrexApp>
+      </body>
+    </html>
   );
 }
 ```
@@ -86,7 +88,7 @@ export const myExtension: ZephyrexClientExtension = {
   navItems: [{ title: 'Analytics', url: '/analytics' }],
   settingsPanel: AnalyticsSettings,
   pageSlots: {
-    'team': [{ position: 'after', component: TeamAnalyticsWidget }],
+    team: [{ position: 'after', component: TeamAnalyticsWidget }],
   },
 };
 ```

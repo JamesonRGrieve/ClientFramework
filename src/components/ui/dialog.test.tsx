@@ -5,11 +5,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 
 describe('Dialog', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <Dialog>
-        content
-      </Dialog>
-    );
+    const { container } = render(<Dialog>content</Dialog>);
     expect(container).toBeInTheDocument();
   });
 });

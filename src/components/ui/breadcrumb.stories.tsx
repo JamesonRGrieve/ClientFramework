@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Breadcrumb>;
 
 export const Default: Story = {
-  render: () => (
-    <Breadcrumb>
-      Breadcrumb content
-    </Breadcrumb>
-  ),
+  render: () => <Breadcrumb>Breadcrumb content</Breadcrumb>,
 };

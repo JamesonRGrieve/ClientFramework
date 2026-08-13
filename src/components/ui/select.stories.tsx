@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Select>;
 
 export const Default: Story = {
-  render: () => (
-    <Select>
-      Select content
-    </Select>
-  ),
+  render: () => <Select>Select content</Select>,
 };

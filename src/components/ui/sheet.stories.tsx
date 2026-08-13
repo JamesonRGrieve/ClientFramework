@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Sheet>;
 
 export const Default: Story = {
-  render: () => (
-    <Sheet>
-      Sheet content
-    </Sheet>
-  ),
+  render: () => <Sheet>Sheet content</Sheet>,
 };

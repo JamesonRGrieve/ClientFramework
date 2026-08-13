@@ -5,11 +5,7 @@ import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescri
 
 describe('Sheet', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <Sheet>
-        content
-      </Sheet>
-    );
+    const { container } = render(<Sheet>content</Sheet>);
     expect(container).toBeInTheDocument();
   });
 });

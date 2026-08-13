@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Tabs>;
 
 export const Default: Story = {
-  render: () => (
-    <Tabs>
-      Tabs content
-    </Tabs>
-  ),
+  render: () => <Tabs>Tabs content</Tabs>,
 };

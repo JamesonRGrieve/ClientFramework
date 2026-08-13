@@ -8,7 +8,7 @@ describe('RequireRole', () => {
   it('renders children inside provider tree', () => {
     render(
       <TestWrapper>
-        <RequireRole role="admin" fallback={<span>Denied</span>}>
+        <RequireRole role='admin' fallback={<span>Denied</span>}>
           <span>Admin Content</span>
         </RequireRole>
       </TestWrapper>,
@@ -20,7 +20,7 @@ describe('RequireRole', () => {
   it('renders fallback when no user is authenticated', () => {
     render(
       <TestWrapper>
-        <RequireRole role="superadmin" fallback={<span>No Access</span>}>
+        <RequireRole role='superadmin' fallback={<span>No Access</span>}>
           <span>Super Content</span>
         </RequireRole>
       </TestWrapper>,
@@ -32,7 +32,7 @@ describe('RequireRole', () => {
   it('renders nothing when no fallback provided and unauthorized', () => {
     const { container } = render(
       <TestWrapper>
-        <RequireRole role="admin">
+        <RequireRole role='admin'>
           <span>Hidden</span>
         </RequireRole>
       </TestWrapper>,

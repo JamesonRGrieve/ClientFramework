@@ -5,11 +5,7 @@ import { Alert, AlertTitle, AlertDescription } from './alert';
 
 describe('Alert', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <Alert>
-        content
-      </Alert>
-    );
+    const { container } = render(<Alert>content</Alert>);
     expect(container).toBeInTheDocument();
   });
 });

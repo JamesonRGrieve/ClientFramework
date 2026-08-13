@@ -16,9 +16,7 @@ export interface NavItemDefinition {
   children?: NavItemDefinition[];
 }
 
-export type MiddlewareHook = (
-  req: NextRequest,
-) => Promise<{ activated: boolean; response: NextResponse }>;
+export type MiddlewareHook = (req: NextRequest) => Promise<{ activated: boolean; response: NextResponse }>;
 
 // --- Auth flow injection ---
 

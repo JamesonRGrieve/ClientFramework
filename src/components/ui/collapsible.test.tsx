@@ -5,11 +5,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from './collapsib
 
 describe('Collapsible', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <Collapsible>
-        content
-      </Collapsible>
-    );
+    const { container } = render(<Collapsible>content</Collapsible>);
     expect(container).toBeInTheDocument();
   });
 });

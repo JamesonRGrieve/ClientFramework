@@ -5,11 +5,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 
 describe('DropdownMenu', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <DropdownMenu>
-        content
-      </DropdownMenu>
-    );
+    const { container } = render(<DropdownMenu>content</DropdownMenu>);
     expect(container).toBeInTheDocument();
   });
 });

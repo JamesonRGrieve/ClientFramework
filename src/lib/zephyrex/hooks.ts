@@ -41,8 +41,8 @@ export function useRole() {
   const { data: user } = useUser();
   return useMemo(
     () => ({
-      isAdmin: user?.role_id === 'FFFFFFFF-0000-0000-AAAA-FFFFFFFFFFFF' ||
-               user?.role_id === 'FFFFFFFF-0000-0000-FFFF-FFFFFFFFFFFF',
+      isAdmin:
+        user?.role_id === 'FFFFFFFF-0000-0000-AAAA-FFFFFFFFFFFF' || user?.role_id === 'FFFFFFFF-0000-0000-FFFF-FFFFFFFFFFFF',
       isSuperAdmin: user?.role_id === 'FFFFFFFF-0000-0000-FFFF-FFFFFFFFFFFF',
       roleId: user?.role_id ?? null,
     }),

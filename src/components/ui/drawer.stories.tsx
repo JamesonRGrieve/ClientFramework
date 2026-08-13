@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Drawer>;
 
 export const Default: Story = {
-  render: () => (
-    <Drawer>
-      Drawer content
-    </Drawer>
-  ),
+  render: () => <Drawer>Drawer content</Drawer>,
 };

@@ -22,10 +22,7 @@ export function ManagementTabProvider({
   children: ReactNode;
 }) {
   const tabs = useMemo(
-    () =>
-      extensions
-        .flatMap((ext) => ext.managementTabs ?? [])
-        .sort((a, b) => (a.priority ?? 50) - (b.priority ?? 50)),
+    () => extensions.flatMap((ext) => ext.managementTabs ?? []).sort((a, b) => (a.priority ?? 50) - (b.priority ?? 50)),
     [extensions],
   );
 

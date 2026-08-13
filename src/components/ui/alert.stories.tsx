@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Alert>;
 
 export const Default: Story = {
-  render: () => (
-    <Alert>
-      Alert content
-    </Alert>
-  ),
+  render: () => <Alert>Alert content</Alert>,
 };

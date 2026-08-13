@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Popover>;
 
 export const Default: Story = {
-  render: () => (
-    <Popover>
-      Popover content
-    </Popover>
-  ),
+  render: () => <Popover>Popover content</Popover>,
 };

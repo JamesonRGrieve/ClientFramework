@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Card>;
 
 export const Default: Story = {
-  render: () => (
-    <Card>
-      Card content
-    </Card>
-  ),
+  render: () => <Card>Card content</Card>,
 };

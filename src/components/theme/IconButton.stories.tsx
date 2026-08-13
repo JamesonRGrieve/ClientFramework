@@ -8,7 +8,13 @@ const meta: Meta<typeof IconButton> = {
   title: 'Theme/IconButton',
   component: IconButton,
   tags: ['autodocs'],
-  decorators: [(Story) => <TooltipProvider><Story /></TooltipProvider>],
+  decorators: [
+    (Story) => (
+      <TooltipProvider>
+        <Story />
+      </TooltipProvider>
+    ),
+  ],
 };
 
 export default meta;

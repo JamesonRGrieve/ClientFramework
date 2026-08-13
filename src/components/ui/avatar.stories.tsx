@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Avatar>;
 
 export const Default: Story = {
-  render: () => (
-    <Avatar>
-      Avatar content
-    </Avatar>
-  ),
+  render: () => <Avatar>Avatar content</Avatar>,
 };

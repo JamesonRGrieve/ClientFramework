@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof InputOTP>;
 
 export const Default: Story = {
-  render: () => (
-    <InputOTP>
-      InputOTP content
-    </InputOTP>
-  ),
+  render: () => <InputOTP>InputOTP content</InputOTP>,
 };

@@ -2,10 +2,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import type { MiddlewareHook, ZephyrexClientExtension } from './types';
 
-export function createMiddleware(options?: {
-  hooks?: MiddlewareHook[];
-  extensions?: ZephyrexClientExtension[];
-}) {
+export function createMiddleware(options?: { hooks?: MiddlewareHook[]; extensions?: ZephyrexClientExtension[] }) {
   const extraHooks = options?.hooks ?? [];
   const extensionHooks = (options?.extensions ?? []).flatMap((ext) => ext.middleware ?? []);
   const allHooks = [...extraHooks, ...extensionHooks];
@@ -13,9 +10,7 @@ export function createMiddleware(options?: {
   return async function middleware(req: NextRequest): Promise<NextResponse> {
     // Run built-in auth middleware hooks if available
     try {
-      const { useNextAPIBypass, useOAuth2, useJWTQueryParam, useAuth } = await import(
-        '@zephyrex/auth/auth.middleware'
-      );
+      const { useNextAPIBypass, useOAuth2, useJWTQueryParam, useAuth } = await import('@zephyrex/auth/auth.middleware');
 
       const builtinHooks: MiddlewareHook[] = [useNextAPIBypass, useOAuth2, useJWTQueryParam, useAuth];
 

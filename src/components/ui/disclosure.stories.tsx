@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Disclosure>;
 
 export const Default: Story = {
-  render: () => (
-    <Disclosure>
-      Disclosure content
-    </Disclosure>
-  ),
+  render: () => <Disclosure>Disclosure content</Disclosure>,
 };

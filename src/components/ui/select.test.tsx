@@ -5,11 +5,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 
 describe('Select', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <Select>
-        content
-      </Select>
-    );
+    const { container } = render(<Select>content</Select>);
     expect(container).toBeInTheDocument();
   });
 });

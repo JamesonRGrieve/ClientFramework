@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Table>;
 
 export const Default: Story = {
-  render: () => (
-    <Table>
-      Table content
-    </Table>
-  ),
+  render: () => <Table>Table content</Table>,
 };

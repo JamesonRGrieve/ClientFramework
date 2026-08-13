@@ -11,13 +11,7 @@ import { ManagementTabProvider } from './ManagementTabRegistry';
 import type { ZephyrexConfig } from './types';
 import { ZephyrexProvider } from './ZephyrexProvider';
 
-export function ZephyrexApp({
-  config,
-  children,
-}: {
-  config: ZephyrexConfig;
-  children: ReactNode;
-}) {
+export function ZephyrexApp({ config, children }: { config: ZephyrexConfig; children: ReactNode }) {
   const extensions = config.extensions ?? [];
 
   return (

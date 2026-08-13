@@ -10,10 +10,7 @@ export interface SearchResult {
   [key: string]: unknown;
 }
 
-export function useSearch<T extends SearchResult = SearchResult>(
-  endpoint: string,
-  options?: { debounceMs?: number },
-) {
+export function useSearch<T extends SearchResult = SearchResult>(endpoint: string, options?: { debounceMs?: number }) {
   const client = useClient();
   const [query, setQuery] = useState('');
   const debounceMs = options?.debounceMs ?? 300;

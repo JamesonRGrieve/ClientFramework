@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Accordion>;
 
 export const Default: Story = {
-  render: () => (
-    <Accordion>
-      Accordion content
-    </Accordion>
-  ),
+  render: () => <Accordion>Accordion content</Accordion>,
 };

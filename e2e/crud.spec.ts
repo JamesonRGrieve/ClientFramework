@@ -133,18 +133,14 @@ test.describe('Provider and Extension listing', () => {
 test.describe('UI pages render with auth', () => {
   test('team page loads', async ({ page, context }) => {
     test.skip(!authToken, 'auth failed');
-    await context.addCookies([
-      { name: 'jwt', value: authToken, domain: 'localhost', path: '/' },
-    ]);
+    await context.addCookies([{ name: 'jwt', value: authToken, domain: 'localhost', path: '/' }]);
     await page.goto('/team');
     await expect(page.locator('body')).toBeVisible();
   });
 
   test('settings page loads', async ({ page, context }) => {
     test.skip(!authToken, 'auth failed');
-    await context.addCookies([
-      { name: 'jwt', value: authToken, domain: 'localhost', path: '/' },
-    ]);
+    await context.addCookies([{ name: 'jwt', value: authToken, domain: 'localhost', path: '/' }]);
     await page.goto('/settings');
     await expect(page.locator('body')).toBeVisible();
   });

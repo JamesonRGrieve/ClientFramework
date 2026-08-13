@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof DropdownMenu>;
 
 export const Default: Story = {
-  render: () => (
-    <DropdownMenu>
-      DropdownMenu content
-    </DropdownMenu>
-  ),
+  render: () => <DropdownMenu>DropdownMenu content</DropdownMenu>,
 };

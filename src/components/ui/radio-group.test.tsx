@@ -5,11 +5,7 @@ import { RadioGroup, RadioGroupItem } from './radio-group';
 
 describe('RadioGroup', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <RadioGroup>
-        content
-      </RadioGroup>
-    );
+    const { container } = render(<RadioGroup>content</RadioGroup>);
     expect(container).toBeInTheDocument();
   });
 });

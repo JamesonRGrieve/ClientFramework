@@ -14,17 +14,8 @@ export function useAuthFlowInjections(): AuthFlowInjection[] {
   return useContext(AuthFlowContext).injections;
 }
 
-export function AuthFlowProvider({
-  extensions,
-  children,
-}: {
-  extensions: ZephyrexClientExtension[];
-  children: ReactNode;
-}) {
-  const injections = useMemo(
-    () => extensions.filter((ext) => ext.authFlow).map((ext) => ext.authFlow!),
-    [extensions],
-  );
+export function AuthFlowProvider({ extensions, children }: { extensions: ZephyrexClientExtension[]; children: ReactNode }) {
+  const injections = useMemo(() => extensions.filter((ext) => ext.authFlow).map((ext) => ext.authFlow!), [extensions]);
 
   return <AuthFlowContext value={{ injections }}>{children}</AuthFlowContext>;
 }

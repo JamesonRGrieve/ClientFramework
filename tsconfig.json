@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2020",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -25,36 +21,16 @@
       }
     ],
     "paths": {
-      "next": [
-        "./node_modules/next"
-      ],
-      "next/*": [
-        "./node_modules/next/*"
-      ],
-      "@/*": [
-        "./src/*"
-      ],
-      "@zephyrex/zod2gql": [
-        "./src/lib/zod2gql/src"
-      ],
-      "@zephyrex/auth/*": [
-        "./src/components/auth/src/*"
-      ],
-      "@jgrieve/appwrapper/*": [
-        "./src/components/appwrapper/src/*"
-      ],
-      "@jgrieve/forms/*": [
-        "./src/components/dynamic-form/src/*"
-      ],
-      "@/interactive/*": [
-        "./src/interactive/src/*"
-      ],
-      "@/interface/*": [
-        "./src/interface/*"
-      ],
-      "@/iteration/*": [
-        "./src/iteration/*"
-      ]
+      "next": ["./node_modules/next"],
+      "next/*": ["./node_modules/next/*"],
+      "@/*": ["./src/*"],
+      "@zephyrex/zod2gql": ["./src/lib/zod2gql/src"],
+      "@zephyrex/auth/*": ["./src/components/auth/src/*"],
+      "@jgrieve/appwrapper/*": ["./src/components/appwrapper/src/*"],
+      "@jgrieve/forms/*": ["./src/components/dynamic-form/src/*"],
+      "@/interactive/*": ["./src/interactive/src/*"],
+      "@/interface/*": ["./src/interface/*"],
+      "@/iteration/*": ["./src/iteration/*"]
     }
   },
   "include": [
@@ -69,7 +45,5 @@
     "components/interactive/components/Chat/Activity/Severtities.tsx",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

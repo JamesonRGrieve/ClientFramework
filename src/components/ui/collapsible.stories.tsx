@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Collapsible>;
 
 export const Default: Story = {
-  render: () => (
-    <Collapsible>
-      Collapsible content
-    </Collapsible>
-  ),
+  render: () => <Collapsible>Collapsible content</Collapsible>,
 };

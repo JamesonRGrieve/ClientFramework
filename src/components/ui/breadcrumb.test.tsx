@@ -5,11 +5,7 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbS
 
 describe('Breadcrumb', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <Breadcrumb>
-        content
-      </Breadcrumb>
-    );
+    const { container } = render(<Breadcrumb>content</Breadcrumb>);
     expect(container).toBeInTheDocument();
   });
 });

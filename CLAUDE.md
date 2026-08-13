@@ -60,6 +60,7 @@ A consumer app is ~6 files:
 ### Extension System
 
 59 client extensions match 1:1 with server extensions. Each extension can provide:
+
 - `pages` — routes to register
 - `navItems` — sidebar entries
 - `settingsPanel` — settings UI component
@@ -74,8 +75,8 @@ Every built-in page supports slot injection via `PageWithSlots`:
 ```typescript
 const myExtension: ZephyrexClientExtension = {
   pageSlots: {
-    'team': [{ position: 'after', component: TeamAnalytics }],
-    'settings': [{ position: 'sidebar', component: QuickStats }],
+    team: [{ position: 'after', component: TeamAnalytics }],
+    settings: [{ position: 'sidebar', component: QuickStats }],
   },
 };
 ```
@@ -84,12 +85,12 @@ const myExtension: ZephyrexClientExtension = {
 
 ## Sibling Packages
 
-| Package | npm name | Source |
-|---------|----------|-------|
-| Auth | `@zephyrex/auth` | `../auth` (symlinked to `src/components/auth/`) |
-| Forms | `@jgrieve/forms` | `../dynamic-form` (symlinked to `src/components/dynamic-form/`) |
-| Zod→GQL | `@zephyrex/zod2gql` | `../zod2gql` (symlinked to `src/lib/zod2gql/`) |
-| Server | `zephyrex` (PyPI) | `../server-framework` |
+| Package | npm name            | Source                                                          |
+| ------- | ------------------- | --------------------------------------------------------------- |
+| Auth    | `@zephyrex/auth`    | `../auth` (symlinked to `src/components/auth/`)                 |
+| Forms   | `@jgrieve/forms`    | `../dynamic-form` (symlinked to `src/components/dynamic-form/`) |
+| Zod→GQL | `@zephyrex/zod2gql` | `../zod2gql` (symlinked to `src/lib/zod2gql/`)                  |
+| Server  | `zephyrex` (PyPI)   | `../server-framework`                                           |
 
 Path aliases in `tsconfig.json` map `@zephyrex/auth/*`, `@jgrieve/forms/*`, `@zephyrex/zod2gql`, and `@jgrieve/appwrapper/*` to their source directories.
 

@@ -12,9 +12,5 @@ export default meta;
 type Story = StoryObj<typeof Command>;
 
 export const Default: Story = {
-  render: () => (
-    <Command>
-      Command content
-    </Command>
-  ),
+  render: () => <Command>Command content</Command>,
 };

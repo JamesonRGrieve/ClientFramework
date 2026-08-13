@@ -25,9 +25,8 @@ export function useSubscription<T = unknown>(options: SubscriptionOptions) {
   useEffect(() => {
     if (!enabled) return;
 
-    const wsUrl = config.server.baseUrl
-      .replace(/^http/, 'ws')
-      .replace(/\/$/, '') + (config.server.graphqlPath ?? '/graphql');
+    const wsUrl =
+      config.server.baseUrl.replace(/^http/, 'ws').replace(/\/$/, '') + (config.server.graphqlPath ?? '/graphql');
 
     const token = getCookie('jwt')?.toString();
 
@@ -37,16 +36,20 @@ export function useSubscription<T = unknown>(options: SubscriptionOptions) {
 
       ws.onopen = () => {
         setConnected(true);
-        ws.send(JSON.stringify({
-          type: 'connection_init',
-          payload: token ? { Authorization: `Bearer ${token}` } : {},
-        }));
+        ws.send(
+          JSON.stringify({
+            type: 'connection_init',
+            payload: token ? { Authorization: `Bearer ${token}` } : {},
+          }),
+        );
 
-        ws.send(JSON.stringify({
-          id: '1',
-          type: 'subscribe',
-          payload: { query, variables },
-        }));
+        ws.send(
+          JSON.stringify({
+            id: '1',
+            type: 'subscribe',
+            payload: { query, variables },
+          }),
+        );
       };
 
       ws.onmessage = (event) => {

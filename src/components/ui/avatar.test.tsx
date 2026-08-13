@@ -5,11 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from './avatar';
 
 describe('Avatar', () => {
   it('renders without crashing', () => {
-    const { container } = render(
-      <Avatar>
-        content
-      </Avatar>
-    );
+    const { container } = render(<Avatar>content</Avatar>);
     expect(container).toBeInTheDocument();
   });
 });
