@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { type ReactNode, useState } from 'react';
-import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
+import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { EmptyNotifications, Notifications } from '@/components/appwrapper/src/Notifications';
 import type { NotificationFixture } from '@/lib/notifications-fixtures';
 

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { SidebarInset } from '@/components/ui/sidebar';
-import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
+import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 
 export default function UserLayout({ children }: { children: ReactNode }): ReactNode {
   const pathname = usePathname();

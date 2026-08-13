@@ -1,4 +1,4 @@
-import { SidebarPage } from '@/appwrapper/SidebarPage';
+import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import Link from 'next/link';
 
 const ADMIN_LINKS = [

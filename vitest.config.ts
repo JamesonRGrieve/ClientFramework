@@ -21,7 +21,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@jgrieve/appwrapper': path.resolve(__dirname, './src/components/appwrapper/src'),
       '@zephyrex/auth': path.resolve(__dirname, './src/components/auth/src'),
       '@jgrieve/forms': path.resolve(__dirname, './src/components/dynamic-form/src'),
       zod2gql: path.resolve(__dirname, './src/lib/zod2gql/src'),

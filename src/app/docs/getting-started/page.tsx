@@ -1,7 +1,7 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
+import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getCookie } from 'cookies-next';
 import { useEffect, useState } from 'react';

@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { NavMain } from '@/app/NavMain';
-import { NavUser } from '@/appwrapper/NavUser';
+import { NavUser } from '@/components/appwrapper/src/NavUser';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
 import { ToggleSidebar } from './ToggleSidebar';
 

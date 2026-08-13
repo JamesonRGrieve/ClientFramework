@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
+import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import MarkdownBlock from '@/components/markdown/MarkdownBlock';
 import fs from 'fs';
 import path from 'node:path';

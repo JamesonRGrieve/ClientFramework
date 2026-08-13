@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import Head from '@jgrieve/appwrapper/Head';
-import { SidebarContext } from '@jgrieve/appwrapper/SidebarContext';
-import { SidebarMain } from '@jgrieve/appwrapper/SidebarMain';
+import Head from '@/components/appwrapper/src/Head';
+import { SidebarContext } from '@/components/appwrapper/src/SidebarContext';
+import { SidebarMain } from '@/components/appwrapper/src/SidebarMain';
 import { ZephyrexApp } from '@/lib/zephyrex';
 import { cn } from '@/lib/utils';
 import '@zephyrex/zod2gql';

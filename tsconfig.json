@@ -26,7 +26,6 @@
       "@/*": ["./src/*"],
       "@zephyrex/zod2gql": ["./src/lib/zod2gql/src"],
       "@zephyrex/auth/*": ["./src/components/auth/src/*"],
-      "@jgrieve/appwrapper/*": ["./src/components/appwrapper/src/*"],
       "@jgrieve/forms/*": ["./src/components/dynamic-form/src/*"],
       "@/interactive/*": ["./src/interactive/src/*"],
       "@/interface/*": ["./src/interface/*"],

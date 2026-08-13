@@ -3,8 +3,8 @@
 import { CaretRightIcon, ComponentPlaceholderIcon } from '@radix-ui/react-icons';
 import { BadgeCheck, LogOut } from 'lucide-react';
 
-import { getGravatarUrl } from '@/auth/gravatar';
-import { useUser } from '@/auth/hooks/useUser';
+import { getGravatarUrl } from '@zephyrex/auth/gravatar';
+import { useUser } from '@zephyrex/auth/hooks/useUser';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -18,7 +18,7 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
-import { Appearances, Themes } from '@/appwrapper/UserMenu';
+import { Appearances, Themes } from '@/components/appwrapper/src/UserMenu';
 // useUser provides a stable SWR-backed source for current user information
 
 export function NavUser() {

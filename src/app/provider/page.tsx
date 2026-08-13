@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
+import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { SidebarContent } from '@/components/appwrapper/src/SidebarContentManager';
 import ProviderSidebar from './[id]/providerSideBar';
 import ProviderInstances from './[id]/providers';

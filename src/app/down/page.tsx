@@ -1,7 +1,7 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { SidebarPage } from '@jgrieve/appwrapper/SidebarPage';
+import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { SidebarInset } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
