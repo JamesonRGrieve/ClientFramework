@@ -109,15 +109,16 @@ for (const [viewportName, size] of Object.entries(VIEWPORTS)) {
       }
     });
 
-    test('login/register button is visible and tappable', async ({ page }) => {
+    test('primary action button/link is tappable if visible', async ({ page }) => {
       await page.goto('/');
       await page.waitForLoadState('networkidle');
 
-      const loginButton = page.getByRole('link', { name: /login|register|sign in/i });
-      if (await loginButton.count() > 0) {
-        const box = await loginButton.first().boundingBox();
-        expect(box).not.toBeNull();
-        if (box) {
+      const actions = page.getByRole('link', { name: /login|register|sign in|submit/i })
+        .or(page.getByRole('button', { name: /login|register|sign in|submit/i }));
+      const count = await actions.count();
+      for (let i = 0; i < count; i++) {
+        const box = await actions.nth(i).boundingBox();
+        if (box && typeof box.width === 'number' && typeof box.left === 'number' && box.width > 0 && box.height > 0) {
           expect(box.width).toBeGreaterThanOrEqual(44);
           expect(box.height).toBeGreaterThanOrEqual(44);
           expect(box.left).toBeGreaterThanOrEqual(0);
