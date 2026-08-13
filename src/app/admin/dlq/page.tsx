@@ -4,14 +4,7 @@ import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDlq, useDlqActions } from '@/hooks/api';
 import { useState } from 'react';
 
@@ -44,12 +37,7 @@ export default function DlqPage(): JSX.Element {
               onChange={(e) => setExtension(e.target.value)}
               className='w-48'
             />
-            <Input
-              placeholder='Ability'
-              value={ability}
-              onChange={(e) => setAbility(e.target.value)}
-              className='w-48'
-            />
+            <Input placeholder='Ability' value={ability} onChange={(e) => setAbility(e.target.value)} className='w-48' />
           </CardContent>
         </Card>
 

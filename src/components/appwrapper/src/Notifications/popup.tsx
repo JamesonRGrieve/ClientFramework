@@ -1,6 +1,6 @@
 'use client';
 
-import { dummyNotifications } from '@/app/notifications/page';
+import { dummyNotifications } from '@/lib/notifications-fixtures';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,7 +59,7 @@ export function NotificationsNavItem() {
               className='flex flex-col items-start gap-1 py-2'
             >
               <div className='font-medium'>{notification.conversationName}</div>
-              <div className='text-sm text-muted-foreground'>{notification.message}</div>
+              <div className='text-sm text-muted-foreground'>{notification.content}</div>
               <div className='text-xs text-muted-foreground'>{formatTimeAgo(notification.createdAt)}</div>
             </DropdownMenuItem>
           ))}

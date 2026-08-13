@@ -3,14 +3,7 @@
 import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAbilities, useExtensions } from '@/hooks/api';
 
 /**
@@ -57,9 +50,7 @@ export default function ExtensionsCatalogPage(): JSX.Element {
                         {ext.description ?? '—'}
                       </TableCell>
                       <TableCell className='text-right'>
-                        <Badge variant={ext.enabled ? 'default' : 'secondary'}>
-                          {ext.enabled ? 'enabled' : 'disabled'}
-                        </Badge>
+                        <Badge variant={ext.enabled ? 'default' : 'secondary'}>{ext.enabled ? 'enabled' : 'disabled'}</Badge>
                       </TableCell>
                     </TableRow>
                   ))}

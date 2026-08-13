@@ -1,12 +1,6 @@
 import { useMemo } from 'react';
 import { getApiClient } from '@/lib/api/client';
-import {
-  RegistryApi,
-  type Ability,
-  type Extension,
-  type Rotation,
-  type RotationProviderInstance,
-} from '@/lib/api/registry';
+import { RegistryApi, type Ability, type Extension, type Rotation, type RotationProviderInstance } from '@/lib/api/registry';
 import type { Page } from '@/lib/api/types';
 import { useApi } from './useApi';
 
@@ -27,8 +21,7 @@ export const useRotations = () => {
 
 export const useRotationProviderInstances = () => {
   const registry = useMemo(() => new RegistryApi(getApiClient()), []);
-  return useApi<Page<RotationProviderInstance>>(
-    'v1/rotation_provider_instance',
-    () => registry.listRotationProviderInstances(),
+  return useApi<Page<RotationProviderInstance>>('v1/rotation_provider_instance', () =>
+    registry.listRotationProviderInstances(),
   );
 };

@@ -9,20 +9,14 @@ const SERVICES_REFRESH_MS = 15_000;
 
 export const useDlq = (query: DlqListQuery = {}) => {
   const admin = useMemo(() => new AdminApi(getApiClient()), []);
-  return useApi<Page<DlqEntry>>(
-    ['admin/dlq', query],
-    () => admin.listDlq(query),
-    { refreshInterval: DLQ_REFRESH_MS },
-  );
+  return useApi<Page<DlqEntry>>(['admin/dlq', query], () => admin.listDlq(query), { refreshInterval: DLQ_REFRESH_MS });
 };
 
 export const useFailedServices = () => {
   const admin = useMemo(() => new AdminApi(getApiClient()), []);
-  return useApi<ReadonlyArray<ServiceStatus>>(
-    'admin/services',
-    () => admin.listServices(),
-    { refreshInterval: SERVICES_REFRESH_MS },
-  );
+  return useApi<ReadonlyArray<ServiceStatus>>('admin/services', () => admin.listServices(), {
+    refreshInterval: SERVICES_REFRESH_MS,
+  });
 };
 
 export const useDlqActions = () => {

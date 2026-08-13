@@ -1,11 +1,11 @@
 'use client';
-import { dummyNotifications } from '@/app/notifications/page';
+import { type NotificationFixture } from '@/lib/notifications-fixtures';
 import { Card, CardContent } from '@/components/ui/card';
 import { TooltipBasic } from '@/components/ui/tooltip';
 import { formatTimeAgo } from '@/lib/time-ago';
 import { useRouter } from 'next/navigation';
 
-export function Notifications({ notifications }: { notifications: typeof dummyNotifications }) {
+export function Notifications({ notifications }: { notifications: NotificationFixture[] }) {
   const router = useRouter();
 
   return (

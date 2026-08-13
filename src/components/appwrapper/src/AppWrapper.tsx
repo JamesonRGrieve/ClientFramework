@@ -22,20 +22,20 @@ type Menu =
     };
 
 type PopoutHeaderProps = {
-  height?: string;
+  height?: string | undefined;
   components?: {
-    left?: ReactNode | Menu;
-    center?: ReactNode;
-    right?: ReactNode | Menu;
-  };
+    left?: ReactNode | Menu | undefined;
+    center?: ReactNode | undefined;
+    right?: ReactNode | Menu | undefined;
+  } | undefined;
 };
 
 export type AppWrapperProps = {
-  header?: HeaderFooterProps | PopoutHeaderProps;
-  footer?: HeaderFooterProps;
-  inner?: boolean;
-  mainSX?: React.CSSProperties;
-  keepThemeToggles?: boolean;
+  header?: (HeaderFooterProps | PopoutHeaderProps) | undefined;
+  footer?: HeaderFooterProps | undefined;
+  inner?: boolean | undefined;
+  mainSX?: React.CSSProperties | undefined;
+  keepThemeToggles?: boolean | undefined;
 };
 
 const switches = (
@@ -98,74 +98,34 @@ export default function AppWrapper({
     <>
       {header && (
         <HeaderFooter
-          height={header?.height}
-          components={
-            header?.components && {
-              left:
-                (header?.components?.left as unknown as Menu)?.width !== undefined ? (
-                  <PopoutButton
-                    open={open.left}
-                    handleToggle={() => {
-                      setOpen((previousState: any) => ({ ...previousState, left: !previousState.left }));
-                    }}
-                    side='left'
-                    heading={(header?.components?.left as unknown as Menu)?.heading ?? ''}
-                    icon={(header?.components?.left as unknown as Menu)?.icon ?? null}
-                  />
-                ) : (
-                  (header?.components?.left as ReactNode)
-                ),
-              center: header?.components?.center ? (
-                typeof header?.components?.center === 'string' ? (
-                  <h1 className={`text-center ${inner ? 'text-2xl' : 'text-3xl'} whitespace-nowrap`}>
-                    {header?.components?.center}
-                  </h1>
-                ) : (
-                  <div className='flex items-center justify-between h-full'>{header?.components?.center}</div>
-                )
-              ) : undefined,
-              right:
-                (header?.components?.right as unknown as Menu)?.width !== undefined ? (
-                  <PopoutButton
-                    open={open.right}
-                    handleToggle={() => {
-                      setOpen((previousState: any) => ({ ...previousState, right: !previousState.right }));
-                    }}
-                    side='right'
-                    heading={(header?.components?.right as unknown as Menu)?.heading ?? ''}
-                    icon={(header?.components?.right as unknown as Menu)?.icon}
-                  />
-                ) : (
-                  (header?.components?.right as ReactNode)
-                ),
-            }
-          }
-        />
-      )}
-      {(header?.components?.left as unknown as Menu)?.width && (
-        <PopoutDrawer
-          open={open.left}
-          close={() => setOpen((prevState: any) => ({ ...prevState, left: false }))}
-          {...(header?.components?.left as unknown as Menu)}
-          side='left'
-          zIndex={1200}
-          topSpacing={header?.height}
-          bottomSpacing={footer?.height ?? '0'}
+          {...(header.height !== undefined ? { height: header.height } : {})}
+          {...(header.components !== undefined
+            ? {
+                components: {
+                  left: header.components.left as ReactNode,
+                  center: header.components.center ? (
+                    typeof header.components.center === 'string' ? (
+                      <h1 className={`text-center ${inner ? 'text-2xl' : 'text-3xl'} whitespace-nowrap`}>
+                        {header.components.center}
+                      </h1>
+                    ) : (
+                      <div className='flex items-center justify-between h-full'>{header.components.center}</div>
+                    )
+                  ) : undefined,
+                  right: header.components.right as ReactNode,
+                },
+              }
+            : {})}
         />
       )}
       <MainSection {...{ inner, open, header, mainSX, footer, children }} />
-      {(header?.components?.right as unknown as Menu)?.width && (
-        <PopoutDrawer
-          open={open.right}
-          close={() => setOpen((prevState: any) => ({ ...prevState, right: false }))}
-          {...(header?.components?.right as unknown as Menu)}
-          side='right'
-          zIndex={1200}
-          topSpacing={header?.height}
-          bottomSpacing={footer?.height ?? '0'}
+      {footer && (
+        <HeaderFooter
+          {...(footer.components !== undefined ? { components: footer.components } : {})}
+          {...(footer.height !== undefined ? { height: footer.height } : {})}
+          footer
         />
       )}
-      {footer && <HeaderFooter components={footer.components} height={footer.height} footer />}
     </>
   );
 }

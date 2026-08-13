@@ -19,7 +19,8 @@ type NavProps = {
 
 export const Nav = ({ navItems, itemProps, className, ...props }: NavProps) => {
   const pathname = usePathname();
-  const { className: itemClassName, active, ...itemRest } = itemProps || {};
+  const { className: itemClassName, active, ...itemRestRaw } = itemProps || {};
+  const itemRest = Object.fromEntries(Object.entries(itemRestRaw).filter(([, v]) => v !== undefined));
 
   return (
     <nav className={cn('flex gap-6 md:gap-5 lg:gap-6 md:text-sm font-medium text-lg', className)} {...props}>

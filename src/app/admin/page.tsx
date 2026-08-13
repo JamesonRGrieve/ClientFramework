@@ -14,11 +14,7 @@ export default function AdminLanding(): JSX.Element {
     <SidebarPage title='Operations'>
       <div className='grid grid-cols-1 gap-3 p-4 md:grid-cols-2'>
         {ADMIN_LINKS.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className='block rounded-lg border p-4 transition-colors hover:bg-muted'
-          >
+          <Link key={link.href} href={link.href} className='block rounded-lg border p-4 transition-colors hover:bg-muted'>
             <div className='font-medium'>{link.title}</div>
             <div className='text-sm text-muted-foreground'>{link.desc}</div>
           </Link>

@@ -1,5 +1,5 @@
 {
-  "failingFiles": 3,
-  "totalErrors": 3,
+  "failingFiles": 16,
+  "totalErrors": 25,
   "strict": false
 }

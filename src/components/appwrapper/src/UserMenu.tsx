@@ -73,5 +73,5 @@ function userInitials({ first_name, last_name }: { first_name: string; last_name
   if (!first_name || !last_name) {
     return null;
   }
-  return `${first_name[0].toUpperCase()}${last_name[0].toUpperCase()}`;
+  return `${first_name.charAt(0).toUpperCase()}${last_name.charAt(0).toUpperCase()}`;
 }

@@ -4,14 +4,7 @@ import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useFailedServices, useServiceActions } from '@/hooks/api';
 
 const stateVariant = (state: string): 'default' | 'destructive' | 'secondary' => {

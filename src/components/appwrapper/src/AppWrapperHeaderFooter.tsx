@@ -1,9 +1,9 @@
 import CenterAlignedBox, { CenterAlignedBoxProps } from './AppWrapperCenterAlignedBox';
 
 export type HeaderFooterProps = {
-  footer?: boolean;
-  height?: string;
-  components?: CenterAlignedBoxProps;
+  footer?: boolean | undefined;
+  height?: string | undefined;
+  components?: CenterAlignedBoxProps | undefined;
 };
 
 export default function HeaderFooter({ height = '3rem', footer = false, components }: HeaderFooterProps) {

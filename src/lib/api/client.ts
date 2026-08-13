@@ -1,13 +1,6 @@
 import { ApiError, parseErrorResponse } from './errors';
 import { extractCorrelationId, mintTraceparent, parseDeprecation, parseRateLimit } from './headers';
-import type {
-  ApiResponse,
-  DeprecationInfo,
-  HttpMethod,
-  Page,
-  RateLimitInfo,
-  SearchRequest,
-} from './types';
+import type { ApiResponse, DeprecationInfo, HttpMethod, Page, RateLimitInfo, SearchRequest } from './types';
 
 const NO_CONTENT = 204;
 const STATUS_OK = 200;
@@ -68,12 +61,7 @@ export class ApiClient {
     this.fetchImpl = options.fetchImpl ?? fetch.bind(globalThis);
   }
 
-  async request<T>(
-    method: HttpMethod,
-    path: string,
-    body?: unknown,
-    options: RequestOptions = {},
-  ): Promise<ApiResponse<T>> {
+  async request<T>(method: HttpMethod, path: string, body?: unknown, options: RequestOptions = {}): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${path}${buildQuery(options.query)}`;
     const headers = new Headers(options.headers);
     if (!headers.has('accept')) headers.set('accept', 'application/json');

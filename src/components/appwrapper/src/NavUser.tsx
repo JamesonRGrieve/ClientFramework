@@ -46,8 +46,8 @@ export function NavUser() {
                 className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:my-2 pl-0 transition-none'
               >
                 <Avatar className='w-8 h-8 rounded-lg'>
-                  <AvatarImage src={getGravatarUrl(user?.email)} alt={user?.firstName} />
-                  <AvatarFallback className='rounded-lg'>{userInitials(user)}</AvatarFallback>
+                  <AvatarImage src={getGravatarUrl(user?.email ?? '')} {...(user?.firstName != null ? { alt: user.firstName } : {})} />
+                  <AvatarFallback className='rounded-lg'>{user ? userInitials(user) : null}</AvatarFallback>
                 </Avatar>
                 <div className='grid flex-1 text-sm leading-tight text-left'>
                   {user && user.email ? (
@@ -78,8 +78,8 @@ export function NavUser() {
               <DropdownMenuLabel className='p-0 font-normal'>
                 <div className='flex items-center gap-2 px-1 py-2 text-sm text-left'>
                   <Avatar className='w-8 h-8 rounded-lg'>
-                    <AvatarImage src={getGravatarUrl(user?.email)} alt={user?.firstName} />
-                    <AvatarFallback className='rounded-lg'>{userInitials(user)}</AvatarFallback>
+                    <AvatarImage src={getGravatarUrl(user?.email ?? '')} {...(user?.firstName != null ? { alt: user.firstName } : {})} />
+                    <AvatarFallback className='rounded-lg'>{user ? userInitials(user) : null}</AvatarFallback>
                   </Avatar>
                   <div className='grid flex-1 text-sm leading-tight text-left'>
                     <span className='font-semibold truncate'>
@@ -126,7 +126,7 @@ export function NavUser() {
   );
 }
 
-function userInitials(user: { firstName?: string; lastName?: string }) {
+function userInitials(user: { firstName?: string | null | undefined; lastName?: string | null | undefined }) {
   if (!user) {
     return null;
   }
