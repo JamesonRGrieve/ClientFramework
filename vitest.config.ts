@@ -12,6 +12,7 @@ export default defineConfig({
       'e2e/**',
       '**/*.stories.{ts,tsx}',
       '.claude/**',
+      'security/**',
       'src/components/auth/**',
       'src/components/dynamic-form/**',
       'src/lib/zod2gql/**',

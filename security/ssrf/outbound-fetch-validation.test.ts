@@ -88,7 +88,7 @@ describe('SSRF — WebSocket destination validation', () => {
     const usesUserInput =
       source.includes('searchParams') ||
       source.includes('request.url') ||
-      source.includes('query');
+      source.includes('window.location');
 
     expect(usesUserInput, [
       'SSRF: WebSocket URL derived from user-controlled input.',

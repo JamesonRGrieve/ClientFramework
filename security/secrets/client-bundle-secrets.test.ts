@@ -38,8 +38,8 @@ const SERVER_ONLY_MODULES = [
 ];
 
 const SERVER_ONLY_PATHS = [
-  'src/lib/api/',
-  'src/hooks/api/',
+  'src/lib/db/',
+  'src/lib/server/',
 ];
 
 function findClientComponents(dir: string): string[] {
