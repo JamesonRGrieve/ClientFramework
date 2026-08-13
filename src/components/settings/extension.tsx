@@ -104,9 +104,7 @@ export default function Extension({
                 className='gap-2'
                 onClick={() => {
                   setSelectedExtension(extension.extension_name);
-                  setSettings(
-                    extension.settings.reduce<Record<string, string>>((acc, setting) => ({ ...acc, [setting]: '' }), {}),
-                  );
+                  setSettings(Object.fromEntries(extension.settings.map((setting) => [setting, ''])));
                 }}
               >
                 <Plus className='w-4 h-4' />

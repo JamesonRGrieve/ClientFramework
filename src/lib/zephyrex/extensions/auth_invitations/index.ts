@@ -2,11 +2,12 @@
 import { lazy } from 'react';
 import { createExtension } from '../createExtension';
 
-const Invitations = lazy(() => import('@zephyrex/auth/management/Invitations'));
+const Invitations = lazy(() =>
+  import('@zephyrex/auth/management/Invitations').then((m) => ({ default: m.InvitationsTable })),
+);
 
 export const authInvitationsExtension = createExtension('auth_invitations', {
   displayName: 'Invitations',
   description: 'Team invitation management',
-  settingsPanel: undefined,
   managementTabs: [{ id: 'invitations', label: 'Invitations', component: () => Invitations({}), priority: 30 }],
 });

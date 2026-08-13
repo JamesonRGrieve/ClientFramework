@@ -22,7 +22,7 @@ const _handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>): void => {
 const getYoutubeId = (url: string): string | null => {
   const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
   const match = url.match(regExp);
-  return match?.[7].length === 11 ? match[7] : null;
+  return match?.[7] !== undefined && match[7].length === 11 ? match[7] : null;
 };
 
 type MarkdownLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement>;

@@ -5,7 +5,7 @@ import { createContext, useContext, type ComponentType, type ReactNode } from 'r
 
 export interface PageSlotDefinition {
   position: 'before' | 'after' | 'replace' | 'sidebar';
-  component: ComponentType<{ pageProps?: Record<string, unknown> }>;
+  component: ComponentType<{ pageProps?: Record<string, unknown> | undefined }>;
   priority?: number;
 }
 
@@ -45,14 +45,14 @@ export function PageWithSlots({
 
   return (
     <>
-      {before.map((slot, i) => {
+      {before.map((slot) => {
         const SlotComponent = slot.component;
-        return <SlotComponent key={`before-${i}`} pageProps={pageProps} />;
+        return <SlotComponent key={SlotComponent.displayName ?? SlotComponent.name} pageProps={pageProps} />;
       })}
       {children}
-      {after.map((slot, i) => {
+      {after.map((slot) => {
         const SlotComponent = slot.component;
-        return <SlotComponent key={`after-${i}`} pageProps={pageProps} />;
+        return <SlotComponent key={SlotComponent.displayName ?? SlotComponent.name} pageProps={pageProps} />;
       })}
     </>
   );

@@ -13,8 +13,8 @@ export const ClientProvider = ClientContext.Provider;
 
 export function useClient(): ZephyrexClient {
   const ctx = useContext(ClientContext);
-  if (ctx) return ctx;
   const { config } = useZephyrexConfig();
+  if (ctx) return ctx;
   return new ZephyrexClient({ baseUrl: config.server.baseUrl });
 }
 
@@ -32,7 +32,7 @@ export interface User {
 
 export function useUser() {
   const client = useClient();
-  return useSWR<User>('/v1/user', () => client.get('/v1/user'));
+  return useSWR<User>('/v1/user', async () => client.get<User>('/v1/user'));
 }
 
 // --- Role ---
@@ -69,7 +69,7 @@ export function useTeams() {
 
 export function useTeam(id?: string) {
   const client = useClient();
-  return useSWR<Team>(id ? `/v1/team/${id}` : null, () => client.get(`/v1/team/${id}`));
+  return useSWR<Team>(id ? `/v1/team/${id}` : null, async () => client.get<Team>(`/v1/team/${id}`));
 }
 
 // --- Extensions (server-side) ---

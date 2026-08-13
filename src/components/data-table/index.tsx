@@ -38,7 +38,7 @@ export function DataTable<TData, TValue>({ columns, data, meta, onRowClick, rowC
   const table = useReactTable({
     data,
     columns,
-    meta,
+    ...(meta !== undefined ? { meta } : {}),
     state: {
       sorting,
       columnVisibility,

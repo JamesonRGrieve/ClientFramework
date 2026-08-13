@@ -20,7 +20,7 @@ export default function MarkdownImage({ src, alt, className, ...props }: ImagePr
       {isAGInfrastructureServer ? (
         <Image src={src} alt={alt || ''} fill className='object-contain object-left-center' />
       ) : (
-        <img src={src} alt={alt || ''} className='w-full h-full object-contain object-left-center' />
+        <Image src={src} alt={alt || ''} fill className='object-contain object-left-center' unoptimized />
       )}
     </div>
   );

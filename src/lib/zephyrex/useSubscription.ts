@@ -23,7 +23,7 @@ export function useSubscription<T = unknown>(options: SubscriptionOptions) {
   const { query, variables, onData, onError, enabled = true } = options;
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) return undefined;
 
     const wsUrl =
       config.server.baseUrl.replace(/^http/, 'ws').replace(/\/$/, '') + (config.server.graphqlPath ?? '/graphql');
@@ -83,6 +83,7 @@ export function useSubscription<T = unknown>(options: SubscriptionOptions) {
       const connectError = err instanceof Error ? err : new Error(String(err));
       setError(connectError);
       onError?.(connectError);
+      return undefined;
     }
   }, [config.server.baseUrl, config.server.graphqlPath, query, variables, enabled, onData, onError]);
 

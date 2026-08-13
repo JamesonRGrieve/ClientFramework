@@ -10,6 +10,7 @@ export function NotificationBell({ className }: { className?: string }) {
 
   return (
     <button
+      type='button'
       className={`relative inline-flex items-center ${className ?? ''}`}
       aria-label={`Notifications${unread > 0 ? ` (${unread} unread)` : ''}`}
     >

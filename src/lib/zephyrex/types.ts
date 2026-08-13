@@ -28,9 +28,9 @@ export interface AuthFlowInjection {
   /** Component to render after registration form */
   registerExtras?: ComponentType;
   /** MFA verification step — renders when server returns verification flags */
-  mfaVerify?: ComponentType<{ type: 'totp' | 'email' | 'sms'; onVerified: () => void }>;
+  mfaVerify?: ComponentType<{ type: 'totp' | 'email' | 'sms'; verifiedCallback: (verified: boolean) => void }>;
   /** MFA setup step — renders when server returns otp_uri */
-  mfaSetup?: ComponentType<{ otpUri: string; onComplete: () => void }>;
+  mfaSetup?: ComponentType<{ verifiedCallback: (verified: boolean) => void }>;
 }
 
 // --- Management page injection ---

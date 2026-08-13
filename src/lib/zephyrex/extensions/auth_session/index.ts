@@ -2,11 +2,12 @@
 import { lazy } from 'react';
 import { createExtension } from '../createExtension';
 
-const ConnectedServices = lazy(() => import('@zephyrex/auth/management/ConnectedServices'));
+const ConnectedServices = lazy(() =>
+  import('@zephyrex/auth/management/ConnectedServices').then((m) => ({ default: m.ConnectedServices })),
+);
 
 export const authSessionExtension = createExtension('auth_session', {
   displayName: 'Session Management',
   description: 'Active session tracking and revocation',
-  settingsPanel: undefined,
   managementTabs: [{ id: 'sessions', label: 'Active Sessions', component: () => ConnectedServices({}), priority: 20 }],
 });

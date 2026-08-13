@@ -73,7 +73,9 @@ export function Extensions(): React.JSX.Element {
   const cookieAgent = getCookie('aginteractive-agent');
   const cookieAgentName = typeof cookieAgent === 'string' ? cookieAgent : '';
   const agentName =
-    cookieAgentName !== '' ? cookieAgentName : (process.env.NEXT_PUBLIC_AGINTERACTIVE_AGENT ?? agentData?.agent_name ?? '');
+    cookieAgentName !== ''
+      ? cookieAgentName
+      : (process.env['NEXT_PUBLIC_AGINTERACTIVE_AGENT'] ?? agentData?.agent_name ?? '');
   const { data: activeCompany, mutate: mutateCompany } = useTeam();
   const searchParams = useSearchParams();
   // Filter extensions for the enabled commands view
@@ -166,10 +168,7 @@ export function Extensions(): React.JSX.Element {
   };
 
   const handleDisconnect = async (extension: ExtensionData): Promise<void> => {
-    const emptySettings = extension.settings.reduce<Record<string, string>>(
-      (acc, setting) => ({ ...acc, [setting]: '' }),
-      {},
-    );
+    const emptySettings = Object.fromEntries(extension.settings.map((setting) => [setting, '']));
     await handleSaveSettings(extension.extension_name, emptySettings);
   };
 
@@ -266,18 +265,19 @@ export function Extensions(): React.JSX.Element {
                                 <Switch
                                   checked={command.enabled === true}
                                   disabled={isSystemExtension}
-                                  onCheckedChange={
-                                    isSystemExtension
-                                      ? undefined
-                                      : (checked): void => void handleToggleCommand(command.friendly_name, checked)
-                                  }
+                                  {...(isSystemExtension
+                                    ? {}
+                                    : {
+                                        onCheckedChange: (checked: boolean): void =>
+                                          void handleToggleCommand(command.friendly_name, checked),
+                                      })}
                                 />
                                 <h4 className='text-lg font-medium'>&nbsp;&nbsp;{command.friendly_name}</h4>
                               </div>
                               <MarkdownBlock
                                 content={
                                   command.description !== ''
-                                    ? command.description.split('\nArgs')[0]
+                                    ? (command.description.split('\nArgs')[0] ?? command.description)
                                     : 'No description available'
                                 }
                               />

@@ -14,7 +14,7 @@ interface DataTableToolbarProps<TData> {
 
 export function DataTableToolbar<TData>({ table }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
-  const title = (table.options.meta as Record<string, unknown> | undefined)?.title as string | undefined;
+  const title = (table.options.meta as Record<string, unknown> | undefined)?.['title'] as string | undefined;
 
   return (
     <div className='flex items-center justify-end gap-2'>

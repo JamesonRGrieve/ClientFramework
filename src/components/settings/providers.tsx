@@ -40,7 +40,7 @@ export function Providers(): React.JSX.Element {
   const [error, setError] = useState<ErrorState>(null);
   const cookieAgent = getCookie('aginterface-agent');
   const cookieAgentName = typeof cookieAgent === 'string' ? cookieAgent : '';
-  const agentName = cookieAgentName !== '' ? cookieAgentName : (process.env.NEXT_PUBLIC_AGINTERACTIVE_AGENT ?? '');
+  const agentName = cookieAgentName !== '' ? cookieAgentName : (process.env['NEXT_PUBLIC_AGINTERACTIVE_AGENT'] ?? '');
   const { data: providerData } = useProviders();
 
   // Connected / available provider lists are not wired up in this template;
@@ -87,7 +87,11 @@ export function Providers(): React.JSX.Element {
     }
     const emptySettings = (extension.settings ?? [])
       .filter((setting) => SECRET_KEYWORDS.some((keyword) => setting.name.replaceAll('TOKENS', '').includes(keyword)))
-      .reduce<Record<string, string>>((acc, setting) => ({ ...acc, [setting.name]: '' }), {});
+      .map((setting) => [setting.name, ''] as const)
+      .reduce<Record<string, string>>((acc, [k, v]) => {
+        acc[k] = v;
+        return acc;
+      }, {});
     await handleSaveSettings(extension.name, emptySettings);
   };
 

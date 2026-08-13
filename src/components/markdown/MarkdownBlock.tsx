@@ -42,7 +42,7 @@ export default function MarkdownBlock({ content, role, createdAt }: MarkdownBloc
       return { columns: [], rows: [] };
     }
 
-    const headers = tableLines[0]
+    const headers = (tableLines[0] ?? '')
       .split('|')
       .map((header) => header.trim())
       .filter(Boolean);
@@ -123,7 +123,12 @@ export default function MarkdownBlock({ content, role, createdAt }: MarkdownBloc
                   );
                 },
                 img({ src, alt }) {
-                  return <MarkdownImage src={typeof src === 'string' ? src : undefined} alt={alt} />;
+                  return (
+                    <MarkdownImage
+                      {...(typeof src === 'string' ? { src } : {})}
+                      {...(typeof alt === 'string' ? { alt } : {})}
+                    />
+                  );
                 },
               }}
             >

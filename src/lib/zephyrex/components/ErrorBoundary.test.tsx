@@ -5,7 +5,7 @@ import { TestWrapper } from '@/__tests__/test-wrapper';
 import { ErrorBoundary } from './ErrorBoundary';
 import { ApiError } from '../client';
 
-function ThrowError({ error }: { error: Error }) {
+function ThrowError({ error }: { error: Error }): never {
   throw error;
 }
 

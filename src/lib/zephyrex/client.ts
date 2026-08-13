@@ -26,7 +26,11 @@ export class ZephyrexClient {
 
   async get<T = unknown>(path: string, params?: Record<string, string>): Promise<T> {
     const url = new URL(`${this.baseUrl}${path}`);
-    if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        url.searchParams.set(k, v);
+      }
+    }
     const res = await fetch(url.toString(), { headers: this.headers() });
     if (!res.ok) throw new ApiError(res.status, await res.text());
     return res.json();
@@ -36,7 +40,7 @@ export class ZephyrexClient {
     const res = await fetch(`${this.baseUrl}${path}`, {
       method: 'POST',
       headers: this.headers(),
-      body: body ? JSON.stringify(body) : undefined,
+      ...(body ? { body: JSON.stringify(body) } : {}),
     });
     if (!res.ok) throw new ApiError(res.status, await res.text());
     return res.json();
@@ -46,7 +50,7 @@ export class ZephyrexClient {
     const res = await fetch(`${this.baseUrl}${path}`, {
       method: 'PUT',
       headers: this.headers(),
-      body: body ? JSON.stringify(body) : undefined,
+      ...(body ? { body: JSON.stringify(body) } : {}),
     });
     if (!res.ok) throw new ApiError(res.status, await res.text());
     return res.json();
@@ -56,7 +60,7 @@ export class ZephyrexClient {
     const res = await fetch(`${this.baseUrl}${path}`, {
       method: 'PATCH',
       headers: this.headers(),
-      body: body ? JSON.stringify(body) : undefined,
+      ...(body ? { body: JSON.stringify(body) } : {}),
     });
     if (!res.ok) throw new ApiError(res.status, await res.text());
     return res.json();

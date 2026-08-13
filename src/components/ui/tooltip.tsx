@@ -45,7 +45,7 @@ type TooltipBasicProps = React.PropsWithChildren & {
 const TooltipBasic = ({ title, side, children }: TooltipBasicProps) => (
   <Tooltip delayDuration={600}>
     <TooltipTrigger asChild>{children}</TooltipTrigger>
-    <TooltipContent side={side}>{title}</TooltipContent>
+    <TooltipContent {...(side !== undefined ? { side } : {})}>{title}</TooltipContent>
   </Tooltip>
 );
 TooltipBasic.displayName = 'TooltipBasic';

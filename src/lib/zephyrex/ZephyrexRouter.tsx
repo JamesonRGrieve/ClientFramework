@@ -22,7 +22,12 @@ export function ZephyrexRouter({
   for (const route of routes) {
     if (matchRoute(route.path, params.slug)) {
       const Component = route.component;
-      return <Component params={params} searchParams={searchParams} />;
+      return (
+        <Component
+          params={{ slug: params.slug.join('/'), ...Object.fromEntries(Object.entries(params)) }}
+          searchParams={searchParams}
+        />
+      );
     }
   }
 

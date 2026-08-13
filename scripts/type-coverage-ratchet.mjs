@@ -17,7 +17,7 @@ const updateMode = args.has('--update');
 
 let stdout = '';
 try {
-  stdout = execSync('./node_modules/.bin/type-coverage --strict --no-detail', {
+  stdout = execSync('NODE_OPTIONS="--max-old-space-size=8192" ./node_modules/.bin/type-coverage --strict --no-detail', {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
     maxBuffer: 16 * 1024 * 1024,

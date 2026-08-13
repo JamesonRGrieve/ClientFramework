@@ -15,13 +15,13 @@ interface ErrorBoundaryState {
 }
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = { error: null };
+  override state: ErrorBoundaryState = { error: null };
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.props.onError?.(error, errorInfo);
   }
 
@@ -29,7 +29,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     this.setState({ error: null });
   };
 
-  render() {
+  override render() {
     if (this.state.error) {
       const { error } = this.state;
       const { fallback } = this.props;
@@ -49,6 +49,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             {isServerDown ? 'The server is not responding. Please try again later.' : error.message}
           </p>
           <button
+            type='button'
             onClick={this.retry}
             className='rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90'
           >

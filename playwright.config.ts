@@ -9,8 +9,8 @@ const APP_URL = `http://localhost:${CLIENT_PORT}`;
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  forbidOnly: !!process.env['CI'],
+  retries: process.env['CI'] ? 2 : 0,
   workers: 1,
   reporter: 'html',
   timeout: 30_000,
@@ -29,10 +29,10 @@ export default defineConfig({
 
   webServer: [
     {
-      command: `cd ${process.env.ZEPHYREX_SERVER_DIR ?? '../server-framework'} && .venv/bin/python -m zephyrex run`,
+      command: `cd ${process.env['ZEPHYREX_SERVER_DIR'] ?? '../server-framework'} && .venv/bin/python -m zephyrex run`,
       url: `${API_URL}/health`,
       timeout: 60_000,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: !process.env['CI'],
       env: {
         DATABASE_TYPE: 'sqlite',
         DATABASE_NAME: 'e2e_test',
@@ -49,7 +49,7 @@ export default defineConfig({
       command: 'pnpm dev',
       url: APP_URL,
       timeout: 60_000,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: !process.env['CI'],
       env: {
         NEXT_PUBLIC_API_URI: API_URL,
         API_URI: API_URL,

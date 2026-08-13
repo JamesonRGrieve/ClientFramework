@@ -7,11 +7,11 @@ const config: ZephyrexConfig = {
   },
   app: {
     name: process.env.NEXT_PUBLIC_APP_NAME ?? 'Zephyrex',
-    description: process.env.NEXT_PUBLIC_APP_DESCRIPTION ?? 'Zephyrex Framework Server',
-    defaultTheme: (process.env.NEXT_PUBLIC_THEME_DEFAULT_MODE as 'dark' | 'light') ?? 'dark',
+    description: process.env['NEXT_PUBLIC_APP_DESCRIPTION'] ?? 'Zephyrex Framework Server',
+    defaultTheme: (process.env['NEXT_PUBLIC_THEME_DEFAULT_MODE'] as 'dark' | 'light') ?? 'dark',
   },
   auth: {
-    privateRoutes: (process.env.PRIVATE_ROUTES ?? '/settings,/team,/provider').split(','),
+    privateRoutes: (process.env['PRIVATE_ROUTES'] ?? '/settings,/team,/provider').split(','),
   },
 };
 

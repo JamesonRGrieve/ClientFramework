@@ -9,13 +9,12 @@ const SmsVerify = lazy(() => import('@zephyrex/auth/mfa/SMS'));
 export const authMfaExtension = createExtension('auth_mfa', {
   displayName: 'Multi-Factor Authentication',
   description: 'TOTP, email, and SMS verification',
-  settingsPanel: undefined,
   authFlow: {
-    mfaSetup: ({ otpUri, onComplete }) => Authenticator({ otpUri, onComplete }),
-    mfaVerify: ({ type, onVerified }) => {
-      if (type === 'email') return EmailVerify({ onVerified });
-      if (type === 'sms') return SmsVerify({ onVerified });
-      return Authenticator({ onVerified });
+    mfaSetup: ({ verifiedCallback }) => Authenticator({ verifiedCallback }),
+    mfaVerify: ({ type, verifiedCallback }) => {
+      if (type === 'email') return EmailVerify({ verifiedCallback });
+      if (type === 'sms') return SmsVerify({ verifiedCallback });
+      return Authenticator({ verifiedCallback });
     },
   },
 });

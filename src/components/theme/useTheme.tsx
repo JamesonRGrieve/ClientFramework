@@ -16,7 +16,7 @@ export const useTheme = (customThemes?: string[], initialTheme?: string) => {
   const { options, current, setCurrent } = useCookiePreference({
     cookieName: 'theme',
     defaults: [...THEME_DEFAULTS, ...(customThemes ?? [])],
-    initialValue: initialTheme,
+    ...(initialTheme !== undefined ? { initialValue: initialTheme } : {}),
     target: 'html',
     normalize: normalizeTheme,
     shouldAddClass: shouldAddThemeClass,

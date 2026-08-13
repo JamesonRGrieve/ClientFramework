@@ -33,7 +33,7 @@ export function useCookiePreference({
 
   const [current, setCurrentRaw] = useState(() => {
     const cookieValue = getCookie(cookieName);
-    const raw = cookieValue?.toString() ?? initialValue ?? defaults[0];
+    const raw = cookieValue?.toString() ?? initialValue ?? defaults[0] ?? '';
     return normalize(raw);
   });
 
@@ -53,9 +53,10 @@ export function useCookiePreference({
       el.classList.add(current);
     }
 
+    const cookieDomain = process.env['NEXT_PUBLIC_COOKIE_DOMAIN'];
     setCookie(cookieName, current, {
       expires: new Date(Date.now() + COOKIE_MAX_AGE_MS),
-      domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN,
+      ...(cookieDomain ? { domain: cookieDomain } : {}),
     });
   }, [current, options, cookieName, target, shouldAddClass]);
 

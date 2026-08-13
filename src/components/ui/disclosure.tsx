@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 type DisclosureContextType = {
   open: boolean;
   toggle: () => void;
-  variants?: { expanded: Variant; collapsed: Variant };
+  variants?: { expanded: Variant; collapsed: Variant } | undefined;
 };
 
 const DisclosureContext = createContext<DisclosureContextType | undefined>(undefined);
@@ -16,8 +16,8 @@ const DisclosureContext = createContext<DisclosureContextType | undefined>(undef
 type DisclosureProviderProps = {
   children: React.ReactNode;
   open: boolean;
-  onOpenChange?: (open: boolean) => void;
-  variants?: { expanded: Variant; collapsed: Variant };
+  onOpenChange?: ((open: boolean) => void) | undefined;
+  variants?: { expanded: Variant; collapsed: Variant } | undefined;
 };
 
 function DisclosureProvider({ children, open: openProp, onOpenChange, variants }: DisclosureProviderProps) {
@@ -74,7 +74,7 @@ export function Disclosure({
   variants,
 }: DisclosureProps) {
   return (
-    <MotionConfig transition={transition}>
+    <MotionConfig {...(transition !== undefined ? { transition } : {})}>
       <div className={className}>
         <DisclosureProvider open={openProp} onOpenChange={onOpenChange} variants={variants}>
           {React.Children.toArray(children)[0]}
@@ -128,8 +128,8 @@ export function DisclosureContent({ children, className }: { children: React.Rea
   };
 
   const combinedVariants = {
-    expanded: { ...BASE_VARIANTS.expanded, ...variants?.expanded },
-    collapsed: { ...BASE_VARIANTS.collapsed, ...variants?.collapsed },
+    expanded: { ...BASE_VARIANTS['expanded'], ...variants?.['expanded'] },
+    collapsed: { ...BASE_VARIANTS['collapsed'], ...variants?.['collapsed'] },
   };
 
   return (

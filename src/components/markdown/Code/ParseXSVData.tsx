@@ -26,18 +26,19 @@ export function parseXSVData(
       .filter((cell) => cell),
   );
 
+  const headerRow = rawData[0];
   if (
-    !rawData.every((row) => row.length === rawData[0].length) ||
-    !rawData[0] ||
+    !headerRow ||
+    !rawData.every((row) => row.length === headerRow.length) ||
     rawData.some((row) => [0, 1].includes(row.length))
   ) {
     return { error: 'XSV data is not valid.' };
   }
 
-  const isIdHeader = rawData[0][0].toLowerCase().includes('id');
+  const isIdHeader = (headerRow[0] ?? '').toLowerCase().includes('id');
 
   return {
-    columns: (isIdHeader ? rawData[0].slice(1) : rawData[0]).map((header) => ({
+    columns: (isIdHeader ? headerRow.slice(1) : headerRow).map((header) => ({
       field: header,
       width: Math.max(160, header.length * 10),
       flex: 1,
@@ -46,12 +47,12 @@ export function parseXSVData(
     rows: rawData.slice(1).map((row, index) =>
       isIdHeader
         ? {
-            id: row[0],
-            ...Object.fromEntries(row.slice(1).map((cell, i) => [rawData[0][i + 1], cell])),
+            id: row[0] ?? index,
+            ...Object.fromEntries(row.slice(1).map((cell, i) => [headerRow[i + 1] ?? '', cell])),
           }
         : {
             id: index,
-            ...Object.fromEntries(row.map((cell, i) => [rawData[0][i], cell])),
+            ...Object.fromEntries(row.map((cell, i) => [headerRow[i] ?? '', cell])),
           },
     ),
   };

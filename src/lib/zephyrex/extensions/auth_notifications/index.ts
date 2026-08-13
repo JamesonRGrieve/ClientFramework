@@ -2,12 +2,13 @@
 import { lazy } from 'react';
 import { createExtension } from '../createExtension';
 
-const Notifications = lazy(() => import('@zephyrex/auth/management/Notifications'));
+const Notifications = lazy(() =>
+  import('@zephyrex/auth/management/Notifications').then((m) => ({ default: m.Notifications })),
+);
 
 export const authNotificationsExtension = createExtension('auth_notifications', {
   displayName: 'Notifications',
   description: 'User notification preferences and delivery',
-  settingsPanel: undefined,
   managementTabs: [{ id: 'notifications', label: 'Notifications', component: () => Notifications({}), priority: 40 }],
   navItems: [{ title: 'Notifications', url: '/notifications' }],
 });

@@ -102,7 +102,7 @@ const detectLanguage = (language: string, raw: string): { language: string; code
     return { language, code: raw };
   }
   const languages = Object.entries(fileExtensions).flat();
-  const potentialLanguage = raw.split('\n')[0].trim();
+  const potentialLanguage = (raw.split('\n')[0] ?? '').trim();
   if (languages.includes(potentialLanguage)) {
     return { language: potentialLanguage, code: raw.substring(raw.indexOf('\n') + 1) };
   }

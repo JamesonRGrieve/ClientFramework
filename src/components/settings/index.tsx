@@ -34,7 +34,7 @@ export function Settings() {
   };
 
   if (!isDialogOpen) {
-    return <></>;
+    return null;
   }
 
   return (
@@ -43,7 +43,7 @@ export function Settings() {
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue={sections[0].name} className='flex gap-4'>
+        <Tabs defaultValue={sections[0]?.name ?? ''} className='flex gap-4'>
           <TabsList className='flex-col justify-start w-48 h-auto bg-transparent'>
             {sections.map(({ name }) => (
               <TabsTrigger

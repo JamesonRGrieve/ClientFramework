@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: process.env.NEXT_PUBLIC_APP_NAME,
-  description: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
+  description: process.env['NEXT_PUBLIC_APP_DESCRIPTION'],
   manifest: '/manifest.json',
   appleWebApp: {
     title: process.env.NEXT_PUBLIC_APP_NAME,

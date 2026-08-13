@@ -10,9 +10,9 @@ export function createMiddleware(options?: { hooks?: MiddlewareHook[]; extension
   return async function middleware(req: NextRequest): Promise<NextResponse> {
     // Run built-in auth middleware hooks if available
     try {
-      const { useNextAPIBypass, useOAuth2, useJWTQueryParam, useAuth } = await import('@zephyrex/auth/auth.middleware');
+      const { useOAuth2, useJWTQueryParam, useAuth } = await import('@zephyrex/auth/auth.middleware');
 
-      const builtinHooks: MiddlewareHook[] = [useNextAPIBypass, useOAuth2, useJWTQueryParam, useAuth];
+      const builtinHooks: MiddlewareHook[] = [useOAuth2, useJWTQueryParam, useAuth];
 
       for (const hook of [...builtinHooks, ...allHooks]) {
         const result = await hook(req);

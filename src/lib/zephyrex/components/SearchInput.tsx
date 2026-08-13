@@ -20,7 +20,7 @@ export function SearchInput({
   className,
 }: SearchInputProps) {
   const [value, setValue] = useState('');
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,6 +59,7 @@ export function SearchInput({
       />
       {value && (
         <button
+          type='button'
           onClick={handleClear}
           className='absolute right-2 rounded-sm p-0.5 hover:bg-accent'
           aria-label='Clear search'

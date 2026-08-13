@@ -105,8 +105,11 @@ export const ProviderSidebar = (): React.JSX.Element => {
     setSelectedProviderId(providerId);
     const filtered = providerInstances?.filter((instance) => instance.provider_id === providerId) ?? [];
     if (filtered.length > 0) {
-      setSelectedInstance(filtered[0]);
-      router.push(`/provider/${filtered[0].id}`);
+      const first = filtered[0];
+      if (first) {
+        setSelectedInstance(first);
+        router.push(`/provider/${first.id}`);
+      }
     } else {
       setSelectedInstance(null);
       router.push('/provider');
@@ -235,9 +238,10 @@ export const ProviderSidebar = (): React.JSX.Element => {
         providerInstances?.filter(
           (instance) => instance.provider_id === selectedProviderId && instance.id !== selectedInstance.id,
         ) ?? [];
-      if (list.length > 0) {
-        setSelectedInstance(list[0]);
-        router.push(`/provider/${list[0].id}`);
+      const next = list[0];
+      if (next) {
+        setSelectedInstance(next);
+        router.push(`/provider/${next.id}`);
       } else {
         setSelectedInstance(null);
         router.push(`/provider`);
@@ -297,7 +301,7 @@ export const ProviderSidebar = (): React.JSX.Element => {
       <SidebarGroup>
         <SidebarGroupLabel>Select Provider</SidebarGroupLabel>
         <div className='w-full group-data-[collapsible=icon]:hidden'>
-          <Select value={selectedProviderId ?? undefined} onValueChange={handleProviderChange}>
+          <Select {...(selectedProviderId ? { value: selectedProviderId } : {})} onValueChange={handleProviderChange}>
             <SelectTrigger>
               <SelectValue placeholder='Select a provider' />
             </SelectTrigger>
@@ -318,7 +322,7 @@ export const ProviderSidebar = (): React.JSX.Element => {
         <SidebarGroupLabel>Select Provider Instance</SidebarGroupLabel>
         <div className='w-full group-data-[collapsible=icon]:hidden'>
           <Select
-            value={selectedInstance?.id}
+            {...(selectedInstance?.id !== undefined ? { value: selectedInstance.id } : {})}
             onValueChange={handleSelectInstance}
             disabled={
               selectedProviderId !== null

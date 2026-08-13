@@ -28,7 +28,7 @@ export function useProvider(providerName?: string): SWRResponse<Provider | null>
         const response = await client.request<Record<string, unknown>>(query, {
           providerName,
         });
-        return ProviderSchema.parse(response.provider);
+        return ProviderSchema.parse(response['provider']);
       } catch (error) {
         log(['GQL useProvider() Error', error], {
           client: 1,
@@ -56,7 +56,7 @@ export function useProviders(): SWRResponse<Provider[]> {
         log(['GQL useProviders() Response', response], {
           client: 3,
         });
-        const validated = z.array(ProviderSchema).parse(response.providers);
+        const validated = z.array(ProviderSchema).parse(response['providers']);
         log(['GQL useProviders() Validated', validated], {
           client: 3,
         });

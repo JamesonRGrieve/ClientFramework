@@ -7,7 +7,7 @@ export default function assert(test: boolean, message?: string) {
   }
 }
 
-export function useAssertion(assertion: boolean, message: string, _dependencies: any[]) {
+export function useAssertion(assertion: boolean, message: string, _dependencies: unknown[]) {
   useEffect(() => {
     assert(assertion, message);
   }, [assertion, message]);

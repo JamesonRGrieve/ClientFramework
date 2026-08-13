@@ -15,7 +15,10 @@ export function useAuthFlowInjections(): AuthFlowInjection[] {
 }
 
 export function AuthFlowProvider({ extensions, children }: { extensions: ZephyrexClientExtension[]; children: ReactNode }) {
-  const injections = useMemo(() => extensions.filter((ext) => ext.authFlow).map((ext) => ext.authFlow!), [extensions]);
+  const injections = useMemo(
+    () => extensions.map((ext) => ext.authFlow).filter((flow): flow is AuthFlowInjection => flow !== undefined),
+    [extensions],
+  );
 
   return <AuthFlowContext value={{ injections }}>{children}</AuthFlowContext>;
 }

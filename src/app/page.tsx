@@ -18,7 +18,7 @@ export default async function Home() {
           </Link>
         </div>
         <div className='flex items-center gap-2'>
-          <ThemeToggle initialTheme={(await cookies()).get('theme')?.value} />
+          <ThemeToggle initialTheme={(await cookies()).get('theme')?.value ?? 'light'} />
           <Link href={process.env.NEXT_PUBLIC_AUTH_URI || '/user'}>
             <Button size='lg' className='px-4 rounded-full'>
               Login or Register

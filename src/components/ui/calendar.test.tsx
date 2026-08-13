@@ -5,7 +5,7 @@ import { Calendar } from './calendar';
 
 describe('Calendar', () => {
   it('renders without crashing', () => {
-    const { container } = render(<Calendar>content</Calendar>);
+    const { container } = render(<Calendar />);
     expect(container).toBeInTheDocument();
   });
 });

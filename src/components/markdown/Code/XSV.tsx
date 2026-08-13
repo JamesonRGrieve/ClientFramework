@@ -49,17 +49,19 @@ export const RendererXSV = ({
           .filter((cell) => cell),
       );
 
+      const headerRow = rawData[0];
       if (
-        !rawData.every((row) => row.length === rawData[0].length) ||
-        !rawData[0] ||
+        !headerRow ||
+        !rawData.every((row) => row.length === headerRow.length) ||
         rawData.some((row) => [0, 1].includes(row.length))
       ) {
         setError('XSV data is not valid.');
       } else {
         setError('');
+        const isIdHeader = (headerRow[0] ?? '').toLowerCase().includes('id');
 
         setColumns(
-          (rawData[0][0].toLowerCase().includes('id') ? rawData[0].slice(1) : rawData[0]).map((header) => ({
+          (isIdHeader ? headerRow.slice(1) : headerRow).map((header) => ({
             field: header,
             width: Math.max(160, header.length * 10),
             flex: 1,
@@ -69,14 +71,14 @@ export const RendererXSV = ({
 
         setRows(
           rawData.slice(1).map((row, index) =>
-            rawData[0][0].toLowerCase().includes('id')
+            isIdHeader
               ? {
-                  id: row[0],
-                  ...Object.fromEntries(row.slice(1).map((cell, index) => [rawData[0][index + 1], cell])),
+                  id: row[0] ?? index,
+                  ...Object.fromEntries(row.slice(1).map((cell, i) => [headerRow[i + 1] ?? '', cell])),
                 }
               : {
                   id: index,
-                  ...Object.fromEntries(row.map((cell, index) => [rawData[0][index], cell])),
+                  ...Object.fromEntries(row.map((cell, i) => [headerRow[i] ?? '', cell])),
                 },
           ),
         );

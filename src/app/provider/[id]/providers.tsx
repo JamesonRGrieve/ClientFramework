@@ -251,11 +251,11 @@ function Providers(): React.JSX.Element {
                   `${process.env.NEXT_PUBLIC_API_URI}/v1/provider/instance/${providerInstance.id}`,
                   {
                     provider_instance: {
-                      name: formData.name,
+                      name: formData['name'],
                       provider_id: providerInstance.provider_id,
-                      model_name: formData.model_name,
-                      api_key: formData.api_key,
-                      enabled: formData.enabled,
+                      model_name: formData['model_name'],
+                      api_key: formData['api_key'],
+                      enabled: formData['enabled'],
                     },
                   },
                   {
