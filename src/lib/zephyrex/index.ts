@@ -7,7 +7,7 @@ export { ZephyrexRouter } from './ZephyrexRouter';
 export { createMiddleware } from './createMiddleware';
 
 // API Client
-export { ZephyrexClient, ApiError } from './client';
+export { ZephyrexClient, ApiError, RateLimitError } from './client';
 export type { ZephyrexClientConfig } from './client';
 
 // Data Hooks
@@ -32,6 +32,7 @@ export type { UploadResult, UploadProgress } from './useFileUpload';
 export { useSubscription } from './useSubscription';
 export type { SubscriptionOptions } from './useSubscription';
 export { useOnline } from './useOnline';
+export { useRateLimit } from './useRateLimit';
 
 // Components
 export { RequireRole } from './components/RequireRole';
@@ -39,6 +40,7 @@ export { ErrorBoundary } from './components/ErrorBoundary';
 export { NotificationBell } from './components/NotificationBell';
 export { SearchInput } from './components/SearchInput';
 export type { SearchInputProps } from './components/SearchInput';
+export { RateLimitBanner } from './components/RateLimitBanner';
 
 // Page Injection
 export { PageSlotsProvider, usePageSlots, PageWithSlots } from './PageSlots';
