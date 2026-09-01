@@ -35,7 +35,7 @@ test.beforeAll(async ({ request }) => {
   }
 });
 
-function authHeaders() {
+function authHeaders(): Record<string, string> {
   return authToken ? { Authorization: `Bearer ${authToken}` } : {};
 }
 

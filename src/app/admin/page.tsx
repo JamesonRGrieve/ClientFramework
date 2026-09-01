@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import Link from 'next/link';
 

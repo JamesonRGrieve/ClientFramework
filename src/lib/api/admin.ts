@@ -1,7 +1,7 @@
 import type { ApiClient } from './client';
 import type { ApiResponse, DlqEntry, Page, ServiceStatus } from './types';
 
-export interface DlqListQuery {
+export type DlqListQuery = {
   extension?: string;
   ability?: string;
   error_class?: string;
@@ -9,7 +9,7 @@ export interface DlqListQuery {
   until?: string;
   page?: number;
   per_page?: number;
-}
+};
 
 /**
  * Operations admin surface. Mirrors endpoints/Operations.create_operations_router.

@@ -22,7 +22,7 @@ import {
 import { cn } from '@/lib/utils';
 
 export const navItems = items;
-type Item = NavItem;
+export type Item = NavItem;
 type SubItem = NonNullable<Item['items']>[number];
 
 export function NavMain(): React.JSX.Element {

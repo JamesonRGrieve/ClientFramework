@@ -1,5 +1,6 @@
 'use client';
 
+import type { JSX } from 'react';
 import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

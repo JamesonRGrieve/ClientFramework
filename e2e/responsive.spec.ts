@@ -3,11 +3,11 @@ import { test, expect } from '@playwright/test';
 
 const VIEWPORTS = {
   'mobile-small': { width: 320, height: 568 },
-  'mobile': { width: 375, height: 812 },
+  mobile: { width: 375, height: 812 },
   'mobile-landscape': { width: 812, height: 375 },
   'tablet-portrait': { width: 768, height: 1024 },
   'tablet-landscape': { width: 1024, height: 768 },
-  'desktop': { width: 1280, height: 800 },
+  desktop: { width: 1280, height: 800 },
   'desktop-wide': { width: 1920, height: 1080 },
 };
 
@@ -78,10 +78,13 @@ for (const [viewportName, size] of Object.entries(VIEWPORTS)) {
       await page.waitForLoadState('networkidle');
 
       const overflow = await checkNoHorizontalOverflow(page);
-      expect(overflow.hasOverflow, [
-        `Horizontal overflow at ${viewportName}:`,
-        `body.scrollWidth=${overflow.bodyScrollWidth} > html.clientWidth=${overflow.htmlClientWidth}`,
-      ].join('\n')).toBe(false);
+      expect(
+        overflow.hasOverflow,
+        [
+          `Horizontal overflow at ${viewportName}:`,
+          `body.scrollWidth=${overflow.bodyScrollWidth} > html.clientWidth=${overflow.htmlClientWidth}`,
+        ].join('\n'),
+      ).toBe(false);
     });
 
     test('landing page has no offscreen interactive elements', async ({ page }) => {
@@ -89,10 +92,7 @@ for (const [viewportName, size] of Object.entries(VIEWPORTS)) {
       await page.waitForLoadState('networkidle');
 
       const offscreen = await checkNoOffscreenContent(page);
-      expect(offscreen, [
-        `Offscreen interactive elements at ${viewportName}:`,
-        ...offscreen,
-      ].join('\n')).toHaveLength(0);
+      expect(offscreen, [`Offscreen interactive elements at ${viewportName}:`, ...offscreen].join('\n')).toHaveLength(0);
     });
 
     test('header does not clip text', async ({ page }) => {
@@ -100,7 +100,7 @@ for (const [viewportName, size] of Object.entries(VIEWPORTS)) {
       await page.waitForLoadState('networkidle');
 
       const header = page.locator('header');
-      if (await header.count() > 0) {
+      if ((await header.count()) > 0) {
         const headerBox = await header.first().boundingBox();
         expect(headerBox).not.toBeNull();
         if (headerBox) {
@@ -113,16 +113,17 @@ for (const [viewportName, size] of Object.entries(VIEWPORTS)) {
       await page.goto('/');
       await page.waitForLoadState('networkidle');
 
-      const actions = page.getByRole('link', { name: /login|register|sign in|submit/i })
+      const actions = page
+        .getByRole('link', { name: /login|register|sign in|submit/i })
         .or(page.getByRole('button', { name: /login|register|sign in|submit/i }));
       const count = await actions.count();
       for (let i = 0; i < count; i++) {
         const box = await actions.nth(i).boundingBox();
-        if (box && typeof box.width === 'number' && typeof box.left === 'number' && box.width > 0 && box.height > 0) {
+        if (box && typeof box.width === 'number' && typeof box.x === 'number' && box.width > 0 && box.height > 0) {
           expect(box.width).toBeGreaterThanOrEqual(44);
           expect(box.height).toBeGreaterThanOrEqual(44);
-          expect(box.left).toBeGreaterThanOrEqual(0);
-          expect(box.left + box.width).toBeLessThanOrEqual(size.width);
+          expect(box.x).toBeGreaterThanOrEqual(0);
+          expect(box.x + box.width).toBeLessThanOrEqual(size.width);
         }
       }
     });
@@ -136,7 +137,7 @@ test.describe('Responsive: sidebar behavior', () => {
     await page.waitForLoadState('networkidle');
 
     const sidebar = page.locator('[data-sidebar]');
-    if (await sidebar.count() > 0) {
+    if ((await sidebar.count()) > 0) {
       const box = await sidebar.first().boundingBox();
       if (box) {
         expect(box.width).toBeLessThan(200);
@@ -150,7 +151,7 @@ test.describe('Responsive: sidebar behavior', () => {
     await page.waitForLoadState('networkidle');
 
     const sidebar = page.locator('[data-sidebar="sidebar"]');
-    if (await sidebar.count() > 0) {
+    if ((await sidebar.count()) > 0) {
       const box = await sidebar.first().boundingBox();
       if (box) {
         expect(box.width).toBeGreaterThan(100);
@@ -198,7 +199,7 @@ test.describe('Responsive: data table', () => {
       await page.waitForLoadState('networkidle');
 
       const tables = page.locator('table');
-      if (await tables.count() > 0) {
+      if ((await tables.count()) > 0) {
         const tableInfo = await tables.first().evaluate((el) => {
           const parent = el.closest('.overflow-x-auto, .overflow-auto, [style*="overflow"]');
           return {
@@ -209,11 +210,14 @@ test.describe('Responsive: data table', () => {
         });
 
         if (tableInfo.tableWidth > tableInfo.containerWidth) {
-          expect(tableInfo.hasScrollContainer, [
-            `Table wider than viewport on ${name} but no scroll container.`,
-            `Table width: ${tableInfo.tableWidth}, container: ${tableInfo.containerWidth}`,
-            'Wrap the table in a div with overflow-x-auto.',
-          ].join('\n')).toBe(true);
+          expect(
+            tableInfo.hasScrollContainer,
+            [
+              `Table wider than viewport on ${name} but no scroll container.`,
+              `Table width: ${tableInfo.tableWidth}, container: ${tableInfo.containerWidth}`,
+              'Wrap the table in a div with overflow-x-auto.',
+            ].join('\n'),
+          ).toBe(true);
         }
       }
     });

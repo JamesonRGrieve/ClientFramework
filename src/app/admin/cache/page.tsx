@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+import type { JSX } from 'react';
 import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -89,9 +90,7 @@ export default function CachePage(): JSX.Element {
           </CardHeader>
         </Card>
 
-        {flushStatus && (
-          <div className='rounded-md bg-muted px-4 py-2 text-sm'>{flushStatus}</div>
-        )}
+        {flushStatus && <div className='rounded-md bg-muted px-4 py-2 text-sm'>{flushStatus}</div>}
 
         {/* Cache stats grid */}
         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
