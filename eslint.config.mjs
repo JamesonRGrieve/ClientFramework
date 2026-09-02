@@ -454,6 +454,20 @@ export default [
         rules: {
           '@typescript-eslint/explicit-function-return-type': 'off',
           '@typescript-eslint/explicit-module-boundary-types': 'off',
+          // `promise-function-async`'s autofix rewrites functions to `async`,
+          // which breaks React render/children/component functions — they must
+          // return elements synchronously (an async one returns a Promise and
+          // renders nothing). Keep it off for component files.
+          '@typescript-eslint/promise-function-async': 'off',
+        },
+      },
+      {
+        // Extension entry points register synchronous render factories
+        // (`component: () => X({})`, `mfaSetup`/`mfaVerify`); the same
+        // `promise-function-async` autofix would break them the same way.
+        files: ['src/lib/zephyrex/extensions/**/*.ts'],
+        rules: {
+          '@typescript-eslint/promise-function-async': 'off',
         },
       },
       {
@@ -472,8 +486,12 @@ export default [
           '@vitest/no-disabled-tests': 'error',
           '@vitest/no-identical-title': 'error',
           '@vitest/consistent-test-it': ['error', { fn: 'it', withinDescribe: 'it' }],
-          '@vitest/valid-expect': 'error',
-          '@vitest/valid-title': 'error',
+          // Vitest's `expect(value, message)` takes an optional 2nd assertion
+          // message (used across the security suite for actionable failures).
+          '@vitest/valid-expect': ['error', { maxArgs: 2 }],
+          // Parametrized security suites use dynamic `describe(routePath, ...)`
+          // titles; don't require a string literal for the describe name.
+          '@vitest/valid-title': ['error', { ignoreTypeOfDescribeName: true }],
           '@vitest/no-conditional-tests': 'warn',
           '@vitest/no-conditional-in-test': 'warn',
           '@vitest/no-conditional-expect': 'error',

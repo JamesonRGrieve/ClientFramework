@@ -36,8 +36,12 @@ function walk(dir, acc = []) {
   return acc;
 }
 
+// Next.js root convention files (proxy/middleware/instrumentation) are not
+// reusable components and get no story/test, same as the app/ dir (see §8).
+const CONVENTION_RE = /(^|\/)(proxy|middleware|instrumentation)\.(ts|tsx)$/;
+
 const all = walk(ROOT);
-const sources = all.filter((p) => SOURCE_RE.test(p) && !STORY_RE.test(p) && !TEST_RE.test(p));
+const sources = all.filter((p) => SOURCE_RE.test(p) && !STORY_RE.test(p) && !TEST_RE.test(p) && !CONVENTION_RE.test(p));
 const stories = new Set(all.filter((p) => STORY_RE.test(p)).map((p) => p.replace(STORY_RE, '')));
 const tests = new Set(all.filter((p) => TEST_RE.test(p)).map((p) => p.replace(TEST_RE, '')));
 

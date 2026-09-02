@@ -12,7 +12,9 @@ export function useActiveExtensions(registeredExtensions: ZephyrexClientExtensio
   const { data: serverExtensions, isLoading } = useServerExtensions();
 
   const active = useMemo(() => {
-    if (!serverExtensions) return registeredExtensions;
+    if (!serverExtensions) {
+      return registeredExtensions;
+    }
     const serverNames = new Set(serverExtensions.map((e) => e.name));
     return registeredExtensions.filter((ext) => !ext.serverExtension || serverNames.has(ext.serverExtension));
   }, [registeredExtensions, serverExtensions]);

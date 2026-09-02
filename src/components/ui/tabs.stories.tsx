@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
+import { Tabs } from './tabs';
 
 const meta: Meta<typeof Tabs> = {
   title: 'UI/Tabs',

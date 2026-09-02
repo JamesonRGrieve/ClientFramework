@@ -57,7 +57,9 @@ export async function parseErrorResponse(response: Response, correlationId?: str
   } catch {
     try {
       const text = await response.clone().text();
-      if (text) detail = text;
+      if (text) {
+        detail = text;
+      }
     } catch {
       // swallow — body may have been consumed
     }

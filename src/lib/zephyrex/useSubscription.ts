@@ -2,8 +2,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useZephyrexConfig } from './ZephyrexProvider';
 import { getCookie } from 'cookies-next';
+import { useZephyrexConfig } from './ZephyrexProvider';
 
 export interface SubscriptionOptions {
   query: string;
@@ -23,7 +23,9 @@ export function useSubscription<T = unknown>(options: SubscriptionOptions) {
   const { query, variables, onData, onError, enabled = true } = options;
 
   useEffect(() => {
-    if (!enabled) return undefined;
+    if (!enabled) {
+      return undefined;
+    }
 
     const wsUrl =
       config.server.baseUrl.replace(/^http/, 'ws').replace(/\/$/, '') + (config.server.graphqlPath ?? '/graphql');

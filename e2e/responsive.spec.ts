@@ -12,7 +12,7 @@ const VIEWPORTS = {
 };
 
 async function checkNoHorizontalOverflow(page: import('@playwright/test').Page) {
-  const overflow = await page.evaluate(() => {
+  return page.evaluate(() => {
     const body = document.body;
     const html = document.documentElement;
     return {
@@ -21,7 +21,6 @@ async function checkNoHorizontalOverflow(page: import('@playwright/test').Page) 
       hasOverflow: body.scrollWidth > html.clientWidth,
     };
   });
-  return overflow;
 }
 
 async function checkNoClippedText(page: import('@playwright/test').Page) {
@@ -174,7 +173,9 @@ test.describe('Responsive: touch targets', () => {
       for (const el of interactive) {
         const rect = el.getBoundingClientRect();
         if (rect.width > 0 && rect.height > 0 && rect.width < MIN_SIZE && rect.height < MIN_SIZE) {
-          if (el.closest('.sr-only') || el.getAttribute('aria-hidden') === 'true') continue;
+          if (el.closest('.sr-only') || el.getAttribute('aria-hidden') === 'true') {
+            continue;
+          }
           const label = el.textContent?.trim().slice(0, 30) || el.getAttribute('aria-label') || el.tagName;
           small.push(`${label} (${Math.round(rect.width)}x${Math.round(rect.height)})`);
         }

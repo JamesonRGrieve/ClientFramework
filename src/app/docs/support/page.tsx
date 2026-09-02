@@ -1,8 +1,10 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { useUser } from '@zephyrex/auth/hooks/useUser';
+import Link from 'next/link';
+import { useState } from 'react';
+import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,8 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import Link from 'next/link';
-import { useState } from 'react';
+
 const requestTypes = [
   { value: 'bug', label: 'Report a Bug' },
   { value: 'technical', label: 'Technical Support' },

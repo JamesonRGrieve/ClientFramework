@@ -32,20 +32,26 @@ export function useRateLimit(): RateLimitState & { reportError: (err: unknown) =
   }, []);
 
   useEffect(() => {
-    if (!state.isLimited) return undefined;
+    if (!state.isLimited) {
+      return undefined;
+    }
 
     timerRef.current = setInterval(() => {
       const remaining = Math.max(0, expiresAtRef.current - Date.now());
       if (remaining <= 0) {
         setState({ isLimited: false, retryAfterMs: 0, remainingMs: 0 });
-        if (timerRef.current) clearInterval(timerRef.current);
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
         return;
       }
       setState((prev) => ({ ...prev, remainingMs: remaining }));
     }, 500);
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
     };
   }, [state.isLimited]);
 

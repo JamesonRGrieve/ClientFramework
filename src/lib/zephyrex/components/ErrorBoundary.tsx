@@ -38,7 +38,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         return fallback(error, this.retry);
       }
 
-      if (fallback) return fallback;
+      if (fallback) {
+        return fallback;
+      }
 
       const isServerDown = error instanceof ApiError && error.status >= 500;
 

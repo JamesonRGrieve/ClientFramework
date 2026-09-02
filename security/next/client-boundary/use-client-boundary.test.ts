@@ -10,19 +10,19 @@
  * This test verifies that Server Components do not pass dangerous props
  * to Client Components.
  */
-import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
+import { describe, expect, it } from 'vitest';
 
 const DANGEROUS_PROP_PATTERNS = [
-  /apiKey/i,
+  /apikey/i,
   /secret/i,
   /password/i,
   /token(?!s?\s*[=:])/i,
-  /privateKey/i,
+  /privatekey/i,
   /credential/i,
-  /databaseUrl/i,
-  /connectionString/i,
+  /databaseurl/i,
+  /connectionstring/i,
 ];
 
 function findServerComponents(dir: string): string[] {
@@ -30,11 +30,15 @@ function findServerComponents(dir: string): string[] {
   try {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const full = join(dir, entry.name);
-      if (entry.name === 'node_modules' || entry.name === '.next') continue;
+      if (entry.name === 'node_modules' || entry.name === '.next') {
+        continue;
+      }
       if (entry.isDirectory()) {
         results.push(...findServerComponents(full));
       } else if (entry.name.endsWith('.tsx') || entry.name.endsWith('.ts')) {
-        if (entry.name.includes('.test.') || entry.name.includes('.stories.')) continue;
+        if (entry.name.includes('.test.') || entry.name.includes('.stories.')) {
+          continue;
+        }
         try {
           const source = readFileSync(full, 'utf8');
           // Server Components are the default (no 'use client' directive)
@@ -72,10 +76,7 @@ describe('"use client" boundary — no secrets in serialized props', () => {
         if (matches) {
           // Filter out type annotations and imports
           for (const match of matches) {
-            if (
-              !source.includes(`type.*${match}`) &&
-              !source.includes(`interface.*${match}`)
-            ) {
+            if (!source.includes(`type.*${match}`) && !source.includes(`interface.*${match}`)) {
               violations.push(`${file} — passes "${match.trim()}" as prop/value`);
             }
           }

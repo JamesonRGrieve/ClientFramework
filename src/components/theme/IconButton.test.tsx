@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import IconButton from './IconButton';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 function TestIcon({ className }: { className?: string }) {
   return <span className={className} data-testid='icon' />;

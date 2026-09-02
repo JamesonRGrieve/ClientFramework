@@ -8,16 +8,18 @@
  *
  * This test scans all client-side API calls and verifies they include auth headers.
  */
-import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
+import { describe, expect, it } from 'vitest';
 
 function scanFiles(dir: string): string[] {
   const results: string[] = [];
   try {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const full = join(dir, entry.name);
-      if (entry.name === 'node_modules' || entry.name === '.next') continue;
+      if (entry.name === 'node_modules' || entry.name === '.next') {
+        continue;
+      }
       if (entry.isDirectory()) {
         results.push(...scanFiles(full));
       } else if (
@@ -46,7 +48,7 @@ describe('API calls include authorization', () => {
       const lines = source.split('\n');
 
       for (let i = 0; i < lines.length; i++) {
-        const line = lines[i]!;
+        const line = lines[i];
         for (const method of mutationMethods) {
           if (line.includes(method)) {
             // Check next ~20 lines for Authorization header
@@ -59,11 +61,14 @@ describe('API calls include authorization', () => {
       }
     }
 
-    expect(violations, [
-      'AUTH MISSING: API mutation calls without Authorization header:',
-      ...violations,
-      'Without per-request auth, these calls rely solely on middleware/cookies.',
-      'A middleware bypass would allow unauthenticated mutations.',
-    ].join('\n')).toHaveLength(0);
+    expect(
+      violations,
+      [
+        'AUTH MISSING: API mutation calls without Authorization header:',
+        ...violations,
+        'Without per-request auth, these calls rely solely on middleware/cookies.',
+        'A middleware bypass would allow unauthenticated mutations.',
+      ].join('\n'),
+    ).toHaveLength(0);
   });
 });

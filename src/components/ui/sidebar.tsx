@@ -96,7 +96,7 @@ const SidebarProvider = React.forwardRef<
             setRightOpen(openState);
           }
 
-          const cookieDomain = process.env['NEXT_PUBLIC_COOKIE_DOMAIN'];
+          const cookieDomain = process.env.NEXT_PUBLIC_COOKIE_DOMAIN;
           setCookie(`sidebar-${side}-state`, openState, {
             path: '/',
             maxAge: 60 * 60 * 24 * 7,

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/react';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './table';
+import { Table } from './table';
 
 const meta: Meta<typeof Table> = {
   title: 'UI/Table',

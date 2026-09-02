@@ -4,6 +4,9 @@ dist/
 .next/
 storybook-static/
 coverage/
+playwright-report/
+test-results/
+blob-report/
 *.tsbuildinfo
 *-coverage.json
 .symmetry-coverage.json

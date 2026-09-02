@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './tooltip';
+import { Tooltip } from './tooltip';
 
 const meta: Meta<typeof Tooltip> = {
   title: 'UI/Tooltip',

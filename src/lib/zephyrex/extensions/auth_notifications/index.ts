@@ -2,7 +2,7 @@
 import { lazy } from 'react';
 import { createExtension } from '../createExtension';
 
-const Notifications = lazy(() =>
+const Notifications = lazy(async () =>
   import('@zephyrex/auth/management/Notifications').then((m) => ({ default: m.Notifications })),
 );
 

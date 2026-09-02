@@ -3,8 +3,8 @@
  * Responsive layout verification — checks that components use the correct
  * responsive classes to prevent clipping and overflow on mobile/tablet.
  */
-import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'fs';
+import { describe, expect, it } from 'vitest';
 
 describe('SidebarPage — responsive toggle', () => {
   it('sidebar toggle uses md:hidden for desktop hiding', () => {
@@ -49,9 +49,7 @@ describe('DataTable — responsive overflow', () => {
   it('data table has border or overflow container', () => {
     const source = readFileSync('src/components/data-table/index.tsx', 'utf8');
     const hasContainer =
-      source.includes('overflow-x-auto') ||
-      source.includes('overflow-auto') ||
-      source.includes('border rounded-md');
+      source.includes('overflow-x-auto') || source.includes('overflow-auto') || source.includes('border rounded-md');
     expect(hasContainer).toBe(true);
   });
 

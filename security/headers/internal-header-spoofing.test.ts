@@ -10,9 +10,9 @@
  * This test scans all server-side source files for code that reads internal
  * headers and uses them for authorization or routing decisions.
  */
-import { describe, expect, it } from 'vitest';
-import { readdirSync, readFileSync, statSync } from 'fs';
+import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
+import { describe, expect, it } from 'vitest';
 
 const INTERNAL_HEADERS = [
   'x-nextjs-data',
@@ -34,7 +34,9 @@ function scanFiles(dir: string, ext: string[]): string[] {
   try {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const full = join(dir, entry.name);
-      if (entry.name === 'node_modules' || entry.name === '.next') continue;
+      if (entry.name === 'node_modules' || entry.name === '.next') {
+        continue;
+      }
       if (entry.isDirectory()) {
         results.push(...scanFiles(full, ext));
       } else if (ext.some((e) => entry.name.endsWith(e))) {
@@ -49,10 +51,7 @@ function scanFiles(dir: string, ext: string[]): string[] {
 
 describe('Internal header spoofing protection', () => {
   const serverFiles = scanFiles('src', ['.ts', '.tsx']).filter(
-    (f) =>
-      !f.includes('.test.') &&
-      !f.includes('.stories.') &&
-      !f.includes('node_modules'),
+    (f) => !f.includes('.test.') && !f.includes('.stories.') && !f.includes('node_modules'),
   );
 
   for (const header of INTERNAL_HEADERS) {
@@ -64,25 +63,23 @@ describe('Internal header spoofing protection', () => {
           // Check if it's being READ from request (not set on response)
           const lines = source.split('\n');
           for (let i = 0; i < lines.length; i++) {
-            const line = lines[i]!;
-            if (
-              line.includes(header) &&
-              (line.includes('.get(') ||
-                line.includes('.has(') ||
-                line.includes('headers['))
-            ) {
+            const line = lines[i];
+            if (line.includes(header) && (line.includes('.get(') || line.includes('.has(') || line.includes('headers['))) {
               violations.push(`${file}:${i + 1}`);
             }
           }
         }
       }
 
-      expect(violations, [
-        `HEADER SPOOFING: "${header}" is read from incoming requests at:`,
-        ...violations.map((v) => `  ${v}`),
-        'Internal Next.js headers can be forged by external clients.',
-        'Do not use them for authorization or routing decisions.',
-      ].join('\n')).toHaveLength(0);
+      expect(
+        violations,
+        [
+          `HEADER SPOOFING: "${header}" is read from incoming requests at:`,
+          ...violations.map((v) => `  ${v}`),
+          'Internal Next.js headers can be forged by external clients.',
+          'Do not use them for authorization or routing decisions.',
+        ].join('\n'),
+      ).toHaveLength(0);
     });
   }
 });

@@ -3,7 +3,7 @@
   "entry": [
     "src/app/**/{page,layout,template,error,loading,not-found,route,default,head,manifest,sitemap,robots,opengraph-image,twitter-image,icon,apple-icon}.{ts,tsx,js,jsx}",
     "src/app/**/{global-error,_app,_document}.{ts,tsx,js,jsx}",
-    "src/middleware.{ts,tsx,js,jsx}",
+    "src/proxy.{ts,tsx,js,jsx}",
     "next.config.js",
     "postcss.config.js",
     "tailwind.config.js",

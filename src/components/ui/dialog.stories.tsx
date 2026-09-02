@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/react';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './dialog';
+import { Dialog } from './dialog';
 
 const meta: Meta<typeof Dialog> = {
   title: 'UI/Dialog',

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { TestWrapper } from '@/__tests__/test-wrapper';
 import { RequireRole } from './RequireRole';
+import { TestWrapper } from '@/__tests__/test-wrapper';
 
 describe('RequireRole', () => {
   it('renders children inside provider tree', () => {

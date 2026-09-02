@@ -2,7 +2,7 @@
 import { lazy } from 'react';
 import { createExtension } from '../createExtension';
 
-const Invitations = lazy(() =>
+const Invitations = lazy(async () =>
   import('@zephyrex/auth/management/Invitations').then((m) => ({ default: m.InvitationsTable })),
 );
 

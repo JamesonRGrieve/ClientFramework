@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './card';
+import { Card } from './card';
 
 const meta: Meta<typeof Card> = {
   title: 'UI/Card',

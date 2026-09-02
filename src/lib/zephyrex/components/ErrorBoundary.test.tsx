@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { TestWrapper } from '@/__tests__/test-wrapper';
-import { ErrorBoundary } from './ErrorBoundary';
 import { ApiError } from '../client';
+import { ErrorBoundary } from './ErrorBoundary';
+import { TestWrapper } from '@/__tests__/test-wrapper';
 
 function ThrowError({ error }: { error: Error }): never {
   throw error;

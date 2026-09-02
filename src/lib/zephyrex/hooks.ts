@@ -14,7 +14,9 @@ export const ClientProvider = ClientContext.Provider;
 export function useClient(): ZephyrexClient {
   const ctx = useContext(ClientContext);
   const { config } = useZephyrexConfig();
-  if (ctx) return ctx;
+  if (ctx) {
+    return ctx;
+  }
   return new ZephyrexClient({ baseUrl: config.server.baseUrl });
 }
 

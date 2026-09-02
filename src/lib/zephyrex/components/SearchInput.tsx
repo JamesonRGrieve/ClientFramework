@@ -27,7 +27,9 @@ export function SearchInput({
       const newValue = e.target.value;
       setValue(newValue);
 
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
       timerRef.current = setTimeout(() => {
         onSearch(newValue);
       }, debounceMs);
@@ -43,7 +45,9 @@ export function SearchInput({
 
   useEffect(() => {
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
     };
   }, []);
 

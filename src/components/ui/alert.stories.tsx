@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/react';
-import { Alert, AlertTitle, AlertDescription } from './alert';
+import { Alert } from './alert';
 
 const meta: Meta<typeof Alert> = {
   title: 'UI/Alert',

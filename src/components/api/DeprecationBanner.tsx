@@ -12,7 +12,9 @@ import { useDeprecations } from '@/hooks/api';
  */
 export function DeprecationBanner(): JSX.Element | null {
   const { notices, dismiss } = useDeprecations();
-  if (notices.length === 0) return null;
+  if (notices.length === 0) {
+    return null;
+  }
 
   return (
     <div className='fixed bottom-4 right-4 z-50 flex max-w-md flex-col gap-2'>

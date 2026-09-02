@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/react';
-import { RadioGroup, RadioGroupItem } from './radio-group';
+import { RadioGroup } from './radio-group';
 
 const meta: Meta<typeof RadioGroup> = {
   title: 'UI/RadioGroup',

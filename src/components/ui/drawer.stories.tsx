@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/react';
-import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from './drawer';
+import { Drawer } from './drawer';
 
 const meta: Meta<typeof Drawer> = {
   title: 'UI/Drawer',

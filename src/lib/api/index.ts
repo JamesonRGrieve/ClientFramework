@@ -1,4 +1,4 @@
-export * from './types';
+export type * from './types';
 export * from './errors';
 export * from './headers';
 export * from './client';

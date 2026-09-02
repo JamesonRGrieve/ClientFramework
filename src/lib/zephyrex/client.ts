@@ -32,26 +32,32 @@ export class ApiError extends Error {
 
 function parseRetryAfter(res: Response): number {
   const header = res.headers.get('Retry-After');
-  if (!header) return BASE_BACKOFF_MS;
+  if (!header) {
+    return BASE_BACKOFF_MS;
+  }
   const seconds = Number(header);
-  if (!Number.isNaN(seconds)) return seconds * 1000;
+  if (!Number.isNaN(seconds)) {
+    return seconds * 1000;
+  }
   const date = Date.parse(header);
-  if (!Number.isNaN(date)) return Math.max(0, date - Date.now());
+  if (!Number.isNaN(date)) {
+    return Math.max(0, date - Date.now());
+  }
   return BASE_BACKOFF_MS;
 }
 
-async function fetchWithRetry(
-  input: RequestInfo | URL,
-  init: RequestInit,
-  retries = MAX_RETRIES,
-): Promise<Response> {
+async function fetchWithRetry(input: RequestInfo | URL, init: RequestInit, retries = MAX_RETRIES): Promise<Response> {
   let lastResponse: Response | null = null;
   for (let attempt = 0; attempt <= retries; attempt++) {
     const res = await fetch(input, init);
-    if (res.status !== 429) return res;
+    if (res.status !== 429) {
+      return res;
+    }
 
     lastResponse = res;
-    if (attempt === retries) break;
+    if (attempt === retries) {
+      break;
+    }
 
     const retryAfter = parseRetryAfter(res);
     const jitter = Math.random() * 200;
@@ -64,8 +70,8 @@ async function fetchWithRetry(
 }
 
 export class ZephyrexClient {
-  private baseUrl: string;
-  private getToken: () => string | null;
+  private readonly baseUrl: string;
+  private readonly getToken: () => string | null;
 
   constructor(config: ZephyrexClientConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
@@ -75,13 +81,17 @@ export class ZephyrexClient {
   private headers(): Record<string, string> {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     const token = this.getToken();
-    if (token) headers['Authorization'] = `Bearer ${token}`;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
     return headers;
   }
 
   private async request<T>(url: string, init: RequestInit): Promise<T> {
     const res = await fetchWithRetry(url, init);
-    if (!res.ok) throw new ApiError(res.status, await res.text());
+    if (!res.ok) {
+      throw new ApiError(res.status, await res.text());
+    }
     return res.json();
   }
 

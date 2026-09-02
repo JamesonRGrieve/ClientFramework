@@ -15,8 +15,12 @@ export function RequireRole({
 }) {
   const { isAdmin, isSuperAdmin } = useRole();
 
-  if (role === 'superadmin' && !isSuperAdmin) return <>{fallback}</>;
-  if (role === 'admin' && !isAdmin) return <>{fallback}</>;
+  if (role === 'superadmin' && !isSuperAdmin) {
+    return <>{fallback}</>;
+  }
+  if (role === 'admin' && !isAdmin) {
+    return <>{fallback}</>;
+  }
 
   return <>{children}</>;
 }

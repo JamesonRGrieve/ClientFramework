@@ -1,4 +1,4 @@
-import { ApiError, parseErrorResponse } from './errors';
+import { parseErrorResponse } from './errors';
 import { extractCorrelationId, mintTraceparent, parseDeprecation, parseRateLimit } from './headers';
 import type { ApiResponse, DeprecationInfo, HttpMethod, Page, RateLimitInfo, SearchRequest } from './types';
 
@@ -25,10 +25,14 @@ export interface RequestOptions {
 }
 
 const buildQuery = (query?: RequestOptions['query']): string => {
-  if (!query) return '';
+  if (!query) {
+    return '';
+  }
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
-    if (value === undefined) continue;
+    if (value === undefined) {
+      continue;
+    }
     params.set(key, String(value));
   }
   const s = params.toString();
@@ -64,15 +68,21 @@ export class ApiClient {
   async request<T>(method: HttpMethod, path: string, body?: unknown, options: RequestOptions = {}): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${path}${buildQuery(options.query)}`;
     const headers = new Headers(options.headers);
-    if (!headers.has('accept')) headers.set('accept', 'application/json');
+    if (!headers.has('accept')) {
+      headers.set('accept', 'application/json');
+    }
     if (body !== undefined && !headers.has('content-type')) {
       headers.set('content-type', 'application/json');
     }
-    if (!headers.has('traceparent')) headers.set('traceparent', mintTraceparent());
+    if (!headers.has('traceparent')) {
+      headers.set('traceparent', mintTraceparent());
+    }
 
     if (this.authHeader) {
       const auth = await this.authHeader();
-      if (auth && !headers.has('authorization')) headers.set('authorization', auth);
+      if (auth && !headers.has('authorization')) {
+        headers.set('authorization', auth);
+      }
     }
 
     const response = await this.fetchImpl(url, {
@@ -85,10 +95,14 @@ export class ApiClient {
 
     const correlationId = extractCorrelationId(response.headers);
     const deprecation = parseDeprecation(response.headers, path);
-    if (deprecation && this.onDeprecation) this.onDeprecation(deprecation);
+    if (deprecation && this.onDeprecation) {
+      this.onDeprecation(deprecation);
+    }
 
     const rateLimit = parseRateLimit(response.headers);
-    if (rateLimit && this.onRateLimit) this.onRateLimit(rateLimit);
+    if (rateLimit && this.onRateLimit) {
+      this.onRateLimit(rateLimit);
+    }
 
     if (!response.ok) {
       throw await parseErrorResponse(response, correlationId);
@@ -99,7 +113,9 @@ export class ApiClient {
   }
 
   private async decodeBody<T>(response: Response): Promise<T> {
-    if (response.status === NO_CONTENT) return undefined as T;
+    if (response.status === NO_CONTENT) {
+      return undefined as T;
+    }
     const contentType = response.headers.get('content-type') ?? '';
     if (contentType.includes('application/json')) {
       return (await response.json()) as T;
@@ -108,55 +124,55 @@ export class ApiClient {
     return (text || (undefined as unknown)) as T;
   }
 
-  get<T>(path: string, options?: RequestOptions): Promise<ApiResponse<T>> {
+  async get<T>(path: string, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>('GET', path, undefined, options);
   }
 
-  post<T>(path: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
+  async post<T>(path: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>('POST', path, body, options);
   }
 
-  put<T>(path: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
+  async put<T>(path: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>('PUT', path, body, options);
   }
 
-  patch<T>(path: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
+  async patch<T>(path: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>('PATCH', path, body, options);
   }
 
-  delete<T = void>(path: string, options?: RequestOptions): Promise<ApiResponse<T>> {
+  async delete<T = void>(path: string, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>('DELETE', path, undefined, options);
   }
 
-  list<T>(resource: string, options?: RequestOptions): Promise<ApiResponse<Page<T>>> {
+  async list<T>(resource: string, options?: RequestOptions): Promise<ApiResponse<Page<T>>> {
     return this.get<Page<T>>(`/v1/${resource}`, options);
   }
 
-  search<T>(resource: string, query: SearchRequest): Promise<ApiResponse<Page<T>>> {
+  async search<T>(resource: string, query: SearchRequest): Promise<ApiResponse<Page<T>>> {
     return this.post<Page<T>>(`/v1/${resource}/search`, query);
   }
 
-  read<T>(resource: string, id: string): Promise<ApiResponse<T>> {
+  async read<T>(resource: string, id: string): Promise<ApiResponse<T>> {
     return this.get<T>(`/v1/${resource}/${encodeURIComponent(id)}`);
   }
 
-  create<T>(resource: string, body: unknown): Promise<ApiResponse<T>> {
+  async create<T>(resource: string, body: unknown): Promise<ApiResponse<T>> {
     return this.post<T>(`/v1/${resource}`, body);
   }
 
-  update<T>(resource: string, id: string, body: unknown): Promise<ApiResponse<T>> {
+  async update<T>(resource: string, id: string, body: unknown): Promise<ApiResponse<T>> {
     return this.put<T>(`/v1/${resource}/${encodeURIComponent(id)}`, body);
   }
 
-  remove<T = void>(resource: string, id: string): Promise<ApiResponse<T>> {
+  async remove<T = void>(resource: string, id: string): Promise<ApiResponse<T>> {
     return this.delete<T>(`/v1/${resource}/${encodeURIComponent(id)}`);
   }
 
-  batchUpdate<T>(resource: string, body: unknown): Promise<ApiResponse<T>> {
+  async batchUpdate<T>(resource: string, body: unknown): Promise<ApiResponse<T>> {
     return this.put<T>(`/v1/${resource}`, body);
   }
 
-  batchDelete<T = void>(resource: string, body: unknown): Promise<ApiResponse<T>> {
+  async batchDelete<T = void>(resource: string, body: unknown): Promise<ApiResponse<T>> {
     return this.request<T>('DELETE', `/v1/${resource}`, body);
   }
 }
@@ -164,7 +180,9 @@ export class ApiClient {
 let singleton: ApiClient | undefined;
 
 export function getApiClient(): ApiClient {
-  if (!singleton) singleton = new ApiClient();
+  if (!singleton) {
+    singleton = new ApiClient();
+  }
   return singleton;
 }
 

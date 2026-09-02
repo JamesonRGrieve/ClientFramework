@@ -17,7 +17,7 @@ export function useSearch<T extends SearchResult = SearchResult>(endpoint: strin
 
   const { data, error, isLoading } = useSWR<T[]>(
     query.length >= 2 ? `${endpoint}?search=${encodeURIComponent(query)}` : null,
-    () => client.get<T[]>(endpoint, { search: query }),
+    async () => client.get<T[]>(endpoint, { search: query }),
     { dedupingInterval: debounceMs },
   );
 

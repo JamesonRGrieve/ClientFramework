@@ -29,7 +29,9 @@ export function useOutbox(trackingId: string | null): UseOutboxResult {
       lastIdRef.current = null;
       return;
     }
-    if (trackingId === lastIdRef.current) return;
+    if (trackingId === lastIdRef.current) {
+      return;
+    }
     lastIdRef.current = trackingId;
     setError(null);
     setDone(false);
@@ -44,7 +46,9 @@ export function useOutbox(trackingId: string | null): UseOutboxResult {
         setDone(true);
       })
       .catch((err: unknown) => {
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted) {
+          return;
+        }
         setError(err instanceof Error ? err : new Error(String(err)));
       });
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/react';
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from './collapsible';
+import { Collapsible } from './collapsible';
 
 const meta: Meta<typeof Collapsible> = {
   title: 'UI/Collapsible',

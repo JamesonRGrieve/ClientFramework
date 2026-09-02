@@ -7,18 +7,22 @@ import type { DeprecationInfo } from '@/lib/api/types';
 type Listener = (notices: ReadonlyArray<DeprecationInfo>) => void;
 
 class DeprecationStore {
-  private notices = new Map<string, DeprecationInfo>();
-  private listeners = new Set<Listener>();
+  private readonly notices = new Map<string, DeprecationInfo>();
+  private readonly listeners = new Set<Listener>();
 
   record(info: DeprecationInfo): void {
     const existing = this.notices.get(info.resource);
-    if (existing && existing.deprecation === info.deprecation && existing.sunset === info.sunset) return;
+    if (existing && existing.deprecation === info.deprecation && existing.sunset === info.sunset) {
+      return;
+    }
     this.notices.set(info.resource, info);
     this.emit();
   }
 
   dismiss(resource: string): void {
-    if (!this.notices.delete(resource)) return;
+    if (!this.notices.delete(resource)) {
+      return;
+    }
     this.emit();
   }
 
@@ -35,7 +39,9 @@ class DeprecationStore {
 
   private emit(): void {
     const snapshot = this.snapshot();
-    for (const listener of this.listeners) listener(snapshot);
+    for (const listener of this.listeners) {
+      listener(snapshot);
+    }
   }
 }
 
@@ -43,7 +49,9 @@ const store = new DeprecationStore();
 let wired = false;
 
 const ensureWired = (): void => {
-  if (wired) return;
+  if (wired) {
+    return;
+  }
   wired = true;
   // Reconfigure singleton to forward Deprecation/Sunset headers into the store.
   configureApiClient({ onDeprecation: (info) => store.record(info) });

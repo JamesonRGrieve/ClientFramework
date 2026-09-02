@@ -55,39 +55,39 @@ export interface RotationProviderInstance {
 export class RegistryApi {
   constructor(private readonly client: ApiClient) {}
 
-  listExtensions(): Promise<ApiResponse<Page<Extension>>> {
+  async listExtensions(): Promise<ApiResponse<Page<Extension>>> {
     return this.client.list<Extension>('extension');
   }
 
-  searchExtensions(query: SearchRequest): Promise<ApiResponse<Page<Extension>>> {
+  async searchExtensions(query: SearchRequest): Promise<ApiResponse<Page<Extension>>> {
     return this.client.search<Extension>('extension', query);
   }
 
-  listAbilities(): Promise<ApiResponse<Page<Ability>>> {
+  async listAbilities(): Promise<ApiResponse<Page<Ability>>> {
     return this.client.list<Ability>('ability');
   }
 
-  searchAbilities(query: SearchRequest): Promise<ApiResponse<Page<Ability>>> {
+  async searchAbilities(query: SearchRequest): Promise<ApiResponse<Page<Ability>>> {
     return this.client.search<Ability>('ability', query);
   }
 
-  listProviders(): Promise<ApiResponse<Page<ProviderRecord>>> {
+  async listProviders(): Promise<ApiResponse<Page<ProviderRecord>>> {
     return this.client.list<ProviderRecord>('provider');
   }
 
-  listProviderInstances(): Promise<ApiResponse<Page<ProviderInstance>>> {
+  async listProviderInstances(): Promise<ApiResponse<Page<ProviderInstance>>> {
     return this.client.list<ProviderInstance>('provider_instance');
   }
 
-  listRotations(): Promise<ApiResponse<Page<Rotation>>> {
+  async listRotations(): Promise<ApiResponse<Page<Rotation>>> {
     return this.client.list<Rotation>('rotation');
   }
 
-  searchRotations(query: SearchRequest): Promise<ApiResponse<Page<Rotation>>> {
+  async searchRotations(query: SearchRequest): Promise<ApiResponse<Page<Rotation>>> {
     return this.client.search<Rotation>('rotation', query);
   }
 
-  listRotationProviderInstances(): Promise<ApiResponse<Page<RotationProviderInstance>>> {
+  async listRotationProviderInstances(): Promise<ApiResponse<Page<RotationProviderInstance>>> {
     return this.client.list<RotationProviderInstance>('rotation_provider_instance');
   }
 }

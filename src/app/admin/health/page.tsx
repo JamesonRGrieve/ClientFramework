@@ -8,9 +8,15 @@ import { useHealth, useLiveness, useReadiness } from '@/hooks/api';
 import type { ReadinessCheck } from '@/lib/api/types';
 
 const stateBadgeVariant = (status?: string): 'default' | 'destructive' | 'secondary' => {
-  if (!status) return 'secondary';
-  if (status === 'UP' || status === 'pass') return 'default';
-  if (status === 'warn') return 'secondary';
+  if (!status) {
+    return 'secondary';
+  }
+  if (status === 'UP' || status === 'pass') {
+    return 'default';
+  }
+  if (status === 'warn') {
+    return 'secondary';
+  }
   return 'destructive';
 };
 

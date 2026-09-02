@@ -8,16 +8,18 @@
  *
  * Scans all server-side fetch/axios calls for user-controlled URL construction.
  */
-import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
+import { describe, expect, it } from 'vitest';
 
 function scanFiles(dir: string): string[] {
   const results: string[] = [];
   try {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const full = join(dir, entry.name);
-      if (entry.name === 'node_modules' || entry.name === '.next') continue;
+      if (entry.name === 'node_modules' || entry.name === '.next') {
+        continue;
+      }
       if (entry.isDirectory()) {
         results.push(...scanFiles(full));
       } else if (
@@ -45,7 +47,7 @@ describe('SSRF — server-side outbound fetch validation', () => {
       const lines = source.split('\n');
 
       for (let i = 0; i < lines.length; i++) {
-        const line = lines[i]!;
+        const line = lines[i];
         // Look for fetch() calls where the URL comes from request params
         if (
           (line.includes('fetch(') || line.includes('axios.get(')) &&
@@ -58,7 +60,7 @@ describe('SSRF — server-side outbound fetch validation', () => {
             context.includes('validateUrl') ||
             context.includes('allowedHosts') ||
             context.includes('allowedDomains') ||
-            context.includes('URL') && context.includes('hostname') ||
+            (context.includes('URL') && context.includes('hostname')) ||
             context.includes('blocklist') ||
             context.includes('isPrivate');
 
@@ -69,11 +71,14 @@ describe('SSRF — server-side outbound fetch validation', () => {
       }
     }
 
-    expect(violations, [
-      'SSRF: Route handlers perform outbound fetches without URL validation:',
-      ...violations,
-      'Validate destination hostnames against an allowlist before fetching.',
-    ].join('\n')).toHaveLength(0);
+    expect(
+      violations,
+      [
+        'SSRF: Route handlers perform outbound fetches without URL validation:',
+        ...violations,
+        'Validate destination hostnames against an allowlist before fetching.',
+      ].join('\n'),
+    ).toHaveLength(0);
   });
 });
 
@@ -86,13 +91,14 @@ describe('SSRF — WebSocket destination validation', () => {
     // the env var is controlled by the operator, not the client.
     const usesConfig = source.includes('config.server.baseUrl');
     const usesUserInput =
-      source.includes('searchParams') ||
-      source.includes('request.url') ||
-      source.includes('window.location');
+      source.includes('searchParams') || source.includes('request.url') || source.includes('window.location');
 
-    expect(usesUserInput, [
-      'SSRF: WebSocket URL derived from user-controlled input.',
-      'WebSocket destinations must come from server configuration, not client input.',
-    ].join('\n')).toBe(false);
+    expect(
+      usesUserInput,
+      [
+        'SSRF: WebSocket URL derived from user-controlled input.',
+        'WebSocket destinations must come from server configuration, not client input.',
+      ].join('\n'),
+    ).toBe(false);
   });
 });

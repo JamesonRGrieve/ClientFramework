@@ -9,8 +9,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useFailedServices, useServiceActions } from '@/hooks/api';
 
 const stateVariant = (state: string): 'default' | 'destructive' | 'secondary' => {
-  if (state === 'healthy') return 'default';
-  if (state === 'degraded') return 'secondary';
+  if (state === 'healthy') {
+    return 'default';
+  }
+  if (state === 'degraded') {
+    return 'secondary';
+  }
   return 'destructive';
 };
 
@@ -58,7 +62,7 @@ export default function ServicesPage(): JSX.Element {
                       </TableCell>
                       <TableCell className='text-xs'>{svc.failed_at ?? '—'}</TableCell>
                       <TableCell className='text-right'>
-                        <Button size='sm' variant='outline' onClick={() => handleReset(svc.name)}>
+                        <Button size='sm' variant='outline' onClick={async () => handleReset(svc.name)}>
                           Reset
                         </Button>
                       </TableCell>

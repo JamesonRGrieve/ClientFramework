@@ -53,7 +53,7 @@ export function useCookiePreference({
       el.classList.add(current);
     }
 
-    const cookieDomain = process.env['NEXT_PUBLIC_COOKIE_DOMAIN'];
+    const cookieDomain = process.env.NEXT_PUBLIC_COOKIE_DOMAIN;
     setCookie(cookieName, current, {
       expires: new Date(Date.now() + COOKIE_MAX_AGE_MS),
       ...(cookieDomain ? { domain: cookieDomain } : {}),

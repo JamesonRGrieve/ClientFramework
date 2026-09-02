@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import useSWR, { type SWRResponse } from 'swr';
-import { type Provider, ProviderSchema } from './z';
 import { createGraphQLClient } from '@zephyrex/auth/hooks/lib';
 import z, { GQLType } from '@zephyrex/zod2gql';
+import { type Provider, ProviderSchema } from './z';
 import log from '@/lib/log';
 
 // ============================================================================

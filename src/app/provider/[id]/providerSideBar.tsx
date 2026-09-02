@@ -6,6 +6,7 @@ import axios from 'axios';
 import { getCookie } from 'cookies-next';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowBigLeft } from 'lucide-react';
+import { useUser } from '@zephyrex/auth/hooks/useUser';
 import { useProviderInstance, useProviderInstances } from './useProviders';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +21,6 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useToast } from '@/hooks/useToast';
-import { useUser } from '@zephyrex/auth/hooks/useUser';
 
 interface ProviderInstance {
   provider_id: string;

@@ -16,7 +16,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 
 // Lazy import to break the MarkdownBlock <-> CodeBlock import cycle: a code
 // fence may itself contain markdown, and markdown renders code fences.
-const MarkdownBlock = lazy(() => import('./MarkdownBlock'));
+const MarkdownBlock = lazy(async () => import('./MarkdownBlock'));
 
 const fileExtensions: Record<string, string> = {
   '': 'txt',

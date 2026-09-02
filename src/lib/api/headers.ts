@@ -7,7 +7,9 @@ const SPAN_ID_BYTES = 8;
 export function parseDeprecation(headers: Headers, resource: string): DeprecationInfo | undefined {
   const deprecation = headers.get('deprecation') ?? undefined;
   const sunset = headers.get('sunset') ?? undefined;
-  if (!deprecation && !sunset) return undefined;
+  if (!deprecation && !sunset) {
+    return undefined;
+  }
   return { resource, deprecation, sunset };
 }
 
@@ -16,7 +18,9 @@ export function parseRateLimit(headers: Headers): RateLimitInfo | undefined {
   const remaining = headers.get('x-ratelimit-remaining');
   const reset = headers.get('x-ratelimit-reset');
   const retryAfter = headers.get('retry-after');
-  if (!limit && !remaining && !reset && !retryAfter) return undefined;
+  if (!limit && !remaining && !reset && !retryAfter) {
+    return undefined;
+  }
   return {
     limit: numberOrUndefined(limit),
     remaining: numberOrUndefined(remaining),
@@ -26,7 +30,9 @@ export function parseRateLimit(headers: Headers): RateLimitInfo | undefined {
 }
 
 const numberOrUndefined = (value: string | null): number | undefined => {
-  if (value === null) return undefined;
+  if (value === null) {
+    return undefined;
+  }
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : undefined;
 };
@@ -47,9 +53,13 @@ export function mintTraceparent(): string {
 
 export function extractCorrelationId(headers: Headers): string | undefined {
   const direct = headers.get('x-correlation-id');
-  if (direct) return direct;
+  if (direct) {
+    return direct;
+  }
   const traceparent = headers.get('traceparent');
-  if (!traceparent) return undefined;
+  if (!traceparent) {
+    return undefined;
+  }
   const parts = traceparent.split('-');
   return parts[1];
 }

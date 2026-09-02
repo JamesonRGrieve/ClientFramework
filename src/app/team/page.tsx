@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
-import { SidebarContent } from '@/components/appwrapper/src/SidebarContentManager';
 import { Team } from '@zephyrex/auth/management/Team';
 import { Team as TeamUsers } from '@zephyrex/auth/management/TeamUsers';
+import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
+import { SidebarContent } from '@/components/appwrapper/src/SidebarContentManager';
 
 export default function TeamPage() {
   return (

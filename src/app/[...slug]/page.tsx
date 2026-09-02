@@ -1,8 +1,8 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { ZephyrexRouter } from '@/lib/zephyrex';
 import { type ReactNode, use } from 'react';
+import { ZephyrexRouter } from '@/lib/zephyrex';
 
 interface CatchAllPageProps {
   params: Promise<{ slug: string[] }>;

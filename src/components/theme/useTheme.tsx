@@ -6,7 +6,9 @@ import { useCookiePreference } from './useCookiePreference';
 const THEME_DEFAULTS = ['light', 'dark', 'colorblind', 'colorblind-dark'];
 
 const normalizeTheme = (value: string): string => {
-  if (value === 'default' || value === 'light' || !value) return 'light';
+  if (value === 'default' || value === 'light' || !value) {
+    return 'light';
+  }
   return value;
 };
 

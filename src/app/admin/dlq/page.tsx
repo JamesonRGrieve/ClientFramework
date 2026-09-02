@@ -1,13 +1,13 @@
 'use client';
 
 import type { JSX } from 'react';
+import { useState } from 'react';
 import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDlq, useDlqActions } from '@/hooks/api';
-import { useState } from 'react';
 
 export default function DlqPage(): JSX.Element {
   const [extension, setExtension] = useState('');
@@ -74,10 +74,10 @@ export default function DlqPage(): JSX.Element {
                       </TableCell>
                       <TableCell>{entry.attempts}</TableCell>
                       <TableCell className='space-x-2 text-right'>
-                        <Button size='sm' variant='outline' onClick={() => handleReplay(entry.id)}>
+                        <Button size='sm' variant='outline' onClick={async () => handleReplay(entry.id)}>
                           Replay
                         </Button>
-                        <Button size='sm' variant='destructive' onClick={() => handleDiscard(entry.id)}>
+                        <Button size='sm' variant='destructive' onClick={async () => handleDiscard(entry.id)}>
                           Discard
                         </Button>
                       </TableCell>

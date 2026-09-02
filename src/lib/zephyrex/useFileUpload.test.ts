@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { TestWrapper } from '@/__tests__/test-wrapper';
 import { useFileUpload } from './useFileUpload';
+import { TestWrapper } from '@/__tests__/test-wrapper';
 
 describe('useFileUpload', () => {
   it('starts in idle state', () => {

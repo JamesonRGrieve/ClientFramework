@@ -9,9 +9,9 @@
  *
  * This test scans all setCookie calls and verifies the options.
  */
-import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
+import { describe, expect, it } from 'vitest';
 
 const AUTH_COOKIE_NAMES = ['jwt', 'auth-team', 'invitation', 'email', 'href'];
 const PREFERENCE_COOKIES = ['theme', 'appearance', 'sidebar', 'client-has-started'];
@@ -21,7 +21,9 @@ function scanFiles(dir: string): string[] {
   try {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const full = join(dir, entry.name);
-      if (entry.name === 'node_modules' || entry.name === '.next') continue;
+      if (entry.name === 'node_modules' || entry.name === '.next') {
+        continue;
+      }
       if (entry.isDirectory()) {
         results.push(...scanFiles(full));
       } else if (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx')) {
@@ -47,7 +49,7 @@ describe('Cookie security attributes', () => {
       const lines = source.split('\n');
 
       for (let i = 0; i < lines.length; i++) {
-        const line = lines[i]!;
+        const line = lines[i];
         if (line.includes('setCookie(') || line.includes('cookies.set(')) {
           for (const name of AUTH_COOKIE_NAMES) {
             if (line.includes(`'${name}'`) || line.includes(`"${name}"`)) {
@@ -62,11 +64,14 @@ describe('Cookie security attributes', () => {
       }
     }
 
-    expect(violations, [
-      'COOKIE SECURITY: Auth cookies set without httpOnly flag:',
-      ...violations,
-      'Without httpOnly, JavaScript (including XSS payloads) can read auth cookies.',
-    ].join('\n')).toHaveLength(0);
+    expect(
+      violations,
+      [
+        'COOKIE SECURITY: Auth cookies set without httpOnly flag:',
+        ...violations,
+        'Without httpOnly, JavaScript (including XSS payloads) can read auth cookies.',
+      ].join('\n'),
+    ).toHaveLength(0);
   });
 
   it('setCookie calls for auth cookies must include secure flag in production', () => {
@@ -77,7 +82,7 @@ describe('Cookie security attributes', () => {
       const lines = source.split('\n');
 
       for (let i = 0; i < lines.length; i++) {
-        const line = lines[i]!;
+        const line = lines[i];
         if (line.includes('setCookie(') || line.includes('cookies.set(')) {
           for (const name of AUTH_COOKIE_NAMES) {
             if (line.includes(`'${name}'`) || line.includes(`"${name}"`)) {
@@ -91,11 +96,14 @@ describe('Cookie security attributes', () => {
       }
     }
 
-    expect(violations, [
-      'COOKIE SECURITY: Auth cookies set without secure flag:',
-      ...violations,
-      'Without secure, cookies can be sent over plain HTTP and intercepted.',
-    ].join('\n')).toHaveLength(0);
+    expect(
+      violations,
+      [
+        'COOKIE SECURITY: Auth cookies set without secure flag:',
+        ...violations,
+        'Without secure, cookies can be sent over plain HTTP and intercepted.',
+      ].join('\n'),
+    ).toHaveLength(0);
   });
 
   it('setCookie calls must include sameSite', () => {
@@ -106,7 +114,7 @@ describe('Cookie security attributes', () => {
       const lines = source.split('\n');
 
       for (let i = 0; i < lines.length; i++) {
-        const line = lines[i]!;
+        const line = lines[i];
         if (line.includes('setCookie(') || line.includes('cookies.set(')) {
           for (const name of AUTH_COOKIE_NAMES) {
             if (line.includes(`'${name}'`) || line.includes(`"${name}"`)) {
@@ -120,10 +128,13 @@ describe('Cookie security attributes', () => {
       }
     }
 
-    expect(violations, [
-      'CSRF: Auth cookies set without sameSite flag:',
-      ...violations,
-      'Without sameSite, cookies are sent on cross-origin requests, enabling CSRF.',
-    ].join('\n')).toHaveLength(0);
+    expect(
+      violations,
+      [
+        'CSRF: Auth cookies set without sameSite flag:',
+        ...violations,
+        'Without sameSite, cookies are sent on cross-origin requests, enabling CSRF.',
+      ].join('\n'),
+    ).toHaveLength(0);
   });
 });

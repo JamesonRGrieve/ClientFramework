@@ -8,9 +8,9 @@
  * A route handler that relies solely on middleware for auth is vulnerable to
  * middleware bypass (path manipulation, internal headers, prefetch routes).
  */
-import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'fs';
 import { join, relative } from 'path';
+import { describe, expect, it } from 'vitest';
 
 function findRouteHandlers(dir: string): string[] {
   const results: string[] = [];
@@ -39,9 +39,11 @@ describe('Route handler auth enforcement', () => {
   });
 
   for (const handler of routeHandlers) {
-    const routePath = '/' + relative('src/app', handler).replace('/route.ts', '').replace('/route.tsx', '');
+    const routePath = `/${relative('src/app', handler).replace('/route.ts', '').replace('/route.tsx', '')}`;
 
-    if (PUBLIC_ROUTES.has(routePath)) continue;
+    if (PUBLIC_ROUTES.has(routePath)) {
+      continue;
+    }
 
     describe(routePath, () => {
       const source = readFileSync(handler, 'utf8');
@@ -59,11 +61,14 @@ describe('Route handler auth enforcement', () => {
           source.includes('verifyJWT') ||
           source.includes('requireAuth');
 
-        expect(hasAuthCheck, [
-          `AUTH MISSING: Route handler ${routePath} does not check authentication.`,
-          'Middleware alone is not sufficient — route handlers must independently verify auth.',
-          'A middleware bypass (path encoding, internal headers, prefetch) would expose this route.',
-        ].join('\n')).toBe(true);
+        expect(
+          hasAuthCheck,
+          [
+            `AUTH MISSING: Route handler ${routePath} does not check authentication.`,
+            'Middleware alone is not sufficient — route handlers must independently verify auth.',
+            'A middleware bypass (path encoding, internal headers, prefetch) would expose this route.',
+          ].join('\n'),
+        ).toBe(true);
       });
 
       it('must return 401/403 for unauthorized requests', () => {
@@ -74,10 +79,13 @@ describe('Route handler auth enforcement', () => {
           source.includes('Forbidden') ||
           source.includes('NextResponse.redirect');
 
-        expect(returnsAuthError, [
-          `AUTH RESPONSE: Route handler ${routePath} never returns 401/403.`,
-          'Without an auth error path, the handler processes all requests regardless of identity.',
-        ].join('\n')).toBe(true);
+        expect(
+          returnsAuthError,
+          [
+            `AUTH RESPONSE: Route handler ${routePath} never returns 401/403.`,
+            'Without an auth error path, the handler processes all requests regardless of identity.',
+          ].join('\n'),
+        ).toBe(true);
       });
     });
   }

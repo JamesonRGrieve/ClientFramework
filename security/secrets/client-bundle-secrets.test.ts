@@ -9,9 +9,9 @@
  * This is verified as a source-level check — "use client" files must not
  * import from server-only modules.
  */
-import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
+import { describe, expect, it } from 'vitest';
 
 const SERVER_ONLY_MODULES = [
   'server-only',
@@ -37,21 +37,22 @@ const SERVER_ONLY_MODULES = [
   'dns',
 ];
 
-const SERVER_ONLY_PATHS = [
-  'src/lib/db/',
-  'src/lib/server/',
-];
+const SERVER_ONLY_PATHS = ['src/lib/db/', 'src/lib/server/'];
 
 function findClientComponents(dir: string): string[] {
   const results: string[] = [];
   try {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const full = join(dir, entry.name);
-      if (entry.name === 'node_modules' || entry.name === '.next') continue;
+      if (entry.name === 'node_modules' || entry.name === '.next') {
+        continue;
+      }
       if (entry.isDirectory()) {
         results.push(...findClientComponents(full));
       } else if (entry.name.endsWith('.tsx') || entry.name.endsWith('.ts')) {
-        if (entry.name.includes('.test.') || entry.name.includes('.stories.')) continue;
+        if (entry.name.includes('.test.') || entry.name.includes('.stories.')) {
+          continue;
+        }
         try {
           const source = readFileSync(full, 'utf8');
           if (source.includes("'use client'") || source.includes('"use client"')) {
@@ -88,12 +89,15 @@ describe('Client/server boundary — secret leakage prevention', () => {
       }
     }
 
-    expect(violations, [
-      'CLIENT BOUNDARY VIOLATION: Client components import server-only modules:',
-      ...violations,
-      'These modules will be bundled into client JavaScript, potentially exposing',
-      'server secrets, database connections, or filesystem access to the browser.',
-    ].join('\n')).toHaveLength(0);
+    expect(
+      violations,
+      [
+        'CLIENT BOUNDARY VIOLATION: Client components import server-only modules:',
+        ...violations,
+        'These modules will be bundled into client JavaScript, potentially exposing',
+        'server secrets, database connections, or filesystem access to the browser.',
+      ].join('\n'),
+    ).toHaveLength(0);
   });
 
   it('client components must not import from server-only paths', () => {
@@ -107,9 +111,9 @@ describe('Client/server boundary — secret leakage prevention', () => {
       }
     }
 
-    expect(violations, [
-      'CLIENT BOUNDARY VIOLATION: Client components import server-only paths:',
-      ...violations,
-    ].join('\n')).toHaveLength(0);
+    expect(
+      violations,
+      ['CLIENT BOUNDARY VIOLATION: Client components import server-only paths:', ...violations].join('\n'),
+    ).toHaveLength(0);
   });
 });

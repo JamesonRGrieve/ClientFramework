@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
-import { SidebarContent } from '@/components/appwrapper/src/SidebarContentManager';
 import ProviderSidebar from './providerSideBar';
 import ProviderInstances from './providers';
+import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
+import { SidebarContent } from '@/components/appwrapper/src/SidebarContentManager';
 
 export default function TeamPage() {
   return (

@@ -12,33 +12,41 @@ const PRIVATE_IPV4_RANGES = [
 
 function ipToInt(ip: string): number | null {
   const parts = ip.split('.');
-  if (parts.length !== 4) return null;
+  if (parts.length !== 4) {
+    return null;
+  }
   let result = 0;
   for (const part of parts) {
     const n = Number(part);
-    if (Number.isNaN(n) || n < 0 || n > 255) return null;
+    if (Number.isNaN(n) || n < 0 || n > 255) {
+      return null;
+    }
     result = (result << 8) | n;
   }
   return result >>> 0;
 }
 
 function isPrivateIP(hostname: string): boolean {
-  if (hostname === 'localhost' || hostname === '[::1]') return true;
-  if (hostname.startsWith('[')) return true;
+  if (hostname === 'localhost' || hostname === '[::1]') {
+    return true;
+  }
+  if (hostname.startsWith('[')) {
+    return true;
+  }
 
   const ip = ipToInt(hostname);
-  if (ip === null) return false;
+  if (ip === null) {
+    return false;
+  }
   for (const [start, end] of PRIVATE_IPV4_RANGES) {
-    if (ip >= start && ip <= end) return true;
+    if (ip >= start && ip <= end) {
+      return true;
+    }
   }
   return false;
 }
 
-const BLOCKED_HOSTNAMES = new Set([
-  'metadata.google.internal',
-  'kubernetes.default.svc',
-  'host.docker.internal',
-]);
+const BLOCKED_HOSTNAMES = new Set(['metadata.google.internal', 'kubernetes.default.svc', 'host.docker.internal']);
 
 function validateUrl(raw: string): URL | null {
   let parsed: URL;
@@ -48,14 +56,22 @@ function validateUrl(raw: string): URL | null {
     return null;
   }
 
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
-  if (isPrivateIP(parsed.hostname)) return null;
-  if (BLOCKED_HOSTNAMES.has(parsed.hostname)) return null;
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    return null;
+  }
+  if (isPrivateIP(parsed.hostname)) {
+    return null;
+  }
+  if (BLOCKED_HOSTNAMES.has(parsed.hostname)) {
+    return null;
+  }
 
   const allowedHosts = process.env['AUDIO_PROXY_ALLOWED_HOSTS'];
   if (allowedHosts) {
     const allowed = new Set(allowedHosts.split(',').map((h) => h.trim()));
-    if (!allowed.has(parsed.hostname)) return null;
+    if (!allowed.has(parsed.hostname)) {
+      return null;
+    }
   }
 
   return parsed;
@@ -63,10 +79,14 @@ function validateUrl(raw: string): URL | null {
 
 export async function GET(request: NextRequest): Promise<Response> {
   const jwt = request.cookies.get('jwt')?.value ?? request.headers.get('Authorization')?.replace('Bearer ', '');
-  if (!jwt) return new Response('Unauthorized', { status: 401 });
+  if (!jwt) {
+    return new Response('Unauthorized', { status: 401 });
+  }
 
   const raw = new URL(request.url).searchParams.get('url');
-  if (!raw) return new Response('Missing URL', { status: 400 });
+  if (!raw) {
+    return new Response('Missing URL', { status: 400 });
+  }
 
   const validated = validateUrl(raw);
   if (!validated) {

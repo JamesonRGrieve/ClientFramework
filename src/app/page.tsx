@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
-import { Button } from '@/components/ui/button';
-
 import { cookies } from 'next/headers';
 import Link from 'next/link';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { Button } from '@/components/ui/button';
 
 export default async function Home() {
   return (
@@ -26,7 +25,7 @@ export default async function Home() {
           </Link>
         </div>
       </header>
-      <main></main>
+      <main />
     </div>
   );
 }

@@ -26,7 +26,9 @@ export function useZephyrexConfig(): ZephyrexContextValue {
 function mergePageSlots(...slotSources: (PageSlots | undefined)[]): PageSlots {
   const merged: PageSlots = {};
   for (const source of slotSources) {
-    if (!source) continue;
+    if (!source) {
+      continue;
+    }
     for (const [page, slots] of Object.entries(source)) {
       merged[page] = [...(merged[page] ?? []), ...slots];
     }

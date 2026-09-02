@@ -1,7 +1,7 @@
 import type { SWRConfiguration } from 'swr';
+import { useApi } from './useApi';
 import { fetchHealth, fetchLiveness, fetchReadiness } from '@/lib/api/health';
 import type { HealthResponse, ReadinessResponse } from '@/lib/api/types';
-import { useApi } from './useApi';
 
 const HEALTH_REFRESH_MS = 10_000;
 const READINESS_REFRESH_MS = 15_000;

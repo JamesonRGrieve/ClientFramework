@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/react';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './dropdown-menu';
+import { DropdownMenu } from './dropdown-menu';
 
 const meta: Meta<typeof DropdownMenu> = {
   title: 'UI/DropdownMenu',

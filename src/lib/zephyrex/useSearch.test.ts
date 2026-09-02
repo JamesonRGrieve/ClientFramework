@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { renderHook, act } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { TestWrapper } from '@/__tests__/test-wrapper';
 import { useSearch } from './useSearch';
+import { TestWrapper } from '@/__tests__/test-wrapper';
 
 describe('useSearch', () => {
   it('starts with empty query and no results', () => {

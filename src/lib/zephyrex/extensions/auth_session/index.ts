@@ -2,7 +2,7 @@
 import { lazy } from 'react';
 import { createExtension } from '../createExtension';
 
-const ConnectedServices = lazy(() =>
+const ConnectedServices = lazy(async () =>
   import('@zephyrex/auth/management/ConnectedServices').then((m) => ({ default: m.ConnectedServices })),
 );
 

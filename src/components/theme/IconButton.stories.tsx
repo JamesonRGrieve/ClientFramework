@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/react';
 import { LuSun as Sun } from 'react-icons/lu';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import IconButton from './IconButton';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const meta: Meta<typeof IconButton> = {
   title: 'Theme/IconButton',

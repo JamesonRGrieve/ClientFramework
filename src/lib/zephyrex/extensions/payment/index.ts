@@ -2,7 +2,7 @@
 import { lazy } from 'react';
 import { createExtension } from '../createExtension';
 
-const PricingTable = lazy(() => import('@zephyrex/auth/Stripe/PricingTable'));
+const PricingTable = lazy(async () => import('@zephyrex/auth/Stripe/PricingTable'));
 
 export const paymentExtension = createExtension('payment', {
   displayName: 'Payment & Billing',

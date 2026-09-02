@@ -7,7 +7,7 @@ export default function ProvidersPage() {
   return (
     <SidebarPage title='Settings'>
       <SidebarContent title='Settings'>
-        <div></div>
+        <div />
       </SidebarContent>
       <Providers />
     </SidebarPage>

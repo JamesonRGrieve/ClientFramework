@@ -2,14 +2,14 @@
 'use client';
 
 import type { JSX } from 'react';
+import { useCallback, useState } from 'react';
+import useSWR from 'swr';
 import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useClient } from '@/lib/zephyrex/hooks';
-import { useCallback, useState } from 'react';
-import useSWR from 'swr';
 
 interface CacheStats {
   status: string;
@@ -38,7 +38,9 @@ interface CacheStats {
 }
 
 function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B';
+  if (bytes === 0) {
+    return '0 B';
+  }
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/react';
-import { Avatar, AvatarImage, AvatarFallback } from './avatar';
+import { Avatar } from './avatar';
 
 const meta: Meta<typeof Avatar> = {
   title: 'UI/Avatar',

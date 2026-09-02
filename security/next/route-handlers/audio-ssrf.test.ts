@@ -10,8 +10,8 @@
  * validate the destination against an allowlist. Fetching attacker-controlled
  * URLs without restriction is an SSRF vulnerability.
  */
-import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'fs';
+import { describe, expect, it } from 'vitest';
 
 const SSRF_TARGETS = [
   { label: 'IPv4 loopback', url: 'http://127.0.0.1/' },
@@ -57,33 +57,31 @@ describe('/api/audio — SSRF protection', () => {
 
     const hasValidation = hasAllowlist || hasBlocklist;
 
-    expect(hasValidation, [
-      'SSRF VULNERABILITY: /api/audio fetches arbitrary attacker-controlled URLs.',
-      'The route handler accepts a `url` query parameter and passes it directly to fetch().',
-      'An attacker can use this to reach internal services, cloud metadata endpoints,',
-      'and localhost ports. Add URL validation with a destination allowlist.',
-    ].join('\n')).toBe(true);
+    expect(
+      hasValidation,
+      [
+        'SSRF VULNERABILITY: /api/audio fetches arbitrary attacker-controlled URLs.',
+        'The route handler accepts a `url` query parameter and passes it directly to fetch().',
+        'An attacker can use this to reach internal services, cloud metadata endpoints,',
+        'and localhost ports. Add URL validation with a destination allowlist.',
+      ].join('\n'),
+    ).toBe(true);
   });
 
-  it.each(SSRF_TARGETS)(
-    'must reject $label ($url)',
-    async ({ url }) => {
-      const source = await import('fs').then((fs) =>
-        fs.readFileSync('src/app/api/audio/route.ts', 'utf8'),
-      );
+  it.each(SSRF_TARGETS)('must reject $label ($url)', async ({ url }) => {
+    const source = await import('fs').then((fs) => fs.readFileSync('src/app/api/audio/route.ts', 'utf8'));
 
-      // If the source has no URL validation at all, every target is vulnerable
-      const hasAnyValidation =
-        source.includes('allowedHosts') ||
-        source.includes('isPrivate') ||
-        source.includes('validateUrl') ||
-        source.includes('safeFetch') ||
-        source.includes('ALLOWED_');
+    // If the source has no URL validation at all, every target is vulnerable
+    const hasAnyValidation =
+      source.includes('allowedHosts') ||
+      source.includes('isPrivate') ||
+      source.includes('validateUrl') ||
+      source.includes('safeFetch') ||
+      source.includes('ALLOWED_');
 
-      expect(hasAnyValidation, [
-        `SSRF: /api/audio would fetch ${url} without restriction.`,
-        'Add URL validation before the fetch() call.',
-      ].join('\n')).toBe(true);
-    },
-  );
+    expect(
+      hasAnyValidation,
+      [`SSRF: /api/audio would fetch ${url} without restriction.`, 'Add URL validation before the fetch() call.'].join('\n'),
+    ).toBe(true);
+  });
 });

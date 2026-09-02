@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { TestWrapper } from '@/__tests__/test-wrapper';
 import { NotificationBell } from './NotificationBell';
+import { TestWrapper } from '@/__tests__/test-wrapper';
 
 describe('NotificationBell', () => {
   it('renders bell button inside provider tree', () => {

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/react';
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from './breadcrumb';
+import { Breadcrumb } from './breadcrumb';
 
 const meta: Meta<typeof Breadcrumb> = {
   title: 'UI/Breadcrumb',

@@ -1,5 +1,6 @@
 import useSWR, { type SWRConfiguration, type SWRResponse } from 'swr';
-import { ApiClient, getApiClient } from '@/lib/api/client';
+import type { ApiClient } from '@/lib/api/client';
+import { getApiClient } from '@/lib/api/client';
 import type { ApiResponse } from '@/lib/api/types';
 
 export type ApiFetcher<T> = (client: ApiClient) => Promise<ApiResponse<T>>;

@@ -91,7 +91,7 @@ export default function Extension({
           // System-defined extensions are read-only: no connect/disconnect/enable controls
           <div className='text-sm text-muted-foreground'>System extension (read-only)</div>
         ) : connected ? (
-          <Button variant='outline' size='sm' className='gap-2' onClick={() => onDisconnect(extension)}>
+          <Button variant='outline' size='sm' className='gap-2' onClick={async () => onDisconnect(extension)}>
             <Unlink className='w-4 h-4' />
             Disconnect
           </Button>
@@ -142,7 +142,7 @@ export default function Extension({
               </div>
 
               <DialogFooter>
-                <Button onClick={() => onConnect(extension.extension_name, settings)}>Connect Extension</Button>
+                <Button onClick={async () => onConnect(extension.extension_name, settings)}>Connect Extension</Button>
               </DialogFooter>
 
               {error !== null && (

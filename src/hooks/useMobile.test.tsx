@@ -55,7 +55,9 @@ describe('useIsMobile', () => {
 
     act(() => {
       setViewportWidth(375);
-      for (const listener of listeners) listener();
+      for (const listener of listeners) {
+        listener();
+      }
     });
     expect(result.current).toBe(true);
   });

@@ -1,6 +1,6 @@
 {
   "componentsTotal": 172,
-  "sourcesTotal": 320,
+  "sourcesTotal": 321,
   "componentsMissingStoriesCount": 34,
   "sourcesMissingTestsCount": 162,
   "componentsMissingStories": [
@@ -34,10 +34,10 @@
     "src/lib/zephyrex/ZephyrexRouter.tsx",
     "src/lib/zephyrex/components/ErrorBoundary.tsx",
     "src/lib/zephyrex/components/NotificationBell.tsx",
+    "src/lib/zephyrex/components/RateLimitBanner.tsx",
     "src/lib/zephyrex/components/RequireRole.tsx",
     "src/lib/zephyrex/components/SearchInput.tsx",
-    "src/lib/zod2gql/docs/DocBlock.tsx",
-    "src/middleware.tsx"
+    "src/lib/zod2gql/docs/DocBlock.tsx"
   ],
   "sourcesMissingTests": [
     "src/__tests__/setup.ts",
@@ -97,7 +97,6 @@
     "src/components/dynamic-form/vitest.config.ts",
     "src/components/markdown/Code/interactiveConfigContext.ts",
     "src/components/markdown/Preprocessor.ts",
-    "src/components/markdown/generateID.ts",
     "src/components/theme/useCookiePreference.tsx",
     "src/hooks/api/index.ts",
     "src/hooks/api/useAdmin.ts",
@@ -131,6 +130,7 @@
     "src/lib/zephyrex/ZephyrexProvider.tsx",
     "src/lib/zephyrex/ZephyrexRouter.tsx",
     "src/lib/zephyrex/client.ts",
+    "src/lib/zephyrex/components/RateLimitBanner.tsx",
     "src/lib/zephyrex/createMiddleware.ts",
     "src/lib/zephyrex/extensions/acl_rbac/index.ts",
     "src/lib/zephyrex/extensions/audit_retention/index.ts",
@@ -196,11 +196,11 @@
     "src/lib/zephyrex/hooks.ts",
     "src/lib/zephyrex/index.ts",
     "src/lib/zephyrex/types.ts",
+    "src/lib/zephyrex/useRateLimit.ts",
     "src/lib/zod2gql/docs/DocBlock.tsx",
     "src/lib/zod2gql/playwright.storybook.config.ts",
     "src/lib/zod2gql/tests/storybook/smoke.spec.ts",
     "src/lib/zod2gql/vitest.config.ts",
-    "src/middleware.tsx",
     "src/zephyrex.config.ts"
   ]
 }

@@ -1,10 +1,10 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
-import { SidebarInset } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
+import { SidebarInset } from '@/components/ui/sidebar';
 
 export default function BadGateway() {
   const [link, _setLink] = useState('/');

@@ -23,23 +23,23 @@ export type DlqListQuery = {
 export class AdminApi {
   constructor(private readonly client: ApiClient) {}
 
-  listDlq(query: DlqListQuery = {}): Promise<ApiResponse<Page<DlqEntry>>> {
+  async listDlq(query: DlqListQuery = {}): Promise<ApiResponse<Page<DlqEntry>>> {
     return this.client.get('/admin/dlq', { query });
   }
 
-  replayDlq(entryId: string): Promise<ApiResponse<void>> {
+  async replayDlq(entryId: string): Promise<ApiResponse<void>> {
     return this.client.post(`/admin/dlq/${encodeURIComponent(entryId)}/replay`);
   }
 
-  discardDlq(entryId: string): Promise<ApiResponse<void>> {
+  async discardDlq(entryId: string): Promise<ApiResponse<void>> {
     return this.client.post(`/admin/dlq/${encodeURIComponent(entryId)}/discard`);
   }
 
-  listServices(): Promise<ApiResponse<ReadonlyArray<ServiceStatus>>> {
+  async listServices(): Promise<ApiResponse<ReadonlyArray<ServiceStatus>>> {
     return this.client.get('/admin/services');
   }
 
-  resetService(name: string): Promise<ApiResponse<void>> {
+  async resetService(name: string): Promise<ApiResponse<void>> {
     return this.client.post(`/admin/services/${encodeURIComponent(name)}/reset`);
   }
 }

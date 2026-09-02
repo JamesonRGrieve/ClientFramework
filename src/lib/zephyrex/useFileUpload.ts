@@ -39,7 +39,7 @@ export function useFileUpload(endpoint?: string) {
       try {
         const xhr = new XMLHttpRequest();
 
-        const result = await new Promise<UploadResult>((resolve, reject) => {
+        return await new Promise<UploadResult>((resolve, reject) => {
           xhr.upload.addEventListener('progress', (e) => {
             if (e.lengthComputable) {
               setProgress({
@@ -62,11 +62,11 @@ export function useFileUpload(endpoint?: string) {
           xhr.addEventListener('abort', () => reject(new Error('Upload cancelled')));
 
           xhr.open('POST', url);
-          if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+          if (token) {
+            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+          }
           xhr.send(formData);
         });
-
-        return result;
       } catch (err) {
         const uploadError = err instanceof Error ? err : new Error(String(err));
         setError(uploadError);

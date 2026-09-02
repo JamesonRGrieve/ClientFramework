@@ -7,8 +7,8 @@ import type { ApiResponse, HealthResponse, ReadinessResponse } from './types';
  *   - GET /healthz  (Operations.py)     liveness, 503 on shutdown
  *   - GET /readyz   (Operations.py)     readiness w/ critical-provider hysteresis
  */
-export const fetchHealth = (client: ApiClient): Promise<ApiResponse<HealthResponse>> => client.get('/health');
+export const fetchHealth = async (client: ApiClient): Promise<ApiResponse<HealthResponse>> => client.get('/health');
 
-export const fetchLiveness = (client: ApiClient): Promise<ApiResponse<HealthResponse>> => client.get('/healthz');
+export const fetchLiveness = async (client: ApiClient): Promise<ApiResponse<HealthResponse>> => client.get('/healthz');
 
-export const fetchReadiness = (client: ApiClient): Promise<ApiResponse<ReadinessResponse>> => client.get('/readyz');
+export const fetchReadiness = async (client: ApiClient): Promise<ApiResponse<ReadinessResponse>> => client.get('/readyz');

@@ -1,4 +1,4 @@
-import { ApiClient } from './client';
+import type { ApiClient } from './client';
 import type { OperationTracking } from './types';
 
 const POLL_INTERVAL_MS = 750;
@@ -14,7 +14,7 @@ export interface PollOptions {
   onUpdate?: (state: OperationTracking) => void;
 }
 
-const sleep = (ms: number, signal?: AbortSignal): Promise<void> =>
+const sleep = async (ms: number, signal?: AbortSignal): Promise<void> =>
   new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       signal?.removeEventListener('abort', onAbort);
@@ -47,8 +47,12 @@ export async function pollTracking(
     });
     const state = response.data;
     options.onUpdate?.(state);
-    if (state.state === 'complete' || state.state === 'dlq') return state;
-    if (Date.now() - start >= timeoutMs) return state;
+    if (state.state === 'complete' || state.state === 'dlq') {
+      return state;
+    }
+    if (Date.now() - start >= timeoutMs) {
+      return state;
+    }
     await sleep(Math.min(interval, maxInterval), options.signal);
     interval = Math.min(interval * POLL_BACKOFF_FACTOR, maxInterval);
   }

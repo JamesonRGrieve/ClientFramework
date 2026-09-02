@@ -6,7 +6,9 @@ import { useZephyrexConfig } from './ZephyrexProvider';
 
 function matchRoute(pattern: string, slug: string[]): boolean {
   const patternParts = pattern.split('/').filter(Boolean);
-  if (patternParts.length !== slug.length) return false;
+  if (patternParts.length !== slug.length) {
+    return false;
+  }
   return patternParts.every((part, i) => part.startsWith(':') || part.startsWith('[') || part === slug[i]);
 }
 
