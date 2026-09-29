@@ -18,21 +18,6 @@ export interface NavItemDefinition {
 
 export type MiddlewareHook = (req: NextRequest) => Promise<{ activated: boolean; response: NextResponse }>;
 
-// --- Auth flow injection ---
-
-export interface AuthFlowInjection {
-  /** Component to render after email identification (e.g. OAuth buttons) */
-  identifyExtras?: ComponentType;
-  /** Component to render after login form (e.g. magic link, webauthn) */
-  loginExtras?: ComponentType;
-  /** Component to render after registration form */
-  registerExtras?: ComponentType;
-  /** MFA verification step — renders when server returns verification flags */
-  mfaVerify?: ComponentType<{ type: 'totp' | 'email' | 'sms'; verifiedCallback: (verified: boolean) => void }>;
-  /** MFA setup step — renders when server returns otp_uri */
-  mfaSetup?: ComponentType<{ verifiedCallback: (verified: boolean) => void }>;
-}
-
 // --- Management page injection ---
 
 export interface ManagementTab {
@@ -65,9 +50,6 @@ export interface ZephyrexClientExtension {
 
   // Page content injection
   pageSlots?: PageSlots;
-
-  // Auth flow injection
-  authFlow?: AuthFlowInjection;
 
   // Management page tabs (/user/manage)
   managementTabs?: ManagementTab[];
