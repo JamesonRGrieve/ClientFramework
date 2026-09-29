@@ -17,9 +17,6 @@ Read **before your first edit** in this repo:
 src/lib/zephyrex/           Core package exports (ZephyrexApp, hooks, types, extensions)
 src/components/ui/          shadcn/ui primitives (35 components)
 src/components/appwrapper/  Shell components (sidebar, header, footer, nav) — absorbed submodule
-src/components/auth/        → symlink to ../auth repo (@zephyrex/auth)
-src/components/dynamic-form/ → symlink to ../dynamic-form repo (@jgrieve/forms)
-src/lib/zod2gql/            → symlink to ../zod2gql repo (@zephyrex/zod2gql)
 src/app/                    Template app (reference consumer)
 e2e/                        Playwright integration tests (client↔server)
 ```
@@ -42,7 +39,7 @@ import { RequireRole, ErrorBoundary, NotificationBell, SearchInput } from 'zephy
 // Page injection
 import { PageWithSlots, usePageSlots } from 'zephyrex';
 
-// Extensions (59 matching server 1:1)
+// Extensions (one per server-bundled extension, 1:1)
 import { allExtensions } from 'zephyrex/extensions';
 import { authMfaExtension } from 'zephyrex/extensions/auth_mfa';
 ```
@@ -59,7 +56,7 @@ A consumer app is ~6 files:
 
 ### Extension System
 
-59 client extensions match 1:1 with server extensions. Each extension can provide:
+34 client extensions match 1:1 with the extensions bundled with the server (pinned by `extensions/index.test.ts`). Identity-provider extensions live in zephyrex-auth and campaign extensions in zephyrex-rpg, each with its client counterpart. Each extension can provide:
 
 - `pages` — routes to register
 - `navItems` — sidebar entries
@@ -85,14 +82,14 @@ const myExtension: ZephyrexClientExtension = {
 
 ## Sibling Packages
 
-| Package | npm name            | Source                                                          |
-| ------- | ------------------- | --------------------------------------------------------------- |
-| Auth    | `@zephyrex/auth`    | `../auth` (symlinked to `src/components/auth/`)                 |
-| Forms   | `@jgrieve/forms`    | `../dynamic-form` (symlinked to `src/components/dynamic-form/`) |
-| Zod→GQL | `@zephyrex/zod2gql` | `../zod2gql` (symlinked to `src/lib/zod2gql/`)                  |
-| Server  | `zephyrex` (PyPI)   | `../server-framework`                                           |
+| Package | npm name          | Source                |
+| ------- | ----------------- | --------------------- |
+| Auth    | `@zephyrex/auth`  | `../auth`             |
+| Forms   | `@jgrieve/forms`  | `../dynamic-form`     |
+| Zod→GQL | `zod2gql`         | `../zod2gql`          |
+| Server  | `zephyrex` (PyPI) | `../server-framework` |
 
-Path aliases in `tsconfig.json` map `@zephyrex/auth/*`, `@jgrieve/forms/*`, `@zephyrex/zod2gql`, and `@jgrieve/appwrapper/*` to their source directories.
+The packages are ordinary dependencies consumed from their compiled `dist/`. Until they are published, `pnpm-workspace.yaml` overrides them to the sibling checkouts as injected `file:` copies (peers such as react and zod resolve from this package, so there is one of each); rebuild a sibling and re-run `pnpm install` to pick up its changes. Tailwind scans their `dist/` through `@source` in `globals.css`.
 
 ---
 

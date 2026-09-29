@@ -1,13 +1,13 @@
 # Zephyrex Client Framework
 
-Installable Next.js framework for building apps on the Zephyrex server. Ships a complete app shell with auth, team management, provider settings, and 59 extension stubs matching server extensions 1:1.
+Installable Next.js framework for building apps on the Zephyrex server. Ships a complete app shell with auth, team management, provider settings, and one client extension for each of the 34 extensions bundled with the server.
 
 ## Quick Start (Consumer App)
 
 ```bash
 mkdir my-app && cd my-app
 pnpm init
-pnpm add zephyrex @zephyrex/auth @zephyrex/zod2gql @jgrieve/forms next react react-dom
+pnpm add zephyrex @zephyrex/auth zod2gql @jgrieve/forms next react react-dom
 ```
 
 Create `src/zephyrex.config.ts`:
