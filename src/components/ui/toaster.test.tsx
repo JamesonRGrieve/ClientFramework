@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest';
+import * as mod from './toaster';
 
 describe('toaster', () => {
-  it('module exports', async () => {
-    const mod = await import('./toaster');
+  it('module exports', () => {
     expect(mod).toBeDefined();
   });
 });
