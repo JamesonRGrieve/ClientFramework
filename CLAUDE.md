@@ -67,7 +67,7 @@ A consumer app is ~6 files:
 
 ### Page Injection
 
-Every built-in page supports slot injection via `PageWithSlots`:
+The built-in `team`, `settings` and `provider` pages render through `PageWithSlots`; `before`/`after` slots surround the page, `sidebar` slots follow its context sidebar, and a `replace` slot stands in for it. Extension `navItems` join the sidebar menu and extension `middleware` runs after the built-in auth hooks:
 
 ```typescript
 const myExtension: ZephyrexClientExtension = {

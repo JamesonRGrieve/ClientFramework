@@ -20,6 +20,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
+import { toNavMenuItems } from '@/lib/zephyrex/navigation';
+import { useZephyrexConfig } from '@/lib/zephyrex/ZephyrexProvider';
 
 export const navItems = items;
 export type Item = NavItem;
@@ -33,8 +35,9 @@ export function NavMain(): React.JSX.Element {
   // `my_role` is a runtime-only field not present on the base team schema.
   const company: { name?: string; my_role?: number } | undefined = companyData ?? undefined;
   const { toggleSidebar, open } = useSidebar('left');
+  const { navItems: contributedNavItems } = useZephyrexConfig();
 
-  const itemsWithActiveState = items.map((item) => ({
+  const itemsWithActiveState = [...items, ...toNavMenuItems(contributedNavItems)].map((item) => ({
     ...item,
     isActive: isActive(item, pathname, queryParams),
   }));

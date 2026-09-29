@@ -15,6 +15,10 @@ vi.mock('next/navigation', () => ({
   usePathname: vi.fn(() => '/'),
   useSearchParams: vi.fn(() => new URLSearchParams()),
   redirect: vi.fn(),
+  // Like Next's, it never returns: it throws to hand the request to the not-found page.
+  notFound: vi.fn(() => {
+    throw new Error('NEXT_NOT_FOUND');
+  }),
 }));
 
 // Mock next/image
@@ -47,11 +51,11 @@ Object.defineProperty(window, 'matchMedia', {
     matches: query.includes('dark'),
     media: query,
     onchange: null,
-    addListener: () => {},
-    removeListener: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    dispatchEvent: () => false,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(() => false),
   }),
 });
 

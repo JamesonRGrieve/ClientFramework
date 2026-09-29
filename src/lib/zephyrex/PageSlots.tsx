@@ -2,6 +2,7 @@
 'use client';
 
 import { createContext, useContext, type ComponentType, type ReactNode } from 'react';
+import { SidebarContent } from '../../components/appwrapper/src/SidebarContentManager';
 
 export interface PageSlotDefinition {
   position: 'before' | 'after' | 'replace' | 'sidebar';
@@ -13,47 +14,74 @@ export interface PageSlots {
   [pageName: string]: PageSlotDefinition[];
 }
 
+const DEFAULT_PRIORITY = 50;
+
 const PageSlotsContext = createContext<PageSlots>({});
 
 export function PageSlotsProvider({ slots, children }: { slots: PageSlots; children: ReactNode }) {
   return <PageSlotsContext value={slots}>{children}</PageSlotsContext>;
 }
 
+/** The slots registered for `pageName`, lowest priority first. The shared context is never reordered. */
 export function usePageSlots(pageName: string): PageSlotDefinition[] {
   const slots = useContext(PageSlotsContext);
-  return (slots[pageName] ?? []).sort((a, b) => (a.priority ?? 50) - (b.priority ?? 50));
+  return [...(slots[pageName] ?? [])].sort((a, b) => (a.priority ?? DEFAULT_PRIORITY) - (b.priority ?? DEFAULT_PRIORITY));
 }
 
+const slotKey = (slot: PageSlotDefinition): string =>
+  `${slot.position}:${slot.priority ?? DEFAULT_PRIORITY}:${slot.component.displayName ?? slot.component.name}`;
+
+const renderSlots = (slots: PageSlotDefinition[], pageProps: Record<string, unknown> | undefined): ReactNode =>
+  slots.map((slot) => {
+    const SlotComponent = slot.component;
+    return <SlotComponent key={slotKey(slot)} pageProps={pageProps} />;
+  });
+
+/**
+ * Renders a built-in page with the content extensions inject into it: `before`/`after`
+ * slots around the page, `sidebar` slots after the page's own context sidebar, and a
+ * `replace` slot instead of everything (the lowest-priority one wins).
+ */
 export function PageWithSlots({
   name,
   children,
   pageProps,
+  sidebar,
+  sidebarTitle,
 }: {
   name: string;
   children: ReactNode;
   pageProps?: Record<string, unknown>;
+  sidebar?: ReactNode;
+  sidebarTitle?: string;
 }) {
   const slots = usePageSlots(name);
-  const before = slots.filter((s) => s.position === 'before');
-  const after = slots.filter((s) => s.position === 'after');
-  const replace = slots.find((s) => s.position === 'replace');
-
+  const replace = slots.find((slot) => slot.position === 'replace');
   if (replace) {
     const ReplacementComponent = replace.component;
     return <ReplacementComponent pageProps={pageProps} />;
   }
 
+  const sidebarSlots = slots.filter((slot) => slot.position === 'sidebar');
+  const hasSidebar = sidebar !== undefined || sidebarSlots.length > 0;
+
   return (
     <>
-      {before.map((slot) => {
-        const SlotComponent = slot.component;
-        return <SlotComponent key={SlotComponent.displayName ?? SlotComponent.name} pageProps={pageProps} />;
-      })}
+      {renderSlots(
+        slots.filter((slot) => slot.position === 'before'),
+        pageProps,
+      )}
       {children}
-      {after.map((slot) => {
-        const SlotComponent = slot.component;
-        return <SlotComponent key={SlotComponent.displayName ?? SlotComponent.name} pageProps={pageProps} />;
-      })}
+      {renderSlots(
+        slots.filter((slot) => slot.position === 'after'),
+        pageProps,
+      )}
+      {hasSidebar && (
+        <SidebarContent {...(sidebarTitle !== undefined ? { title: sidebarTitle } : {})}>
+          {sidebar}
+          {renderSlots(sidebarSlots, pageProps)}
+        </SidebarContent>
+      )}
     </>
   );
 }

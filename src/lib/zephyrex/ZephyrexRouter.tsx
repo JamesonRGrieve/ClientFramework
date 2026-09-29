@@ -4,12 +4,28 @@
 import { notFound } from 'next/navigation';
 import { useZephyrexConfig } from './ZephyrexProvider';
 
-function matchRoute(pattern: string, slug: string[]): boolean {
-  const patternParts = pattern.split('/').filter(Boolean);
-  if (patternParts.length !== slug.length) {
-    return false;
+const isParamSegment = (segment: string): boolean => segment.startsWith(':') || segment.startsWith('[');
+const paramName = (segment: string): string => segment.replace(/^:|^\[|]$/g, '');
+
+/**
+ * Match `slug` against a route pattern such as `analytics/:report` (or `analytics/[report]`).
+ * Returns the named parameters on a match, `null` otherwise.
+ */
+export function matchRoute(pattern: string, slug: readonly string[]): Record<string, string> | null {
+  const segments = pattern.split('/').filter(Boolean);
+  if (segments.length !== slug.length) {
+    return null;
   }
-  return patternParts.every((part, i) => part.startsWith(':') || part.startsWith('[') || part === slug[i]);
+  const params: Record<string, string> = {};
+  for (const [index, segment] of segments.entries()) {
+    const value = slug.at(index) ?? '';
+    if (isParamSegment(segment)) {
+      params[paramName(segment)] = value;
+    } else if (segment !== value) {
+      return null;
+    }
+  }
+  return params;
 }
 
 export function ZephyrexRouter({
@@ -22,14 +38,10 @@ export function ZephyrexRouter({
   const { routes } = useZephyrexConfig();
 
   for (const route of routes) {
-    if (matchRoute(route.path, params.slug)) {
+    const matched = matchRoute(route.path, params.slug);
+    if (matched !== null) {
       const Component = route.component;
-      return (
-        <Component
-          params={{ slug: params.slug.join('/'), ...Object.fromEntries(Object.entries(params)) }}
-          searchParams={searchParams}
-        />
-      );
+      return <Component params={{ ...matched, slug: params.slug.join('/') }} searchParams={searchParams} />;
     }
   }
 

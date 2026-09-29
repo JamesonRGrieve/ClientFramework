@@ -438,8 +438,11 @@ export default [
       'jsx-a11y/no-static-element-interactions': 'warn',
       'react/no-danger': 'warn',
       'unused-imports/no-unused-imports': 'warn',
-      // CSS / style side-effect imports are legitimately unassigned.
-      'import/no-unassigned-import': ['warn', { allow: ['**/*.css', '**/*.scss', '**/*.sass', '**/*.less'] }],
+      // CSS / style imports and matcher registration (jest-dom) are side-effect-only by design.
+      'import/no-unassigned-import': [
+        'warn',
+        { allow: ['**/*.css', '**/*.scss', '**/*.sass', '**/*.less', '@testing-library/jest-dom'] },
+      ],
       'jsx-a11y/no-autofocus': 'warn',
       'react/no-access-state-in-setstate': 'warn',
     },

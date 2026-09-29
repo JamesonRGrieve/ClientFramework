@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
-import { SidebarContent } from '@/components/appwrapper/src/SidebarContentManager';
 import { Providers } from '@/components/settings/providers';
+import { PageWithSlots } from '@/lib/zephyrex/PageSlots';
 
-export default function ProvidersPage() {
+export default function SettingsPage() {
   return (
     <SidebarPage title='Settings'>
-      <SidebarContent title='Settings'>
-        <div />
-      </SidebarContent>
-      <Providers />
+      <PageWithSlots name='settings' sidebarTitle='Settings'>
+        <Providers />
+      </PageWithSlots>
     </SidebarPage>
   );
 }
