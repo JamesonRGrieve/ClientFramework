@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import fs from 'fs';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import MarkdownBlock from '@/components/markdown/MarkdownBlock';
@@ -8,7 +8,7 @@ import MarkdownBlock from '@/components/markdown/MarkdownBlock';
 function getPrivacyPolicy() {
   try {
     const filePath = path.join(process.cwd(), 'src', 'content', 'PRIVACY_POLICY.md');
-    return fs.readFileSync(filePath, 'utf8');
+    return readFileSync(filePath, 'utf8');
   } catch (error) {
     console.warn('Error reading privacy policy:', error);
     return '# Privacy Policy\n\nUnable to load privacy policy.';
