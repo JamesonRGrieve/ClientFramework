@@ -4,7 +4,6 @@ import { SidebarContext } from '@/components/appwrapper/src/SidebarContext';
 import { SidebarMain } from '@/components/appwrapper/src/SidebarMain';
 import { ZephyrexApp } from '@/lib/zephyrex';
 import { cn } from '@/lib/utils';
-import '@zephyrex/zod2gql';
 import { cookies } from 'next/headers';
 import type { ReactNode } from 'react';
 import config from '@/zephyrex.config';

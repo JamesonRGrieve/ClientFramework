@@ -176,9 +176,6 @@ const nextConfig = configs.reduce((accumulator, config) => mergeConfigs(accumula
       },
     ];
   },
-  turbopack: {
-    root: require('path').resolve(__dirname, '..'),
-  },
 });
 
 module.exports = withSerwist(nextConfig);

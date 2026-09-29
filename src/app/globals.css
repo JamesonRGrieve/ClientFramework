@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* Tailwind skips node_modules; scan the component packages for the classes they use. */
+@source '../../node_modules/@zephyrex/auth/dist';
+@source '../../node_modules/@jgrieve/forms/dist';
+
 @plugin 'tailwindcss-animate';
 
 @custom-variant dark (&:is(.dark *));

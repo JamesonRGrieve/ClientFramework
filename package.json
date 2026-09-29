@@ -11,9 +11,8 @@
   "scripts": {
     "dev": "rimraf ./.next && next dev -p 1109",
     "basic": "rimraf ./.next && next dev -p 3000",
-    "prebuild": "bash scripts/prebuild-link-siblings.sh",
-    "prepare": "git config core.hooksPath .githooks 2>/dev/null; bash scripts/prebuild-link-siblings.sh",
-    "precommit": "npx prettier --check . && bash scripts/prebuild-link-siblings.sh && pnpm check && pnpm test",
+    "prepare": "git config core.hooksPath .githooks 2>/dev/null || true",
+    "precommit": "npx prettier --check . && pnpm check && pnpm test",
     "build": "rimraf ./.next && next build",
     "clean-build": "rimraf ./.next & rimraf ./node_modules && pnpm install && pnpm build && pnpm start",
     "compile": "tsc --jsx react-jsx --project tsconfig.compile.json && shx mkdir -p ./dist/style && npx postcss ./app/globals.css -o ./dist/style/globals.css",
@@ -156,8 +155,21 @@
     "lightningcss-win32-arm64-msvc": "1.32.0",
     "lightningcss-win32-x64-msvc": "1.32.0"
   },
+  "dependenciesMeta": {
+    "@jgrieve/forms": {
+      "injected": true
+    },
+    "@zephyrex/auth": {
+      "injected": true
+    },
+    "zod2gql": {
+      "injected": true
+    }
+  },
   "dependencies": {
     "@hookform/resolvers": "^5.7.1",
+    "@jgrieve/forms": "^0.0.1-alpha.1",
+    "@zephyrex/auth": "^0.0.1-alpha.1",
     "@radix-ui/react-alert-dialog": "^1.1.23",
     "@radix-ui/react-avatar": "^1.2.6",
     "@radix-ui/react-checkbox": "^1.3.11",
@@ -224,7 +236,8 @@
     "timezones-list": "^3.1.0",
     "uuid": "^14.0.1",
     "vaul": "^1.1.2",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "zod2gql": "^0.1.0-alpha.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.7",

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import useSWR, { type SWRResponse } from 'swr';
 import { createGraphQLClient } from '@zephyrex/auth/hooks/lib';
-import z, { GQLType } from '@zephyrex/zod2gql';
+import { z } from 'zod';
+import { GQLType, toGQL } from 'zod2gql';
 import { type Provider, ProviderSchema } from './z';
 import log from '@/lib/log';
 
@@ -21,7 +22,7 @@ export function useProvider(providerName?: string): SWRResponse<Provider | null>
     providerName ? [`/provider`, providerName] : null,
     async (): Promise<Provider | null> => {
       try {
-        const query = ProviderSchema.toGQL(GQLType.Query, {
+        const query = toGQL(ProviderSchema, GQLType.Query, {
           operationName: 'GetProvider',
           variables: { providerName: providerName ?? null },
         });
@@ -51,7 +52,7 @@ export function useProviders(): SWRResponse<Provider[]> {
     '/providers',
     async (): Promise<Provider[]> => {
       try {
-        const query = ProviderSchema.toGQL(GQLType.Query, { operationName: 'GetProviders' });
+        const query = toGQL(z.array(ProviderSchema), GQLType.Query, { operationName: 'GetProviders' });
         const response = await client.request<Record<string, unknown>>(query);
         log(['GQL useProviders() Response', response], {
           client: 3,

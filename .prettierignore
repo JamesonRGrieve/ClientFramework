@@ -15,7 +15,4 @@ public/sw.js
 public/sw.js.map
 public/workbox-*.js
 public/worker-*.js
-src/components/auth/
 src/components/appwrapper/
-src/components/dynamic-form/
-src/lib/zod2gql/

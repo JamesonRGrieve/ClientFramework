@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import z from '@zephyrex/zod2gql';
+import { z } from 'zod';
 
 export const ProviderSettingSchema = z.object({ name: z.string().min(1), value: z.unknown() });
 

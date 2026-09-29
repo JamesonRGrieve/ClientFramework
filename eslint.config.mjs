@@ -48,12 +48,7 @@ export default [
       '*.config.js',
       '*.config.cjs',
       '*.config.mjs',
-      // Submodules — each has its own ESLint pipeline and is responsible for
-      // linting itself. The parent never loads a submodule's config.
       'src/components/appwrapper/**',
-      'src/components/auth/**',
-      'src/components/dynamic-form/**',
-      'src/lib/zod2gql/**',
     ],
   },
   ...compat.config({

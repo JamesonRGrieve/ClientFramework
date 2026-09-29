@@ -38,17 +38,7 @@ module.exports = {
   options: {
     doNotFollow: { path: 'node_modules' },
     exclude: {
-      path: [
-        'node_modules',
-        '\\.next',
-        'dist',
-        'storybook-static',
-        'src/components/auth',
-        'src/components/appwrapper',
-        'src/components/dynamic-form',
-        'src/lib/next-log',
-        'src/lib/zod2gql',
-      ],
+      path: ['node_modules', '\\.next', 'dist', 'storybook-static', 'src/components/appwrapper'],
     },
     tsConfig: { fileName: 'tsconfig.json' },
     enhancedResolveOptions: {

@@ -18,13 +18,7 @@
     "src/components/ui/**/*.{ts,tsx}"
   ],
   "project": ["src/**/*.{ts,tsx,js,jsx}", "!src/**/*.d.ts"],
-  "ignore": [
-    "src/components/auth/**",
-    "src/components/appwrapper/**",
-    "src/components/dynamic-form/**",
-    "src/lib/zod2gql/**",
-    "next-env.d.ts"
-  ],
+  "ignore": ["src/components/appwrapper/**", "next-env.d.ts"],
   "ignoreDependencies": ["@tailwindcss/oxide-*", "lightningcss-*"],
   "ignoreBinaries": ["docker-compose"]
 }
