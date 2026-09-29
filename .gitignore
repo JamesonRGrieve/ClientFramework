@@ -42,6 +42,8 @@ __pycache__
 yarn.lock
 
 # Ratchet coverage reports (regenerated each run; baselines are committed)
+.animation-coverage.json
 .important-coverage.json
 .js-coverage.json
 .symmetry-coverage.json
+.theme-coverage.json
