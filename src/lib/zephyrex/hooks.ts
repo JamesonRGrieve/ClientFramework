@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+import { getCookie } from 'cookies-next';
 import { createContext, useContext, useMemo } from 'react';
-import useSWR from 'swr';
+import useSWR, { type SWRResponse } from 'swr';
+import { z } from 'zod';
 import { ZephyrexClient } from './client';
 import { useZephyrexConfig } from './ZephyrexProvider';
 
@@ -14,117 +16,221 @@ export const ClientProvider = ClientContext.Provider;
 export function useClient(): ZephyrexClient {
   const ctx = useContext(ClientContext);
   const { config } = useZephyrexConfig();
-  if (ctx) {
-    return ctx;
-  }
-  return new ZephyrexClient({ baseUrl: config.server.baseUrl });
+  const baseUrl = config.server.baseUrl;
+  const fallback = useMemo(() => new ZephyrexClient({ baseUrl }), [baseUrl]);
+  return ctx ?? fallback;
 }
+
+const optionalText = z.string().nullable().optional();
 
 // --- User ---
 
-export interface User {
-  id: string;
-  email: string;
-  first_name?: string;
-  last_name?: string;
-  display_name?: string;
-  role_id?: string;
-  [key: string]: unknown;
-}
+const UserSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  first_name: optionalText,
+  last_name: optionalText,
+  display_name: optionalText,
+  username: optionalText,
+  timezone: optionalText,
+  language: optionalText,
+});
+export type User = z.infer<typeof UserSchema>;
 
-export function useUser() {
+/** The signed-in user (GET /v1/user answers `{ user }`). */
+export function useUser(): SWRResponse<User, Error> {
   const client = useClient();
-  return useSWR<User>('/v1/user', async () => client.get<User>('/v1/user'));
+  return useSWR<User, Error>(
+    '/v1/user',
+    async () => z.object({ user: UserSchema }).parse(await client.get('/v1/user')).user,
+  );
 }
 
 // --- Role ---
 
-export function useRole() {
+export const SUPERADMIN_ROLE_ID = 'FFFFFFFF-0000-0000-FFFF-FFFFFFFFFFFF';
+export const ADMIN_ROLE_ID = 'FFFFFFFF-0000-0000-AAAA-FFFFFFFFFFFF';
+
+const TeamMembershipSchema = z.object({
+  user_id: z.string(),
+  team_id: z.string(),
+  role_id: z.string(),
+});
+export type TeamMembership = z.infer<typeof TeamMembershipSchema>;
+
+export interface Role {
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
+  roleId: string | null;
+}
+
+const activeTeamId = (): string | null => {
+  const team = getCookie('auth-team');
+  return typeof team === 'string' && team !== '' ? team : null;
+};
+
+/**
+ * The signed-in user's role in `teamId` (default: the active team). Roles belong to team
+ * memberships, not users, so this reads the team's members (GET /v1/team/{id}/user).
+ */
+export function useRole(teamId: string | null = activeTeamId()): Role {
+  const client = useClient();
   const { data: user } = useUser();
+  const { data: members } = useSWR<TeamMembership[], Error>(
+    teamId === null ? null : `/v1/team/${teamId}/user`,
+    async () =>
+      z.object({ user_teams: z.array(TeamMembershipSchema) }).parse(await client.get(`/v1/team/${teamId}/user`)).user_teams,
+  );
+  const roleId = members?.find((member) => member.user_id === user?.id)?.role_id ?? null;
   return useMemo(
     () => ({
-      isAdmin:
-        user?.role_id === 'FFFFFFFF-0000-0000-AAAA-FFFFFFFFFFFF' || user?.role_id === 'FFFFFFFF-0000-0000-FFFF-FFFFFFFFFFFF',
-      isSuperAdmin: user?.role_id === 'FFFFFFFF-0000-0000-FFFF-FFFFFFFFFFFF',
-      roleId: user?.role_id ?? null,
+      isAdmin: roleId === ADMIN_ROLE_ID || roleId === SUPERADMIN_ROLE_ID,
+      isSuperAdmin: roleId === SUPERADMIN_ROLE_ID,
+      roleId,
     }),
-    [user?.role_id],
+    [roleId],
   );
 }
 
 // --- Teams ---
 
-export interface Team {
-  id: string;
-  name: string;
-  description?: string;
-  [key: string]: unknown;
+const TeamSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: optionalText,
+});
+export type Team = z.infer<typeof TeamSchema>;
+
+export function useTeams(): SWRResponse<Team[], Error> {
+  const client = useClient();
+  return useSWR<Team[], Error>(
+    '/v1/team',
+    async () => z.object({ teams: z.array(TeamSchema) }).parse(await client.get('/v1/team')).teams,
+  );
 }
 
-export function useTeams() {
+export function useTeam(id?: string): SWRResponse<Team, Error> {
   const client = useClient();
-  return useSWR<Team[]>('/v1/team', async () => {
-    const res = await client.get<{ teams?: Team[] }>('/v1/team');
-    return res.teams ?? (Array.isArray(res) ? res : []);
-  });
-}
-
-export function useTeam(id?: string) {
-  const client = useClient();
-  return useSWR<Team>(id ? `/v1/team/${id}` : null, async () => client.get<Team>(`/v1/team/${id}`));
+  return useSWR<Team, Error>(
+    id !== undefined && id !== '' ? `/v1/team/${id}` : null,
+    async () => z.object({ team: TeamSchema }).parse(await client.get(`/v1/team/${id}`)).team,
+  );
 }
 
 // --- Extensions (server-side) ---
 
-export interface ServerExtension {
-  id: string;
-  name: string;
-  description?: string;
-  [key: string]: unknown;
-}
+const ServerExtensionSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: optionalText,
+});
+export type ServerExtension = z.infer<typeof ServerExtensionSchema>;
 
-export function useServerExtensions() {
+export function useServerExtensions(): SWRResponse<ServerExtension[], Error> {
   const client = useClient();
-  return useSWR<ServerExtension[]>('/v1/extension', async () => {
-    const res = await client.get<{ extensions?: ServerExtension[] }>('/v1/extension');
-    return res.extensions ?? (Array.isArray(res) ? res : []);
-  });
+  return useSWR<ServerExtension[], Error>(
+    '/v1/extension',
+    async () => z.object({ extensions: z.array(ServerExtensionSchema) }).parse(await client.get('/v1/extension')).extensions,
+  );
 }
 
 // --- Providers ---
 
-export interface Provider {
-  id: string;
-  name: string;
-  [key: string]: unknown;
-}
+const ProviderSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  friendly_name: optionalText,
+});
+export type Provider = z.infer<typeof ProviderSchema>;
 
-export function useProviders() {
+export function useProviders(): SWRResponse<Provider[], Error> {
   const client = useClient();
-  return useSWR<Provider[]>('/v1/provider', async () => {
-    const res = await client.get<{ providers?: Provider[] }>('/v1/provider');
-    return res.providers ?? (Array.isArray(res) ? res : []);
-  });
+  return useSWR<Provider[], Error>(
+    '/v1/provider',
+    async () => z.object({ providers: z.array(ProviderSchema) }).parse(await client.get('/v1/provider')).providers,
+  );
 }
 
 // --- Notifications ---
 
+const NotificationSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  content: z.string(),
+  reference_type: optionalText,
+  reference_id: optionalText,
+  created_at: z.string(),
+});
+
+const UserNotificationSchema = z.object({
+  id: z.string(),
+  notification_id: z.string(),
+  read: z.boolean(),
+  acknowledged: z.boolean(),
+});
+
+/** One notification delivered to the signed-in user, with their read state. `id` is the delivery's id. */
 export interface Notification {
   id: string;
-  message: string;
+  notificationId: string;
+  title: string;
+  content: string;
+  referenceType: string | null;
+  referenceId: string | null;
+  createdAt: string;
   read: boolean;
-  created_at: string;
-  [key: string]: unknown;
+  acknowledged: boolean;
 }
 
-export function useNotifications() {
+/** Join the user's deliveries (read state) to the notifications they deliver, newest first. */
+export function toInbox(
+  deliveries: readonly z.infer<typeof UserNotificationSchema>[],
+  notifications: readonly z.infer<typeof NotificationSchema>[],
+): Notification[] {
+  const byId = new Map(notifications.map((notification) => [notification.id, notification]));
+  return deliveries
+    .flatMap((delivery) => {
+      const notification = byId.get(delivery.notification_id);
+      return notification === undefined
+        ? []
+        : [
+            {
+              id: delivery.id,
+              notificationId: notification.id,
+              title: notification.title,
+              content: notification.content,
+              referenceType: notification.reference_type ?? null,
+              referenceId: notification.reference_id ?? null,
+              createdAt: notification.created_at,
+              read: delivery.read,
+              acknowledged: delivery.acknowledged,
+            },
+          ];
+    })
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+/** The signed-in user's notification inbox (GET /v1/user-notifications joined to /v1/notifications). */
+export function useNotifications(): SWRResponse<Notification[], Error> {
   const client = useClient();
-  return useSWR<Notification[]>('/v1/notification', async () => {
-    try {
-      const res = await client.get<{ notifications?: Notification[] }>('/v1/notification');
-      return res.notifications ?? (Array.isArray(res) ? res : []);
-    } catch {
-      return [];
-    }
+  return useSWR<Notification[], Error>('/v1/user-notifications', async () => {
+    const [deliveries, notifications] = await Promise.all([
+      client.get('/v1/user-notifications'),
+      client.get('/v1/notifications'),
+    ]);
+    return toInbox(
+      z.object({ user_notifications: z.array(UserNotificationSchema) }).parse(deliveries).user_notifications,
+      z.object({ notifications: z.array(NotificationSchema) }).parse(notifications).notifications,
+    );
   });
+}
+
+/** Mark one delivered notification read (PATCH /v1/user-notifications/{id}/read). */
+export function useMarkNotificationRead(): (deliveryId: string) => Promise<void> {
+  const client = useClient();
+  const { mutate } = useNotifications();
+  return async (deliveryId: string): Promise<void> => {
+    await client.patch(`/v1/user-notifications/${encodeURIComponent(deliveryId)}/read`, {});
+    await mutate();
+  };
 }

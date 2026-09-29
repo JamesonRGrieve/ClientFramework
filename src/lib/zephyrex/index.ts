@@ -21,8 +21,11 @@ export {
   useServerExtensions,
   useProviders,
   useNotifications,
+  useMarkNotificationRead,
+  ADMIN_ROLE_ID,
+  SUPERADMIN_ROLE_ID,
 } from './hooks';
-export type { User, Team, ServerExtension, Provider, Notification } from './hooks';
+export type { User, Role, Team, TeamMembership, ServerExtension, Provider, Notification } from './hooks';
 
 // Feature Hooks
 export { useSearch } from './useSearch';
