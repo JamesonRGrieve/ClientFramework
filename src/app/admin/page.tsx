@@ -8,6 +8,11 @@ const ADMIN_LINKS = [
   { href: '/admin/services', title: 'Failed Services', desc: 'Supervisor list with manual reset.' },
   { href: '/admin/rotations', title: 'Rotations', desc: 'Provider rotation rules and member instances.' },
   { href: '/admin/extensions', title: 'Extension Catalog', desc: 'Installed framework extensions and their abilities.' },
+  {
+    href: '/admin/providers',
+    title: 'Root Providers',
+    desc: 'Environment configuration of every loaded provider (root only).',
+  },
 ];
 
 export default function AdminLanding(): JSX.Element {

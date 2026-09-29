@@ -33,6 +33,8 @@ export { useSubscription } from './useSubscription';
 export type { SubscriptionOptions } from './useSubscription';
 export { useOnline } from './useOnline';
 export { useRateLimit } from './useRateLimit';
+export { useRootProviderStatus } from './useRootProviderStatus';
+export type { RootProviderSetting, RootProviderStatusEntry, RootProviderStatusResponse } from './useRootProviderStatus';
 
 // Components
 export { RequireRole } from './components/RequireRole';
@@ -41,6 +43,7 @@ export { NotificationBell } from './components/NotificationBell';
 export { SearchInput } from './components/SearchInput';
 export type { SearchInputProps } from './components/SearchInput';
 export { RateLimitBanner } from './components/RateLimitBanner';
+export { RootProviderStatus } from './components/RootProviderStatus';
 
 // Page Injection
 export { PageSlotsProvider, usePageSlots, PageWithSlots } from './PageSlots';

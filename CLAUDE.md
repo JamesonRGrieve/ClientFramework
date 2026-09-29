@@ -34,7 +34,7 @@ import { useClient, useUser, useRole, useTeams, useProviders, useNotifications }
 import { useSearch, useFileUpload, useSubscription, useOnline } from 'zephyrex';
 
 // Components
-import { RequireRole, ErrorBoundary, NotificationBell, SearchInput } from 'zephyrex';
+import { RequireRole, ErrorBoundary, NotificationBell, SearchInput, RootProviderStatus } from 'zephyrex';
 
 // Page injection
 import { PageWithSlots, usePageSlots } from 'zephyrex';

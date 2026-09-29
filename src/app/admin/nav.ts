@@ -1,4 +1,4 @@
-import { Activity, AlertOctagon, Boxes, Database, ListChecks, Workflow } from 'lucide-react';
+import { Activity, AlertOctagon, Boxes, Database, KeyRound, ListChecks, Workflow } from 'lucide-react';
 import type { Item } from '@/app/NavMain';
 
 export const adminNavItems: Item[] = [
@@ -12,6 +12,7 @@ export const adminNavItems: Item[] = [
       { title: 'Services', url: '/admin/services', icon: ListChecks },
       { title: 'Rotations', url: '/admin/rotations', icon: Workflow },
       { title: 'Extensions', url: '/admin/extensions', icon: Boxes },
+      { title: 'Root Providers', url: '/admin/providers', icon: KeyRound },
     ],
   },
 ];
