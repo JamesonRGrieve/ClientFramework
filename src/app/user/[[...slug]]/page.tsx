@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { type ReactNode, Suspense } from 'react';
 import AuthRouter from '@zephyrex/auth/Router';
+import { ManagementSections } from '@/lib/zephyrex/ManagementTabRegistry';
 
 interface UserRouterProps {
   params: Promise<{ slug?: string[] }>;
@@ -22,6 +23,11 @@ export default async function UserRouter({ params }: UserRouterProps): Promise<R
           register: {
             path: '/register',
             heading: 'Welcome, Please Register',
+          },
+          manage: {
+            path: '/manage',
+            heading: 'Account Management',
+            props: { sections: <ManagementSections /> },
           },
         }}
         additionalPages={{}}

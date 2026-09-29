@@ -9,6 +9,6 @@ const Notifications = lazy(async () =>
 export const authNotificationsExtension = createExtension('auth_notifications', {
   displayName: 'Notifications',
   description: 'User notification preferences and delivery',
-  managementTabs: [{ id: 'notifications', label: 'Notifications', component: () => Notifications({}), priority: 40 }],
+  managementTabs: [{ id: 'notifications', label: 'Notifications', component: Notifications, priority: 40 }],
   navItems: [{ title: 'Notifications', url: '/notifications' }],
 });

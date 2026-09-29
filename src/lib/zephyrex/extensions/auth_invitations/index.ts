@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { lazy } from 'react';
 import { createExtension } from '../createExtension';
 
-const Invitations = lazy(async () =>
-  import('@zephyrex/auth/management/Invitations').then((m) => ({ default: m.InvitationsTable })),
-);
-
+// Pending invitations are a built-in card on the account page (@zephyrex/auth Manage), so
+// this extension adds no section of its own.
 export const authInvitationsExtension = createExtension('auth_invitations', {
   displayName: 'Invitations',
   description: 'Team invitation management',
-  managementTabs: [{ id: 'invitations', label: 'Invitations', component: () => Invitations({}), priority: 30 }],
 });

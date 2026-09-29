@@ -73,7 +73,13 @@ export { PageSlotsProvider, usePageSlots, PageWithSlots } from './PageSlots';
 export type { PageSlotDefinition, PageSlots } from './PageSlots';
 
 // Management Tab Injection
-export { ManagementTabProvider, useManagementTabs } from './ManagementTabRegistry';
+export {
+  ManagementTabProvider,
+  ManagementSections,
+  managementAnchor,
+  useManagementTabs,
+  visibleTabs,
+} from './ManagementTabRegistry';
 
 // Extension System
 export { useActiveExtensions, AutoSettingsPanel } from './ExtensionRegistry';

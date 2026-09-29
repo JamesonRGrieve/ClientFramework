@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ComponentType, ReactNode } from 'react';
+import type { ComponentType, LazyExoticComponent, ReactNode } from 'react';
 import type { NextRequest, NextResponse } from 'next/server';
 import type { PageSlots } from './PageSlots';
 
@@ -20,10 +20,12 @@ export type MiddlewareHook = (req: NextRequest) => Promise<{ activated: boolean;
 
 // --- Management page injection ---
 
+/** An account-page section an extension adds; `id` is its anchor (`#manage-<id>`). */
 export interface ManagementTab {
   id: string;
   label: string;
-  component: ComponentType;
+  /** Rendered as an element inside Suspense, so a `lazy()` component loads on demand. */
+  component: ComponentType | LazyExoticComponent<ComponentType>;
   /** Only show for these roles. Omit = show for all authenticated users. */
   requireRole?: 'admin' | 'superadmin';
   priority?: number;
