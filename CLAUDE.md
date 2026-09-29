@@ -89,7 +89,7 @@ const myExtension: ZephyrexClientExtension = {
 | Zod→GQL | `zod2gql`         | `../zod2gql`          |
 | Server  | `zephyrex` (PyPI) | `../server-framework` |
 
-The packages are ordinary dependencies consumed from their compiled `dist/`. Until they are published, `pnpm-workspace.yaml` overrides them to the sibling checkouts as injected `file:` copies (peers such as react and zod resolve from this package, so there is one of each); rebuild a sibling and re-run `pnpm install` to pick up its changes. Tailwind scans their `dist/` through `@source` in `globals.css`.
+The packages are ordinary dependencies consumed from their compiled `dist/`. Until they are published, `pnpm-workspace.yaml` overrides them to the sibling checkouts as injected `file:` copies (peers such as react and zod resolve from this package, so there is one of each); pnpm treats an injected sibling as unchanged until its resolution changes, so after rebuilding one run `pnpm update @zephyrex/auth @jgrieve/forms zod2gql` and restore the registry ranges it rewrites to `file:` in `package.json`. Tailwind scans their `dist/` through `@source` in `globals.css`.
 
 ---
 
