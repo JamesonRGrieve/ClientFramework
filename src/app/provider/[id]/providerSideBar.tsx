@@ -1,452 +1,190 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { useState, useEffect } from 'react';
-import { LuPencil, LuPlus, LuTrash2 } from 'react-icons/lu';
-import axios from 'axios';
-import { getCookie } from 'cookies-next';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowBigLeft } from 'lucide-react';
-import { useUser } from '@zephyrex/auth/hooks/useUser';
-import { useProviderInstance, useProviderInstances } from './useProviders';
+import { type JSX, useMemo, useState } from 'react';
+import { LuPencil, LuPlus, LuTrash2 } from 'react-icons/lu';
+import { type InstanceDialog, InstanceDialogs, type NewInstanceFields } from './InstanceDialogs';
+import { ScopePicker } from './ScopePicker';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import {
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar';
 import { useToast } from '@/hooks/useToast';
+import { useProviders, useServerExtensions, useUser } from '@/lib/zephyrex/hooks';
+import {
+  EMPTY_SELECTION,
+  providerLabel,
+  type ProviderScopeSelection,
+  scopeProviderInstances,
+  selectExtension,
+} from '@/lib/zephyrex/providerScope';
+import {
+  useProviderExtensionLinks,
+  useProviderInstanceActions,
+  useProviderInstances,
+} from '@/lib/zephyrex/useProviderInstances';
 
-interface ProviderInstance {
-  provider_id: string;
-  team_id: string;
-  user_id: string;
-  name: string;
-  updated_at: string;
-  updated_by_user_id: string;
-  id: string;
-  created_at: string;
-  created_by_user_id: string;
-  model_name: string;
-  api_key: string;
-  enabled: boolean;
-}
-
-interface Provider {
-  name: string;
-  updated_at: string;
-  updated_by_user_id: string;
-  id: string;
-  created_at: string;
-  created_by_user_id: string;
-  friendly_name: string;
-  agent_settings_json: string;
-}
-
-const readJwt = (): string => {
-  const jwt = getCookie('jwt');
-  return typeof jwt === 'string' ? jwt : '';
-};
-
-export const ProviderSidebar = (): React.JSX.Element => {
-  const [selectedInstance, setSelectedInstance] = useState<ProviderInstance | null>(null);
-  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [newModelName, setNewModelName] = useState('');
-  const [newApiKey, setNewApiKey] = useState('');
-  const { toast } = useToast();
+/**
+ * Narrow provider instances first by extension, then by provider, then pick the instance to
+ * manage. Instances are the level users create, rename and delete.
+ */
+export function ProviderSidebar(): JSX.Element {
   const router = useRouter();
   const params = useParams();
-  const { id } = params;
+  const instanceId = typeof params['id'] === 'string' ? params['id'] : null;
+  const { toast } = useToast();
+
+  const { data: extensions = [] } = useServerExtensions();
+  const { data: providers = [] } = useProviders();
+  const { data: links = [] } = useProviderExtensionLinks();
+  const { data: instances = [] } = useProviderInstances();
   const { data: user } = useUser();
-  const { data: providerInstances, mutate: mutateProviderInstances } = useProviderInstances();
-  const { mutate: mutateInstance } = useProviderInstance(selectedInstance?.id);
+  const actions = useProviderInstanceActions();
 
-  // Provider select state
-  const [providers, setProviders] = useState<Provider[]>([]);
-  const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
+  const [choice, setChoice] = useState<ProviderScopeSelection>(EMPTY_SELECTION);
+  const [dialog, setDialog] = useState<InstanceDialog>(null);
 
-  useEffect(() => {
-    if (providerInstances !== undefined && typeof id === 'string') {
-      const foundInstance = providerInstances.find((p) => p.id === id);
-      setSelectedInstance(foundInstance ?? null);
-    }
-  }, [providerInstances, id]);
+  const current = instances.find((instance) => instance.id === instanceId) ?? null;
+  // Opening an instance directly shows its provider as the scope until the user narrows otherwise.
+  const selection = useMemo<ProviderScopeSelection>(
+    () => (choice.providerId === null && current !== null ? { ...choice, providerId: current.provider_id } : choice),
+    [choice, current],
+  );
 
-  // Fetch providers for select list
-  useEffect(() => {
-    const fetchProviders = async (): Promise<void> => {
-      try {
-        const response = await axios.get<{ providers?: Provider[] }>(`${process.env.NEXT_PUBLIC_API_URI}/v1/provider`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${readJwt()}`,
-          },
-        });
+  const extensionsWithProviders = useMemo(
+    () => extensions.filter((extension) => links.some((link) => link.extension_id === extension.id)),
+    [extensions, links],
+  );
+  const scoped = useMemo(
+    () => scopeProviderInstances({ providers, links, instances }, selection),
+    [providers, links, instances, selection],
+  );
+  const selectedProvider = providers.find((provider) => provider.id === selection.providerId) ?? null;
 
-        setProviders(response.data.providers ?? []);
-        // Do not select any provider by default
-        setSelectedProviderId(null);
-      } catch {
-        setProviders([]);
-      }
-    };
-    void fetchProviders();
-  }, []);
-
-  function handleProviderChange(providerId: string | null): void {
-    setSelectedProviderId(providerId);
-    const filtered = providerInstances?.filter((instance) => instance.provider_id === providerId) ?? [];
-    if (filtered.length > 0) {
-      const first = filtered[0];
-      if (first) {
-        setSelectedInstance(first);
-        router.push(`/provider/${first.id}`);
-      }
-    } else {
-      setSelectedInstance(null);
-      router.push('/provider');
-    }
-  }
-
-  // Handlers
-  const handleSelectInstance = (instanceId: string): void => {
-    const found = providerInstances?.find((p) => p.id === instanceId);
-    if (found !== undefined) {
-      setSelectedInstance(found);
-      router.push(`/provider/${found.id}`);
-    }
+  const open = (id: string | null): void => {
+    router.push(id === null ? '/provider' : `/provider/${id}`);
   };
 
-  const handleConfirmRename = async (): Promise<void> => {
-    if (!selectedInstance) {
+  const reportFailure = (title: string, error: Error | null): void => {
+    toast({ title, description: error?.message ?? 'The server refused the change.', variant: 'destructive' });
+  };
+
+  const create = async ({ name, modelName, apiKey }: NewInstanceFields): Promise<void> => {
+    if (selectedProvider === null) {
       return;
     }
     try {
-      await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URI}/v1/provider/instance/${selectedInstance.id}`,
-        {
-          provider_instance: {
-            name: newName,
-            provider_id: selectedInstance.provider_id,
-          },
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${readJwt()}`,
-          },
-        },
-      );
-      // Use mutate to refresh provider instances from the API
-      await mutateProviderInstances();
-      void mutateInstance();
-      setSelectedInstance((prev) => (prev !== null ? { ...prev, name: newName } : null));
-      setIsRenameDialogOpen(false);
-      toast({
-        title: 'Success',
-        description: 'Provider instance renamed successfully!',
+      const created = await actions.create({
+        name,
+        provider_id: selectedProvider.id,
+        ...(modelName === '' ? {} : { model_name: modelName }),
+        ...(apiKey === '' ? {} : { api_key: apiKey }),
+        ...(user === undefined ? {} : { user_id: user.id }),
       });
-    } catch (error: unknown) {
-      const axiosErr = error as { response?: { data?: { detail?: { message?: string } } } };
-      setIsRenameDialogOpen(false);
-      toast({
-        title: 'Error',
-        description: axiosErr.response?.data?.detail?.message ?? 'Failed to rename provider instance',
-        variant: 'destructive',
-      });
+      setDialog(null);
+      toast({ title: 'Instance created', description: created.name });
+      open(created.id);
+    } catch (error) {
+      reportFailure('Could not create the instance', error instanceof Error ? error : null);
     }
   };
 
-  const handleConfirmCreate = async (): Promise<void> => {
-    if (newName === '' || newModelName === '' || newApiKey === '' || selectedProviderId === null) {
-      return;
-    }
-    const teamId = getCookie('auth-team');
-    if (typeof teamId !== 'string' || teamId === '') {
+  const rename = async (name: string): Promise<void> => {
+    if (current === null) {
       return;
     }
     try {
-      const response = await axios.post<{ provider_instance?: ProviderInstance }>(
-        `${process.env.NEXT_PUBLIC_API_URI}/v1/provider/instance`,
-        {
-          provider_instance: {
-            name: newName,
-            provider_id: selectedProviderId,
-            model_name: newModelName,
-            api_key: newApiKey,
-            user_id: user?.id,
-            team_id: teamId,
-          },
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${readJwt()}`,
-          },
-        },
-      );
-      setIsCreateDialogOpen(false);
-      // Use mutate to refresh provider instances from the API
-      await mutateProviderInstances();
-
-      const createdInstance = response.data.provider_instance ?? null;
-      setSelectedInstance(createdInstance);
-      setNewName('');
-      setNewModelName('');
-      setNewApiKey('');
-      toast({
-        title: 'Success',
-        description: 'Provider instance created successfully!',
-      });
-      if (createdInstance !== null) {
-        router.push(`/provider/${createdInstance.id}`);
-      }
-    } catch {
-      setIsCreateDialogOpen(false);
-      toast({
-        title: 'Error',
-        description: 'Failed to create provider instance',
-        variant: 'destructive',
-      });
+      await actions.update(current.id, { name });
+      setDialog(null);
+      toast({ title: 'Instance renamed', description: name });
+    } catch (error) {
+      reportFailure('Could not rename the instance', error instanceof Error ? error : null);
     }
   };
 
-  const handleDeleteInstance = async (): Promise<void> => {
-    if (selectedInstance === null) {
+  const remove = async (): Promise<void> => {
+    if (current === null) {
       return;
     }
     try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_API_URI}/v1/provider/instance/${selectedInstance.id}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${readJwt()}`,
-        },
-      });
-      setIsDeleteDialogOpen(false);
-      // Use mutate to refresh provider instances from the API
-      await mutateProviderInstances();
-
-      const list =
-        providerInstances?.filter(
-          (instance) => instance.provider_id === selectedProviderId && instance.id !== selectedInstance.id,
-        ) ?? [];
-      const next = list[0];
-      if (next) {
-        setSelectedInstance(next);
-        router.push(`/provider/${next.id}`);
-      } else {
-        setSelectedInstance(null);
-        router.push(`/provider`);
-      }
-
-      toast({
-        title: 'Success',
-        description: 'Provider instance deleted successfully!',
-      });
-    } catch (error: unknown) {
-      const axiosErr = error as { response?: { data?: { detail?: string } } };
-      setIsDeleteDialogOpen(false);
-      toast({
-        title: 'Error',
-        description: axiosErr.response?.data?.detail ?? 'Failed to delete provider instance',
-        variant: 'destructive',
-      });
+      await actions.remove(current.id);
+      setDialog(null);
+      toast({ title: 'Instance deleted', description: current.name });
+      open(scoped.instances.find((instance) => instance.id !== current.id)?.id ?? null);
+    } catch (error) {
+      reportFailure('Could not delete the instance', error instanceof Error ? error : null);
     }
   };
-
-  function handleCreateDialog(value: boolean): void {
-    if (selectedProviderId === null) {
-      toast({
-        title: 'Provider Required',
-        description: 'Please select a provider to create an instance',
-      });
-    } else {
-      setIsCreateDialogOpen(value);
-    }
-  }
 
   return (
-    <SidebarContent title='Provider Instance Management'>
-      {selectedInstance !== null && (
-        <SidebarGroup>
-          <SidebarGroupLabel>{selectedInstance.name}</SidebarGroupLabel>
-          <SidebarMenuButton className='group-data-[state=expanded]:hidden'>
-            <ArrowBigLeft />
-          </SidebarMenuButton>
-          <div className='space-y-2 px-2 group-data-[collapsible=icon]:hidden'>
-            <div className='text-sm text-muted-foreground'>
-              <span className='font-medium'>Model:</span> {selectedInstance.model_name}
-            </div>
-            <div className='text-sm text-muted-foreground'>
-              <span className='font-medium'>Enabled:</span> {selectedInstance.enabled ? 'Yes' : 'No'}
-            </div>
-            <div className='text-sm text-muted-foreground'>
-              <span className='font-medium'>Created:</span> {new Date(selectedInstance.created_at).toLocaleString()}
-            </div>
-            <div className='text-sm text-muted-foreground'>
-              <span className='font-medium'>Updated:</span> {new Date(selectedInstance.updated_at).toLocaleString()}
-            </div>
-          </div>
-        </SidebarGroup>
-      )}
-      {/* Provider Select List */}
-      <SidebarGroup>
-        <SidebarGroupLabel>Select Provider</SidebarGroupLabel>
-        <div className='w-full group-data-[collapsible=icon]:hidden'>
-          <Select {...(selectedProviderId ? { value: selectedProviderId } : {})} onValueChange={handleProviderChange}>
-            <SelectTrigger>
-              <SelectValue placeholder='Select a provider' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {providers.map((provider) => (
-                  <SelectItem key={provider.id} value={provider.id}>
-                    {provider.name !== '' ? provider.name : provider.friendly_name}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-      </SidebarGroup>
-
-      <SidebarGroup>
-        <SidebarGroupLabel>Select Provider Instance</SidebarGroupLabel>
-        <div className='w-full group-data-[collapsible=icon]:hidden'>
-          <Select
-            {...(selectedInstance?.id !== undefined ? { value: selectedInstance.id } : {})}
-            onValueChange={handleSelectInstance}
-            disabled={
-              selectedProviderId !== null
-                ? (providerInstances?.filter((instance) => instance.provider_id === selectedProviderId).length ?? 0) === 0
-                : (providerInstances?.length ?? 0) === 0
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder='Select a Provider Instance' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {(selectedProviderId !== null
-                  ? (providerInstances?.filter((instance) => instance.provider_id === selectedProviderId) ?? [])
-                  : (providerInstances ?? [])
-                ).map((instance) => (
-                  <SelectItem key={instance.id} value={instance.id}>
-                    {instance.name}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-        <SidebarGroupLabel>Instance Actions</SidebarGroupLabel>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={() => {
-                setNewName(selectedInstance?.name ?? '');
-                setIsRenameDialogOpen(true);
-              }}
-              tooltip='Rename Instance'
-            >
-              <LuPencil className='w-4 h-4' />
-              <span>Rename Instance</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={() => {
-                setNewName('');
-                setNewModelName('');
-                setNewApiKey('');
-                handleCreateDialog(true);
-              }}
-              tooltip='Create Instance'
-            >
-              <LuPlus className='w-4 h-4' />
-              <span>Create Instance</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={selectedInstance !== null ? () => setIsDeleteDialogOpen(true) : undefined}
-              tooltip='Delete Instance'
-            >
-              <LuTrash2 className='w-4 h-4 text-red-500' />
-              <span className='text-red-500'>Delete Instance</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarGroup>
-
-      {/* Rename Dialog */}
-      <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Rename Provider Instance</DialogTitle>
-          </DialogHeader>
-          <div className='grid gap-4 py-4'>
-            <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder='Enter new name' />
-          </div>
-          <DialogFooter>
-            <Button variant='outline' onClick={() => setIsRenameDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={() => void handleConfirmRename()}>Rename</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Create Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Provider Instance</DialogTitle>
-          </DialogHeader>
-          <div className='grid gap-4 py-4'>
-            <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder='Enter instance name' />
-            <Input value={newModelName} onChange={(e) => setNewModelName(e.target.value)} placeholder='Enter model name' />
-            <Input value={newApiKey} onChange={(e) => setNewApiKey(e.target.value)} placeholder='Enter API key' />
-          </div>
-          <DialogFooter>
-            <Button variant='outline' onClick={() => setIsCreateDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={() => void handleConfirmCreate()}>Create</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Provider Instance</DialogTitle>
-          </DialogHeader>
-          <div className='grid gap-4 py-4'>
-            <p>Are you sure you want to delete this provider instance?</p>
-            <div className='font-bold'>{selectedInstance?.name}</div>
-          </div>
-          <DialogFooter>
-            <Button variant='outline' onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant='destructive' onClick={() => void handleDeleteInstance()}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </SidebarContent>
+    <div className='grid gap-4 p-2 group-data-[collapsible=icon]:hidden'>
+      <ScopePicker
+        id='provider-scope-extension'
+        label='Extension'
+        anyLabel='All extensions'
+        value={selection.extensionId}
+        options={extensionsWithProviders.map((extension) => ({ value: extension.id, label: extension.name }))}
+        onChange={(extensionId) => {
+          setChoice(selectExtension(selection, extensionId, providers, links));
+        }}
+      />
+      <ScopePicker
+        id='provider-scope-provider'
+        label='Provider'
+        anyLabel='All providers'
+        value={selection.providerId}
+        options={scoped.providers.map((provider) => ({ value: provider.id, label: providerLabel(provider) }))}
+        onChange={(providerId) => {
+          setChoice({ ...selection, providerId });
+        }}
+      />
+      <ScopePicker
+        id='provider-scope-instance'
+        label='Instance'
+        placeholder={scoped.instances.length === 0 ? 'No instances in scope' : 'Choose an instance'}
+        value={current !== null && scoped.instances.some((instance) => instance.id === current.id) ? current.id : null}
+        options={scoped.instances.map((instance) => ({ value: instance.id, label: instance.name }))}
+        onChange={open}
+      />
+      <div className='grid gap-2'>
+        <Button
+          variant='outline'
+          disabled={selectedProvider === null}
+          title={selectedProvider === null ? 'Choose a provider first' : undefined}
+          onClick={() => {
+            setDialog('create');
+          }}
+        >
+          <LuPlus aria-hidden='true' /> New instance
+        </Button>
+        <Button
+          variant='outline'
+          disabled={current === null}
+          onClick={() => {
+            setDialog('rename');
+          }}
+        >
+          <LuPencil aria-hidden='true' /> Rename
+        </Button>
+        <Button
+          variant='outline'
+          className='text-destructive'
+          disabled={current === null}
+          onClick={() => {
+            setDialog('delete');
+          }}
+        >
+          <LuTrash2 aria-hidden='true' /> Delete
+        </Button>
+      </div>
+      <InstanceDialogs
+        open={dialog}
+        providerLabel={selectedProvider === null ? null : providerLabel(selectedProvider)}
+        instance={current}
+        onClose={() => {
+          setDialog(null);
+        }}
+        onCreate={create}
+        onRename={rename}
+        onDelete={remove}
+      />
+    </div>
   );
-};
-
-export default ProviderSidebar;
+}

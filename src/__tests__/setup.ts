@@ -13,6 +13,7 @@ vi.mock('next/navigation', () => ({
     prefetch: vi.fn(),
   })),
   usePathname: vi.fn(() => '/'),
+  useParams: vi.fn(() => ({})),
   useSearchParams: vi.fn(() => new URLSearchParams()),
   redirect: vi.fn(),
   // Like Next's, it never returns: it throws to hand the request to the not-found page.

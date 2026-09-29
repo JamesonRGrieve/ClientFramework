@@ -1,327 +1,247 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
-/* eslint-disable react/no-unstable-nested-components -- column cell/header renderers are tanstack render props, not React components. */
-import type { CellContext, ColumnDef } from '@tanstack/react-table';
-import axios from 'axios';
-import { getCookie } from 'cookies-next';
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { type JSX, useState } from 'react';
 import { LuCheck, LuPencil } from 'react-icons/lu';
-import { useProviderInstance, useProviderInstances } from './useProviders';
-import { DataTable } from '@/components/data-table';
-import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
-import DynamicForm from '@jgrieve/forms/DynamicForm';
+import DynamicForm, { type DynamicFormFieldValueTypes } from '@jgrieve/forms/DynamicForm';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/useToast';
+import type { ProviderInstance } from '@/lib/zephyrex/providerScope';
+import {
+  type ProviderInstanceChanges,
+  type ProviderInstanceSetting,
+  useProviderInstanceActions,
+  useProviderInstanceDetail,
+  useProviderInstances,
+} from '@/lib/zephyrex/useProviderInstances';
 
-type SettingRow = {
-  id: string;
-  key: string;
-  value: string;
-  updated_at: string;
-};
+const formatTime = (value: string | null | undefined): string =>
+  value === null || value === undefined ? '—' : new Date(value).toLocaleString();
 
-type UsageRow = {
-  input_tokens: number;
-  output_tokens: number;
-  updated_at: string;
-};
+/** The edit form's answer as instance changes; a blank API key keeps the stored one. */
+export function instanceChanges(
+  instance: ProviderInstance,
+  submitted: Readonly<Record<string, DynamicFormFieldValueTypes>>,
+): ProviderInstanceChanges {
+  const text = (key: string): string => {
+    const value = submitted[key];
+    return typeof value === 'string' ? value.trim() : '';
+  };
+  const enabled = submitted['enabled'];
+  return {
+    ...(text('name') !== instance.name ? { name: text('name') } : {}),
+    ...(text('model_name') !== (instance.model_name ?? '') ? { model_name: text('model_name') } : {}),
+    ...(text('api_key') === '' ? {} : { api_key: text('api_key') }),
+    ...(typeof enabled === 'boolean' && enabled !== (instance.enabled ?? true) ? { enabled } : {}),
+  };
+}
 
-const readJwt = (): string => {
-  const jwt = getCookie('jwt');
-  return typeof jwt === 'string' ? jwt : '';
-};
-
-function Providers(): React.JSX.Element {
-  const { toast } = useToast();
-  const { id } = useParams();
-  const [loading, setLoading] = useState(true);
-  const [providerInstanceSettings, setProviderInstanceSettings] = useState<SettingRow | null>(null);
-  const [providerInstanceUsage, setProviderInstanceUsage] = useState<UsageRow | UsageRow[] | null>(null);
-  const [editRowId, setEditRowId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState<string>('');
-  const { mutate } = useProviderInstances();
-  const { data: providerInstance, isLoading } = useProviderInstance(String(id));
-
-  const settingsArray = providerInstanceSettings !== null ? [providerInstanceSettings] : [];
-
-  // DataTable columns for settings
-  const settingsColumns: ColumnDef<SettingRow>[] = [
-    {
-      accessorKey: 'key',
-      header: ({ column }) => <DataTableColumnHeader column={column} title='Key' />,
-      cell: ({ row }) => <span>{row.getValue('key')}</span>,
-      meta: { headerName: 'Key' },
-    },
-    {
-      accessorKey: 'value',
-      header: ({ column }) => <DataTableColumnHeader column={column} title='Value' />,
-      cell: ({ row }: CellContext<SettingRow, unknown>) => {
-        const rowId = row.original.id;
-        if (editRowId === rowId) {
-          return (
-            <input
-              className='border rounded px-2 py-1 w-24'
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-            />
-          );
-        }
-        return <span>{row.getValue('value')}</span>;
-      },
-      meta: { headerName: 'Value' },
-    },
-    {
-      accessorKey: 'updated_at',
-      header: ({ column }) => <DataTableColumnHeader column={column} title='Updated At' />,
-      cell: ({ row }) => <span>{new Date(row.getValue('updated_at')).toLocaleString()}</span>,
-      meta: { headerName: 'Updated At' },
-    },
-    {
-      id: 'actions',
-      header: ({ column }) => <DataTableColumnHeader column={column} title='Action' />,
-      cell: ({ row }: CellContext<SettingRow, unknown>) => {
-        const rowId = row.original.id;
-        if (editRowId === rowId) {
-          return (
-            <Button
-              variant='ghost'
-              size='icon'
-              title='Confirm'
-              onClick={() => {
-                const prevVal = providerInstanceSettings?.value ?? '';
-                const settingKey = providerInstanceSettings?.key ?? '';
-                setProviderInstanceSettings((prev) => (prev !== null ? { ...prev, value: editValue } : prev));
-                setEditRowId(null);
-                void (async (): Promise<void> => {
-                  try {
-                    await axios.put(
-                      `${process.env.NEXT_PUBLIC_API_URI}/v1/provider-instance-setting/${rowId}`,
-                      {
-                        provider_instance_setting: {
-                          provider_instance_id: providerInstance?.provider_id,
-                          key: settingKey,
-                          value: editValue,
-                        },
-                      },
-                      {
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `Bearer ${readJwt()}`,
-                        },
-                      },
-                    );
-                    toast({
-                      title: 'Success',
-                      description: 'Setting updated successfully!',
-                    });
-                  } catch {
-                    toast({
-                      title: 'Error',
-                      description: 'Failed to update setting',
-                      variant: 'destructive',
-                    });
-                    setProviderInstanceSettings((prev) => (prev !== null ? { ...prev, value: prevVal } : prev));
-                  }
-                })();
-              }}
-            >
-              <LuCheck className='w-4 h-4 text-green-600' />
-            </Button>
-          );
-        }
-        return (
+function SettingRow({
+  setting,
+  onSave,
+}: {
+  setting: ProviderInstanceSetting;
+  /** Resolves true once saved; on failure the caller has reported why and the row stays in edit mode. */
+  onSave: (setting: ProviderInstanceSetting, value: string) => Promise<boolean>;
+}): JSX.Element {
+  const [draft, setDraft] = useState<string | null>(null);
+  const inputId = `setting-${setting.id}`;
+  return (
+    <TableRow>
+      <TableCell className='font-mono'>
+        <label htmlFor={inputId}>{setting.key}</label>
+      </TableCell>
+      <TableCell>
+        {draft === null ? (
+          <span>{setting.value ?? ''}</span>
+        ) : (
+          <Input
+            id={inputId}
+            value={draft}
+            onChange={(event) => {
+              setDraft(event.target.value);
+            }}
+          />
+        )}
+      </TableCell>
+      <TableCell>{formatTime(setting.updated_at)}</TableCell>
+      <TableCell className='text-right'>
+        {draft === null ? (
           <Button
             variant='ghost'
             size='icon'
+            aria-label={`Edit ${setting.key}`}
             onClick={() => {
-              setEditRowId(rowId);
-              setEditValue(row.original.value);
+              setDraft(setting.value ?? '');
             }}
-            title='Edit'
           >
-            <LuPencil className='w-4 h-4' />
+            <LuPencil aria-hidden='true' />
           </Button>
-        );
-      },
-      enableHiding: true,
-      enableSorting: false,
-      meta: { headerName: 'Actions' },
-    },
-  ];
+        ) : (
+          <Button
+            variant='ghost'
+            size='icon'
+            aria-label={`Save ${setting.key}`}
+            onClick={() => {
+              void (async (): Promise<void> => {
+                if (await onSave(setting, draft)) {
+                  setDraft(null);
+                }
+              })();
+            }}
+          >
+            <LuCheck aria-hidden='true' />
+          </Button>
+        )}
+      </TableCell>
+    </TableRow>
+  );
+}
 
-  const usageColumns: ColumnDef<UsageRow>[] = [
-    {
-      accessorKey: 'input_tokens',
-      header: ({ column }) => <DataTableColumnHeader column={column} title='Input Tokens' />,
-      cell: ({ row }) => <span>{row.getValue('input_tokens')}</span>,
-      meta: { headerName: 'Input Tokens' },
-    },
-    {
-      accessorKey: 'output_tokens',
-      header: ({ column }) => <DataTableColumnHeader column={column} title='Output Tokens' />,
-      cell: ({ row }) => <span>{row.getValue('output_tokens')}</span>,
-      meta: { headerName: 'Output Tokens' },
-    },
-    {
-      accessorKey: 'updated_at',
-      header: ({ column }) => <DataTableColumnHeader column={column} title='Updated At' />,
-      cell: ({ row }) => <span>{new Date(row.getValue('updated_at')).toLocaleString()}</span>,
-      meta: { headerName: 'Updated At' },
-    },
-  ];
+/** The selected provider instance: its details, settings and usage. */
+function Providers(): JSX.Element {
+  const { toast } = useToast();
+  const params = useParams();
+  const instanceId = typeof params['id'] === 'string' ? params['id'] : null;
+  const { data: instances, isLoading } = useProviderInstances();
+  const { settings, usage } = useProviderInstanceDetail(instanceId);
+  const actions = useProviderInstanceActions();
 
-  useEffect(() => {
-    if (id === undefined) {
+  if (instanceId === null) {
+    return <p className='p-8 text-center text-muted-foreground'>Choose an instance to manage it.</p>;
+  }
+  if (isLoading) {
+    return <p className='p-8 text-center text-muted-foreground'>Loading…</p>;
+  }
+  const instance = instances?.find((candidate) => candidate.id === instanceId);
+  if (instance === undefined) {
+    return <p className='p-8 text-center text-muted-foreground'>This instance does not exist or is not visible to you.</p>;
+  }
+
+  const save = async (submitted: Record<string, DynamicFormFieldValueTypes>): Promise<void> => {
+    const changes = instanceChanges(instance, submitted);
+    if (Object.keys(changes).length === 0) {
+      toast({ title: 'Nothing to save', description: instance.name });
       return;
     }
-    setLoading(true);
-    const fetchAll = async (): Promise<void> => {
-      const headers = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${readJwt()}`,
-      };
-      const settingPromise = axios.get<{ provider_instance_setting?: SettingRow }>(
-        `${process.env.NEXT_PUBLIC_API_URI}/v1/provider-instance/${String(id)}/setting`,
-        { headers },
-      );
-      const usagePromise = axios.get<{ provider_instance_usage?: UsageRow | UsageRow[] }>(
-        `${process.env.NEXT_PUBLIC_API_URI}/v1/provider-instance/usage/${String(id)}`,
-        { headers },
-      );
+    try {
+      await actions.update(instance.id, changes);
+      toast({ title: 'Instance saved', description: instance.name });
+    } catch (error) {
+      toast({
+        title: 'Could not save the instance',
+        description: error instanceof Error ? error.message : instance.name,
+        variant: 'destructive',
+      });
+    }
+  };
 
-      const [settingResult, usageResult] = await Promise.allSettled([settingPromise, usagePromise]);
-
-      setProviderInstanceSettings(
-        settingResult.status === 'fulfilled' ? (settingResult.value.data.provider_instance_setting ?? null) : null,
-      );
-      setProviderInstanceUsage(
-        usageResult.status === 'fulfilled' ? (usageResult.value.data.provider_instance_usage ?? null) : null,
-      );
-
-      setLoading(false);
-    };
-    void fetchAll();
-  }, [id]);
-
-  if (id === undefined) {
-    return <div className='flex items-center justify-center h-64 text-lg font-semibold'>Please select a instance</div>;
-  }
-
-  if (loading || isLoading) {
-    return <div className='flex items-center justify-center h-64 text-lg font-semibold'>Loading...</div>;
-  }
-
-  if (providerInstance === null || providerInstance === undefined) {
-    return <div className='flex items-center justify-center h-64 text-lg font-semibold'>No data found.</div>;
-  }
+  const saveSetting = async (setting: ProviderInstanceSetting, value: string): Promise<boolean> => {
+    try {
+      await actions.updateSetting(setting, value);
+      await settings.mutate();
+      return true;
+    } catch (error) {
+      toast({
+        title: `Could not save ${setting.key}`,
+        description: error instanceof Error ? error.message : setting.key,
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
 
   return (
-    <div className='w-full px-2 md:px-8 py-6 space-y-8'>
-      {/* Instance Details Section */}
-      <section className='border rounded-lg p-4 bg-white shadow w-full'>
-        <h2 className='text-lg font-bold mb-2'>Provider Instance Details</h2>
-        <div className='max-w-lg w-full'>
+    <div className='grid w-full gap-6 px-2 py-6 md:px-8'>
+      <Card>
+        <CardHeader>
+          <CardTitle>{instance.name}</CardTitle>
+          <CardDescription>
+            Created {formatTime(instance.created_at)} · updated {formatTime(instance.updated_at)}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className='max-w-xl'>
           <DynamicForm
             fields={{
               name: {
                 type: 'text',
                 display: 'Name',
-                validation: (value) => typeof value === 'string' && value.length > 0,
-                value: providerInstance.name,
+                value: instance.name,
+                validation: (value) => typeof value === 'string' && value.trim() !== '',
               },
-              model_name: {
-                type: 'text',
-                display: 'Model Name',
-                validation: (value) => typeof value === 'string' && value.length > 0,
-                value: providerInstance.model_name,
-              },
-              api_key: {
-                type: 'text',
-                display: 'API Key',
-                validation: (value) => typeof value === 'string' && value.length > 0,
-                value: providerInstance.api_key,
-              },
+              model_name: { type: 'text', display: 'Model name', value: instance.model_name ?? '' },
+              api_key: { type: 'password', display: 'New API key (leave blank to keep the current one)', value: '' },
+              enabled: { type: 'boolean', display: 'Enabled', value: instance.enabled ?? true },
             }}
-            toUpdate={providerInstance}
-            submitButtonText='Update'
-            onConfirm={(formData) => {
-              void (async (): Promise<void> => {
-                await axios.put(
-                  `${process.env.NEXT_PUBLIC_API_URI}/v1/provider/instance/${providerInstance.id}`,
-                  {
-                    provider_instance: {
-                      name: formData['name'],
-                      provider_id: providerInstance.provider_id,
-                      model_name: formData['model_name'],
-                      api_key: formData['api_key'],
-                      enabled: formData['enabled'],
-                    },
-                  },
-                  {
-                    headers: {
-                      'Content-Type': 'application/json',
-                      Authorization: `Bearer ${readJwt()}`,
-                    },
-                  },
-                );
-                void mutate();
-              })();
+            submitButtonText='Save instance'
+            onConfirm={(submitted) => {
+              void save(submitted);
             }}
           />
-        </div>
+        </CardContent>
+      </Card>
 
-        <div className='grid grid-cols-2 gap-2 text-sm mt-4'>
-          {/* <div><span className="font-medium">Provider:</span> {providerInstance.provider?.name || ''}</div>
-          <div><span className="font-medium">Team:</span> {providerInstance.team?.name || ''}</div> */}
-          <div>
-            <span className='font-medium'>Created At:</span> {new Date(providerInstance.created_at).toLocaleString()}
-          </div>
-          <div>
-            <span className='font-medium'>Updated At:</span> {new Date(providerInstance.updated_at).toLocaleString()}
-          </div>
-        </div>
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>Settings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {(settings.data ?? []).length === 0 ? (
+            <p className='text-sm text-muted-foreground'>No settings configured for this instance.</p>
+          ) : (
+            <Table aria-label='Instance settings'>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Key</TableHead>
+                  <TableHead>Value</TableHead>
+                  <TableHead>Updated</TableHead>
+                  <TableHead className='text-right'>Edit</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(settings.data ?? []).map((setting) => (
+                  <SettingRow key={setting.id} setting={setting} onSave={saveSetting} />
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Settings Section */}
-      <section className='border rounded-lg p-4 bg-white shadow w-full'>
-        {settingsArray.length === 0 ? (
-          <>
-            <h4 className='text-2xl font-bold mr-auto mb-2'>Instance Settings</h4>
-            <div className='flex items-center justify-center p-4 border rounded-md text-center'>
-              <span className='text-sm text-muted-foreground'>No settings configured for this instance.</span>
-            </div>
-          </>
-        ) : (
-          <DataTable
-            data={settingsArray}
-            columns={settingsColumns}
-            meta={{
-              title: 'Instance Settings',
-              hideSelectionCount: true,
-              emptyMessage: 'No data',
-            }}
-          />
-        )}
-      </section>
-
-      {/* Usage Section as Data Grid */}
-      <section className='border rounded-lg p-4 bg-white shadow w-full'>
-        <DataTable
-          data={
-            Array.isArray(providerInstanceUsage)
-              ? providerInstanceUsage
-              : providerInstanceUsage !== null
-                ? [providerInstanceUsage]
-                : []
-          }
-          meta={{ title: 'Instance Usage', hideSelectionCount: true, emptyMessage: 'No data' }}
-          columns={usageColumns}
-        />
-      </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>Usage</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {(usage.data ?? []).length === 0 ? (
+            <p className='text-sm text-muted-foreground'>This instance has not been used yet.</p>
+          ) : (
+            <Table aria-label='Instance usage'>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Measure</TableHead>
+                  <TableHead className='text-right'>Total</TableHead>
+                  <TableHead>Updated</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(usage.data ?? []).map((record) => (
+                  <TableRow key={record.id}>
+                    <TableCell className='font-mono'>{record.key ?? '—'}</TableCell>
+                    <TableCell className='text-right'>{record.value ?? 0}</TableCell>
+                    <TableCell>{formatTime(record.updated_at)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
-/* eslint-enable react/no-unstable-nested-components */
 
 export default Providers;

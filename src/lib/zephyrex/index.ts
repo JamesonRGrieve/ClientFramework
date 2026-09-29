@@ -37,6 +37,26 @@ export type { SubscriptionOptions } from './useSubscription';
 export { useOnline } from './useOnline';
 export { useRateLimit } from './useRateLimit';
 export { useRootProviderStatus } from './useRootProviderStatus';
+export {
+  useProviderExtensionLinks,
+  useProviderInstances,
+  useProviderInstanceDetail,
+  useProviderInstanceActions,
+} from './useProviderInstances';
+export type {
+  NewProviderInstance,
+  ProviderInstanceChanges,
+  ProviderInstanceSetting,
+  ProviderInstanceUsage,
+} from './useProviderInstances';
+export {
+  EMPTY_SELECTION,
+  providerLabel,
+  providersInExtension,
+  scopeProviderInstances,
+  selectExtension,
+} from './providerScope';
+export type { ProviderExtensionLink, ProviderInstance, ProviderScopeSelection, ScopedProvider } from './providerScope';
 export type { RootProviderSetting, RootProviderStatusEntry, RootProviderStatusResponse } from './useRootProviderStatus';
 
 // Components
