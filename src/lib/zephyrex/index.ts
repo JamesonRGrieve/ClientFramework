@@ -8,7 +8,7 @@ export { createMiddleware } from './createMiddleware';
 
 // API Client
 export { ZephyrexClient, ApiError, RateLimitError } from './client';
-export type { ZephyrexClientConfig } from './client';
+export type { ZephyrexClientConfig, JsonValue, JsonBody } from './client';
 
 // Data Hooks
 export {
@@ -29,7 +29,7 @@ export type { User, Role, Team, TeamMembership, ServerExtension, Provider, Notif
 
 // Feature Hooks
 export { useSearch } from './useSearch';
-export type { SearchResult } from './useSearch';
+export type { SearchOptions, SearchState } from './useSearch';
 export { useFileUpload } from './useFileUpload';
 export type { UploadResult, UploadProgress } from './useFileUpload';
 export { useSubscription } from './useSubscription';

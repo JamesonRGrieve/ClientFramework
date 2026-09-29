@@ -2,72 +2,87 @@
 'use client';
 
 import { getCookie } from 'cookies-next';
+import { z } from 'zod';
 
 const MAX_RETRIES = 3;
 const BASE_BACKOFF_MS = 1000;
+const MAX_BACKOFF_MS = 30_000;
+const MAX_JITTER_MS = 200;
+const MS_PER_SECOND = 1000;
+const TOO_MANY_REQUESTS = 429;
+const NO_CONTENT = 204;
+const ERROR_PREVIEW_CHARS = 200;
+
+const JsonSchema = z.json();
+/** A decoded JSON body. Callers validate it against their own schema. */
+export type JsonValue = z.infer<typeof JsonSchema>;
+/** A request body: JSON, where an `undefined` field is simply left out. */
+export type JsonBody =
+  string | number | boolean | null | readonly JsonBody[] | { readonly [key: string]: JsonBody | undefined };
 
 export interface ZephyrexClientConfig {
   baseUrl: string;
   getToken?: () => string | null;
 }
 
+/** The server kept answering 429; `retryAfterMs` is its last Retry-After. */
 export class RateLimitError extends Error {
-  retryAfterMs: number;
-  constructor(retryAfter: number, body: string) {
-    super(`Rate limited — retry after ${retryAfter}ms`);
+  constructor(
+    readonly retryAfterMs: number,
+    readonly body: string,
+  ) {
+    super(`Rate limited — retry after ${retryAfterMs}ms`);
     this.name = 'RateLimitError';
-    this.retryAfterMs = retryAfter;
   }
 }
 
 export class ApiError extends Error {
   constructor(
-    public status: number,
-    public body: string,
+    readonly status: number,
+    readonly body: string,
   ) {
-    super(`API ${status}: ${body.slice(0, 200)}`);
+    super(`API ${status}: ${body.slice(0, ERROR_PREVIEW_CHARS)}`);
     this.name = 'ApiError';
   }
 }
 
-function parseRetryAfter(res: Response): number {
+/** Retry-After as milliseconds: delta-seconds or an HTTP date, else the base backoff. */
+export function parseRetryAfter(res: Response): number {
   const header = res.headers.get('Retry-After');
-  if (!header) {
+  if (header === null || header === '') {
     return BASE_BACKOFF_MS;
   }
   const seconds = Number(header);
   if (!Number.isNaN(seconds)) {
-    return seconds * 1000;
+    return seconds * MS_PER_SECOND;
   }
   const date = Date.parse(header);
-  if (!Number.isNaN(date)) {
-    return Math.max(0, date - Date.now());
-  }
-  return BASE_BACKOFF_MS;
+  return Number.isNaN(date) ? BASE_BACKOFF_MS : Math.max(0, date - Date.now());
 }
 
-async function fetchWithRetry(input: RequestInfo | URL, init: RequestInit, retries = MAX_RETRIES): Promise<Response> {
-  let lastResponse: Response | null = null;
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    const res = await fetch(input, init);
-    if (res.status !== 429) {
-      return res;
-    }
+const sleep = async (ms: number): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
-    lastResponse = res;
-    if (attempt === retries) {
-      break;
-    }
-
-    const retryAfter = parseRetryAfter(res);
-    const jitter = Math.random() * 200;
-    const delay = Math.min(retryAfter * Math.pow(2, attempt) + jitter, 30000);
-    await new Promise((resolve) => setTimeout(resolve, delay));
+/** Fetch, retrying a 429 after Retry-After with exponential backoff; gives up with RateLimitError. */
+async function fetchWithRetry(input: string, init: RequestInit, attempt = 0): Promise<Response> {
+  const res = await fetch(input, init);
+  if (res.status !== TOO_MANY_REQUESTS) {
+    return res;
   }
-
-  const body = await lastResponse!.text();
-  throw new RateLimitError(parseRetryAfter(lastResponse!), body);
+  const retryAfter = parseRetryAfter(res);
+  if (attempt >= MAX_RETRIES) {
+    throw new RateLimitError(retryAfter, await res.text());
+  }
+  await sleep(Math.min(retryAfter * 2 ** attempt + Math.random() * MAX_JITTER_MS, MAX_BACKOFF_MS));
+  return fetchWithRetry(input, init, attempt + 1);
 }
+
+const defaultToken = (): string | null => {
+  const jwt = getCookie('jwt');
+  return typeof jwt === 'string' && jwt !== '' ? jwt : null;
+};
 
 export class ZephyrexClient {
   private readonly baseUrl: string;
@@ -75,64 +90,54 @@ export class ZephyrexClient {
 
   constructor(config: ZephyrexClientConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
-    this.getToken = config.getToken ?? (() => getCookie('jwt')?.toString() ?? null);
+    this.getToken = config.getToken ?? defaultToken;
   }
 
   private headers(): Record<string, string> {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     const token = this.getToken();
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-    return headers;
+    return {
+      'Content-Type': 'application/json',
+      ...(token === null || token === '' ? {} : { Authorization: `Bearer ${token}` }),
+    };
   }
 
-  private async request<T>(url: string, init: RequestInit): Promise<T> {
-    const res = await fetchWithRetry(url, init);
+  /** Send a request; a bodiless answer (204) is `null`. */
+  private async request(url: string, init: RequestInit): Promise<JsonValue> {
+    const res = await fetchWithRetry(url, { ...init, headers: this.headers() });
     if (!res.ok) {
       throw new ApiError(res.status, await res.text());
     }
-    return res.json();
-  }
-
-  async get<T = unknown>(path: string, params?: Record<string, string>): Promise<T> {
-    const url = new URL(`${this.baseUrl}${path}`);
-    if (params) {
-      for (const [k, v] of Object.entries(params)) {
-        url.searchParams.set(k, v);
-      }
+    if (res.status === NO_CONTENT) {
+      return null;
     }
-    return this.request<T>(url.toString(), { headers: this.headers() });
+    return JsonSchema.parse(await res.json());
   }
 
-  async post<T = unknown>(path: string, body?: unknown): Promise<T> {
-    return this.request<T>(`${this.baseUrl}${path}`, {
-      method: 'POST',
-      headers: this.headers(),
-      ...(body ? { body: JSON.stringify(body) } : {}),
-    });
+  private withBody(method: string, body: JsonBody | undefined): RequestInit {
+    return { method, ...(body === undefined ? {} : { body: JSON.stringify(body) }) };
   }
 
-  async put<T = unknown>(path: string, body?: unknown): Promise<T> {
-    return this.request<T>(`${this.baseUrl}${path}`, {
-      method: 'PUT',
-      headers: this.headers(),
-      ...(body ? { body: JSON.stringify(body) } : {}),
-    });
+  async get(path: string, params?: Record<string, string>): Promise<JsonValue> {
+    const url = new URL(`${this.baseUrl}${path}`);
+    for (const [key, value] of Object.entries(params ?? {})) {
+      url.searchParams.set(key, value);
+    }
+    return this.request(url.toString(), { method: 'GET' });
   }
 
-  async patch<T = unknown>(path: string, body?: unknown): Promise<T> {
-    return this.request<T>(`${this.baseUrl}${path}`, {
-      method: 'PATCH',
-      headers: this.headers(),
-      ...(body ? { body: JSON.stringify(body) } : {}),
-    });
+  async post(path: string, body?: JsonBody): Promise<JsonValue> {
+    return this.request(`${this.baseUrl}${path}`, this.withBody('POST', body));
   }
 
-  async delete<T = unknown>(path: string): Promise<T> {
-    return this.request<T>(`${this.baseUrl}${path}`, {
-      method: 'DELETE',
-      headers: this.headers(),
-    });
+  async put(path: string, body?: JsonBody): Promise<JsonValue> {
+    return this.request(`${this.baseUrl}${path}`, this.withBody('PUT', body));
+  }
+
+  async patch(path: string, body?: JsonBody): Promise<JsonValue> {
+    return this.request(`${this.baseUrl}${path}`, this.withBody('PATCH', body));
+  }
+
+  async delete(path: string): Promise<JsonValue> {
+    return this.request(`${this.baseUrl}${path}`, { method: 'DELETE' });
   }
 }
