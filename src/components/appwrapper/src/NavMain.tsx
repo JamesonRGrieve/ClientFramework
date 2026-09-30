@@ -6,7 +6,7 @@ import { ChevronRightIcon } from '@radix-ui/react-icons';
 import Link from 'next/link.js';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation.js';
 import { useTeam } from '@zephyrex/auth/hooks/useTeam';
-import { type Item as NavItem, items } from '@zephyrex/auth/NavMenu';
+import type { Item as NavItem } from '@zephyrex/auth/NavMenu';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   SidebarGroup,
@@ -36,7 +36,9 @@ export function NavMain(): React.JSX.Element {
   const { toggleSidebar, open } = useSidebar('left');
   const { navItems: contributedNavItems } = useZephyrexConfig();
 
-  const itemsWithActiveState = [...items, ...toNavMenuItems(contributedNavItems)].map((item) => ({
+  // Only what the app's config and its enabled extensions declare: a page the app does not mount
+  // has no entry.
+  const itemsWithActiveState = toNavMenuItems(contributedNavItems).map((item) => ({
     ...item,
     isActive: isActive(item, pathname, queryParams),
   }));

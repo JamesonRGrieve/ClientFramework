@@ -20,8 +20,8 @@ export default meta;
 
 type Story = StoryObj<typeof NavMain>;
 
-/** The built-in auth pages only. */
-export const BuiltIn: Story = {
+/** Nothing declared: the framework adds no entries of its own. */
+export const NothingDeclared: Story = {
   decorators: [
     (Story) => (
       <ZephyrexProvider config={config(undefined)}>
@@ -33,7 +33,7 @@ export const BuiltIn: Story = {
   ],
 };
 
-/** App and extension nav items join the menu after the built-in pages. */
+/** The entries the app's config and its extensions declare. */
 export const WithExtensionItems: Story = {
   decorators: [
     (Story) => (
