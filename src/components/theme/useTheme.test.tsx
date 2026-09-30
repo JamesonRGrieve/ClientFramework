@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { renderHook, act } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { useTheme } from './useTheme';
-
-// The shared setup stubs cookies-next; persistence is the behaviour under test here.
-vi.unmock('cookies-next');
 
 describe('useTheme', () => {
   beforeEach(() => {

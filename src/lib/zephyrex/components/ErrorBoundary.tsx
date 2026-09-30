@@ -2,6 +2,7 @@
 'use client';
 
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { isServerErrorStatus } from '../../api/httpStatus';
 import { ApiError } from '../client';
 
 interface ErrorBoundaryProps {
@@ -38,11 +39,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         return fallback(error, this.retry);
       }
 
-      if (fallback) {
+      if (fallback !== undefined && fallback !== null) {
         return fallback;
       }
 
-      const isServerDown = error instanceof ApiError && error.status >= 500;
+      const isServerDown = error instanceof ApiError && isServerErrorStatus(error.status);
 
       return (
         <div className='flex min-h-[200px] flex-col items-center justify-center gap-4 p-8'>

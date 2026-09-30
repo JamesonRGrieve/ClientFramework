@@ -1,10 +1,12 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { useState, useEffect, useCallback } from 'react';
-import { setCookie, getCookie } from 'cookies-next';
+import { getCookie, setCookie } from 'cookies-next/client';
+import { useCallback, useEffect, useState } from 'react';
 
-const COOKIE_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
+const MS_PER_DAY = 86_400_000;
+const DAYS_PER_YEAR = 365;
+const COOKIE_MAX_AGE_MS = DAYS_PER_YEAR * MS_PER_DAY;
 
 interface CookiePreferenceOptions {
   cookieName: string;
@@ -32,8 +34,7 @@ export function useCookiePreference({
   const [options] = useState(() => Array.from(new Set([...defaults])));
 
   const [current, setCurrentRaw] = useState(() => {
-    const cookieValue = getCookie(cookieName);
-    const raw = cookieValue?.toString() ?? initialValue ?? defaults[0] ?? '';
+    const raw = getCookie(cookieName) ?? initialValue ?? defaults.at(0) ?? '';
     return normalize(raw);
   });
 
@@ -56,7 +57,7 @@ export function useCookiePreference({
     const cookieDomain = process.env.NEXT_PUBLIC_COOKIE_DOMAIN;
     setCookie(cookieName, current, {
       expires: new Date(Date.now() + COOKIE_MAX_AGE_MS),
-      ...(cookieDomain ? { domain: cookieDomain } : {}),
+      ...(cookieDomain !== undefined && cookieDomain !== '' ? { domain: cookieDomain } : {}),
     });
   }, [current, options, cookieName, target, shouldAddClass]);
 

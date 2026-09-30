@@ -341,6 +341,8 @@ export default [
             'history',
             'confirm',
             'document',
+            // Testing Library's canonical query object, not window.screen.
+            'screen',
             'innerWidth',
             'innerHeight',
             'source',
@@ -491,6 +493,25 @@ export default [
         excludedFiles: ['src/lib/log.ts', '**/*.test.ts', '**/*.test.tsx'],
         rules: {
           'no-console': 'error',
+        },
+      },
+      {
+        // Application code names its numbers; tests and stories use literal fixtures.
+        files: ['src/**/*.ts', 'src/**/*.tsx'],
+        excludedFiles: ['**/*.test.ts', '**/*.test.tsx', '**/*.stories.tsx', 'src/__tests__/**'],
+        rules: {
+          '@typescript-eslint/no-magic-numbers': [
+            'error',
+            {
+              ignore: [-1, 0, 1, 2],
+              ignoreArrayIndexes: true,
+              ignoreDefaultValues: true,
+              ignoreEnums: true,
+              ignoreNumericLiteralTypes: true,
+              ignoreReadonlyClassProperties: true,
+              ignoreTypeIndexes: true,
+            },
+          ],
         },
       },
       {

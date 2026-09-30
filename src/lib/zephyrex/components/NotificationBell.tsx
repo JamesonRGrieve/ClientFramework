@@ -4,6 +4,9 @@
 import { Bell } from 'lucide-react';
 import { useNotifications } from '../hooks';
 
+/** The most unread notifications the badge counts before it shows "9+". */
+const BADGE_MAX = 9;
+
 export function NotificationBell({ className }: { className?: string }) {
   const { data: notifications } = useNotifications();
   const unread = notifications?.filter((n) => !n.read).length ?? 0;
@@ -17,7 +20,7 @@ export function NotificationBell({ className }: { className?: string }) {
       <Bell className='h-5 w-5' />
       {unread > 0 && (
         <span className='absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground'>
-          {unread > 9 ? '9+' : unread}
+          {unread > BADGE_MAX ? `${BADGE_MAX}+` : unread}
         </span>
       )}
     </button>

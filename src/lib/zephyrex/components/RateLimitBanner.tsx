@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+const MS_PER_SECOND = 1000;
+
 interface RateLimitBannerProps {
   remainingMs: number;
 }
 
 export function RateLimitBanner({ remainingMs }: RateLimitBannerProps) {
-  const seconds = Math.ceil(remainingMs / 1000);
+  const seconds = Math.ceil(remainingMs / MS_PER_SECOND);
 
   return (
     <div

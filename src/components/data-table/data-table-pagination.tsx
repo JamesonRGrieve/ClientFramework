@@ -4,8 +4,10 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-r
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-/** The page sizes a reader can pick. */
-const PAGE_SIZES = [10, 20, 30, 40, 50] as const;
+/** The page sizes a reader can pick: multiples of the step, up to the largest. */
+const PAGE_SIZE_STEP = 10;
+const PAGE_SIZE_CHOICES = 5;
+const PAGE_SIZES = Array.from({ length: PAGE_SIZE_CHOICES }, (_, index) => (index + 1) * PAGE_SIZE_STEP);
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;

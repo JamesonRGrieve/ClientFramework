@@ -5,18 +5,20 @@ import type React from 'react';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
+const YOUTUBE_ID_LENGTH = 11;
+
 const getYoutubeId = (url: string): string | null => {
-  const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-  const match = url.match(regExp);
-  return match?.[7] !== undefined && match[7].length === 11 ? match[7] : null;
+  const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?(?<id>[^#&?]*).*/;
+  const id = url.match(regExp)?.groups?.['id'];
+  return id?.length === YOUTUBE_ID_LENGTH ? id : null;
 };
 
 type MarkdownLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement>;
 
 export default function MarkdownLink({ children, href, className, ...props }: MarkdownLinkProps): ReactNode {
-  const isExternal = href && !href.startsWith('#');
-  const youtubeId = href ? getYoutubeId(href) : null;
-  if (youtubeId) {
+  const isExternal = href !== undefined && href !== '' && !href.startsWith('#');
+  const youtubeId = href === undefined ? null : getYoutubeId(href);
+  if (youtubeId !== null) {
     return (
       <div className='w-96'>
         <div className='relative w-full aspect-video'>

@@ -13,6 +13,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
+/** The labels of a registrable domain, e.g. `example.com` of `app.example.com`. */
+const REGISTRABLE_DOMAIN_LABELS = 2;
+
 const requestTypes = [
   { value: 'bug', label: 'Report a Bug' },
   { value: 'technical', label: 'Technical Support' },
@@ -31,7 +34,7 @@ export default function SupportPage() {
     description: '',
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>): void => {
     e.preventDefault();
     const submissionData = {
       ...formData,
@@ -129,7 +132,7 @@ interface SubmissionData {
 
 function sendAsEmail(submissionData: SubmissionData) {
   // The app's own registrable domain: the API is served on its origin.
-  const tld = window.location.hostname.split('.').slice(-2).join('.');
+  const tld = window.location.hostname.split('.').slice(-REGISTRABLE_DOMAIN_LABELS).join('.');
   const emailAddress = `support@${tld}`;
 
   // Format the email body

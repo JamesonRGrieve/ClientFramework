@@ -6,8 +6,11 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
+/** Radix progress values run from 0 to 100. */
+const FULL_PERCENT = 100;
+
 const Progress = React.forwardRef<
-  React.ElementRef<typeof ProgressPrimitive.Root>,
+  React.ComponentRef<typeof ProgressPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>
 >(({ className, value, ...props }, ref) => (
   <ProgressPrimitive.Root
@@ -17,7 +20,7 @@ const Progress = React.forwardRef<
   >
     <ProgressPrimitive.Indicator
       className='h-full w-full flex-1 bg-primary transition-all'
-      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+      style={{ transform: `translateX(-${FULL_PERCENT - (value ?? 0)}%)` }}
     />
   </ProgressPrimitive.Root>
 ));

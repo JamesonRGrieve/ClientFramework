@@ -4,7 +4,7 @@
 import { ViewVerticalIcon } from '@radix-ui/react-icons';
 import { Slot } from '@radix-ui/react-slot';
 import { type VariantProps, cva } from 'class-variance-authority';
-import { setCookie } from 'cookies-next';
+import { setCookie } from 'cookies-next/client';
 import * as React from 'react';
 import { useIsMobile } from '@/hooks/useMobile';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,17 @@ const SIDEBAR_WIDTH_ICON = '3rem';
 /** How narrow and how wide a reader can drag a sidebar, in pixels. */
 const SIDEBAR_MIN_WIDTH_PX = 200;
 const SIDEBAR_MAX_WIDTH_PX = 600;
+/** A sidebar's starting width: SIDEBAR_WIDTH (16rem) in pixels. */
+const SIDEBAR_DEFAULT_WIDTH_PX = 256;
+/** How long a sidebar remembers being open or closed: a week, in seconds. */
+const SIDEBAR_STATE_MAX_AGE_S = 604_800;
+/** How far the rail must move before a press becomes a drag rather than a click. */
+const RAIL_DRAG_THRESHOLD_PX = 5;
+/** Loading skeletons vary between these widths so the placeholder looks like text. */
+const SKELETON_MIN_WIDTH_PCT = 50;
+const SKELETON_WIDTH_SPREAD_PCT = 40;
+/** Hides an element while its sidebar is collapsed to icons. */
+const HIDDEN_WHEN_ICON = 'group-data-[collapsible=icon]:hidden';
 type SidebarContextMap = {
   left?: SidebarContext;
   right?: SidebarContext;
@@ -78,8 +89,8 @@ const SidebarProvider = React.forwardRef<
     const isMobile = useIsMobile();
     const [leftOpenMobile, setLeftOpenMobile] = React.useState(false);
     const [rightOpenMobile, setRightOpenMobile] = React.useState(false);
-    const [leftWidth, setLeftWidth] = React.useState(256);
-    const [rightWidth, setRightWidth] = React.useState(256);
+    const [leftWidth, setLeftWidth] = React.useState(SIDEBAR_DEFAULT_WIDTH_PX);
+    const [rightWidth, setRightWidth] = React.useState(SIDEBAR_DEFAULT_WIDTH_PX);
     const [leftOpen, setLeftOpen] = React.useState(defaultLeftOpen);
     const [rightOpen, setRightOpen] = React.useState(defaultRightOpen);
 
@@ -99,8 +110,8 @@ const SidebarProvider = React.forwardRef<
           const cookieDomain = process.env.NEXT_PUBLIC_COOKIE_DOMAIN;
           setCookie(`sidebar-${side}-state`, openState, {
             path: '/',
-            maxAge: 60 * 60 * 24 * 7,
-            ...(cookieDomain ? { domain: cookieDomain } : {}),
+            maxAge: SIDEBAR_STATE_MAX_AGE_S,
+            ...(cookieDomain !== undefined && cookieDomain !== '' ? { domain: cookieDomain } : {}),
           });
         };
       },
@@ -287,7 +298,7 @@ const Sidebar = React.forwardRef<
 Sidebar.displayName = 'Sidebar';
 
 const SidebarTrigger = React.forwardRef<
-  React.ElementRef<typeof Button>,
+  React.ComponentRef<typeof Button>,
   React.ComponentProps<typeof Button> & { side?: SidebarSide }
 >(({ side = 'left', className, onClick, ...props }, ref) => {
   const { toggleSidebar } = useSidebar(side);
@@ -353,30 +364,31 @@ const SidebarRail = React.forwardRef<
       startXRef.current = e.pageX;
       startWidthRef.current = state === 'expanded' ? width : lastWidthRef.current;
 
-      const handleInitialMouseUp = (upEvent: MouseEvent) => {
-        if (Math.abs(upEvent.pageX - startXRef.current) < 5) {
+      // Until the press resolves into a click or a drag; aborting removes both listeners.
+      const pressWatch = new AbortController();
+
+      const handleInitialMouseUp = (upEvent: MouseEvent): void => {
+        if (Math.abs(upEvent.pageX - startXRef.current) < RAIL_DRAG_THRESHOLD_PX) {
           if (state === 'expanded') {
             lastWidthRef.current = width;
           }
           toggleSidebar();
         }
-        document.removeEventListener('mouseup', handleInitialMouseUp);
-        document.removeEventListener('mousemove', handleInitialMouseMove);
+        pressWatch.abort();
       };
 
-      const handleInitialMouseMove = (moveEvent: MouseEvent) => {
-        if (Math.abs(moveEvent.pageX - startXRef.current) > 5) {
+      const handleInitialMouseMove = (moveEvent: MouseEvent): void => {
+        if (Math.abs(moveEvent.pageX - startXRef.current) > RAIL_DRAG_THRESHOLD_PX) {
           setIsResizing(true);
           document.body.style.userSelect = 'none';
           document.addEventListener('mousemove', handleResize);
           document.addEventListener('mouseup', handleResizeEnd);
-          document.removeEventListener('mousemove', handleInitialMouseMove);
-          document.removeEventListener('mouseup', handleInitialMouseUp);
+          pressWatch.abort();
         }
       };
 
-      document.addEventListener('mouseup', handleInitialMouseUp);
-      document.addEventListener('mousemove', handleInitialMouseMove);
+      document.addEventListener('mouseup', handleInitialMouseUp, { signal: pressWatch.signal });
+      document.addEventListener('mousemove', handleInitialMouseMove, { signal: pressWatch.signal });
     },
     [handleResize, handleResizeEnd, state, toggleSidebar, width],
   );
@@ -429,7 +441,7 @@ const SidebarInset = React.forwardRef<HTMLDivElement, React.ComponentProps<'main
 });
 SidebarInset.displayName = 'SidebarInset';
 
-const SidebarInput = React.forwardRef<React.ElementRef<typeof Input>, React.ComponentProps<typeof Input>>(
+const SidebarInput = React.forwardRef<React.ComponentRef<typeof Input>, React.ComponentProps<typeof Input>>(
   ({ className, ...props }, ref) => {
     return (
       <Input
@@ -465,7 +477,7 @@ const SidebarFooter = React.forwardRef<HTMLDivElement, React.ComponentProps<'div
 });
 SidebarFooter.displayName = 'SidebarFooter';
 
-const SidebarSeparator = React.forwardRef<React.ElementRef<typeof Separator>, React.ComponentProps<typeof Separator>>(
+const SidebarSeparator = React.forwardRef<React.ComponentRef<typeof Separator>, React.ComponentProps<typeof Separator>>(
   ({ className, ...props }, ref) => {
     return (
       <Separator ref={ref} data-sidebar='separator' className={cn('mx-2 w-auto bg-sidebar-border', className)} {...props} />
@@ -528,7 +540,7 @@ const SidebarGroupAction = React.forwardRef<HTMLButtonElement, React.ComponentPr
           'absolute right-3 top-3.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground outline-hidden ring-sidebar-ring transition-transform hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 hover:cursor-pointer',
           // Increases the hit area of the button on mobile.
           'after:absolute after:-inset-2 md:after:hidden',
-          'group-data-[collapsible=icon]:hidden',
+          HIDDEN_WHEN_ICON,
           className,
         )}
         {...props}
@@ -611,20 +623,16 @@ const SidebarMenuButton = React.forwardRef<
       />
     );
 
-    if (!tooltip) {
+    if (tooltip === undefined || tooltip === '') {
       return button;
     }
 
-    if (typeof tooltip === 'string') {
-      tooltip = {
-        children: tooltip,
-      };
-    }
+    const tooltipProps = typeof tooltip === 'string' ? { children: tooltip } : tooltip;
 
     return (
       <Tooltip>
         <TooltipTrigger asChild>{button}</TooltipTrigger>
-        <TooltipContent side='right' align='center' hidden={state !== 'collapsed' || isMobile} {...tooltip} />
+        <TooltipContent side='right' align='center' hidden={state !== 'collapsed' || isMobile} {...tooltipProps} />
       </Tooltip>
     );
   },
@@ -651,7 +659,7 @@ const SidebarMenuAction = React.forwardRef<
         'peer-data-[size=sm]/menu-button:top-1',
         'peer-data-[size=default]/menu-button:top-1.5',
         'peer-data-[size=lg]/menu-button:top-2.5',
-        'group-data-[collapsible=icon]:hidden',
+        HIDDEN_WHEN_ICON,
         showOnHover &&
           'group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 peer-data-[active=true]/menu-button:text-sidebar-accent-foreground md:opacity-0',
         className,
@@ -672,7 +680,7 @@ const SidebarMenuBadge = React.forwardRef<HTMLDivElement, React.ComponentProps<'
       'peer-data-[size=sm]/menu-button:top-1',
       'peer-data-[size=default]/menu-button:top-1.5',
       'peer-data-[size=lg]/menu-button:top-2.5',
-      'group-data-[collapsible=icon]:hidden',
+      HIDDEN_WHEN_ICON,
       className,
     )}
     {...props}
@@ -686,9 +694,8 @@ const SidebarMenuSkeleton = React.forwardRef<
     showIcon?: boolean;
   }
 >(({ className, showIcon = false, ...props }, ref) => {
-  // Random width between 50 to 90%.
   const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`;
+    return `${Math.floor(Math.random() * SKELETON_WIDTH_SPREAD_PCT) + SKELETON_MIN_WIDTH_PCT}%`;
   }, []);
 
   return (
@@ -719,7 +726,7 @@ const SidebarMenuSub = React.forwardRef<HTMLUListElement, React.ComponentProps<'
     data-sidebar='menu-sub'
     className={cn(
       'mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l border-sidebar-border px-2.5 py-0.5',
-      'group-data-[collapsible=icon]:hidden',
+      HIDDEN_WHEN_ICON,
       className,
     )}
     {...props}
@@ -753,7 +760,7 @@ const SidebarMenuSubButton = React.forwardRef<
         'data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground',
         size === 'sm' && 'text-xs',
         size === 'md' && 'text-sm',
-        'group-data-[collapsible=icon]:hidden',
+        HIDDEN_WHEN_ICON,
         className,
       )}
       {...props}
