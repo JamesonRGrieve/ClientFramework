@@ -1,6 +1,8 @@
 pnpm-lock.yaml
 node_modules/
 dist/
+dist.next/
+dist.old/
 .next/
 storybook-static/
 coverage/

@@ -32,6 +32,8 @@ export default [
       '.next/**',
       'node_modules/**',
       'dist/**',
+      'dist.next/**',
+      'dist.old/**',
       'storybook-static/**',
       'coverage/**',
       'docs/**',

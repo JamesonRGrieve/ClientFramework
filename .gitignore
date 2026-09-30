@@ -1,5 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 dist
+# compile builds here and swaps it in for dist
+dist.next
+dist.old
 /.vscode/
 # dependencies
 /node_modules
