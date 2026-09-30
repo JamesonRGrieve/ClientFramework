@@ -9,13 +9,14 @@ interface MermaidProps {
 }
 
 const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
-  const id = React.useId();
-  log(['Rendering Mermaid Chart', chart], { client: 2 });
+  const container = React.useRef<HTMLPreElement>(null);
   React.useEffect(() => {
+    log(['Rendering Mermaid Chart', chart], { client: 2 });
     mermaid.initialize({
-      startOnLoad: true,
+      startOnLoad: false,
       theme: 'dark',
-      securityLevel: 'loose',
+      // Charts come from markdown the app did not write: no HTML labels, no click handlers.
+      securityLevel: 'strict',
       themeCSS: `
         g.classGroup rect {
           fill: #282a36;
@@ -64,11 +65,17 @@ const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
       fontFamily: 'Fira Code',
     });
 
-    mermaid.contentLoaded();
-  }, []);
+    // Render this chart only, and again whenever it changes (the key gives each chart a fresh node).
+    const node = container.current;
+    if (node !== null) {
+      mermaid.run({ nodes: [node] }).catch((error: Error) => {
+        log(['Mermaid could not render the chart', error], { client: 1 });
+      });
+    }
+  }, [chart]);
 
   return (
-    <pre className='mermaid' id={id}>
+    <pre key={chart} ref={container} className='mermaid'>
       {chart}
     </pre>
   );
