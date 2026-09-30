@@ -144,7 +144,6 @@
     "@tailwindcss/oxide-linux-x64-gnu": "4.3.3",
     "@tailwindcss/oxide-linux-x64-musl": "4.3.3",
     "@tailwindcss/oxide-win32-arm64-msvc": "4.3.3",
-    "@tailwindcss/oxide-win32-ia32-msvc": "0.0.0-insiders.8fb9ae8f",
     "@tailwindcss/oxide-win32-x64-msvc": "4.3.3",
     "lightningcss-darwin-arm64": "1.33.0",
     "lightningcss-darwin-x64": "1.33.0",

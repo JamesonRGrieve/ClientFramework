@@ -367,9 +367,6 @@ importers:
       '@tailwindcss/oxide-win32-arm64-msvc':
         specifier: 4.3.3
         version: 4.3.3
-      '@tailwindcss/oxide-win32-ia32-msvc':
-        specifier: 0.0.0-insiders.8fb9ae8f
-        version: 0.0.0-insiders.8fb9ae8f
       '@tailwindcss/oxide-win32-x64-msvc':
         specifier: 4.3.3
         version: 4.3.3
@@ -4003,12 +4000,6 @@ packages:
     resolution: {integrity: sha512-3rc292Ca2ceK6Ulcc/bAVnTs/3nDtoPhyEKlgPv+yQJQi/JS/AMJlqzxvlDacL1nekbrcf6bTqp/jV4qgnPxNQ==}
     engines: {node: '>= 20'}
     cpu: [arm64]
-    os: [win32]
-
-  '@tailwindcss/oxide-win32-ia32-msvc@0.0.0-insiders.8fb9ae8f':
-    resolution: {integrity: sha512-5dSMUIBI1yU9abakA8wJFncOYqZZvtJWZaCBn9ujiFcbfOrMDQL+Uv2SaZ7xE3P0/omNKN9qR+OSlt3dmIvNHw==}
-    engines: {node: '>= 10'}
-    cpu: [ia32]
     os: [win32]
 
   '@tailwindcss/oxide-win32-x64-msvc@4.3.3':
@@ -13549,9 +13540,6 @@ snapshots:
     optional: true
 
   '@tailwindcss/oxide-win32-arm64-msvc@4.3.3':
-    optional: true
-
-  '@tailwindcss/oxide-win32-ia32-msvc@0.0.0-insiders.8fb9ae8f':
     optional: true
 
   '@tailwindcss/oxide-win32-x64-msvc@4.3.3':
