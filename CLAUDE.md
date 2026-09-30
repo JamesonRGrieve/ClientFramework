@@ -42,7 +42,19 @@ import { PageWithSlots, usePageSlots } from 'zephyrex';
 // Extensions (one per server-bundled extension, 1:1)
 import { allExtensions } from 'zephyrex/extensions';
 import { authMfaExtension } from 'zephyrex/extensions/auth_mfa';
+
+// UI primitives and shell/markdown components
+import { Button } from 'zephyrex/ui/button';
+import { SidebarPage } from 'zephyrex/components/appwrapper/src/SidebarPage';
+
+// Design system stylesheet (Tailwind + theme); add @source for the compiled packages you render
+import 'zephyrex/styles.css';
 ```
+
+The package is published from `dist/` (`pnpm compile`: tsc, then tsc-alias rewrites `@/` to
+relative `.js` paths, then `scripts/finish-dist.mjs` marks `dist/` as ESM and copies the
+stylesheet). `pnpm verify:dist` imports every compiled module under plain Node; Next subpaths
+are imported by file name (`next/navigation.js`) because `next` has no exports map.
 
 ### Consumer Pattern
 

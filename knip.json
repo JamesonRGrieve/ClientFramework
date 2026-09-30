@@ -15,7 +15,11 @@
     "src/**/*.stories.{ts,tsx}",
     "src/**/*.test.{ts,tsx}",
     "src/__tests__/setup.ts",
-    "src/components/ui/**/*.{ts,tsx}"
+    "src/components/ui/**/*.{ts,tsx}",
+    "src/lib/zephyrex/{index,types,hooks,client}.ts",
+    "src/lib/zephyrex/extensions/index.ts",
+    "src/lib/zephyrex/extensions/*/index.ts",
+    "src/components/{markdown,data-table,theme,dropzone}/**/*.{ts,tsx}"
   ],
   "project": ["src/**/*.{ts,tsx,js,jsx}", "!src/**/*.d.ts"],
   "ignore": ["src/components/appwrapper/**", "next-env.d.ts"],
