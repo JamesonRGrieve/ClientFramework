@@ -5,6 +5,7 @@
     "no-descending-specificity": null,
     "selector-class-pattern": null,
     "no-empty-source": null,
+    "import-notation": "string",
     "at-rule-no-unknown": [
       true,
       {
