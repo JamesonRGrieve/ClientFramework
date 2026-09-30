@@ -21,22 +21,12 @@ const config = {
     defaultName: 'Documentation',
   },
   staticDirs: ['../public'],
-  webpackFinal: async (config, { configType }) => {
+  // `@` is src/, relative to this file (not the directory storybook was started from). The
+  // framework's own packages resolve from node_modules like any consumer's.
+  webpackFinal: async (config) => {
     if (config.resolve) {
-      const rootDir = path.resolve('../src');
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        '@': rootDir,
-        zod2gql: path.resolve(rootDir, 'lib/zod2gql/src'),
-        '@zephyrex/auth': path.resolve(rootDir, 'components/auth/src'),
-        '@jgrieve/appwrapper': path.resolve(rootDir, 'components/appwrapper/src'),
-        '@jgrieve/forms': path.resolve(rootDir, 'components/dynamic-form/src'),
-        '@/interactive': path.resolve(rootDir, 'interactive/src'),
-        '@/interface': path.resolve(rootDir, 'interface'),
-        '@/iteration': path.resolve(rootDir, 'iteration'),
-      };
+      config.resolve.alias = { ...config.resolve.alias, '@': path.resolve(__dirname, '../src') };
     }
-
     return config;
   },
 };
