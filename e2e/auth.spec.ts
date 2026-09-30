@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { expect, test } from '@playwright/test';
+import type { TokenBody, Unread } from './apiTypes';
 
 const API_URL = process.env.API_URI ?? 'http://localhost:1996';
 const TEST_PASSWORD = 'TestPassword123!';
 
 test.describe('Authentication', () => {
   test('server health check returns 200', async ({ request }) => {
-    const response = await request.get(`${API_URL}/health`);
+    const response = await request.get<Unread>(`${API_URL}/health`);
     expect(response.ok()).toBe(true);
   });
 
   test('register a new user via API', async ({ request }) => {
     const email = `e2e-reg-${Date.now()}@example.com`;
-    const response = await request.post(`${API_URL}/v1/user`, {
+    const response = await request.post<Unread>(`${API_URL}/v1/user`, {
       data: {
         email,
         first_name: 'E2E',
@@ -33,7 +34,7 @@ test.describe('Authentication', () => {
     const email = `e2e-jwt-${Date.now()}@example.com`;
 
     // Register
-    await request.post(`${API_URL}/v1/user`, {
+    await request.post<Unread>(`${API_URL}/v1/user`, {
       data: {
         email,
         first_name: 'JWT',
@@ -45,7 +46,7 @@ test.describe('Authentication', () => {
 
     // Attempt login with Basic auth
     const credentials = Buffer.from(`${email}:${TEST_PASSWORD}`).toString('base64');
-    const loginResponse = await request.post(`${API_URL}/v1/user/authorize`, {
+    const loginResponse = await request.post<TokenBody>(`${API_URL}/v1/user/authorize`, {
       headers: { Authorization: `Basic ${credentials}` },
     });
 
@@ -54,8 +55,8 @@ test.describe('Authentication', () => {
       expect(body).toHaveProperty('token');
 
       // Verify the token works
-      const verifyResponse = await request.get(`${API_URL}/v1/user`, {
-        headers: { Authorization: `Bearer ${body.token}` },
+      const verifyResponse = await request.get<Unread>(`${API_URL}/v1/user`, {
+        headers: { Authorization: `Bearer ${body.token ?? ''}` },
       });
       expect(verifyResponse.ok()).toBe(true);
     } else {
@@ -65,7 +66,7 @@ test.describe('Authentication', () => {
   });
 
   test('unauthenticated request to private API returns 401/403', async ({ request }) => {
-    const response = await request.get(`${API_URL}/v1/team`);
+    const response = await request.get<Unread>(`${API_URL}/v1/team`);
     expect([401, 403]).toContain(response.status());
   });
 });

@@ -6,7 +6,17 @@ overrides:
   '@jgrieve/forms': file:../dynamic-form
   zod2gql: file:../zod2gql
 
+# playwright-core's type definitions import zod (1.63) without declaring it, so under pnpm they fail
+# to resolve and every Playwright type in the e2e suite silently becomes `any`. Declare the peer so
+# the types resolve to this package's zod.
+packageExtensions:
+  playwright-core:
+    peerDependencies:
+      zod: '*'
+
 allowBuilds:
+  # Ships prebuilt binaries as optional packages; its build script is only a fallback.
+  '@parcel/watcher': false
   '@swc/core': true
   core-js: true
   core-js-pure: true

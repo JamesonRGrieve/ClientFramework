@@ -1,10 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { expect, test } from '@playwright/test';
+import type { TeamBody, TeamsBody, TokenBody, Unread } from './apiTypes';
 
 const API_URL = process.env.API_URI ?? 'http://localhost:1996';
 
 const EMAIL = `e2e-crud-${Date.now()}@example.com`;
 const PASSWORD = 'CrudTest123!';
+/** Why a test is skipped when the suite could not sign in, or create its team. */
+const NO_AUTH = 'auth failed';
+const NO_TEAM = 'no team created';
 
 let authToken = '';
 
@@ -13,14 +17,14 @@ test.beforeAll(async ({ request }) => {
   const password = PASSWORD;
 
   // Register
-  const regResponse = await request.post(`${API_URL}/v1/user`, {
+  const regResponse = await request.post<TokenBody>(`${API_URL}/v1/user`, {
     data: { email, first_name: 'CRUD', last_name: 'Test', username: `crud_${Date.now()}`, password },
   });
 
   // Some servers return a token on registration
   if (regResponse.ok()) {
     const regBody = await regResponse.json();
-    if (regBody.token) {
+    if (regBody.token !== undefined && regBody.token !== '') {
       authToken = regBody.token;
       return;
     }
@@ -28,7 +32,7 @@ test.beforeAll(async ({ request }) => {
 
   // Try login
   const credentials = Buffer.from(`${email}:${password}`).toString('base64');
-  const loginResponse = await request.post(`${API_URL}/v1/user/authorize`, {
+  const loginResponse = await request.post<TokenBody>(`${API_URL}/v1/user/authorize`, {
     headers: { Authorization: `Basic ${credentials}` },
   });
 
@@ -47,7 +51,7 @@ test.describe('Team CRUD via API', () => {
 
   test('create a team', async ({ request }) => {
     test.skip(!authToken, 'auth failed — skipping CRUD');
-    const response = await request.post(`${API_URL}/v1/team`, {
+    const response = await request.post<TeamBody>(`${API_URL}/v1/team`, {
       headers: authHeaders(),
       data: {
         team: {
@@ -57,26 +61,24 @@ test.describe('Team CRUD via API', () => {
       },
     });
     expect(response.status()).toBe(201);
-    const body = await response.json();
-    const team = body.team ?? body;
+    const { team } = await response.json();
     expect(team).toHaveProperty('id');
     teamId = team.id;
   });
 
   test('read the created team', async ({ request }) => {
-    test.skip(!teamId, 'no team created');
-    const response = await request.get(`${API_URL}/v1/team/${teamId}`, {
+    test.skip(!teamId, NO_TEAM);
+    const response = await request.get<TeamBody>(`${API_URL}/v1/team/${teamId}`, {
       headers: authHeaders(),
     });
     expect(response.ok()).toBe(true);
-    const body = await response.json();
-    const team = body.team ?? body;
+    const { team } = await response.json();
     expect(team.id).toBe(teamId);
   });
 
   test('update the team', async ({ request }) => {
-    test.skip(!teamId, 'no team created');
-    const response = await request.put(`${API_URL}/v1/team/${teamId}`, {
+    test.skip(!teamId, NO_TEAM);
+    const response = await request.put<Unread>(`${API_URL}/v1/team/${teamId}`, {
       headers: authHeaders(),
       data: {
         team: { description: 'Updated by integration test' },
@@ -86,19 +88,18 @@ test.describe('Team CRUD via API', () => {
   });
 
   test('list teams', async ({ request }) => {
-    test.skip(!authToken, 'auth failed');
-    const response = await request.get(`${API_URL}/v1/team`, {
+    test.skip(!authToken, NO_AUTH);
+    const response = await request.get<TeamsBody>(`${API_URL}/v1/team`, {
       headers: authHeaders(),
     });
     expect(response.ok()).toBe(true);
-    const body = await response.json();
-    const teams = body.teams ?? body;
+    const { teams } = await response.json();
     expect(Array.isArray(teams)).toBe(true);
   });
 
   test('delete the team', async ({ request }) => {
-    test.skip(!teamId, 'no team created');
-    const response = await request.delete(`${API_URL}/v1/team/${teamId}`, {
+    test.skip(!teamId, NO_TEAM);
+    const response = await request.delete<Unread>(`${API_URL}/v1/team/${teamId}`, {
       headers: authHeaders(),
     });
     expect([200, 204]).toContain(response.status());
@@ -107,8 +108,8 @@ test.describe('Team CRUD via API', () => {
 
 test.describe('User profile via API', () => {
   test('get current user', async ({ request }) => {
-    test.skip(!authToken, 'auth failed');
-    const response = await request.get(`${API_URL}/v1/user`, {
+    test.skip(!authToken, NO_AUTH);
+    const response = await request.get<Unread>(`${API_URL}/v1/user`, {
       headers: authHeaders(),
     });
     expect(response.ok()).toBe(true);
@@ -117,16 +118,16 @@ test.describe('User profile via API', () => {
 
 test.describe('Provider and Extension listing', () => {
   test('list providers', async ({ request }) => {
-    test.skip(!authToken, 'auth failed');
-    const response = await request.get(`${API_URL}/v1/provider`, {
+    test.skip(!authToken, NO_AUTH);
+    const response = await request.get<Unread>(`${API_URL}/v1/provider`, {
       headers: authHeaders(),
     });
     expect(response.ok()).toBe(true);
   });
 
   test('list extensions', async ({ request }) => {
-    test.skip(!authToken, 'auth failed');
-    const response = await request.get(`${API_URL}/v1/extension`, {
+    test.skip(!authToken, NO_AUTH);
+    const response = await request.get<Unread>(`${API_URL}/v1/extension`, {
       headers: authHeaders(),
     });
     expect(response.ok()).toBe(true);
@@ -137,8 +138,8 @@ test.describe('UI pages render with a session', () => {
   // Sign in through the app's own origin (it proxies /v1), so the server's HttpOnly session
   // cookie lands in this browser context exactly as a real sign-in leaves it.
   test.beforeEach(async ({ context }) => {
-    test.skip(!authToken, 'auth failed');
-    const response = await context.request.post('/v1/user/authorize', {
+    test.skip(!authToken, NO_AUTH);
+    const response = await context.request.post<Unread>('/v1/user/authorize', {
       headers: { Authorization: `Basic ${Buffer.from(`${EMAIL}:${PASSWORD}`).toString('base64')}` },
     });
     expect(response.ok()).toBe(true);
@@ -147,7 +148,7 @@ test.describe('UI pages render with a session', () => {
   for (const path of ['/team', '/provider']) {
     test(`${path} stays open to a signed-in user`, async ({ page }) => {
       await page.goto(path);
-      await expect(page).toHaveURL(new RegExp(`${path}$`));
+      await expect(page).toHaveURL((url) => url.pathname === path);
     });
   }
 });
