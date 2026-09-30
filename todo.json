@@ -10,7 +10,7 @@
         {
           "number": "1.1.1",
           "feature": "`next.config.js:154-159`",
-          "description": "`next.config.js:154-159` — `allowedOrigins: ['*']` and `allowedForwardedHosts: ['*']` on server actions bypasses origin validation entirely; restrict to trusted domains",
+          "description": "`next.config.js:158-161` — `allowedOrigins: ['*']` and `allowedForwardedHosts: ['*']` on server actions bypass origin validation; restrict to trusted domains",
           "done": false,
           "priority": "critical"
         },
@@ -25,14 +25,14 @@
           "number": "1.1.3",
           "feature": "Remove `fs` from package.json dependencies (line 99)",
           "description": "Remove `fs` from package.json dependencies (line 99) — `fs` is a Node.js core module and should never be installed via npm",
-          "done": false,
+          "done": true,
           "priority": "high"
         },
         {
           "number": "1.1.4",
           "feature": "`CodeBlock.tsx` uses `dangerouslySetInnerHTML` (line 84) without sanitization",
           "description": "`CodeBlock.tsx` uses `dangerouslySetInnerHTML` (line 84) without sanitization — potential XSS; use DOMPurify or equivalent",
-          "done": false
+          "done": true
         },
         {
           "number": "1.1.5",
@@ -43,27 +43,17 @@
         {
           "number": "1.2.1",
           "feature": "Add Vitest configuration at project root (mirroring mesh-map's `vite.config.ts` test section)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.2.2",
           "feature": "Create `src/__tests__/setup.ts` with mocks for Next.js router, fetch, and shared UI dependencies",
-          "done": false
-        },
-        {
-          "number": "1.2.3",
-          "feature": "Add unit tests for `src/lib/objects.ts` (deepMerge, deepMergeJSON)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.2.4",
           "feature": "Add unit tests for `src/lib/utils.ts` (cn utility)",
-          "done": false
-        },
-        {
-          "number": "1.2.5",
-          "feature": "Add unit tests for `src/lib/validation.ts` (URI validation)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.2.6",
@@ -88,101 +78,97 @@
         {
           "number": "1.2.10",
           "feature": "Add unit tests for `src/middleware.tsx` (mergeConfigs, middleware logic)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.3.1",
           "feature": "Add stories for `src/components/theme/` components (SwitchDark, SwitchColorblind)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.3.2",
           "feature": "Add stories for `src/components/markdown/` components",
-          "done": false
+          "done": true
         },
         {
           "number": "1.3.3",
           "feature": "Add stories for `src/components/data-table/` components",
-          "done": false
+          "done": true
         },
         {
           "number": "1.3.4",
           "feature": "Add stories for `src/components/dropzone/` components",
-          "done": false
+          "done": true
         },
         {
           "number": "1.3.5",
           "feature": "Add stories for `src/components/settings/` components",
-          "done": false
+          "done": true
         },
         {
           "number": "1.3.6",
           "feature": "Add stories for key `src/components/ui/` primitives (buttons, dialogs, inputs)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.3.7",
           "feature": "Register `@storybook/addon-a11y` and `@storybook/addon-coverage` in `.storybook/main.js` (installed but not registered)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.3.8",
           "feature": "Ensure Tailwind is properly loaded in `.storybook/preview.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "1.3.9",
           "feature": "Fix `.storybook/main.js:23`",
-          "description": "Fix `.storybook/main.js:23` — use `path.resolve(__dirname, '../src')` instead of relative `path.resolve('../src')`",
-          "done": false
-        },
-        {
-          "number": "1.4.1",
-          "feature": "Replace `any` in `src/lib/objects.ts` (lines 1, 6) with generic type parameters",
+          "description": "Fix `.storybook/main.js` webpackFinal — use `path.resolve(__dirname, '../src')` instead of `path.resolve('../src')`, and drop aliases to removed submodule paths (zod2gql, @zephyrex/auth, @jgrieve/forms, @/interactive, @/interface, @/iteration)",
           "done": false
         },
         {
           "number": "1.4.2",
           "feature": "Replace `any` in `src/components/assert/assert.ts` (line 7) with proper dependency types",
-          "done": false
+          "done": true
         },
         {
           "number": "1.4.3",
           "feature": "Replace `any` in `src/components/markdown/Preprocessor.ts` (line 9) with rule interface",
-          "done": false
+          "done": true
         },
         {
           "number": "1.4.4",
           "feature": "Replace `any` in `src/components/markdown/MarkdownBlock.tsx` (line 12)",
           "description": "Replace `any` in `src/components/markdown/MarkdownBlock.tsx` (line 12) — `{ content, role, createdAt }: any`",
-          "done": false
+          "done": true
         },
         {
           "number": "1.4.5",
           "feature": "Type provider sidebar column definitions",
           "description": "Type provider sidebar column definitions — 18+ `any` types in `src/app/provider/[id]/providers.tsx` (lines 33-157)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.4.6",
           "feature": "Type `NavMain.tsx` icon properties (lines 28, 34)",
           "description": "Type `NavMain.tsx` icon properties (lines 28, 34) — currently `any`",
-          "done": false
+          "done": true
         },
         {
           "number": "1.4.7",
           "feature": "Remove 14 unsafe `as` casts across hooks, middleware, and auth utils",
-          "done": false
+          "done": true
         },
         {
           "number": "1.4.8",
           "feature": "Remove `@ts-expect-error` in `DataTableFilter.tsx:69`",
-          "done": false
+          "done": false,
+          "description": "Remove `@ts-expect-error` suppressions in `data-table-filter.tsx:70`, `data-table-export.tsx:21`, `data-table-view-options.tsx:43`"
         },
         {
           "number": "1.4.9",
           "feature": "Type API route parameters: `src/app/api/alive/route.ts:3`, `src/app/api/audio/route.ts:2`",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.1",
@@ -193,7 +179,7 @@
         {
           "number": "1.5.2",
           "feature": "Enable `prefer-template` ESLint rule (CLAUDE.md mandates template literals)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.3",
@@ -203,92 +189,98 @@
         {
           "number": "1.5.4",
           "feature": "Enable `@typescript-eslint/no-floating-promises` for unhandled promise detection",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.5",
           "feature": "Add `eslint-comments/no-unlimited-disable` to prevent blanket `eslint-disable` suppressions",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.6",
           "feature": "Remove `console.log` from `next.config.js:176` and `src/app/user/[[...slug]]/page.tsx:9`",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.7",
           "feature": "Remove commented-out code in `src/app/layout.tsx` (inter font, ThemeSetter), `src/app/[...slug]/page.tsx:6`, `src/app/down/page.tsx:12`, `src/app/docs/getting-started/page.tsx:22-34`, `src/app/docs/support/page.tsx:107-115`",
-          "done": false
+          "done": false,
+          "description": "Remove commented-out code in `src/app/down/page.tsx:12`, `src/app/docs/getting-started/page.tsx:23-35`, `src/app/docs/support/page.tsx:109-117`"
         },
         {
           "number": "1.5.8",
           "feature": "Remove commented-out code in `src/app/provider/[id]/providers.tsx:262-263`",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.9",
           "feature": "Remove commented-out code in `src/components/markdown/Link.tsx:5-6,49-65,74`, `Preprocessor.ts:35`, `CodeBlock.tsx:38,51-53`",
-          "done": false
+          "done": false,
+          "description": "Remove commented-out code in `src/components/markdown/Link.tsx:49-65,74` and `Preprocessor.ts:35` (plus the now-unused `_handleAnchorClick`/`_isVideo`)"
         },
         {
           "number": "1.5.10",
           "feature": "Remove commented-out code in `DataTableColumns.tsx:62-83`, `DataTableExport.tsx:38,51-53`",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.11",
           "feature": "Remove unused variables: `redirect` import in `src/app/page.tsx:6`, unused `setLink`/`setNotifications` state setters in `down/page.tsx` and `notifications/page.tsx`, `hasStarted` in `getting-started/page.tsx`",
-          "done": false
+          "done": false,
+          "description": "Remove unused state: `_setLink` in `src/app/down/page.tsx:10` and `_hasStarted`/its useEffect in `src/app/docs/getting-started/page.tsx:11-16`"
         },
         {
           "number": "1.5.12",
           "feature": "Deduplicate `mergeConfigs` (defined in both `src/middleware.tsx` and `next.config.js`)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.13",
           "feature": "Deduplicate `SwitchDark.tsx` vs `SwitchColorblind.tsx` (identical toggle logic, only strings differ)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.14",
           "feature": "Deduplicate `useAppearance.tsx` vs `useTheme.tsx` (nearly identical cookie persistence logic)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.15",
           "feature": "Centralize `getCookie('jwt')` calls (repeated 10+ times in provider pages) into a shared auth utility",
-          "done": false
+          "done": false,
+          "description": "Centralize `getCookie('jwt')` calls (settings/providers.tsx, settings/extensions.tsx, lib/zephyrex/client.ts, useSubscription.ts, useFileUpload.ts) into a shared auth utility"
         },
         {
           "number": "1.5.16",
           "feature": "Centralize `process.env.NEXT_PUBLIC_API_URI` URL templates into a shared API client",
-          "done": false
+          "done": false,
+          "description": "Route remaining `process.env.NEXT_PUBLIC_API_URI` URL templates (settings/extensions.tsx, settings/providers.tsx, markdown/Image.tsx, docs pages) through `src/lib/api/client.ts`"
         },
         {
           "number": "1.5.17",
           "feature": "Deduplicate DataTable column definitions in `providers.tsx` (settings vs usage are nearly identical)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.18",
           "feature": "Deduplicate three nearly identical Dialog components in `providerSideBar.tsx:390-446`",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.19",
           "feature": "Handle unhandled promises in event handlers (`providers.tsx:193`, `providerSideBar.tsx:159`)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.20",
           "feature": "Fix `useEffect` issues: `getCookie` call as dependency in `down/page.tsx:11-13` and `getting-started/page.tsx:11-15` (function call, not reactive value)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.21",
           "feature": "Extract magic numbers: `1000*60*5`, `1000*60*60`, `1000*60*60*24` in `notifications/page.tsx`, `24*60*60*1000` in `getting-started/page.tsx`, sidebar dimensions in `sidebar.tsx`, page sizes `[10,20,30,40,50]` in `DataTablePagination.tsx:34`",
-          "done": false
+          "done": false,
+          "description": "Extract magic numbers: page sizes `[10,20,30,40,50]` in `data-table-pagination.tsx:30`, sidebar resize `minWidth=200`/`maxWidth=600` in `ui/sidebar.tsx:322`"
         },
         {
           "number": "1.5.22",
@@ -299,39 +291,41 @@
           "number": "1.5.23",
           "feature": "Fix `useToast.ts:56`",
           "description": "Fix `useToast.ts:56` — `toastTimeouts` map could grow unbounded",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.24",
           "feature": "Remove TODO comment without linked issue in `src/app/docs/support/page.tsx:106`",
-          "done": false
+          "done": false,
+          "description": "Remove TODO comment without linked issue in `src/app/docs/support/page.tsx:108`"
         },
         {
           "number": "1.6.1",
           "feature": "Rename `TeamLayout` → `ProviderLayout` in `src/app/provider/layout.tsx:6` and `src/app/provider/[id]/layout.tsx:6`",
           "done": false,
-          "priority": "critical"
+          "priority": "critical",
+          "description": "Rename `TeamLayout` → `ProviderLayout` in `src/app/provider/layout.tsx:7` and `src/app/provider/[id]/layout.tsx:7`"
         },
         {
           "number": "1.6.2",
           "feature": "Rename `TeamPage` → `ProviderPage` in `src/app/provider/page.tsx` and `src/app/provider/[id]/page.tsx`",
-          "done": false,
+          "done": true,
           "priority": "critical"
         },
         {
           "number": "1.6.3",
           "feature": "Fix typo in `tsconfig.json` include: `Severtities.tsx` → `Severities.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "1.6.4",
           "feature": "Remove stale `next.config.js.old` reference from `tsconfig.json` includes",
-          "done": false
+          "done": true
         },
         {
           "number": "1.7.1",
           "feature": "Add `aria-label` on icon-only buttons in `NavMain.tsx` (lines 71, 80, 130)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.7.2",
@@ -353,13 +347,13 @@
         {
           "number": "1.7.5",
           "feature": "Add keyboard accessibility to `CodeBlock.tsx:197-203`",
-          "description": "Add keyboard accessibility to `CodeBlock.tsx:197-203` — button tabs lack proper ARIA roles",
+          "description": "`CodeBlock.tsx:218-233` — Rendered/Source buttons need tablist/tab roles and aria-selected; icon-only Copy/Download buttons need aria-label",
           "done": false
         },
         {
           "number": "1.7.6",
           "feature": "Add null checks for DOM queries in `CodeBlock.tsx:164,172`",
-          "done": false
+          "done": true
         },
         {
           "number": "1.8.1",
@@ -386,33 +380,30 @@
         {
           "number": "1.8.5",
           "feature": "`.dockerignore`: add `.env`, `.env.local`, `.next`, `.storybook`, `storybook-static`",
-          "done": false
+          "done": false,
+          "description": "`.dockerignore`: add `.env`, `.env.local`, `.storybook`, `storybook-static` (`.next` already present)"
         },
         {
           "number": "1.8.6",
           "feature": "Fix `package.json:8` typo: `rimraf ./node_nodules` → `rimraf ./node_modules`; change `&` to `&&`",
-          "done": false
+          "done": false,
+          "description": "`package.json:17` clean-build: change `rimraf ./.next & rimraf ./node_modules` to use `&&` (typo already fixed)"
         },
         {
           "number": "1.8.7",
           "feature": "`env.sh` writes to `/app/.env.local` (absolute path)",
-          "description": "`env.sh` writes to `/app/.env.local` (absolute path) — should use working directory; also unsafe if `$value` contains quotes",
-          "done": false
-        },
-        {
-          "number": "1.8.8",
-          "feature": "`tailwind.config.js`: expand content paths to include `src/` prefix and `.storybook/` directory",
+          "description": "`env.sh` — checks `/app/.env.local` but writes `/.env.local` (absolute, mismatched); unsafe quoting of `$value`; `cat /.env.local` dumps every env var (secrets) into the build log",
           "done": false
         },
         {
           "number": "1.8.9",
           "feature": "Add `darkMode: 'class'` to `tailwind.config.js` (project uses class-based dark mode but config doesn't declare it)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.8.10",
           "feature": "Add pre-commit hook (husky) to run `prettier --check` before commits",
-          "done": false
+          "done": true
         },
         {
           "number": "1.9.1",
@@ -443,7 +434,8 @@
         {
           "number": "2.1.1",
           "feature": "Add unit tests for `AppWrapper.tsx` (rendering, mobile breakpoint behavior)",
-          "done": false
+          "done": false,
+          "description": "Extend `AppWrapper.test.tsx` beyond the render smoke test: header/footer composition and mobile (<=600px) breakpoint behavior"
         },
         {
           "number": "2.1.2",
@@ -453,7 +445,7 @@
         {
           "number": "2.1.3",
           "feature": "Add unit tests for `hooks/useMobile.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "2.1.4",
@@ -493,7 +485,7 @@
         {
           "number": "2.2.6",
           "feature": "Add stories for `SidebarMain.tsx` / `SidebarPage.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "2.2.7",
@@ -503,7 +495,7 @@
         {
           "number": "2.3.1",
           "feature": "Enable `strict: true` and `strictNullChecks: true` in tsconfig.json (currently false with TODOs)",
-          "done": false
+          "done": true
         },
         {
           "number": "2.3.2",
@@ -513,7 +505,8 @@
         {
           "number": "2.3.3",
           "feature": "Remove 12 unsafe `as unknown as Menu` double-casts in `AppWrapper.tsx`",
-          "done": false
+          "done": false,
+          "description": "Remove the 2 remaining `as unknown as Menu` double-casts in `AppWrapper.tsx` (margin computation)"
         },
         {
           "number": "2.3.4",
@@ -528,7 +521,7 @@
         {
           "number": "2.4.1",
           "feature": "Fix SSR crash: `AppWrapperHeaderFooter.tsx:14`",
-          "description": "Fix SSR crash: `AppWrapperHeaderFooter.tsx:14` — `window.innerWidth` accessed directly in component body (not in useEffect); will throw \"window is not defined\" during server-side rendering",
+          "description": "Fix SSR crash: `AppWrapperHeaderFooter.tsx:14` — `window.innerWidth` read directly in the Header component body",
           "done": false,
           "priority": "critical"
         },
@@ -558,12 +551,14 @@
         {
           "number": "2.4.6",
           "feature": "Remove dead code: commented-out `MenuSWR` in `AppWrapperDrawer.tsx:63`, commented-out `NotificationsNavItem` in `SidebarMain.tsx:38`, unused `swr` parameter in `AppWrapperDrawer.tsx:11,21`",
-          "done": false
+          "done": false,
+          "description": "Remove dead code in `AppWrapperDrawer.tsx`: commented `MenuSWR` (line 63) and unused `swr`/`menu` params (lines 10-11, 20-22)"
         },
         {
           "number": "2.4.7",
           "feature": "Extract magic numbers (600, 1200 zIndex, sidebar dimensions `'16rem'`/`'18rem'`/`'3rem'`/`256`, notification count `3`)",
-          "done": false
+          "done": false,
+          "description": "Extract the inline `600` mobile breakpoint (AppWrapper.tsx, AppWrapperDrawer.tsx, AppWrapperHeaderFooter.tsx) to a shared named constant"
         },
         {
           "number": "2.4.8",
@@ -598,22 +593,12 @@
           "number": "2.5.3",
           "feature": "`Notifications/index.tsx:14-17`",
           "description": "`Notifications/index.tsx:14-17` — Card with onClick should be a button or have proper ARIA role",
-          "done": false
-        },
-        {
-          "number": "2.6.1",
-          "feature": "Audit and eliminate cross-linking: imports from `@/components/ui/*`, `@/components/theme/*`, `@/auth/*`, `@/app/*`, `@/lib/utils`",
-          "done": false
+          "done": true
         },
         {
           "number": "2.6.2",
           "feature": "Fix broken relative imports in `SidebarPage.tsx` (`../../ui/sidebar`)",
-          "done": false
-        },
-        {
-          "number": "2.6.3",
-          "feature": "Ensure the module can function via `npm link` without parent framework context",
-          "done": false
+          "done": true
         }
       ]
     },
@@ -624,14 +609,14 @@
         {
           "number": "3.1.1",
           "feature": "`Login.tsx:65`",
-          "description": "`Login.tsx:65` — JWT set via `document.cookie` without `HttpOnly`, `Secure`, or `SameSite` flags; vulnerable to XSS theft",
+          "description": "`auth/src/Login.tsx:38` — JWT set via `document.cookie` without `Secure`/`SameSite` (and not HttpOnly); set it server-side",
           "done": false,
           "priority": "critical"
         },
         {
           "number": "3.1.2",
           "feature": "`auth.middleware.ts` `generateCookieString()`",
-          "description": "`auth.middleware.ts` `generateCookieString()` — missing `HttpOnly` and `Secure` flags on cookies",
+          "description": "`auth/src/utils.ts:47` `generateCookieString()` — missing `HttpOnly` and `Secure` flags (SameSite now set)",
           "done": false,
           "priority": "critical"
         },
@@ -646,13 +631,13 @@
           "number": "3.1.4",
           "feature": "`management/Team.tsx:36`",
           "description": "`management/Team.tsx:36` — `encryption_key` field in Team type is sent to the client; encryption keys must never reach the browser",
-          "done": false,
+          "done": true,
           "priority": "critical"
         },
         {
           "number": "3.1.5",
           "feature": "`oauth2/Close.tsx`, `management/ConnectedServices.tsx:184`",
-          "description": "`oauth2/Close.tsx`, `management/ConnectedServices.tsx:184` — JWT passed as OAuth `state` parameter, exposing it in URL/browser history/server logs",
+          "description": "`auth/src/management/ConnectedServices.tsx:185` passes the JWT as OAuth `state` (consumed at `auth.middleware.ts:333`); use an opaque nonce",
           "done": false,
           "priority": "high"
         },
@@ -667,7 +652,8 @@
           "number": "3.1.7",
           "feature": "Sensitive data logged to console: JWT tokens, email addresses, and OAuth responses in Router.tsx, auth.middleware.ts, ConnectedServices.tsx, Team.tsx",
           "done": false,
-          "priority": "high"
+          "priority": "high",
+          "description": "`auth/src/auth.middleware.ts` logs JWT (line 334), invite email/code (100), email verification code (223), raw query params (236) — remove"
         },
         {
           "number": "3.1.8",
@@ -692,7 +678,7 @@
         {
           "number": "3.1.12",
           "feature": "Hardcoded role IDs in `management/Invite.tsx:24-26` (`FFFFFFFF-0000-0000-AAAA-FFFFFFFFFFFF`)",
-          "description": "Hardcoded role IDs in `management/Invite.tsx:24-26` (`FFFFFFFF-0000-0000-AAAA-FFFFFFFFFFFF`) — should fetch from API or config",
+          "description": "`auth/src/management/Invite.tsx:25-28` — hard-coded fallback role IDs (`FFFFFFFF-0000-0000-AAAA-FFFFFFFFFFFF`) merged with API roles; source from API/config only",
           "done": false
         },
         {
@@ -703,62 +689,63 @@
         {
           "number": "3.2.2",
           "feature": "Add unit tests for `utils.ts` (getQueryParams, response handling)",
-          "done": false
+          "done": true
         },
         {
           "number": "3.2.3",
           "feature": "Add unit tests for `hooks/useUser.ts`, `hooks/useTeam.ts`, `hooks/useLoggedIn.ts`",
-          "done": false
+          "done": true
         },
         {
           "number": "3.2.4",
           "feature": "Add unit tests for `hooks/lib.ts` (chainMutations)",
-          "done": false
+          "done": true
         },
         {
           "number": "3.2.5",
           "feature": "Add unit tests for `gravatar.ts`",
-          "done": false
+          "done": true
         },
         {
           "number": "3.2.6",
           "feature": "Add unit tests for MFA components (Authenticator, EMail, SMS)",
-          "done": false
+          "done": true
         },
         {
           "number": "3.2.7",
           "feature": "Add unit tests for management components (Account, Profile, Team, Invitations)",
-          "done": false
+          "done": false,
+          "description": "Add unit tests for auth management components `Team.tsx`, `TeamUsers.tsx`, `ConnectedServices.tsx`, `Invite.tsx` (Account/Profile/Invitations done)"
         },
         {
           "number": "3.3.1",
           "feature": "Add stories for `Login.tsx`, `Register.tsx`, `Logout.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "3.3.2",
           "feature": "Add stories for `Router.tsx` (various auth states)",
-          "done": false
+          "done": true
         },
         {
           "number": "3.3.3",
           "feature": "Add stories for `Identify.tsx`, `OU.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "3.3.4",
           "feature": "Add stories for `management/` components (Account, Profile, Team, Invitations, ConnectedServices)",
-          "done": false
+          "done": true
         },
         {
           "number": "3.3.5",
           "feature": "Add stories for `mfa/` components (Authenticator, EMail, SMS)",
-          "done": false
+          "done": true
         },
         {
           "number": "3.3.6",
           "feature": "Add stories for `oauth2/` components",
-          "done": false
+          "done": true
         },
         {
           "number": "3.3.7",
@@ -768,42 +755,45 @@
         {
           "number": "3.4.1",
           "feature": "Enable `strict: true` and `strictNullChecks: true` in tsconfig.json",
-          "done": false
+          "done": true
         },
         {
           "number": "3.4.2",
           "feature": "Eliminate 39 `any` types across Router, Login, Subscribe, OU, middleware, hooks, management, MFA, and OAuth components",
-          "done": false
+          "done": true
         },
         {
           "number": "3.4.3",
           "feature": "Fix `@ts-expect-error` suppressions in `auth.middleware.ts` (lines 103-107, 171-172)",
-          "done": false
+          "done": false,
+          "description": "Fix remaining `@ts-expect-error` in `auth/src/auth.middleware.ts:277` (use `cookieHeaders()` instead of `headers.set('Set-Cookie', [...])`)"
         },
         {
           "number": "3.4.4",
           "feature": "Type `searchParams` properly in Router.tsx, Login.tsx, Subscribe.tsx (currently `any`)",
-          "done": false
+          "done": true
         },
         {
           "number": "3.4.5",
           "feature": "Type hook return values: `useProducts`, `useTeam`, `useTeamUsers`",
-          "done": false
+          "done": true
         },
         {
           "number": "3.4.6",
           "feature": "Create proper interfaces for management component props (Profile, Team, Gravatar)",
-          "done": false
+          "done": true
         },
         {
           "number": "3.4.7",
           "feature": "Export interfaces: `ConnectedService` from `ConnectedServices.tsx`, role type from `Invite.tsx`, User type from `Team.tsx`",
-          "done": false
+          "done": false,
+          "description": "Export interfaces `ConnectedService` (`ConnectedServices.tsx:13`) and `Role` (`Invite.tsx:30`)"
         },
         {
           "number": "3.5.1",
           "feature": "Remove 49 `console.log` statements (Router: 5, middleware: 29, utils: 5, ConnectedServices: 6, hooks: 4)",
-          "done": false
+          "done": false,
+          "description": "Replace ~38 ad-hoc `console.warn/error` debug statements (auth.middleware.ts: 30, ConnectedServices: 4, Register: 2, useLoggedIn, utils) with the logger"
         },
         {
           "number": "3.5.2",
@@ -813,72 +803,70 @@
         {
           "number": "3.5.3",
           "feature": "Extract magic numbers: `2000` (Login timeout), `256` (QR size), `40` (Gravatar size), `10` (email invite limit in `Invite.tsx:117`)",
-          "done": false
+          "done": false,
+          "description": "Extract magic numbers: Gravatar default size `40` (`gravatar.ts:10`, `Gravatar.tsx:13`) and invite limit `10` (`Invite.tsx:144`)"
         },
         {
           "number": "3.5.4",
           "feature": "Remove dead code: commented-out section in `management/index.tsx:92-139`, commented-out useEffect in `Register.tsx:100-112`, unused `getSearchParamsAsync` in `utils.ts:106-120`, `management/Gravatar.tsx:6` comment \"This component should be deleted\"",
-          "done": false
+          "done": false,
+          "description": "Remove dead code: `Register.tsx:181` commented OAuth JSX and resolve `management/Gravatar.tsx:12` \"should be deleted\" comment"
         },
         {
           "number": "3.5.5",
           "feature": "Fix unhandled promises in `auth.middleware.ts:49-58`, `ConnectedServices.tsx` (lines 92, 110, 127)",
-          "done": false
+          "done": false,
+          "description": "Handle failure of the verify-email `fetch` in `auth/src/auth.middleware.ts:224-233`"
         },
         {
           "number": "3.5.6",
           "feature": "Fix useEffect issues: unstable `router` dependency in `useLoggedIn.ts:31`, empty useEffect in `Register.tsx:88-90`, missing deps in `ConnectedServices.tsx:81-83`",
-          "done": false
+          "done": false,
+          "description": "Remove the empty `useEffect` in `auth/src/Register.tsx:79-81`"
         },
         {
           "number": "3.5.7",
           "feature": "Add null checks for unsafe accesses (`auth.middleware.ts:69`, `ConnectedServices.tsx:101`)",
-          "done": false
+          "done": true
         },
         {
           "number": "3.5.8",
           "feature": "Deduplicate cookie generation code and GraphQL client creation across hooks",
-          "done": false
+          "done": true
         },
         {
           "number": "3.5.9",
           "feature": "Create missing `src/index.ts` entry point (package.json references it but it doesn't exist)",
-          "done": false
+          "done": true
         },
         {
           "number": "3.5.10",
           "feature": "Fix empty else block in `Register.tsx:86`",
           "description": "Fix empty else block in `Register.tsx:86` — silent failure on non-200/201 status",
-          "done": false
-        },
-        {
-          "number": "3.5.11",
-          "feature": "Add error handling in `mfa/EMail.tsx:25-58`",
-          "description": "Add error handling in `mfa/EMail.tsx:25-58` — API call not wrapped in try-catch",
-          "done": false
+          "done": true
         },
         {
           "number": "3.5.12",
           "feature": "`management/Profile.tsx` (dev)",
           "description": "`management/Profile.tsx` (dev) — new `@/components/theme/ThemeToggle` import adds cross-link to non-submodule code; violates self-containment",
-          "done": false
+          "done": true
         },
         {
           "number": "3.5.13",
           "feature": "`management/Profile.tsx` (dev)",
           "description": "`management/Profile.tsx` (dev) — `extraComponents` prop passed to DynamicForm with `readUserField('theme')` needs verification that DynamicForm supports this API",
-          "done": false
+          "done": true
         },
         {
           "number": "3.5.14",
           "feature": "`management/Profile.tsx` (dev)",
           "description": "`management/Profile.tsx` (dev) — 30+ inline grid layout numbers (`colSpan`, `colSpanMd`, `colStartXl`, `rowStartMd`, etc.) added to field definitions; extract to a layout config constant or helper",
-          "done": false
+          "done": true
         },
         {
           "number": "3.6.1",
           "feature": "Fix `Identify.tsx:97`",
-          "description": "Fix `Identify.tsx:97` — `htmlFor='E-Mail Address'` should be an element ID, not descriptive text",
+          "description": "Fix `auth/src/Identify.tsx:103` — `htmlFor='E-Mail Address'` should reference the input's id",
           "done": false
         },
         {
@@ -889,7 +877,7 @@
         {
           "number": "3.6.3",
           "feature": "Add `autocomplete=\"current-password\"` on Login password field",
-          "done": false
+          "done": true
         },
         {
           "number": "3.6.4",
@@ -899,18 +887,20 @@
         {
           "number": "3.6.5",
           "feature": "Add aria guidance on MFA code input explaining \"enter 6-digit code\" (`Login.tsx:132-139`)",
-          "done": false
+          "done": false,
+          "description": "Link the MFA guidance text to the code input via `aria-describedby` in `auth/src/mfa/MfaChallenge.tsx:36-39`"
         },
         {
           "number": "3.6.6",
           "feature": "Add loading/disabled state on buttons during async operations (Login, Register, MFA verify, Invite send, ConnectedServices OAuth)",
-          "done": false
+          "done": false,
+          "description": "Add loading/disabled state during async operations on Login, Register, Invite send and ConnectedServices OAuth buttons (MFA verify done)"
         },
         {
           "number": "3.7.1",
           "feature": "`management/Profile.tsx:94-128`",
           "description": "`management/Profile.tsx:94-128` — multiple timezone update API calls can race; add debouncing or cancellation",
-          "done": false
+          "done": true
         },
         {
           "number": "3.7.2",
@@ -927,12 +917,12 @@
         {
           "number": "3.8.1",
           "feature": "Audit and eliminate cross-linking: imports from `@/components/ui/*`, `@/components/assert/*`, `@/components/wais/*`, `@/components/dynamic-form/*`, `@/components/theme/*`, `@/lib/*`, `@/next-log/*`, `@/zod2gql`, `@/hooks/*`",
-          "done": false
+          "done": true
         },
         {
           "number": "3.8.2",
           "feature": "Ensure the module can function via `npm link` without parent framework context",
-          "done": false
+          "done": true
         }
       ]
     },
@@ -943,37 +933,37 @@
         {
           "number": "4.1.1",
           "feature": "Add unit tests for `DynamicForm.tsx` (form rendering, field state management, submission)",
-          "done": false
+          "done": true
         },
         {
           "number": "4.1.2",
           "feature": "Add unit tests for `Field.tsx` (field type routing)",
-          "done": false
+          "done": true
         },
         {
           "number": "4.1.3",
           "feature": "Add unit tests for `SelectField.tsx` (selection handling, items rendering)",
-          "done": false
+          "done": true
         },
         {
           "number": "4.1.4",
           "feature": "Add unit tests for `CheckField.tsx` (boolean toggle)",
-          "done": false
+          "done": true
         },
         {
           "number": "4.1.5",
           "feature": "Add unit tests for `RadioField.tsx` (radio group behavior)",
-          "done": false
+          "done": true
         },
         {
           "number": "4.1.6",
           "feature": "Add unit tests for `PasswordField.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "4.1.7",
           "feature": "Add unit tests for `TextField.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "4.1.8",
@@ -983,27 +973,27 @@
         {
           "number": "4.2.1",
           "feature": "Add stories for `DynamicForm.tsx` (full form with multiple field types)",
-          "done": false
+          "done": true
         },
         {
           "number": "4.2.2",
           "feature": "Add stories for `SelectField.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "4.2.3",
           "feature": "Add stories for `CheckField.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "4.2.4",
           "feature": "Add stories for `RadioField.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "4.2.5",
           "feature": "Add stories for `PasswordField.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "4.2.6",
@@ -1013,62 +1003,62 @@
         {
           "number": "4.3.1",
           "feature": "Enable `strict: true` and `strictNullChecks: true` in tsconfig.json",
-          "done": false
+          "done": true
         },
         {
           "number": "4.3.2",
           "feature": "Eliminate 13 `any` types: SelectField items/value, Field onChange, DynamicForm toUpdate/handleChange, RadioField items/value, story args",
-          "done": false
+          "done": true
         },
         {
           "number": "4.3.3",
           "feature": "Type `SelectField.items` and `RadioField.items` as `Array<{value: string; label: string}>`",
-          "done": false
+          "done": true
         },
         {
           "number": "4.3.4",
           "feature": "Add type guard for error object in `DynamicForm.tsx:114`",
-          "done": false
+          "done": true
         },
         {
           "number": "4.3.5",
           "feature": "Fix empty `index.ts`",
           "description": "Fix empty `index.ts` — actually export DynamicForm and all field components",
-          "done": false
+          "done": true
         },
         {
           "number": "4.3.6",
           "feature": "Fix export path mismatch: package.json expects `dist/Form/DynamicForm.js` but source is `src/DynamicForm.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "4.4.1",
           "feature": "Fix `Field.tsx:65`",
           "description": "Fix `Field.tsx:65` — `value?.toLowerCase()` called on a value that could be boolean; will throw at runtime",
-          "done": false,
+          "done": true,
           "priority": "high"
         },
         {
           "number": "4.4.2",
           "feature": "Fix form submission race condition in `DynamicForm.tsx:90-124`",
           "description": "Fix form submission race condition in `DynamicForm.tsx:90-124` — state updates are batched but `onConfirm` fires before they apply",
-          "done": false,
+          "done": true,
           "priority": "high"
         },
         {
           "number": "4.4.3",
           "feature": "Extract repeated `clsx()` grid class conditionals in `DynamicForm.tsx:151-183` into a helper",
-          "done": false
+          "done": true
         },
         {
           "number": "4.4.4",
           "feature": "Deduplicate `setEditedState` pattern at lines 96 and 110 in `DynamicForm.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "4.4.5",
           "feature": "Add proper event typing for `handleChange` (line 86)",
-          "done": false
+          "done": true
         },
         {
           "number": "4.4.6",
@@ -1083,7 +1073,8 @@
         {
           "number": "4.4.8",
           "feature": "Make hardcoded error messages configurable (`DynamicForm.tsx:100,107`) for i18n",
-          "done": false
+          "done": false,
+          "description": "Make `INVALID_VALUE`/`EXPECTED_NUMBER` messages (`DynamicForm.tsx:13-14`) configurable via props for i18n"
         },
         {
           "number": "4.5.1",
@@ -1116,12 +1107,12 @@
         {
           "number": "4.6.1",
           "feature": "Audit and eliminate cross-linking: imports from `@/components/ui/*`, `@/lib/utils`, `@/next-log/log`",
-          "done": false
+          "done": true
         },
         {
           "number": "4.6.2",
           "feature": "Ensure the module can function via `npm link` without parent framework context",
-          "done": false
+          "done": true
         }
       ]
     },
@@ -1140,71 +1131,31 @@
           "done": false
         },
         {
-          "number": "5.2.1",
-          "feature": "Add stories demonstrating log output at different verbosity levels (if applicable to UI)",
-          "done": false
-        },
-        {
           "number": "5.3.1",
           "feature": "Enable `strict: true` and `strictNullChecks: true` in tsconfig.json",
-          "done": false
+          "done": true
         },
         {
           "number": "5.3.2",
           "feature": "Replace `any[]` for `logItems` parameter in `log.ts:2` with generic or `unknown[]`",
-          "done": false
+          "done": true
         },
         {
           "number": "5.3.3",
           "feature": "Fix bug: `log.ts:13` references undefined variable `logItem` (should be `logItems`)",
-          "done": false
-        },
-        {
-          "number": "5.3.4",
-          "feature": "Fix `any` types in `.storybook/preview.tsx` (Story, context parameters)",
-          "done": false
+          "done": true
         },
         {
           "number": "5.4.1",
           "feature": "Deduplicate server/client logging branches in `log.ts` (lines 16-26 vs 28-38",
           "description": "Deduplicate server/client logging branches in `log.ts` (lines 16-26 vs 28-38 — nearly identical)",
-          "done": false
+          "done": true
         },
         {
           "number": "5.4.2",
           "feature": "Extract magic number `8` (heading padding) in `log.ts:24,35` to named constant",
-          "done": false
-        },
-        {
-          "number": "5.4.3",
-          "feature": "Fix storybook preview: imports from non-existent paths (ThemeWrapper, ReferenceGrid, ComparisonGrid, globals.css)",
-          "done": false
-        },
-        {
-          "number": "5.4.4",
-          "feature": "Fix empty `index.ts`",
-          "description": "Fix empty `index.ts` — actually export the log function",
-          "done": false
-        },
-        {
-          "number": "5.4.5",
-          "feature": "Clean up package.json: 89 export paths declared but source only contains a log function",
-          "done": false
-        },
-        {
-          "number": "5.4.6",
-          "feature": "Prune production dependencies: 40+ packages (React, MUI, Radix, etc.) for a 40-line logging function",
-          "done": false
-        },
-        {
-          "number": "5.5.1",
-          "feature": "Remove storybook cross-references to non-existent Theming/Storybook modules",
-          "done": false
-        },
-        {
-          "number": "5.5.2",
-          "feature": "Ensure the module can function via `npm link` without parent framework context",
-          "done": false
+          "done": false,
+          "description": "Extract magic number `8` (heading padding) in `src/lib/log.ts:15` to a named constant"
         }
       ]
     },
@@ -1215,32 +1166,27 @@
         {
           "number": "6.1.1",
           "feature": "Add unit tests for `processFields()` (scalar types, nested objects, arrays, optionals)",
-          "done": false
+          "done": true
         },
         {
           "number": "6.1.2",
           "feature": "Add unit tests for `formatVariablesDeclaration()` (type inference accuracy)",
-          "done": false
+          "done": true
         },
         {
           "number": "6.1.3",
           "feature": "Add unit tests for `processQuery()`, `processMutation()`, `processSubscription()`",
-          "done": false
+          "done": true
         },
         {
           "number": "6.1.4",
           "feature": "Add unit tests for `pluralize()` (edge cases: empty string, irregular plurals)",
-          "done": false
+          "done": true
         },
         {
           "number": "6.1.5",
           "feature": "Add unit tests for `getOperationFieldName()` (name derivation from schemas)",
-          "done": false
-        },
-        {
-          "number": "6.1.6",
-          "feature": "Add unit tests for `z.ZodObject.prototype.toGQL()` and `z.ZodArray.prototype.toGQL()`",
-          "done": false
+          "done": true
         },
         {
           "number": "6.1.7",
@@ -1263,46 +1209,31 @@
           "done": false
         },
         {
-          "number": "6.2.1",
-          "feature": "Add interaction test assertions to the 35+ existing stories that lack `play` functions",
-          "done": false
-        },
-        {
-          "number": "6.2.2",
-          "feature": "Add stories for error/edge cases (empty schemas, deep nesting, circular refs)",
-          "done": false
-        },
-        {
           "number": "6.3.1",
           "feature": "Eliminate 25 `any` types across index.ts, mutation.ts, and story files",
-          "done": false
+          "done": true
         },
         {
           "number": "6.3.2",
           "feature": "Replace `(schema as any)._def.typeName` (line 73) with proper Zod type discrimination",
-          "done": false
+          "done": true
         },
         {
           "number": "6.3.3",
           "feature": "Type `inferType` function (`index.ts:101`)",
           "description": "Type `inferType` function (`index.ts:101`) — accept `unknown` instead of `any`",
-          "done": false
+          "done": true
         },
         {
           "number": "6.3.4",
           "feature": "Type `variables` parameter as `Record<string, unknown>` instead of `Record<string, any>`",
-          "done": false
+          "done": true
         },
         {
           "number": "6.3.5",
           "feature": "BUG:",
           "description": "**BUG:** Fix inverted nullability — Zod `optional()` fields incorrectly generate required (`!`) GraphQL fields",
-          "done": false
-        },
-        {
-          "number": "6.3.6",
-          "feature": "Add support for `z.enum()` → GraphQL enum types (currently renders as scalar)",
-          "done": false
+          "done": true
         },
         {
           "number": "6.3.7",
@@ -1327,7 +1258,7 @@
         {
           "number": "6.4.1",
           "feature": "Remove `console.log` in `query.ts:18`",
-          "done": false
+          "done": true
         },
         {
           "number": "6.4.2",
@@ -1346,27 +1277,29 @@
           "number": "6.4.4",
           "feature": "Deduplicate `processArrayQuery/Mutation/Subscription`",
           "description": "Deduplicate `processArrayQuery/Mutation/Subscription` — extract shared logic into factory function",
-          "done": false
+          "done": true
         },
         {
           "number": "6.4.5",
           "feature": "Deduplicate type inference logic between `index.ts:101-117` and `mutation.ts:23-32`",
-          "done": false
+          "done": false,
+          "description": "Deduplicate variable type inference: `mutation.ts:117-149` (`inferMutationType`/`formatMutationVariables`) vs `core.ts:93-133`"
         },
         {
           "number": "6.4.6",
           "feature": "Extract starting indent depth `2` (lines 210, 232, 254) to named constant",
-          "done": false
+          "done": false,
+          "description": "Extract starting indent depth `2` (processFields calls in core.ts, query.ts, mutation.ts, subscription.ts) to a named constant"
         },
         {
           "number": "6.4.7",
           "feature": "Move `react` and `next` from dependencies to devDependencies (only needed for Storybook)",
-          "done": false
+          "done": true
         },
         {
           "number": "6.4.8",
           "feature": "Consider replacing prototype extension (`z.ZodObject.prototype.toGQL`) with wrapper function to avoid conflicts with other libraries",
-          "done": false
+          "done": true
         },
         {
           "number": "6.4.9",
@@ -1376,12 +1309,12 @@
         {
           "number": "6.4.10",
           "feature": "Fix potential object type name collisions in variable inference (e.g., `userData` and `userdata` both become `UserDataInput`)",
-          "done": false
+          "done": true
         },
         {
           "number": "6.4.11",
           "feature": "Export `ToGQLOptions` interface and `GQLType` enum explicitly for consumers",
-          "done": false
+          "done": true
         }
       ]
     }
