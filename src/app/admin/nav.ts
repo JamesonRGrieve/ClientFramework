@@ -1,5 +1,5 @@
 import { Activity, AlertOctagon, Boxes, KeyRound, ListChecks, Workflow } from 'lucide-react';
-import type { Item } from '@/app/NavMain';
+import type { Item } from '@zephyrex/auth/NavMenu';
 
 export const adminNavItems: Item[] = [
   {

@@ -3,8 +3,8 @@
 
 import { ChevronRightIcon } from '@radix-ui/react-icons';
 
-import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link.js';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation.js';
 import { useTeam } from '@zephyrex/auth/hooks/useTeam';
 import { type Item as NavItem, items } from '@zephyrex/auth/NavMenu';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -23,8 +23,7 @@ import { cn } from '@/lib/utils';
 import { toNavMenuItems } from '@/lib/zephyrex/navigation';
 import { useZephyrexConfig } from '@/lib/zephyrex/ZephyrexProvider';
 
-export const navItems = items;
-export type Item = NavItem;
+type Item = NavItem;
 type SubItem = NonNullable<Item['items']>[number];
 
 export function NavMain(): React.JSX.Element {

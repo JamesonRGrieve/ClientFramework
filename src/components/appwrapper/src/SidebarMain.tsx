@@ -1,10 +1,10 @@
 'use client';
 
 import { getCookie } from 'cookies-next';
-import { usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation.js';
 import { useEffect, useState } from 'react';
 
-import { NavMain } from '@/app/NavMain';
+import { NavMain } from './NavMain';
 import { NavUser } from '@/components/appwrapper/src/NavUser';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
 import { ToggleSidebar } from './ToggleSidebar';
@@ -35,7 +35,6 @@ export function SidebarMain({ children, ...props }: React.ComponentProps<typeof 
         {children}
       </SidebarContent>
       <SidebarFooter>
-        {/* <NotificationsNavItem /> */}
         <ToggleSidebar side='left' />
         <NavUser />
       </SidebarFooter>

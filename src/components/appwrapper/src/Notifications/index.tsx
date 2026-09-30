@@ -1,56 +1,66 @@
 'use client';
-import { type NotificationFixture } from '@/lib/notifications-fixtures';
+// SPDX-License-Identifier: AGPL-3.0-or-later
+import type { JSX } from 'react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { TooltipBasic } from '@/components/ui/tooltip';
 import { formatTimeAgo } from '@/lib/time-ago';
-import { useRouter } from 'next/navigation';
+import type { Notification } from '@/lib/zephyrex/hooks';
 
-export function Notifications({ notifications }: { notifications: NotificationFixture[] }) {
-  const router = useRouter();
+const formatDate = (timestamp: string): string =>
+  new Date(timestamp).toLocaleString(undefined, { dateStyle: 'full', timeStyle: 'short' });
 
+/** The signed-in user's notifications, newest first; unread ones can be marked read. */
+export function Notifications({
+  notifications,
+  onMarkRead,
+}: {
+  notifications: readonly Notification[];
+  onMarkRead: (notification: Notification) => void;
+}): JSX.Element {
   return (
-    <div className='p-4 space-y-2'>
+    <ul aria-label='Notifications' className='space-y-2 p-4'>
       {notifications.map((notification) => (
-        <Card
-          key={notification.messageId}
-          className='transition-colors cursor-pointer hover:bg-accent/50'
-          onClick={() => router.push(`/chat/${notification.conversationId}`)}
-        >
-          <CardContent className='p-4'>
-            <div className='space-y-2'>
-              <div className='flex items-start justify-between'>
-                <h3 className='font-semibold'>{notification.conversationName}</h3>
+        <li key={notification.id}>
+          <Card className={notification.read ? 'opacity-70' : 'border-primary'}>
+            <CardContent className='space-y-2 p-4'>
+              <div className='flex items-start justify-between gap-2'>
+                <h3 className='font-semibold'>
+                  {notification.title}
+                  {!notification.read && <span className='sr-only'> (unread)</span>}
+                </h3>
                 <TooltipBasic title={formatDate(notification.createdAt)}>
-                  <span className='text-sm cursor-default text-muted-foreground'>
+                  <span className='cursor-default text-sm text-muted-foreground'>
                     {formatTimeAgo(notification.createdAt)}
                   </span>
                 </TooltipBasic>
               </div>
               <p className='text-sm text-muted-foreground'>{notification.content}</p>
-            </div>
-          </CardContent>
-        </Card>
+              {!notification.read && (
+                <Button
+                  size='sm'
+                  variant='outline'
+                  aria-label={`Mark “${notification.title}” as read`}
+                  onClick={() => {
+                    onMarkRead(notification);
+                  }}
+                >
+                  Mark as read
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
 
-export function EmptyNotifications() {
+export function EmptyNotifications(): JSX.Element {
   return (
-    <div className='flex flex-col items-center justify-center h-full'>
+    <div className='flex h-full flex-col items-center justify-center'>
       <h2 className='mb-4 text-2xl'>No notifications</h2>
       <p className='text-muted-foreground'>You have no notifications to display</p>
     </div>
   );
-}
-
-function formatDate(timestamp: string) {
-  return new Date(timestamp).toLocaleString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 }
