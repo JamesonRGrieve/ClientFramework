@@ -3,7 +3,7 @@ import { cookies } from 'next/headers.js';
 import Link from 'next/link.js';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { Button } from '@/components/ui/button';
-import { DEFAULT_AUTH_PATH } from '@/lib/zephyrex/authPath';
+import { accountsEnabled, DEFAULT_AUTH_PATH } from '@/lib/zephyrex/authPath';
 import config from '@/zephyrex.config';
 
 export default async function Home() {
@@ -20,11 +20,13 @@ export default async function Home() {
         </div>
         <div className='flex items-center gap-2'>
           <ThemeToggle initialTheme={(await cookies()).get('theme')?.value ?? 'light'} />
-          <Link href={config.auth?.authPath ?? DEFAULT_AUTH_PATH}>
-            <Button size='lg' className='px-4 rounded-full'>
-              Login or Register
-            </Button>
-          </Link>
+          {accountsEnabled(config) && (
+            <Link href={config.auth?.authPath ?? DEFAULT_AUTH_PATH}>
+              <Button size='lg' className='px-4 rounded-full'>
+                Login or Register
+              </Button>
+            </Link>
+          )}
         </div>
       </header>
       <main />

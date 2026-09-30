@@ -86,6 +86,16 @@ describe('createMiddleware', () => {
     expect(response.headers.get('content-security-policy')).toContain('https://analytics.example.org');
   });
 
+  it('guards nothing, and needs no API, for an app without accounts', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    // No upstreamUrl: an app without accounts may have no API for a session check to reach.
+    const middleware = createMiddleware({ server: { baseUrl: '' }, auth: { enabled: false, privateRoutes: ['/team'] } });
+    const response = await middleware(request('/team/1', 'sess-1'));
+    expect(response.headers.get(CONTINUES)).toBe('1');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('guards the configured private routes by default', async () => {
     const middleware = createMiddleware({
       server: { baseUrl: '/api', upstreamUrl: 'http://server:1996' },

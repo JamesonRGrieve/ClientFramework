@@ -19,20 +19,22 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation.js';
-import { Appearances, Themes } from '@/components/appwrapper/src/UserMenu';
+import { Appearances } from '@/components/appwrapper/src/UserMenu';
+import { DEFAULT_AUTH_PATH, MANAGE_PAGE } from '@/lib/zephyrex/authPath';
+import { useZephyrexConfig } from '@/lib/zephyrex/ZephyrexProvider';
 // useUser provides a stable SWR-backed source for current user information
 
 export function NavUser() {
   const { isMobile } = useSidebar('left');
   const router = useRouter();
-  // Prefer the shared `useUser` hook which already handles JWT gating, fallback data
-  // and GraphQL fetching. This prevents redundant/looping fetches and gives us
-  // a single source of truth for user data across the app.
+  const { config } = useZephyrexConfig();
+  const authPath = config.auth?.authPath ?? DEFAULT_AUTH_PATH;
+  // The shared hook: it asks only with a session, and is the one source of the user app-wide.
   const { data: user, isValidating } = useUser();
   const hasUser = Boolean(user && user.email);
 
   const handleLogout = () => {
-    router.push('/user/logout');
+    router.push(`${authPath}/logout`);
   };
 
   return (
@@ -92,7 +94,7 @@ export function NavUser() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => router.push('/user/manage')}>
+                <DropdownMenuItem onClick={() => router.push(`${authPath}${MANAGE_PAGE}`)}>
                   <BadgeCheck className='mr-2 size-4' />
                   Account
                 </DropdownMenuItem>
@@ -111,7 +113,7 @@ export function NavUser() {
             side='left'
             size='lg'
             className='group-data-[collapsible=icon]:my-2 pl-0'
-            onClick={() => router.push('/user/login')}
+            onClick={() => router.push(authPath)}
           >
             <Avatar className='w-8 h-8 rounded-lg'>
               <AvatarFallback className='rounded-lg'>SI</AvatarFallback>

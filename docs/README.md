@@ -25,6 +25,8 @@ const config: ZephyrexConfig = {
     // Optional: sign-in providers the server's oauth_consumer offers; with no email mode it is OAuth-only.
     // authModes: { basic: false, magical: false },
     // oauthProviders: ['google'],
+    // An app without accounts: no session guard, and no sign-in entry points in the shell.
+    // enabled: false,
   },
 };
 

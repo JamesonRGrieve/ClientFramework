@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { createAuthMiddleware } from '@zephyrex/auth/auth.middleware';
 import { NextResponse, type NextRequest } from 'next/server.js';
-import { DEFAULT_AUTH_PATH } from './authPath';
+import { accountsEnabled, DEFAULT_AUTH_PATH } from './authPath';
 import { contentSecurityPolicy, mintNonce } from './contentSecurityPolicy';
 import type { MiddlewareHook, ZephyrexClientExtension, ZephyrexConfig } from './types';
 
@@ -51,7 +51,8 @@ export function createMiddleware(
   },
 ): (req: NextRequest) => Promise<NextResponse> {
   const hooks = [
-    ...(options?.builtinHooks ?? [authHookFor(config)]),
+    // An app without accounts has no session to guard (and may have no API to check one against).
+    ...(options?.builtinHooks ?? (accountsEnabled(config) ? [authHookFor(config)] : [])),
     ...(options?.hooks ?? []),
     ...(config.extensions ?? []).flatMap((ext: ZephyrexClientExtension) => ext.middleware ?? []),
   ];

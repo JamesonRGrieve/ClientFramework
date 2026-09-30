@@ -77,6 +77,11 @@ export interface ZephyrexConfig {
     landingPage?: ComponentType;
   };
   auth?: {
+    /**
+     * `false` for an app without accounts: no session guard in the middleware, and no sign-in
+     * entry points in the shell. On by default.
+     */
+    enabled?: boolean;
     /** Path prefixes that need a signed-in user. */
     privateRoutes?: string[];
     /** Where the auth pages are mounted; `/user` by default. */
@@ -88,8 +93,6 @@ export interface ZephyrexConfig {
     recaptchaSiteKey?: string;
     /** Serve only the landing page (pre-launch). */
     landingOnly?: boolean;
-    enableMFA?: boolean;
-    enableSubscription?: boolean;
   };
   /** Sources the app adds to the framework's Content-Security-Policy, e.g. an analytics host. */
   contentSecurityPolicy?: CspAdditions;
