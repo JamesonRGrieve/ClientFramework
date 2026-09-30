@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import '@testing-library/jest-dom';
+// The Vitest entry: it registers the DOM matchers on Vitest's expect and types them on its Assertion.
+import '@testing-library/jest-dom/vitest';
 import { vi } from 'vitest';
 
 // Mock next/navigation

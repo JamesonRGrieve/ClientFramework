@@ -450,7 +450,7 @@ export default [
       // CSS / style imports and matcher registration (jest-dom) are side-effect-only by design.
       'import/no-unassigned-import': [
         'warn',
-        { allow: ['**/*.css', '**/*.scss', '**/*.sass', '**/*.less', '@testing-library/jest-dom'] },
+        { allow: ['**/*.css', '**/*.scss', '**/*.sass', '**/*.less', '@testing-library/jest-dom/vitest'] },
       ],
       'jsx-a11y/no-autofocus': 'warn',
       'react/no-access-state-in-setstate': 'warn',
