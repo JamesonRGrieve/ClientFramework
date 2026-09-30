@@ -22,7 +22,6 @@ const SERVER_EXTENSIONS = [
   'auth_recovery_questions',
   'auth_session',
   'backup_restore',
-  'billing',
   'database',
   'database_memory',
   'email',

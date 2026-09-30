@@ -19,7 +19,6 @@ import { authPrivacyExtension } from './auth_privacy';
 import { authRecoveryQuestionsExtension } from './auth_recovery_questions';
 import { authSessionExtension } from './auth_session';
 import { backupRestoreExtension } from './backup_restore';
-import { billingExtension } from './billing';
 import { databaseExtension } from './database';
 import { databaseMemoryExtension } from './database_memory';
 import { emailExtension } from './email';
@@ -54,7 +53,6 @@ export {
   authRecoveryQuestionsExtension,
   authSessionExtension,
   backupRestoreExtension,
-  billingExtension,
   databaseExtension,
   databaseMemoryExtension,
   emailExtension,
@@ -92,7 +90,6 @@ export const allExtensions: ZephyrexClientExtension[] = [
   authRecoveryQuestionsExtension,
   authSessionExtension,
   backupRestoreExtension,
-  billingExtension,
   databaseExtension,
   databaseMemoryExtension,
   emailExtension,
