@@ -18,7 +18,6 @@ export function DataTableExport<TData>({ table }: { table: Table<TData> }) {
   const columns = table
     .getAllLeafColumns()
     .filter((column) => column.getCanHide())
-    // @ts-expect-error TODO: Replace parseMarkdownTable helper to use Tanstack Table
     .map((column) => column.columnDef.meta?.headerName);
 
   const downloadCSV = () => {

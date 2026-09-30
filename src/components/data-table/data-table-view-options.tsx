@@ -40,7 +40,6 @@ export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps
                 checked={column.getIsVisible()}
                 onCheckedChange={(value) => column.toggleVisibility(!!value)}
               >
-                {/* @ts-expect-error TODO: Replace parseMarkdownTable helper to use Tanstack Table */}
                 {column.columnDef.meta?.headerName}
               </DropdownMenuCheckboxItem>
             );

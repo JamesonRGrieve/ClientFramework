@@ -67,7 +67,6 @@ export function DataTableFilter<TData>({ table }: { table: Table<TData> }): JSX.
               <SelectContent>
                 {columns.map((column) => (
                   <SelectItem key={column.id} value={column.id}>
-                    {/* @ts-expect-error TODO: Replace parseMarkdownTable helper to use Tanstack Table */}
                     {column.columnDef.meta?.headerName}
                   </SelectItem>
                 ))}
