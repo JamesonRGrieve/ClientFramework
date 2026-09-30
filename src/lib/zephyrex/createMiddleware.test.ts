@@ -88,6 +88,11 @@ describe('apiBaseFor', () => {
     expect(apiBaseFor({ server: { baseUrl: 'https://api.example.com/' } })).toBe('https://api.example.com');
   });
 
+  it('takes an empty upstream as none', () => {
+    expect(apiBaseFor({ server: { baseUrl: 'https://api.example.com', upstreamUrl: '' } })).toBe('https://api.example.com');
+    expect(() => apiBaseFor({ server: { baseUrl: '/api', upstreamUrl: ' ' } })).toThrow('upstreamUrl is required');
+  });
+
   it('refuses a same-origin base with no upstream rather than trust the request’s host', () => {
     expect(() => apiBaseFor({ server: { baseUrl: '/api' } })).toThrow('upstreamUrl is required');
     expect(() => apiBaseFor({ server: { baseUrl: '' } })).toThrow('upstreamUrl is required');

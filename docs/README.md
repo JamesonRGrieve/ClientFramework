@@ -17,7 +17,8 @@ import type { ZephyrexConfig } from 'zephyrex';
 
 const config: ZephyrexConfig = {
   // The browser calls the API on the app's own origin; the Next server proxies it to upstreamUrl.
-  server: { baseUrl: '', upstreamUrl: process.env.API_URI ?? 'http://localhost:1996' },
+  // `||`, not `??`: an .env that ships `API_URI=` (empty) should still fall back.
+  server: { baseUrl: '', upstreamUrl: process.env.API_URI || 'http://localhost:1996' },
   app: { name: 'My App' },
   auth: {
     privateRoutes: ['/team', '/provider'],

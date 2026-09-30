@@ -12,7 +12,9 @@ const ABSOLUTE_URL = /^https?:\/\//;
  * the user's cookie there), so a same-origin `baseUrl` needs `upstreamUrl`.
  */
 export function apiBaseFor({ server }: Pick<ZephyrexConfig, 'server'>): string {
-  const base = (server.upstreamUrl ?? server.baseUrl).replace(/\/$/, '');
+  // An empty upstream (an `.env` that ships `API_URI=`) is no upstream.
+  const upstream = server.upstreamUrl?.trim() ?? '';
+  const base = (upstream === '' ? server.baseUrl : upstream).replace(/\/$/, '');
   if (!ABSOLUTE_URL.test(base)) {
     throw new Error(
       `ZephyrexConfig.server.upstreamUrl is required when baseUrl is same-origin ('${server.baseUrl}'): it is where the Next server reaches the API.`,

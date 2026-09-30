@@ -5,7 +5,8 @@ const config: ZephyrexConfig = {
   server: {
     // Same origin: next.config.js proxies /v1 and /graphql to API_URI.
     baseUrl: '',
-    upstreamUrl: process.env.API_URI ?? 'http://localhost:1996',
+    // `||`, not `??`: an empty API_URI in .env means "use the default".
+    upstreamUrl: process.env.API_URI || 'http://localhost:1996',
   },
   app: {
     name: process.env.NEXT_PUBLIC_APP_NAME ?? 'Zephyrex',
