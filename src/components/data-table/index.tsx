@@ -17,6 +17,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 
+import { ariaSortOf } from './data-table-column-header';
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableToolbar } from './data-table-toolbar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -68,7 +69,7 @@ export function DataTable<TData, TValue>({ columns, data, meta, onRowClick, rowC
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} colSpan={header.colSpan}>
+                    <TableHead key={header.id} colSpan={header.colSpan} aria-sort={ariaSortOf(header.column)}>
                       {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
                   );
@@ -77,7 +78,7 @@ export function DataTable<TData, TValue>({ columns, data, meta, onRowClick, rowC
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {table.getRowModel().rows.length > 0 ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}

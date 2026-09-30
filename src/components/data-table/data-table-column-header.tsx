@@ -12,6 +12,17 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
+/** A sortable column's `aria-sort` for its header cell; undefined when the column cannot sort. */
+export function ariaSortOf<TData, TValue>(column: Column<TData, TValue>): 'ascending' | 'descending' | 'none' | undefined {
+  if (!column.getCanSort()) {
+    return undefined;
+  }
+  const sorted = column.getIsSorted();
+  return sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : 'none';
+}
+
+const SORT_DESCRIPTIONS = { ascending: 'sorted ascending', descending: 'sorted descending', none: 'not sorted' } as const;
+
 interface DataTableColumnHeaderProps<TData, TValue> extends React.HTMLAttributes<HTMLDivElement> {
   column: Column<TData, TValue>;
   title: string;
@@ -34,7 +45,12 @@ export function DataTableColumnHeader<TData, TValue>({
       <div className={cn('flex items-center space-x-2', className)}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant='ghost' size='icon' className='h-8 data-[state=open]:bg-accent'>
+            <Button
+              variant='ghost'
+              size='icon'
+              aria-label={`Sort ${title}, ${SORT_DESCRIPTIONS[ariaSortOf(column) ?? 'none']}`}
+              className='h-8 data-[state=open]:bg-accent'
+            >
               {column.getIsSorted() === 'desc' ? (
                 <ArrowDown className='w-5 h-5' />
               ) : column.getIsSorted() === 'asc' ? (
