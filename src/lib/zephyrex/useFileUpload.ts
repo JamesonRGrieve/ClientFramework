@@ -1,16 +1,22 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { useCallback, useState } from 'react';
 import { csrfHeaders } from '@zephyrex/auth';
+import { useCallback, useState } from 'react';
+import { z } from 'zod';
+import { isSuccessStatus } from '../api/httpStatus';
 import { useZephyrexConfig } from './ZephyrexProvider';
 
-export interface UploadResult {
-  url: string;
-  filename: string;
-  size: number;
-  [key: string]: unknown;
-}
+const PERCENT = 100;
+
+/** What the file endpoint answers an upload with; other fields it sends pass through. */
+const UploadResultSchema = z.looseObject({
+  url: z.string(),
+  filename: z.string(),
+  size: z.number(),
+});
+
+export type UploadResult = z.infer<typeof UploadResultSchema>;
 
 export interface UploadProgress {
   loaded: number;
@@ -18,7 +24,15 @@ export interface UploadProgress {
   percent: number;
 }
 
-export function useFileUpload(endpoint?: string) {
+export interface FileUpload {
+  /** Uploads a file; resolves to what the server stored, or null when the upload failed (see `error`). */
+  upload: (file: File) => Promise<UploadResult | null>;
+  uploading: boolean;
+  progress: UploadProgress | null;
+  error: Error | null;
+}
+
+export function useFileUpload(endpoint?: string): FileUpload {
   const { config } = useZephyrexConfig();
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<UploadProgress | null>(null);
@@ -44,16 +58,21 @@ export function useFileUpload(endpoint?: string) {
               setProgress({
                 loaded: e.loaded,
                 total: e.total,
-                percent: Math.round((e.loaded / e.total) * 100),
+                percent: Math.round((e.loaded / e.total) * PERCENT),
               });
             }
           });
 
           xhr.addEventListener('load', () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-              resolve(JSON.parse(xhr.responseText));
-            } else {
+            if (!isSuccessStatus(xhr.status)) {
               reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
+              return;
+            }
+            const stored = UploadResultSchema.safeParse(JSON.parse(xhr.responseText));
+            if (stored.success) {
+              resolve(stored.data);
+            } else {
+              reject(new Error('Upload failed: the server’s answer was not an upload result'));
             }
           });
 
