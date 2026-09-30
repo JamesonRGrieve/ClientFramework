@@ -1,6 +1,6 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { useParams } from 'next/navigation';
+import { useParams } from 'next/navigation.js';
 import { type JSX, useState } from 'react';
 import { LuCheck, LuPencil } from 'react-icons/lu';
 import DynamicForm, { type DynamicFormFieldValueTypes } from '@jgrieve/forms/DynamicForm';

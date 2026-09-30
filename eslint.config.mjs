@@ -429,7 +429,22 @@ export default [
       // cycle break stand (e.g. MarkdownBlock <-> CodeBlock recursive rendering).
       'import/no-cycle': ['warn', { maxDepth: 4, ignoreExternal: true, allowUnsafeDynamicCyclicDependency: true }],
       'import/no-self-import': 'warn',
-      'import/extensions': ['warn', 'never'],
+      // `next` and `react-syntax-highlighter` ship no exports map, so Node's ESM loader (the
+      // compiled dist/) needs their subpaths by file name (`next/navigation.js`); everything
+      // else stays extensionless.
+      // `checkTypeImports` (its default) is spelled out because the plugin only reads
+      // `pathGroupOverrides` from an options object that names a non-legacy key.
+      'import/extensions': [
+        'warn',
+        'never',
+        {
+          checkTypeImports: false,
+          pathGroupOverrides: [
+            { pattern: 'next/**', action: 'ignore' },
+            { pattern: 'react-syntax-highlighter/**', action: 'ignore' },
+          ],
+        },
+      ],
       'import/first': 'warn',
       'import/no-duplicates': 'warn',
       'import/order': 'warn',

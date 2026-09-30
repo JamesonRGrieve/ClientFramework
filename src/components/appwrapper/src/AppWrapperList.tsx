@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation.js';
 import React, { ReactNode } from 'react';
 
 export type MenuListItem = {

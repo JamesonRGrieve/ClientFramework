@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server.js';
 
 const PRIVATE_IPV4_RANGES = [
   [0x7f000000, 0x7fffffff], // 127.0.0.0/8

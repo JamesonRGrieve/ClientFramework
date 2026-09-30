@@ -1,12 +1,11 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { getCookie } from 'cookies-next';
-import 'katex/dist/katex.min.css';
 import { ChevronDown, Copy, Download } from 'lucide-react';
 import { type ReactNode, Suspense, lazy, useRef, useState } from 'react';
 import Latex from 'react-latex-next';
 import SyntaxHighlighter from 'react-syntax-highlighter';
-import { a11yDark, a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { a11yDark, a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hljs/index.js';
 import { DataTable } from '../data-table';
 import { createColumns } from '../data-table/data-table-columns';
 import Mermaid from './Code/Mermaid';

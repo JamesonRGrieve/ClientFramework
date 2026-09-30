@@ -10,7 +10,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { ViewVerticalIcon } from '@radix-ui/react-icons';
-import { usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation.js';
 import { useSidebarContent } from './SidebarContentManager';
 
 const visibleOnPaths = ['/chat', '/settings/prompts', '/settings/chains', '/settings', '/resident/', '/team','/provider','/rotation'];

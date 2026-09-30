@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { cookies } from 'next/headers';
-import Link from 'next/link';
+import { cookies } from 'next/headers.js';
+import Link from 'next/link.js';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { Button } from '@/components/ui/button';
 

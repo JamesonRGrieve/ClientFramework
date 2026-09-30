@@ -1,6 +1,6 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation.js';
 import { type JSX, useMemo, useState } from 'react';
 import { LuPencil, LuPlus, LuTrash2 } from 'react-icons/lu';
 import { type InstanceDialog, InstanceDialogs, type NewInstanceFields } from './InstanceDialogs';

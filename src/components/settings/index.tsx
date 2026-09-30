@@ -1,6 +1,6 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation.js';
 import { Extensions } from './extensions';
 import Training from './training';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';

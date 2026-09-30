@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import Link from 'next/link';
+import Link from 'next/link.js';
 import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 
 const ADMIN_LINKS = [

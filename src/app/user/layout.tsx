@@ -1,7 +1,7 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Link from 'next/link.js';
+import { usePathname } from 'next/navigation.js';
 import type { ReactNode } from 'react';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';

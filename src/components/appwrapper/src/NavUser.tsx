@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation.js';
 import { Appearances, Themes } from '@/components/appwrapper/src/UserMenu';
 // useUser provides a stable SWR-backed source for current user information
 

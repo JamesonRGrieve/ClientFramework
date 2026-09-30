@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server.js';
 import { describe, expect, it } from 'vitest';
 import { createMiddleware } from './createMiddleware';
 import type { MiddlewareHook } from './types';

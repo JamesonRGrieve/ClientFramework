@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { useAuth, useJWTQueryParam, useOAuth2 } from '@zephyrex/auth/auth.middleware';
-import { NextResponse, type NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server.js';
 import type { MiddlewareHook, ZephyrexClientExtension } from './types';
 
 const BUILTIN_HOOKS: readonly MiddlewareHook[] = [useOAuth2, useJWTQueryParam, useAuth];

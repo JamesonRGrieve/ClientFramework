@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { useUser } from '@zephyrex/auth/hooks/useUser';
-import Link from 'next/link';
+import Link from 'next/link.js';
 import { useState } from 'react';
 import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { notFound } from 'next/navigation';
+import { notFound } from 'next/navigation.js';
 import { useZephyrexConfig } from './ZephyrexProvider';
 
 const isParamSegment = (segment: string): boolean => segment.startsWith(':') || segment.startsWith('[');

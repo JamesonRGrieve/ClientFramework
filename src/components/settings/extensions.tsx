@@ -3,7 +3,7 @@
 
 import axios from 'axios';
 import { getCookie } from 'cookies-next';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation.js';
 import { useEffect, useState } from 'react';
 import { ConnectedServices } from '@zephyrex/auth/management/ConnectedServices';
 import { useTeam } from '@zephyrex/auth/hooks/useTeam';
