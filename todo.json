@@ -11,13 +11,13 @@
           "number": "1.1.1",
           "feature": "`next.config.js:154-159`",
           "description": "`next.config.js:158-161` — `allowedOrigins: ['*']` and `allowedForwardedHosts: ['*']` on server actions bypass origin validation; restrict to trusted domains",
-          "done": false,
+          "done": true,
           "priority": "critical"
         },
         {
           "number": "1.1.2",
           "feature": "Add security headers in `next.config.js` `headers()`",
-          "description": "Add security headers in `next.config.js` `headers()` — missing `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, `Strict-Transport-Security`, `Referrer-Policy`, `Permissions-Policy`",
+          "description": "Add a `Content-Security-Policy` header to `SECURITY_HEADERS` in `next.config.js:19-25` (the other five security headers are present; HSTS only when ENV=production)",
           "done": false,
           "priority": "high"
         },
@@ -37,7 +37,7 @@
         {
           "number": "1.1.5",
           "feature": "`server-wrapper.js:14`",
-          "description": "`server-wrapper.js:14` — global `__RUNTIME_CONFIG__` exposes runtime variables without validation",
+          "description": "`server-wrapper.js:15-21` — global `__RUNTIME_CONFIG__` exposes runtime variables without validation",
           "done": false
         },
         {
@@ -63,11 +63,6 @@
         {
           "number": "1.2.7",
           "feature": "Add unit tests for `src/hooks/useToast.ts`",
-          "done": false
-        },
-        {
-          "number": "1.2.8",
-          "feature": "Add unit tests for `src/hooks/useProvider.ts`",
           "done": false
         },
         {
@@ -101,11 +96,6 @@
           "done": true
         },
         {
-          "number": "1.3.5",
-          "feature": "Add stories for `src/components/settings/` components",
-          "done": true
-        },
-        {
           "number": "1.3.6",
           "feature": "Add stories for key `src/components/ui/` primitives (buttons, dialogs, inputs)",
           "done": true
@@ -123,7 +113,7 @@
         {
           "number": "1.3.9",
           "feature": "Fix `.storybook/main.js:23`",
-          "description": "Fix `.storybook/main.js` webpackFinal — use `path.resolve(__dirname, '../src')` instead of `path.resolve('../src')`, and drop aliases to removed submodule paths (zod2gql, @zephyrex/auth, @jgrieve/forms, @/interactive, @/interface, @/iteration)",
+          "description": "Fix `.storybook/main.js:26` webpackFinal — use `path.resolve(__dirname, '../src')` instead of `path.resolve('../src')`, and drop the aliases at lines 30-36 to removed submodule paths (zod2gql, @zephyrex/auth, @jgrieve/appwrapper, @jgrieve/forms, @/interactive, @/interface, @/iteration)",
           "done": false
         },
         {
@@ -173,7 +163,7 @@
         {
           "number": "1.5.1",
           "feature": "Enable `no-console` ESLint rule (currently `\"off\"`",
-          "description": "Enable `no-console` ESLint rule (currently `\"off\"` — contradicts CLAUDE.md)",
+          "description": "Enable `no-console` ESLint rule (`eslint.config.mjs:165` is `\"off\"` — contradicts CLAUDE.md); route `src/lib/time-ago.ts:17` and `MarkdownBlock.tsx:146` through the logger",
           "done": false
         },
         {
@@ -245,18 +235,6 @@
           "done": true
         },
         {
-          "number": "1.5.15",
-          "feature": "Centralize `getCookie('jwt')` calls (repeated 10+ times in provider pages) into a shared auth utility",
-          "done": false,
-          "description": "Centralize `getCookie('jwt')` calls (settings/providers.tsx, settings/extensions.tsx, lib/zephyrex/client.ts, useSubscription.ts, useFileUpload.ts) into a shared auth utility"
-        },
-        {
-          "number": "1.5.16",
-          "feature": "Centralize `process.env.NEXT_PUBLIC_API_URI` URL templates into a shared API client",
-          "done": false,
-          "description": "Route remaining `process.env.NEXT_PUBLIC_API_URI` URL templates (settings/extensions.tsx, settings/providers.tsx, markdown/Image.tsx, docs pages) through `src/lib/api/client.ts`"
-        },
-        {
           "number": "1.5.17",
           "feature": "Deduplicate DataTable column definitions in `providers.tsx` (settings vs usage are nearly identical)",
           "done": true
@@ -283,11 +261,6 @@
           "description": "Extract magic numbers: page sizes `[10,20,30,40,50]` in `data-table-pagination.tsx:30`, sidebar resize `minWidth=200`/`maxWidth=600` in `ui/sidebar.tsx:322`"
         },
         {
-          "number": "1.5.22",
-          "feature": "Memoize GraphQL client creation in `useProvider.ts:17` (currently recreated every render)",
-          "done": false
-        },
-        {
           "number": "1.5.23",
           "feature": "Fix `useToast.ts:56`",
           "description": "Fix `useToast.ts:56` — `toastTimeouts` map could grow unbounded",
@@ -302,7 +275,7 @@
         {
           "number": "1.6.1",
           "feature": "Rename `TeamLayout` → `ProviderLayout` in `src/app/provider/layout.tsx:6` and `src/app/provider/[id]/layout.tsx:6`",
-          "done": false,
+          "done": true,
           "priority": "critical",
           "description": "Rename `TeamLayout` → `ProviderLayout` in `src/app/provider/layout.tsx:7` and `src/app/provider/[id]/layout.tsx:7`"
         },
@@ -330,24 +303,25 @@
         {
           "number": "1.7.2",
           "feature": "Add `aria-sort` attribute on sortable column headers in `DataTableColumnHeader.tsx:36`",
-          "done": false
+          "done": false,
+          "description": "Add `aria-sort` to sortable column headers and an `aria-label` to the icon-only sort trigger in `src/components/data-table/data-table-column-header.tsx:30-37`"
         },
         {
           "number": "1.7.3",
           "feature": "Fix `Accordion.tsx:96-104`",
-          "description": "Fix `Accordion.tsx:96-104` — missing `aria-controls` and `aria-labelledby`",
+          "description": "Fix `src/components/ui/accordion.tsx` — trigger button (:72-80) needs `aria-expanded`/`aria-controls` and an id; content (:100) needs a matching id, `role='region'` and `aria-labelledby`",
           "done": false
         },
         {
           "number": "1.7.4",
           "feature": "Fix `Disclosure.tsx:94-98`",
-          "description": "Fix `Disclosure.tsx:94-98` — tabIndex not properly managed; validate `Children.toArray` access (lines 79-80)",
+          "description": "Fix `src/components/ui/disclosure.tsx` — in DisclosureTrigger (:93-108) `...child.props` is spread after onClick/role/tabIndex/onKeyDown and overrides them; validate the `Children.toArray(children)[0]/[1]` access (:80-81); link trigger to content id (:139) via `aria-controls`",
           "done": false
         },
         {
           "number": "1.7.5",
           "feature": "Add keyboard accessibility to `CodeBlock.tsx:197-203`",
-          "description": "`CodeBlock.tsx:218-233` — Rendered/Source buttons need tablist/tab roles and aria-selected; icon-only Copy/Download buttons need aria-label",
+          "description": "`CodeBlock.tsx:218-225` — Rendered/Source buttons need tablist/tab roles and aria-selected; icon-only Copy/Download (:228-233) and collapse trigger (:213) buttons need aria-label",
           "done": false
         },
         {
@@ -432,12 +406,6 @@
       "title": "appwrapper (`src/components/appwrapper`)",
       "items": [
         {
-          "number": "2.1.1",
-          "feature": "Add unit tests for `AppWrapper.tsx` (rendering, mobile breakpoint behavior)",
-          "done": false,
-          "description": "Extend `AppWrapper.test.tsx` beyond the render smoke test: header/footer composition and mobile (<=600px) breakpoint behavior"
-        },
-        {
           "number": "2.1.2",
           "feature": "Add unit tests for `SidebarContentManager.tsx` (context provider logic)",
           "done": false
@@ -448,28 +416,8 @@
           "done": true
         },
         {
-          "number": "2.1.4",
-          "feature": "Add unit tests for `ThemeSetter.tsx`",
-          "done": false
-        },
-        {
           "number": "2.1.5",
           "feature": "Add unit tests for `UserMenu.tsx`",
-          "done": false
-        },
-        {
-          "number": "2.2.1",
-          "feature": "Add stories for `AppWrapper.tsx` (full wrapper rendering)",
-          "done": false
-        },
-        {
-          "number": "2.2.2",
-          "feature": "Add stories for `Header.tsx` / `Footer.tsx`",
-          "done": false
-        },
-        {
-          "number": "2.2.3",
-          "feature": "Add stories for `MobileSideBar.tsx`",
           "done": false
         },
         {
@@ -488,60 +436,9 @@
           "done": true
         },
         {
-          "number": "2.2.7",
-          "feature": "Expand existing `Nav.stories.tsx` with interaction tests",
-          "done": false
-        },
-        {
           "number": "2.3.1",
           "feature": "Enable `strict: true` and `strictNullChecks: true` in tsconfig.json (currently false with TODOs)",
           "done": true
-        },
-        {
-          "number": "2.3.2",
-          "feature": "Replace `any` types: `AppWrapper.tsx:13-14` (swr, menu), `AppWrapperDrawer.tsx:20` (menu)",
-          "done": false
-        },
-        {
-          "number": "2.3.3",
-          "feature": "Remove 12 unsafe `as unknown as Menu` double-casts in `AppWrapper.tsx`",
-          "done": false,
-          "description": "Remove the 2 remaining `as unknown as Menu` double-casts in `AppWrapper.tsx` (margin computation)"
-        },
-        {
-          "number": "2.3.4",
-          "feature": "Type the `Wrapper.tsx` empty props interface properly",
-          "done": false
-        },
-        {
-          "number": "2.3.5",
-          "feature": "Export prop types (`FooterProps`, `HeaderProps`, `WrapperProps`) for consumers",
-          "done": false
-        },
-        {
-          "number": "2.4.1",
-          "feature": "Fix SSR crash: `AppWrapperHeaderFooter.tsx:14`",
-          "description": "Fix SSR crash: `AppWrapperHeaderFooter.tsx:14` — `window.innerWidth` read directly in the Header component body",
-          "done": false,
-          "priority": "critical"
-        },
-        {
-          "number": "2.4.2",
-          "feature": "Fix Tailwind dynamic class generation",
-          "description": "Fix Tailwind dynamic class generation — `h-[${height}]` in `AppWrapperHeaderFooter.tsx:29,58`, `border-${side}` in `AppWrapperDrawer.tsx:44`, `pl-${item.indent + 4}` in `AppWrapperList.tsx:59` — Tailwind cannot purge dynamic class names",
-          "done": false,
-          "priority": "high"
-        },
-        {
-          "number": "2.4.3",
-          "feature": "Fix memory leak: `ThemeSetter.tsx:8`",
-          "description": "Fix memory leak: `ThemeSetter.tsx:8` — matchMedia listener never removed",
-          "done": false
-        },
-        {
-          "number": "2.4.4",
-          "feature": "Consolidate inconsistent mobile breakpoints (600 in AppWrapper/Drawer/HeaderFooter vs 768 in useMobile)",
-          "done": false
         },
         {
           "number": "2.4.5",
@@ -549,44 +446,21 @@
           "done": false
         },
         {
-          "number": "2.4.6",
-          "feature": "Remove dead code: commented-out `MenuSWR` in `AppWrapperDrawer.tsx:63`, commented-out `NotificationsNavItem` in `SidebarMain.tsx:38`, unused `swr` parameter in `AppWrapperDrawer.tsx:11,21`",
-          "done": false,
-          "description": "Remove dead code in `AppWrapperDrawer.tsx`: commented `MenuSWR` (line 63) and unused `swr`/`menu` params (lines 10-11, 20-22)"
-        },
-        {
-          "number": "2.4.7",
-          "feature": "Extract magic numbers (600, 1200 zIndex, sidebar dimensions `'16rem'`/`'18rem'`/`'3rem'`/`256`, notification count `3`)",
-          "done": false,
-          "description": "Extract the inline `600` mobile breakpoint (AppWrapper.tsx, AppWrapperDrawer.tsx, AppWrapperHeaderFooter.tsx) to a shared named constant"
-        },
-        {
           "number": "2.4.8",
           "feature": "Fix hardcoded `\"Context Sidebar\"` string in `SidebarContentManager.tsx:16,39,47`",
-          "description": "Fix hardcoded `\"Context Sidebar\"` string in `SidebarContentManager.tsx:16,39,47` — should be configurable",
+          "description": "Fix hardcoded `\"Context Sidebar\"` string in `SidebarContentManager.tsx:17,40,48` (compared again in `SidebarContext.tsx:31`) — should be a configurable/named default",
           "done": false
         },
         {
           "number": "2.4.9",
           "feature": "Make `visibleOnPaths` array in `SidebarContext.tsx:16` configurable (hardcoded paths hurt downstream merge safety)",
-          "done": false
+          "done": false,
+          "description": "Make `visibleOnPaths` array in `SidebarContext.tsx:17` configurable (hardcoded paths hurt downstream merge safety)"
         },
         {
           "number": "2.4.10",
           "feature": "Add error boundaries for `SidebarContentManager.tsx:28,58`",
-          "description": "Add error boundaries for `SidebarContentManager.tsx:28,58` — `useSidebarContent`/`useSetSidebarContent` throw if used outside provider context",
-          "done": false
-        },
-        {
-          "number": "2.5.1",
-          "feature": "`AppWrapperButton.tsx:18-26`",
-          "description": "`AppWrapperButton.tsx:18-26` — clickable div with onClick not keyboard-accessible (no tabIndex, no key handlers)",
-          "done": false
-        },
-        {
-          "number": "2.5.2",
-          "feature": "`AppWrapperDrawer.tsx:40`",
-          "description": "`AppWrapperDrawer.tsx:40` — overlay div with onClick needs keyboard support (Escape key to close)",
+          "description": "Add error boundaries (or a safe fallback) for `SidebarContentManager.tsx:26-31,56-62` — `useSidebarContent`/`useSidebarTitle` throw if used outside provider context",
           "done": false
         },
         {
@@ -610,21 +484,14 @@
           "number": "3.1.1",
           "feature": "`Login.tsx:65`",
           "description": "`auth/src/Login.tsx:38` — JWT set via `document.cookie` without `Secure`/`SameSite` (and not HttpOnly); set it server-side",
-          "done": false,
-          "priority": "critical"
-        },
-        {
-          "number": "3.1.2",
-          "feature": "`auth.middleware.ts` `generateCookieString()`",
-          "description": "`auth/src/utils.ts:47` `generateCookieString()` — missing `HttpOnly` and `Secure` flags (SameSite now set)",
-          "done": false,
+          "done": true,
           "priority": "critical"
         },
         {
           "number": "3.1.3",
           "feature": "`Logout.tsx:17`",
           "description": "`Logout.tsx:17` — `router.replace(redirectTo)` accepts arbitrary redirect without validation; open redirect vulnerability",
-          "done": false,
+          "done": true,
           "priority": "critical"
         },
         {
@@ -638,53 +505,49 @@
           "number": "3.1.5",
           "feature": "`oauth2/Close.tsx`, `management/ConnectedServices.tsx:184`",
           "description": "`auth/src/management/ConnectedServices.tsx:185` passes the JWT as OAuth `state` (consumed at `auth.middleware.ts:333`); use an opaque nonce",
-          "done": false,
+          "done": true,
           "priority": "high"
         },
         {
           "number": "3.1.6",
           "feature": "`Subscribe.tsx:47`",
-          "description": "`Subscribe.tsx:47` — external Stripe script loaded without `integrity` attribute (Subresource Integrity)",
+          "description": "`auth/src/Subscribe.tsx` loads js.stripe.com/v3/pricing-table.js, which Stripe updates in place and does not support SRI on; restrict it with a Content-Security-Policy script-src (see 1.1.2) instead",
           "done": false,
           "priority": "high"
         },
         {
           "number": "3.1.7",
           "feature": "Sensitive data logged to console: JWT tokens, email addresses, and OAuth responses in Router.tsx, auth.middleware.ts, ConnectedServices.tsx, Team.tsx",
-          "done": false,
+          "done": true,
           "priority": "high",
           "description": "`auth/src/auth.middleware.ts` logs JWT (line 334), invite email/code (100), email verification code (223), raw query params (236) — remove"
         },
         {
           "number": "3.1.8",
           "feature": "Add CSRF token validation on Login and Register forms",
-          "done": false
+          "done": false,
+          "description": "Add CSRF protection for the pre-session Login and Register POSTs (`auth/src/Login.tsx:54-82`, `Register.tsx:38-65`); `lib/session.ts:19-25` double-submit only applies once a zx_csrf cookie exists"
         },
         {
           "number": "3.1.9",
           "feature": "Add password strength validation in `Register.tsx`",
-          "done": false
+          "done": false,
+          "description": "Password strength: show the server’s password policy in `auth/src/Register.tsx` once the server exposes it (the client must not invent a stricter or looser rule)"
         },
         {
           "number": "3.1.10",
           "feature": "Add rate limiting/debouncing on login form submission and MFA verification attempts",
-          "done": false
+          "done": true
         },
         {
           "number": "3.1.11",
           "feature": "Validate redirect destinations against a whitelist (currently arbitrary URLs accepted)",
-          "done": false
-        },
-        {
-          "number": "3.1.12",
-          "feature": "Hardcoded role IDs in `management/Invite.tsx:24-26` (`FFFFFFFF-0000-0000-AAAA-FFFFFFFFFFFF`)",
-          "description": "`auth/src/management/Invite.tsx:25-28` — hard-coded fallback role IDs (`FFFFFFFF-0000-0000-AAAA-FFFFFFFFFFFF`) merged with API roles; source from API/config only",
-          "done": false
+          "done": true
         },
         {
           "number": "3.2.1",
           "feature": "Add unit tests for `auth.middleware.ts` (cookie handling, redirect logic, token validation)",
-          "done": false
+          "done": true
         },
         {
           "number": "3.2.2",
@@ -714,7 +577,7 @@
         {
           "number": "3.2.7",
           "feature": "Add unit tests for management components (Account, Profile, Team, Invitations)",
-          "done": false,
+          "done": true,
           "description": "Add unit tests for auth management components `Team.tsx`, `TeamUsers.tsx`, `ConnectedServices.tsx`, `Invite.tsx` (Account/Profile/Invitations done)"
         },
         {
@@ -765,7 +628,7 @@
         {
           "number": "3.4.3",
           "feature": "Fix `@ts-expect-error` suppressions in `auth.middleware.ts` (lines 103-107, 171-172)",
-          "done": false,
+          "done": true,
           "description": "Fix remaining `@ts-expect-error` in `auth/src/auth.middleware.ts:277` (use `cookieHeaders()` instead of `headers.set('Set-Cookie', [...])`)"
         },
         {
@@ -786,42 +649,36 @@
         {
           "number": "3.4.7",
           "feature": "Export interfaces: `ConnectedService` from `ConnectedServices.tsx`, role type from `Invite.tsx`, User type from `Team.tsx`",
-          "done": false,
+          "done": true,
           "description": "Export interfaces `ConnectedService` (`ConnectedServices.tsx:13`) and `Role` (`Invite.tsx:30`)"
         },
         {
           "number": "3.5.1",
           "feature": "Remove 49 `console.log` statements (Router: 5, middleware: 29, utils: 5, ConnectedServices: 6, hooks: 4)",
-          "done": false,
+          "done": true,
           "description": "Replace ~38 ad-hoc `console.warn/error` debug statements (auth.middleware.ts: 30, ConnectedServices: 4, Register: 2, useLoggedIn, utils) with the logger"
         },
         {
           "number": "3.5.2",
           "feature": "Extract cookie expiration magic number `86400` (appears 8+ times) to named constant",
-          "done": false
+          "done": true
         },
         {
           "number": "3.5.3",
           "feature": "Extract magic numbers: `2000` (Login timeout), `256` (QR size), `40` (Gravatar size), `10` (email invite limit in `Invite.tsx:117`)",
-          "done": false,
+          "done": true,
           "description": "Extract magic numbers: Gravatar default size `40` (`gravatar.ts:10`, `Gravatar.tsx:13`) and invite limit `10` (`Invite.tsx:144`)"
         },
         {
           "number": "3.5.4",
           "feature": "Remove dead code: commented-out section in `management/index.tsx:92-139`, commented-out useEffect in `Register.tsx:100-112`, unused `getSearchParamsAsync` in `utils.ts:106-120`, `management/Gravatar.tsx:6` comment \"This component should be deleted\"",
-          "done": false,
+          "done": true,
           "description": "Remove dead code: `Register.tsx:181` commented OAuth JSX and resolve `management/Gravatar.tsx:12` \"should be deleted\" comment"
-        },
-        {
-          "number": "3.5.5",
-          "feature": "Fix unhandled promises in `auth.middleware.ts:49-58`, `ConnectedServices.tsx` (lines 92, 110, 127)",
-          "done": false,
-          "description": "Handle failure of the verify-email `fetch` in `auth/src/auth.middleware.ts:224-233`"
         },
         {
           "number": "3.5.6",
           "feature": "Fix useEffect issues: unstable `router` dependency in `useLoggedIn.ts:31`, empty useEffect in `Register.tsx:88-90`, missing deps in `ConnectedServices.tsx:81-83`",
-          "done": false,
+          "done": true,
           "description": "Remove the empty `useEffect` in `auth/src/Register.tsx:79-81`"
         },
         {
@@ -867,12 +724,13 @@
           "number": "3.6.1",
           "feature": "Fix `Identify.tsx:97`",
           "description": "Fix `auth/src/Identify.tsx:103` — `htmlFor='E-Mail Address'` should reference the input's id",
-          "done": false
+          "done": true
         },
         {
           "number": "3.6.2",
           "feature": "Add `aria-invalid` and `aria-describedby` on form inputs when errors present",
-          "done": false
+          "done": false,
+          "description": "Add `aria-invalid` and `aria-describedby` on the remaining auth form fields with errors: Login password, management Profile and Account (Identify, Register and MfaChallenge are done)"
         },
         {
           "number": "3.6.3",
@@ -882,18 +740,18 @@
         {
           "number": "3.6.4",
           "feature": "Add `aria-describedby` linking password and password-confirmation fields in `Register.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "3.6.5",
           "feature": "Add aria guidance on MFA code input explaining \"enter 6-digit code\" (`Login.tsx:132-139`)",
-          "done": false,
+          "done": true,
           "description": "Link the MFA guidance text to the code input via `aria-describedby` in `auth/src/mfa/MfaChallenge.tsx:36-39`"
         },
         {
           "number": "3.6.6",
           "feature": "Add loading/disabled state on buttons during async operations (Login, Register, MFA verify, Invite send, ConnectedServices OAuth)",
-          "done": false,
+          "done": true,
           "description": "Add loading/disabled state during async operations on Login, Register, Invite send and ConnectedServices OAuth buttons (MFA verify done)"
         },
         {
@@ -906,13 +764,13 @@
           "number": "3.7.2",
           "feature": "`management/Team.tsx:74-99`",
           "description": "`management/Team.tsx:74-99` — `fetchData` called multiple times without debouncing",
-          "done": false
+          "done": true
         },
         {
           "number": "3.7.3",
           "feature": "`auth.middleware.ts:62-108`",
           "description": "`auth.middleware.ts:62-108` — multiple invitations processed simultaneously could create duplicate cookies/redirects",
-          "done": false
+          "done": true
         },
         {
           "number": "3.8.1",
@@ -1068,7 +926,8 @@
         {
           "number": "4.4.7",
           "feature": "Sanitize field name to valid HTML ID in `DynamicForm.tsx:149` (currently only replaces spaces, not `!@#$%` etc.)",
-          "done": false
+          "done": false,
+          "description": "Sanitize field name to a valid HTML id in `DynamicForm.tsx` (:178,181,191,214,218-219 only replace spaces, not `!@#$%` etc.; extract the repeated expression into one helper)"
         },
         {
           "number": "4.4.8",
@@ -1080,13 +939,15 @@
           "number": "4.5.1",
           "feature": "Add `aria-live=\"polite\"` or `role=\"alert\"` on error message containers in `Field.tsx:83-103`",
           "done": false,
-          "priority": "high"
+          "priority": "high",
+          "description": "Add `aria-live=\"polite\"` or `role=\"alert\"` on the error message container in `Field.tsx:98-115`"
         },
         {
           "number": "4.5.2",
           "feature": "Add `aria-invalid=\"true\"` on inputs when error is present (`TextField.tsx:25-30`)",
           "done": false,
-          "priority": "high"
+          "priority": "high",
+          "description": "Add `aria-invalid=\"true\"` on inputs when error is present (`TextField.tsx:39-43`)"
         },
         {
           "number": "4.5.3",
@@ -1097,7 +958,8 @@
         {
           "number": "4.5.4",
           "feature": "Add accessible label for RadioField when used outside of Field wrapper",
-          "done": false
+          "done": false,
+          "description": "Add an accessible label for RadioField when used outside Field — `RadioField.tsx:20` `aria-labelledby={id}` self-references the group (Field supplies `${nameID}-label`); also the `hidden` radio inputs (:35) are not keyboard-focusable"
         },
         {
           "number": "4.5.5",
@@ -1123,12 +985,14 @@
         {
           "number": "5.1.1",
           "feature": "Add unit tests for `log.ts` (server vs client branch, verbosity levels, heading formatting)",
-          "done": false
+          "done": false,
+          "description": "Add unit tests for `client-framework/src/lib/log.ts` (server vs client branch, verbosity gating, heading formatting via `emit` :9-17)"
         },
         {
           "number": "5.1.2",
           "feature": "Test edge cases: empty logItems, missing verbosity config, undefined heading",
-          "done": false
+          "done": false,
+          "description": "Test edge cases of `client-framework/src/lib/log.ts`: empty logItems, missing/non-numeric verbosity env, null/empty heading"
         },
         {
           "number": "5.3.1",
@@ -1191,7 +1055,8 @@
         {
           "number": "6.1.7",
           "feature": "Test edge cases: empty schemas, maxDepth exceeded, circular references via `z.lazy()`",
-          "done": false
+          "done": false,
+          "description": "Test edge cases: empty schemas and circular references via `z.lazy()` (maxDepth already covered at `index.test.ts:144`, `core.test.ts:114`)"
         },
         {
           "number": "6.1.8",
@@ -1269,7 +1134,7 @@
         {
           "number": "6.4.3",
           "feature": "`maxDepth` silently drops nested fields (`index.ts:143-145`)",
-          "description": "`maxDepth` silently drops nested fields (`index.ts:143-145`) — should warn or error instead of producing silently incomplete queries",
+          "description": "`maxDepth` silently drops nested fields (`zod2gql/src/core.ts:173-175`, producing empty `{}` selections via `renderField` :157,:162) — should warn or error instead of producing silently invalid queries",
           "done": false,
           "priority": "high"
         },
@@ -1283,13 +1148,13 @@
           "number": "6.4.5",
           "feature": "Deduplicate type inference logic between `index.ts:101-117` and `mutation.ts:23-32`",
           "done": false,
-          "description": "Deduplicate variable type inference: `mutation.ts:117-149` (`inferMutationType`/`formatMutationVariables`) vs `core.ts:93-133`"
+          "description": "Deduplicate variable type inference: `zod2gql/src/mutation.ts:18-50` (`inferMutationType`/`formatMutationVariables`) vs `core.ts:93-133` (they also diverge on floats and arrays)"
         },
         {
           "number": "6.4.6",
           "feature": "Extract starting indent depth `2` (lines 210, 232, 254) to named constant",
           "done": false,
-          "description": "Extract starting indent depth `2` (processFields calls in core.ts, query.ts, mutation.ts, subscription.ts) to a named constant"
+          "description": "Extract starting indent depth `2` (processFields calls at `core.ts:199`, `query.ts:20`, `mutation.ts:57`, `subscription.ts:22`) to a named constant"
         },
         {
           "number": "6.4.7",
