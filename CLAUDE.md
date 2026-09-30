@@ -64,6 +64,8 @@ A consumer app is ~6 files:
 - `layout.tsx` — wraps children with `<ZephyrexApp config={config}>`
 - `middleware.ts` — `export default createMiddleware()`
 - `[...slug]/page.tsx` — `<ZephyrexRouter>` for extension routes
+- `user/layout.tsx`, `user/[[...slug]]/page.tsx` — `export { UserLayout as default } from 'zephyrex/pages/user'` (and `UserPage`)
+- `docs/*` — `DocsLayout`, `ApiReferencePage` and `PrivacyPage` (given the app's own policy Markdown) from `zephyrex/pages/docs`
 - `extensions/*.tsx` — custom `ZephyrexClientExtension` definitions
 
 ### Extension System

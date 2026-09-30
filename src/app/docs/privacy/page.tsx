@@ -1,26 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
-import MarkdownBlock from '@/components/markdown/MarkdownBlock';
+import { readFile } from 'node:fs/promises';
+import type { ReactNode } from 'react';
+import { PrivacyPage } from '@/lib/zephyrex/pages/docs';
 
-// Read privacy policy from a local file
-function getPrivacyPolicy() {
-  try {
-    const filePath = path.join(process.cwd(), 'src', 'content', 'PRIVACY_POLICY.md');
-    return readFileSync(filePath, 'utf8');
-  } catch (error) {
-    console.warn('Error reading privacy policy:', error);
-    return '# Privacy Policy\n\nUnable to load privacy policy.';
-  }
-}
-
-export default function PrivacyPolicy() {
-  const privacyPolicyContent = getPrivacyPolicy();
-
-  return (
-    <SidebarPage title='Privacy Policy'>
-      <MarkdownBlock content={privacyPolicyContent} />
-    </SidebarPage>
-  );
+export default async function Privacy(): Promise<ReactNode> {
+  return <PrivacyPage content={await readFile('src/content/PRIVACY_POLICY.md', 'utf8')} />;
 }

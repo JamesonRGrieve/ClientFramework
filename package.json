@@ -117,6 +117,10 @@
       "types": "./dist/lib/zephyrex/extensions/*/index.d.ts",
       "default": "./dist/lib/zephyrex/extensions/*/index.js"
     },
+    "./pages/*": {
+      "types": "./dist/lib/zephyrex/pages/*/index.d.ts",
+      "default": "./dist/lib/zephyrex/pages/*/index.js"
+    },
     "./ui/*": {
       "types": "./dist/components/ui/*.d.ts",
       "default": "./dist/components/ui/*.js"

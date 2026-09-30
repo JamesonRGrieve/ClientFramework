@@ -19,6 +19,7 @@
     "src/lib/zephyrex/{index,types,hooks,client}.ts",
     "src/lib/zephyrex/extensions/index.ts",
     "src/lib/zephyrex/extensions/*/index.ts",
+    "src/lib/zephyrex/pages/*/index.ts",
     "src/components/{markdown,data-table,theme,dropzone}/**/*.{ts,tsx}"
   ],
   "project": ["src/**/*.{ts,tsx,js,jsx}", "!src/**/*.d.ts"],
