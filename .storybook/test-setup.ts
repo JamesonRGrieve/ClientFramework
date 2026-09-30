@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * This file sets up the necessary global mocks for Storybook
  */

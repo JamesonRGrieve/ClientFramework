@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * Ratchet for animation usages across CSS + Tailwind v4 @theme tokens.
  *

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * knip ratchet. Runs `knip --reporter json` and tallies issue counts across
  * categories. Per-category counts cannot rise. When a category reaches 0 it

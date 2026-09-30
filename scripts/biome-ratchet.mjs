@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * Biome diagnostics ratchet. Runs `biome lint src/` and compares the total
  * (errors + warnings) count to .biome-baseline. Fails when the count goes UP.

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * !important ratchet. Counts `!important` occurrences in stylesheets and
  * inline `style=` attributes under `src/`. Each one is a cascade workaround

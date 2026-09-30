@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import { useCallback, useMemo } from 'react';
 import { useApi } from './useApi';
 import { AdminApi, type DlqListQuery } from '@/lib/api/admin';

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * Coverage symmetry: walks src/ and reports component sources without a
  * matching *.stories.* file, and source files without a matching *.test.*

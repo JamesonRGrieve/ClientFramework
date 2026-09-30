@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * Mirrors the BASE INSTALL contract of ServerFramework (REST). See:
  *   - lib/Pydantic2FastAPI.RouterMixin (RouteType, AuthType)

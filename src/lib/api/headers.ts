@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import type { DeprecationInfo, RateLimitInfo } from './types';
 
 const HEX_BYTE_LENGTH = 2;

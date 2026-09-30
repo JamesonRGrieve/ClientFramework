@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import useSWR, { type SWRConfiguration, type SWRResponse } from 'swr';
 import type { ApiClient } from '@/lib/api/client';
 import { getApiClient } from '@/lib/api/client';

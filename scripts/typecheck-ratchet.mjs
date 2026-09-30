@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * Type-check ratchet. Runs `tsc --noEmit` and compares the error count to
  * .tsc-error-baseline. Fails when the count goes UP, succeeds when it goes

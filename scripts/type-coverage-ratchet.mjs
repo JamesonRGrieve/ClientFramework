@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * type-coverage ratchet. Computes the % of source positions whose inferred
  * type is non-`any` under `--strict`. Per workspace standard, the baseline

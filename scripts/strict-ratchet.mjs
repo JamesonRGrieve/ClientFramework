@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * Strict-mode ratchet. Counts the number of TS source files under `src/`
  * that produce one or more errors when compiled with the workspace strict

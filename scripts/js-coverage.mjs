@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * Counts non-TypeScript source files under src/ as a ratcheting metric:
  * the long-term target is zero (everything is TypeScript). New `.js` /

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * Test/story typecheck ratchet. Compiles `tsconfig.test.json` (test + story
  * sources) with `tsc --noEmit` and tracks the total TS diagnostic count.

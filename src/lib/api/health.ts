@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ApiClient } from './client';
 import type { ApiResponse, HealthResponse, ReadinessResponse } from './types';
 

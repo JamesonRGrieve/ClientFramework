@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 import { Controls, Description, Primary, Stories, Subtitle, Title } from '@storybook/blocks';
 import { initialize, mswLoader } from 'msw-storybook-addon';
 import React from 'react';

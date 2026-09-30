@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * ESLint warning ratchet. Runs eslint and compares the warning count to
  * .eslint-warning-baseline. Fails when the count goes UP, succeeds when it

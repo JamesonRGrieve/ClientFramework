@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 // Modern ESLint flat config (ESLint v9+).
 //
 // Migrated from the legacy `.eslintrc.json` + `.eslintignore` + `next lint`

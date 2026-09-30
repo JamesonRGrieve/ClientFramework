@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * Count hard-coded design tokens that should live in Tailwind v4 `@theme`.
  *

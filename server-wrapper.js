@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 // server-wrapper.js
 const { existsSync } = require('fs');
 const { config } = require('dotenv');
