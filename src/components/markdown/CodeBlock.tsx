@@ -3,7 +3,7 @@
 import { getCookie } from 'cookies-next';
 import { ChevronDown, Copy, Download } from 'lucide-react';
 import { type ReactNode, Suspense, lazy, useRef, useState } from 'react';
-import Latex from 'react-latex-next';
+import { Latex } from './Latex';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { a11yDark, a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hljs/index.js';
 import { DataTable } from '../data-table';
