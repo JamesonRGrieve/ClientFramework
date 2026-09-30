@@ -1,15 +1,19 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { safeRedirectPath } from '@zephyrex/auth/lib/redirect';
+import { getCookie } from 'cookies-next';
 import Link from 'next/link.js';
 import { useEffect, useState } from 'react';
 import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { SidebarInset } from '@/components/ui/sidebar';
 
+/** The auth middleware sends here when the API is down, remembering the page in the `href` cookie. */
 export default function BadGateway() {
-  const [link, _setLink] = useState('/');
+  const [link, setLink] = useState('/');
   useEffect(() => {
-    // setLink(getCookie('href')?.toString() ?? '/');
+    const interrupted = getCookie('href');
+    setLink(safeRedirectPath(typeof interrupted === 'string' ? interrupted : ''));
   }, []);
   return (
     <SidebarInset>
