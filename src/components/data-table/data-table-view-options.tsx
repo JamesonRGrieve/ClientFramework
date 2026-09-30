@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
-import type { Table } from '@tanstack/react-table';
+import type { RowData } from '@tanstack/react-table';
 import { Settings2 } from 'lucide-react';
+import type { JSX } from 'react';
+import type { DataTableInstance } from './data-table-features';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -13,11 +15,11 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 
-interface DataTableViewOptionsProps<TData> {
-  table: Table<TData>;
+interface DataTableViewOptionsProps<TData extends RowData> {
+  table: DataTableInstance<TData>;
 }
 
-export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps<TData>) {
+export function DataTableViewOptions<TData extends RowData>({ table }: DataTableViewOptionsProps<TData>): JSX.Element {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

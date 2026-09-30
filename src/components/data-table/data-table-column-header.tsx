@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Column } from '@tanstack/react-table';
+import type { CellData, RowData } from '@tanstack/react-table';
 import { ArrowDown, ArrowUp, ChevronsUpDown, EyeOff } from 'lucide-react';
 
+import type { DataTableColumn } from './data-table-features';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -13,7 +14,9 @@ import {
 import { cn } from '@/lib/utils';
 
 /** A sortable column's `aria-sort` for its header cell; undefined when the column cannot sort. */
-export function ariaSortOf<TData, TValue>(column: Column<TData, TValue>): 'ascending' | 'descending' | 'none' | undefined {
+export function ariaSortOf<TData extends RowData, TValue extends CellData>(
+  column: DataTableColumn<TData, TValue>,
+): 'ascending' | 'descending' | 'none' | undefined {
   if (!column.getCanSort()) {
     return undefined;
   }
@@ -23,16 +26,19 @@ export function ariaSortOf<TData, TValue>(column: Column<TData, TValue>): 'ascen
 
 const SORT_DESCRIPTIONS = { ascending: 'sorted ascending', descending: 'sorted descending', none: 'not sorted' } as const;
 
-interface DataTableColumnHeaderProps<TData, TValue> extends React.HTMLAttributes<HTMLDivElement> {
-  column: Column<TData, TValue>;
+interface DataTableColumnHeaderProps<
+  TData extends RowData,
+  TValue extends CellData,
+> extends React.HTMLAttributes<HTMLDivElement> {
+  column: DataTableColumn<TData, TValue>;
   title: string;
 }
 
-export function DataTableColumnHeader<TData, TValue>({
+export function DataTableColumnHeader<TData extends RowData, TValue extends CellData>({
   column,
   title,
   className,
-}: DataTableColumnHeaderProps<TData, TValue>) {
+}: DataTableColumnHeaderProps<TData, TValue>): React.JSX.Element {
   if (!column.getCanSort()) {
     return <div className={cn(className)}>{title}</div>;
   }

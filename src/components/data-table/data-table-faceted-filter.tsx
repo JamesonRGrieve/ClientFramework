@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Column } from '@tanstack/react-table';
+import type { CellData, RowData } from '@tanstack/react-table';
 import { Check, PlusCircle } from 'lucide-react';
 import type * as React from 'react';
 
+import type { DataTableColumn } from './data-table-features';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,8 +19,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
-interface DataTableFacetedFilterProps<TData, TValue> {
-  column?: Column<TData, TValue>;
+interface DataTableFacetedFilterProps<TData extends RowData, TValue extends CellData> {
+  column?: DataTableColumn<TData, TValue>;
   title?: string;
   options: {
     label: string;
@@ -28,13 +29,16 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   }[];
 }
 
-export function DataTableFacetedFilter<TData, TValue>({
+export function DataTableFacetedFilter<TData extends RowData, TValue extends CellData>({
   column,
   title,
   options,
-}: DataTableFacetedFilterProps<TData, TValue>) {
+}: DataTableFacetedFilterProps<TData, TValue>): React.JSX.Element {
   const facets = column?.getFacetedUniqueValues();
-  const selectedValues = new Set(column?.getFilterValue() as string[]);
+  const filterValue = column?.getFilterValue();
+  const selectedValues = new Set(
+    Array.isArray(filterValue) ? filterValue.filter((value): value is string => typeof value === 'string') : [],
+  );
 
   return (
     <Popover>
@@ -42,7 +46,7 @@ export function DataTableFacetedFilter<TData, TValue>({
         <Button variant='outline' size='sm' className='h-8 border-dashed'>
           <PlusCircle />
           {title}
-          {selectedValues?.size > 0 && (
+          {selectedValues.size > 0 && (
             <>
               <Separator orientation='vertical' className='h-4 mx-2' />
               <Badge variant='secondary' className='px-1 font-normal rounded-sm lg:hidden'>
@@ -75,6 +79,7 @@ export function DataTableFacetedFilter<TData, TValue>({
             <CommandGroup>
               {options.map((option) => {
                 const isSelected = selectedValues.has(option.value);
+                const facetCount = facets?.get(option.value);
                 return (
                   <CommandItem
                     key={option.value}
@@ -98,9 +103,9 @@ export function DataTableFacetedFilter<TData, TValue>({
                     </div>
                     {option.icon && <option.icon className='w-4 h-4 mr-2 text-muted-foreground' />}
                     <span>{option.label}</span>
-                    {facets?.get(option.value) && (
+                    {facetCount !== undefined && facetCount > 0 && (
                       <span className='flex items-center justify-center w-4 h-4 ml-auto font-mono text-xs'>
-                        {facets.get(option.value)}
+                        {facetCount}
                       </span>
                     )}
                   </CommandItem>

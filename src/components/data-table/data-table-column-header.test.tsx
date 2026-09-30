@@ -9,8 +9,8 @@ type Row = { name: string };
 
 const renderTable = (): ReturnType<typeof render> =>
   render(
-    <DataTable<Row, unknown>
-      columns={createColumns<Row, unknown>([{ field: 'name', headerName: 'Name' }])}
+    <DataTable<Row>
+      columns={createColumns<Row>([{ field: 'name', headerName: 'Name' }])}
       data={[{ name: 'Beta' }, { name: 'Alpha' }]}
     />,
   );

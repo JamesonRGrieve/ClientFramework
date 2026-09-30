@@ -3,7 +3,8 @@
 
 import { type JSX, useState } from 'react';
 import { Filter } from 'lucide-react';
-import type { Table } from '@tanstack/react-table';
+import type { RowData } from '@tanstack/react-table';
+import type { DataTableInstance } from './data-table-features';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -15,7 +16,7 @@ interface Filter {
   value: string;
 }
 
-export function DataTableFilter<TData>({ table }: { table: Table<TData> }): JSX.Element {
+export function DataTableFilter<TData extends RowData>({ table }: { table: DataTableInstance<TData> }): JSX.Element {
   const columns = table.getAllColumns().filter((col) => col.getCanFilter());
   const [filter, setFilter] = useState<Filter>({
     column: '',

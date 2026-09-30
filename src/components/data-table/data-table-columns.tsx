@@ -1,9 +1,10 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import type { ColumnDef } from '@tanstack/react-table';
+import type { RowData } from '@tanstack/react-table';
 import { Copy } from 'lucide-react';
 import { DataTableColumnHeader } from './data-table-column-header';
+import type { DataTableColumnDef } from './data-table-features';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -13,13 +14,13 @@ interface ColumnData {
   headerName: string;
 }
 
-export function createColumns<TData, TValue>(columns: ColumnData[]): ColumnDef<TData, TValue>[] {
-  const selectColumn: ColumnDef<TData> = {
+export function createColumns<TData extends RowData>(columns: ColumnData[]): DataTableColumnDef<TData>[] {
+  const selectColumn: DataTableColumnDef<TData> = {
     id: 'select',
     header: ({ table }) => (
       <Checkbox
-        checked={!!(table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate'))}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        checked={table.getIsAllPageRowsSelected() ? true : table.getIsSomePageRowsSelected() ? 'indeterminate' : false}
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(value !== false)}
         aria-label='Select all'
         className='translate-y-[2px]'
       />
@@ -27,7 +28,7 @@ export function createColumns<TData, TValue>(columns: ColumnData[]): ColumnDef<T
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        onCheckedChange={(value) => row.toggleSelected(value !== false)}
         aria-label='Select row'
         className='translate-y-[2px]'
       />
@@ -36,15 +37,14 @@ export function createColumns<TData, TValue>(columns: ColumnData[]): ColumnDef<T
     enableHiding: false,
   };
 
-  const actionsColumn: ColumnDef<TData> = {
+  const actionsColumn: DataTableColumnDef<TData> = {
     id: 'actions',
     enableHiding: false,
     enableSorting: false,
     header: () => <span className='sr-only'>Actions</span>,
     cell: ({ row }) => {
-      const data = row.original;
-      const copyData = () => {
-        navigator.clipboard.writeText(Object.values(data as Record<string, unknown>).join(', '));
+      const copyData = (): void => {
+        void navigator.clipboard.writeText(Object.values(row.original).join(', '));
       };
 
       return (
@@ -66,7 +66,7 @@ export function createColumns<TData, TValue>(columns: ColumnData[]): ColumnDef<T
     },
   };
 
-  const dynamicColumns: ColumnDef<TData>[] = columns.map((col) => ({
+  const dynamicColumns: DataTableColumnDef<TData>[] = columns.map((col) => ({
     id: col.field,
     accessorKey: col.field,
     header: ({ column }) => <DataTableColumnHeader column={column} title={col.headerName} />,

@@ -1,9 +1,11 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import type { RowData } from '@tanstack/react-table';
 import { Download } from 'lucide-react';
-import type { Table } from '@tanstack/react-table';
+import type { JSX } from 'react';
 
+import type { DataTableInstance } from './data-table-features';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -13,16 +15,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export function DataTableExport<TData>({ table }: { table: Table<TData> }) {
+export function DataTableExport<TData extends RowData>({ table }: { table: DataTableInstance<TData> }): JSX.Element {
   const rows = table.getFilteredRowModel().rows.map((row) => row.original);
   const columns = table
     .getAllLeafColumns()
     .filter((column) => column.getCanHide())
     .map((column) => column.columnDef.meta?.headerName);
 
-  const downloadCSV = () => {
-    const csvRows = [['id', ...columns], ...rows.map((row) => [...Object.values(row as Record<string, unknown>)])]
-      .map((row) => row.map((cell) => `"${cell}"`).join(','))
+  const downloadCSV = (): void => {
+    const csvRows = [['id', ...columns], ...rows.map((row): unknown[] => Object.values(row))]
+      .map((row) => row.map((cell) => `"${String(cell)}"`).join(','))
       .join('\n');
 
     const blob = new Blob([csvRows], { type: 'text/csv;charset=utf-8;' });
