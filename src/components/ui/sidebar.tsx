@@ -15,12 +15,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-const _SIDEBAR_COOKIE_NAME = 'sidebar:state';
-const _SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = '16rem';
 const SIDEBAR_WIDTH_MOBILE = '18rem';
 const SIDEBAR_WIDTH_ICON = '3rem';
-const _SIDEBAR_KEYBOARD_SHORTCUT = 'b';
+/** How narrow and how wide a reader can drag a sidebar, in pixels. */
+const SIDEBAR_MIN_WIDTH_PX = 200;
+const SIDEBAR_MAX_WIDTH_PX = 600;
 type SidebarContextMap = {
   left?: SidebarContext;
   right?: SidebarContext;
@@ -319,7 +319,7 @@ const SidebarRail = React.forwardRef<
     minWidth?: number;
     maxWidth?: number;
   }
->(({ side = 'left', minWidth = 200, maxWidth = 600, className, ...props }, ref) => {
+>(({ side = 'left', minWidth = SIDEBAR_MIN_WIDTH_PX, maxWidth = SIDEBAR_MAX_WIDTH_PX, className, ...props }, ref) => {
   const { toggleSidebar, state, width, setWidth } = useSidebar(side);
   const [isResizing, setIsResizing] = React.useState(false);
   const startXRef = React.useRef(0);
