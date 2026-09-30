@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { getCookie } from 'cookies-next';
 import { usePathname } from 'next/navigation.js';
-import { useEffect, useState } from 'react';
 
 import { NavMain } from './NavMain';
 import { NavUser } from '@/components/appwrapper/src/NavUser';
@@ -13,14 +11,7 @@ import { ToggleSidebar } from './ToggleSidebar';
 import { FaRobot } from 'react-icons/fa';
 
 export function SidebarMain({ children, ...props }: React.ComponentProps<typeof Sidebar> & { children?: React.ReactNode }) {
-  const [hasStarted, setHasStarted] = useState(false);
   const pathname = usePathname();
-
-  useEffect(() => {
-    if (getCookie('aginteractive-has-started') === 'true') {
-      setHasStarted(true);
-    }
-  }, [getCookie('aginteractive-has-started')]);
 
   if (pathname === '/' || (pathname.startsWith('/user') && pathname !== '/user/manage')) {
     return null;
