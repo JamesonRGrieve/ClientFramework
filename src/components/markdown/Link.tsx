@@ -4,8 +4,6 @@
 import type React from 'react';
 import { type ReactNode, useRef } from 'react';
 import { cn } from '@/lib/utils';
-// import Plyr from 'plyr-react';
-// import 'plyr-react/plyr.css';
 
 const _handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>): void => {
   const href = e.currentTarget.getAttribute('href');
