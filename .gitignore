@@ -41,6 +41,10 @@ test.ipynb
 __pycache__
 yarn.lock
 
+# The service worker Serwist bundles from src/app/sw.ts on each build
+/public/sw.js
+/public/sw.js.map
+
 # Ratchet coverage reports (regenerated each run; baselines are committed)
 .animation-coverage.json
 .important-coverage.json

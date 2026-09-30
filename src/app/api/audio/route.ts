@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { SESSION_COOKIE } from '@zephyrex/auth';
+// The session module, not the package root: a route handler runs server-side, and the root also
+// exports the client hooks.
+import { SESSION_COOKIE } from '@zephyrex/auth/lib/session';
 import type { NextRequest } from 'next/server.js';
 import { apiBaseFor } from '@/lib/zephyrex/createMiddleware';
 import config from '@/zephyrex.config';

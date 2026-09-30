@@ -13,7 +13,7 @@
     "basic": "rimraf ./.next && next dev -p 3000",
     "prepare": "git config core.hooksPath .githooks 2>/dev/null || true",
     "precommit": "npx prettier --check . && pnpm check && pnpm test && pnpm test:security",
-    "build": "rimraf ./.next && next build",
+    "build": "rimraf ./.next && next build --webpack",
     "clean-build": "rimraf ./.next && rimraf ./node_modules && pnpm install && pnpm build && pnpm start",
     "compile": "rimraf ./dist && tsc -p tsconfig.compile.json && tsc-alias -p tsconfig.compile.json --resolve-full-paths && node scripts/finish-dist.mjs",
     "verify:dist": "node scripts/verify-dist.mjs",
