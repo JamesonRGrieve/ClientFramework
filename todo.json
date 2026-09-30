@@ -38,7 +38,7 @@
           "number": "1.1.5",
           "feature": "`server-wrapper.js:14`",
           "description": "`server-wrapper.js:15-21` — global `__RUNTIME_CONFIG__` exposes runtime variables without validation",
-          "done": false
+          "done": true
         },
         {
           "number": "1.2.1",
@@ -58,17 +58,12 @@
         {
           "number": "1.2.6",
           "feature": "Add unit tests for `src/lib/time-ago.ts` (relative time formatting)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.2.7",
           "feature": "Add unit tests for `src/hooks/useToast.ts`",
-          "done": false
-        },
-        {
-          "number": "1.2.9",
-          "feature": "Add unit tests for `src/hooks/useModal.ts`",
-          "done": false
+          "done": true
         },
         {
           "number": "1.2.10",
@@ -114,7 +109,7 @@
           "number": "1.3.9",
           "feature": "Fix `.storybook/main.js:23`",
           "description": "Fix `.storybook/main.js:26` webpackFinal — use `path.resolve(__dirname, '../src')` instead of `path.resolve('../src')`, and drop the aliases at lines 30-36 to removed submodule paths (zod2gql, @zephyrex/auth, @jgrieve/appwrapper, @jgrieve/forms, @/interactive, @/interface, @/iteration)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.4.2",
@@ -152,7 +147,7 @@
         {
           "number": "1.4.8",
           "feature": "Remove `@ts-expect-error` in `DataTableFilter.tsx:69`",
-          "done": false,
+          "done": true,
           "description": "Remove `@ts-expect-error` suppressions in `data-table-filter.tsx:70`, `data-table-export.tsx:21`, `data-table-view-options.tsx:43`"
         },
         {
@@ -164,7 +159,7 @@
           "number": "1.5.1",
           "feature": "Enable `no-console` ESLint rule (currently `\"off\"`",
           "description": "Enable `no-console` ESLint rule (`eslint.config.mjs:165` is `\"off\"` — contradicts CLAUDE.md); route `src/lib/time-ago.ts:17` and `MarkdownBlock.tsx:146` through the logger",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.2",
@@ -174,7 +169,7 @@
         {
           "number": "1.5.3",
           "feature": "Enable `@typescript-eslint/no-magic-numbers` (currently `\"off\"`)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.5.4",
@@ -194,7 +189,7 @@
         {
           "number": "1.5.7",
           "feature": "Remove commented-out code in `src/app/layout.tsx` (inter font, ThemeSetter), `src/app/[...slug]/page.tsx:6`, `src/app/down/page.tsx:12`, `src/app/docs/getting-started/page.tsx:22-34`, `src/app/docs/support/page.tsx:107-115`",
-          "done": false,
+          "done": true,
           "description": "Remove commented-out code in `src/app/down/page.tsx:12`, `src/app/docs/getting-started/page.tsx:23-35`, `src/app/docs/support/page.tsx:109-117`"
         },
         {
@@ -205,7 +200,7 @@
         {
           "number": "1.5.9",
           "feature": "Remove commented-out code in `src/components/markdown/Link.tsx:5-6,49-65,74`, `Preprocessor.ts:35`, `CodeBlock.tsx:38,51-53`",
-          "done": false,
+          "done": true,
           "description": "Remove commented-out code in `src/components/markdown/Link.tsx:49-65,74` and `Preprocessor.ts:35` (plus the now-unused `_handleAnchorClick`/`_isVideo`)"
         },
         {
@@ -216,7 +211,7 @@
         {
           "number": "1.5.11",
           "feature": "Remove unused variables: `redirect` import in `src/app/page.tsx:6`, unused `setLink`/`setNotifications` state setters in `down/page.tsx` and `notifications/page.tsx`, `hasStarted` in `getting-started/page.tsx`",
-          "done": false,
+          "done": true,
           "description": "Remove unused state: `_setLink` in `src/app/down/page.tsx:10` and `_hasStarted`/its useEffect in `src/app/docs/getting-started/page.tsx:11-16`"
         },
         {
@@ -257,7 +252,7 @@
         {
           "number": "1.5.21",
           "feature": "Extract magic numbers: `1000*60*5`, `1000*60*60`, `1000*60*60*24` in `notifications/page.tsx`, `24*60*60*1000` in `getting-started/page.tsx`, sidebar dimensions in `sidebar.tsx`, page sizes `[10,20,30,40,50]` in `DataTablePagination.tsx:34`",
-          "done": false,
+          "done": true,
           "description": "Extract magic numbers: page sizes `[10,20,30,40,50]` in `data-table-pagination.tsx:30`, sidebar resize `minWidth=200`/`maxWidth=600` in `ui/sidebar.tsx:322`"
         },
         {
@@ -269,7 +264,7 @@
         {
           "number": "1.5.24",
           "feature": "Remove TODO comment without linked issue in `src/app/docs/support/page.tsx:106`",
-          "done": false,
+          "done": true,
           "description": "Remove TODO comment without linked issue in `src/app/docs/support/page.tsx:108`"
         },
         {
@@ -303,26 +298,26 @@
         {
           "number": "1.7.2",
           "feature": "Add `aria-sort` attribute on sortable column headers in `DataTableColumnHeader.tsx:36`",
-          "done": false,
+          "done": true,
           "description": "Add `aria-sort` to sortable column headers and an `aria-label` to the icon-only sort trigger in `src/components/data-table/data-table-column-header.tsx:30-37`"
         },
         {
           "number": "1.7.3",
           "feature": "Fix `Accordion.tsx:96-104`",
           "description": "Fix `src/components/ui/accordion.tsx` — trigger button (:72-80) needs `aria-expanded`/`aria-controls` and an id; content (:100) needs a matching id, `role='region'` and `aria-labelledby`",
-          "done": false
+          "done": true
         },
         {
           "number": "1.7.4",
           "feature": "Fix `Disclosure.tsx:94-98`",
           "description": "Fix `src/components/ui/disclosure.tsx` — in DisclosureTrigger (:93-108) `...child.props` is spread after onClick/role/tabIndex/onKeyDown and overrides them; validate the `Children.toArray(children)[0]/[1]` access (:80-81); link trigger to content id (:139) via `aria-controls`",
-          "done": false
+          "done": true
         },
         {
           "number": "1.7.5",
           "feature": "Add keyboard accessibility to `CodeBlock.tsx:197-203`",
           "description": "`CodeBlock.tsx:218-225` — Rendered/Source buttons need tablist/tab roles and aria-selected; icon-only Copy/Download (:228-233) and collapse trigger (:213) buttons need aria-label",
-          "done": false
+          "done": true
         },
         {
           "number": "1.7.6",
@@ -333,41 +328,41 @@
           "number": "1.8.1",
           "feature": "Dockerfile runs as root",
           "description": "Dockerfile runs as root — add non-root user (`addgroup/adduser`, `USER nextjs`)",
-          "done": false,
+          "done": true,
           "priority": "high"
         },
         {
           "number": "1.8.2",
           "feature": "Dockerfile: remove build tools (`python3`, `make`, `g++`, `linux-headers`) from runner stage (lines 45-52)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.8.3",
           "feature": "Dockerfile: pin Node.js to specific patch version (currently `node:25-alpine`)",
-          "done": false
+          "done": true
         },
         {
           "number": "1.8.4",
           "feature": "Dockerfile: add `HEALTHCHECK` instruction",
-          "done": false
+          "done": true
         },
         {
           "number": "1.8.5",
           "feature": "`.dockerignore`: add `.env`, `.env.local`, `.next`, `.storybook`, `storybook-static`",
-          "done": false,
+          "done": true,
           "description": "`.dockerignore`: add `.env`, `.env.local`, `.storybook`, `storybook-static` (`.next` already present)"
         },
         {
           "number": "1.8.6",
           "feature": "Fix `package.json:8` typo: `rimraf ./node_nodules` → `rimraf ./node_modules`; change `&` to `&&`",
-          "done": false,
+          "done": true,
           "description": "`package.json:17` clean-build: change `rimraf ./.next & rimraf ./node_modules` to use `&&` (typo already fixed)"
         },
         {
           "number": "1.8.7",
           "feature": "`env.sh` writes to `/app/.env.local` (absolute path)",
           "description": "`env.sh` — checks `/app/.env.local` but writes `/.env.local` (absolute, mismatched); unsafe quoting of `$value`; `cat /.env.local` dumps every env var (secrets) into the build log",
-          "done": false
+          "done": true
         },
         {
           "number": "1.8.9",
@@ -408,7 +403,7 @@
         {
           "number": "2.1.2",
           "feature": "Add unit tests for `SidebarContentManager.tsx` (context provider logic)",
-          "done": false
+          "done": true
         },
         {
           "number": "2.1.3",
@@ -418,17 +413,17 @@
         {
           "number": "2.1.5",
           "feature": "Add unit tests for `UserMenu.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "2.2.4",
           "feature": "Add stories for `UserMenu.tsx` (themes/appearances)",
-          "done": false
+          "done": true
         },
         {
           "number": "2.2.5",
           "feature": "Add stories for `Notifications/` components",
-          "done": false
+          "done": true
         },
         {
           "number": "2.2.6",
@@ -443,25 +438,19 @@
         {
           "number": "2.4.5",
           "feature": "Deduplicate `userInitials` function (defined in both `NavUser.tsx` and `UserMenu.tsx`)",
-          "done": false
+          "done": true
         },
         {
           "number": "2.4.8",
           "feature": "Fix hardcoded `\"Context Sidebar\"` string in `SidebarContentManager.tsx:16,39,47`",
           "description": "Fix hardcoded `\"Context Sidebar\"` string in `SidebarContentManager.tsx:17,40,48` (compared again in `SidebarContext.tsx:31`) — should be a configurable/named default",
-          "done": false
+          "done": true
         },
         {
           "number": "2.4.9",
           "feature": "Make `visibleOnPaths` array in `SidebarContext.tsx:16` configurable (hardcoded paths hurt downstream merge safety)",
-          "done": false,
+          "done": true,
           "description": "Make `visibleOnPaths` array in `SidebarContext.tsx:17` configurable (hardcoded paths hurt downstream merge safety)"
-        },
-        {
-          "number": "2.4.10",
-          "feature": "Add error boundaries for `SidebarContentManager.tsx:28,58`",
-          "description": "Add error boundaries (or a safe fallback) for `SidebarContentManager.tsx:26-31,56-62` — `useSidebarContent`/`useSidebarTitle` throw if used outside provider context",
-          "done": false
         },
         {
           "number": "2.5.3",
@@ -613,7 +602,7 @@
         {
           "number": "3.3.7",
           "feature": "Expand existing `AuthCard.stories.tsx` with interaction tests",
-          "done": false
+          "done": true
         },
         {
           "number": "3.4.1",
@@ -729,7 +718,7 @@
         {
           "number": "3.6.2",
           "feature": "Add `aria-invalid` and `aria-describedby` on form inputs when errors present",
-          "done": false,
+          "done": true,
           "description": "Add `aria-invalid` and `aria-describedby` on the remaining auth form fields with errors: Login password, management Profile and Account (Identify, Register and MfaChallenge are done)"
         },
         {
@@ -826,7 +815,7 @@
         {
           "number": "4.1.8",
           "feature": "Test edge cases: empty fields array, null values, special characters in field names",
-          "done": false
+          "done": true
         },
         {
           "number": "4.2.1",
@@ -856,7 +845,7 @@
         {
           "number": "4.2.6",
           "feature": "Add interaction tests to existing `TextField.stories.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "4.3.1",
@@ -921,50 +910,50 @@
         {
           "number": "4.4.6",
           "feature": "Add loading/disabled state on submit button during form submission",
-          "done": false
+          "done": true
         },
         {
           "number": "4.4.7",
           "feature": "Sanitize field name to valid HTML ID in `DynamicForm.tsx:149` (currently only replaces spaces, not `!@#$%` etc.)",
-          "done": false,
+          "done": true,
           "description": "Sanitize field name to a valid HTML id in `DynamicForm.tsx` (:178,181,191,214,218-219 only replace spaces, not `!@#$%` etc.; extract the repeated expression into one helper)"
         },
         {
           "number": "4.4.8",
           "feature": "Make hardcoded error messages configurable (`DynamicForm.tsx:100,107`) for i18n",
-          "done": false,
+          "done": true,
           "description": "Make `INVALID_VALUE`/`EXPECTED_NUMBER` messages (`DynamicForm.tsx:13-14`) configurable via props for i18n"
         },
         {
           "number": "4.5.1",
           "feature": "Add `aria-live=\"polite\"` or `role=\"alert\"` on error message containers in `Field.tsx:83-103`",
-          "done": false,
+          "done": true,
           "priority": "high",
           "description": "Add `aria-live=\"polite\"` or `role=\"alert\"` on the error message container in `Field.tsx:98-115`"
         },
         {
           "number": "4.5.2",
           "feature": "Add `aria-invalid=\"true\"` on inputs when error is present (`TextField.tsx:25-30`)",
-          "done": false,
+          "done": true,
           "priority": "high",
           "description": "Add `aria-invalid=\"true\"` on inputs when error is present (`TextField.tsx:39-43`)"
         },
         {
           "number": "4.5.3",
           "feature": "Add `aria-describedby` linking inputs to their error messages",
-          "done": false,
+          "done": true,
           "priority": "high"
         },
         {
           "number": "4.5.4",
           "feature": "Add accessible label for RadioField when used outside of Field wrapper",
-          "done": false,
+          "done": true,
           "description": "Add an accessible label for RadioField when used outside Field — `RadioField.tsx:20` `aria-labelledby={id}` self-references the group (Field supplies `${nameID}-label`); also the `hidden` radio inputs (:35) are not keyboard-focusable"
         },
         {
           "number": "4.5.5",
           "feature": "Add `<fieldset>` and `<legend>` for grouped form fields in `DynamicForm.tsx`",
-          "done": false
+          "done": true
         },
         {
           "number": "4.6.1",
@@ -985,13 +974,13 @@
         {
           "number": "5.1.1",
           "feature": "Add unit tests for `log.ts` (server vs client branch, verbosity levels, heading formatting)",
-          "done": false,
+          "done": true,
           "description": "Add unit tests for `client-framework/src/lib/log.ts` (server vs client branch, verbosity gating, heading formatting via `emit` :9-17)"
         },
         {
           "number": "5.1.2",
           "feature": "Test edge cases: empty logItems, missing verbosity config, undefined heading",
-          "done": false,
+          "done": true,
           "description": "Test edge cases of `client-framework/src/lib/log.ts`: empty logItems, missing/non-numeric verbosity env, null/empty heading"
         },
         {
@@ -1018,7 +1007,7 @@
         {
           "number": "5.4.2",
           "feature": "Extract magic number `8` (heading padding) in `log.ts:24,35` to named constant",
-          "done": false,
+          "done": true,
           "description": "Extract magic number `8` (heading padding) in `src/lib/log.ts:15` to a named constant"
         }
       ]
@@ -1055,23 +1044,23 @@
         {
           "number": "6.1.7",
           "feature": "Test edge cases: empty schemas, maxDepth exceeded, circular references via `z.lazy()`",
-          "done": false,
+          "done": true,
           "description": "Test edge cases: empty schemas and circular references via `z.lazy()` (maxDepth already covered at `index.test.ts:144`, `core.test.ts:114`)"
         },
         {
           "number": "6.1.8",
           "feature": "Test error conditions: invalid schema types, unsupported Zod features",
-          "done": false
+          "done": true
         },
         {
           "number": "6.1.9",
           "feature": "Test GraphQL reserved words as field names",
-          "done": false
+          "done": true
         },
         {
           "number": "6.1.10",
           "feature": "Test special characters and numeric-prefixed field names",
-          "done": false
+          "done": true
         },
         {
           "number": "6.3.1",
@@ -1103,22 +1092,22 @@
         {
           "number": "6.3.7",
           "feature": "Add support for `z.union()` / `z.discriminatedUnion()` → GraphQL union types",
-          "done": false
+          "done": true
         },
         {
           "number": "6.3.8",
           "feature": "Handle `z.literal()`, `z.default()`, `z.transform()` appropriately",
-          "done": false
+          "done": true
         },
         {
           "number": "6.3.9",
           "feature": "Handle missing Zod types: `z.date`, `z.bigint`, `z.map`, `z.set`, `z.tuple`, `z.intersection`, `z.promise`, `z.preprocess`, `z.pipeline`, `z.branded`, `z.catch`, `z.readonly`",
-          "done": false
+          "done": true
         },
         {
           "number": "6.3.10",
           "feature": "Unwrap `z.nan`, `z.void`, `z.undefined`, `z.never` gracefully (skip or error, don't silently produce invalid output)",
-          "done": false
+          "done": true
         },
         {
           "number": "6.4.1",
@@ -1128,14 +1117,14 @@
         {
           "number": "6.4.2",
           "feature": "Validate field names against GraphQL reserved words (`query`, `mutation`, `subscription`, `type`, `interface`, `enum`, `scalar`) and invalid characters (hyphens, spaces, leading digits)",
-          "done": false,
+          "done": true,
           "priority": "high"
         },
         {
           "number": "6.4.3",
           "feature": "`maxDepth` silently drops nested fields (`index.ts:143-145`)",
           "description": "`maxDepth` silently drops nested fields (`zod2gql/src/core.ts:173-175`, producing empty `{}` selections via `renderField` :157,:162) — should warn or error instead of producing silently invalid queries",
-          "done": false,
+          "done": true,
           "priority": "high"
         },
         {
@@ -1147,13 +1136,13 @@
         {
           "number": "6.4.5",
           "feature": "Deduplicate type inference logic between `index.ts:101-117` and `mutation.ts:23-32`",
-          "done": false,
+          "done": true,
           "description": "Deduplicate variable type inference: `zod2gql/src/mutation.ts:18-50` (`inferMutationType`/`formatMutationVariables`) vs `core.ts:93-133` (they also diverge on floats and arrays)"
         },
         {
           "number": "6.4.6",
           "feature": "Extract starting indent depth `2` (lines 210, 232, 254) to named constant",
-          "done": false,
+          "done": true,
           "description": "Extract starting indent depth `2` (processFields calls at `core.ts:199`, `query.ts:20`, `mutation.ts:57`, `subscription.ts:22`) to a named constant"
         },
         {
@@ -1169,7 +1158,7 @@
         {
           "number": "6.4.9",
           "feature": "Add cycle detection for circular references beyond the `maxDepth` safeguard",
-          "done": false
+          "done": true
         },
         {
           "number": "6.4.10",
