@@ -1,13 +1,14 @@
 {
   "strict": [
     "classMembers",
+    "duplicates",
     "enumMembers",
     "namespaceMembers",
     "optionalPeerDependencies",
     "unlisted"
   ],
   "totals": {
-    "total": 74
+    "total": 73
   },
   "counts": {
     "files": 7,
@@ -21,7 +22,7 @@
     "types": 11,
     "enumMembers": 0,
     "classMembers": 0,
-    "duplicates": 1,
+    "duplicates": 0,
     "namespaceMembers": 0
   }
 }

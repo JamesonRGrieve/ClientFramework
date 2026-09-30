@@ -6,9 +6,14 @@ import { GET } from './route';
 const HTTP_OK = 200;
 const HTTP_BAD_REQUEST = 400;
 const HTTP_UNAUTHORIZED = 401;
+const HTTP_FORBIDDEN = 403;
 
-const request = (session?: string): NextRequest => {
-  const req = new NextRequest('https://app.example.com/api/audio');
+const request = (session?: string, target?: string): NextRequest => {
+  const url = new URL('https://app.example.com/api/audio');
+  if (target !== undefined) {
+    url.searchParams.set('url', target);
+  }
+  const req = new NextRequest(url);
   if (session !== undefined) {
     req.cookies.set('zx_session', session);
   }
@@ -49,5 +54,30 @@ describe('GET /api/audio', () => {
       expect.stringMatching(/\/v1\/user$/),
       expect.objectContaining({ headers: { Cookie: 'zx_session=sess-1' } }),
     );
+  });
+
+  it.each([
+    'http://127.0.0.1/a.wav',
+    'http://10.1.2.3/a.wav',
+    'http://100.64.0.1/a.wav',
+    'http://172.31.255.255/a.wav',
+    'http://192.168.0.10/a.wav',
+    'http://169.254.169.254/latest/meta-data',
+    'http://0.1.2.3/a.wav',
+    'http://2130706433/a.wav',
+    'http://0x7f.1/a.wav',
+  ])('refuses to fetch the internal address %s', async (target) => {
+    const fetchMock = vi.fn(async () => Promise.resolve(new Response(null, { status: HTTP_OK })));
+    vi.stubGlobal('fetch', fetchMock);
+    expect((await GET(request('sess-1', target))).status).toBe(HTTP_FORBIDDEN);
+    // Only the session check reached the network.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('fetches a public address', async () => {
+    const fetchMock = vi.fn(async () => Promise.resolve(new Response('RIFF', { status: HTTP_OK })));
+    vi.stubGlobal('fetch', fetchMock);
+    expect((await GET(request('sess-1', 'https://cdn.example.org/a.wav'))).status).toBe(HTTP_OK);
+    expect(fetchMock).toHaveBeenLastCalledWith('https://cdn.example.org/a.wav', expect.anything());
   });
 });
