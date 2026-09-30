@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { configureApiClient, getApiClient } from '@/lib/api/client';
 import type { DeprecationInfo } from '@/lib/api/types';
 
-type Listener = (notices: ReadonlyArray<DeprecationInfo>) => void;
+type Listener = () => void;
 
 class DeprecationStore {
   private readonly notices = new Map<string, DeprecationInfo>();
   private readonly listeners = new Set<Listener>();
+  // Rebuilt only on change, so readers get the same array until there is something new.
+  private current: ReadonlyArray<DeprecationInfo> = [];
 
   record(info: DeprecationInfo): void {
     const existing = this.notices.get(info.resource);
@@ -27,21 +29,19 @@ class DeprecationStore {
     this.emit();
   }
 
-  snapshot(): ReadonlyArray<DeprecationInfo> {
-    return Array.from(this.notices.values());
-  }
+  readonly snapshot = (): ReadonlyArray<DeprecationInfo> => this.current;
 
-  subscribe(listener: Listener): () => void {
+  readonly subscribe = (listener: Listener): (() => void) => {
     this.listeners.add(listener);
     return (): void => {
       this.listeners.delete(listener);
     };
-  }
+  };
 
   private emit(): void {
-    const snapshot = this.snapshot();
+    this.current = Array.from(this.notices.values());
     for (const listener of this.listeners) {
-      listener(snapshot);
+      listener();
     }
   }
 }
@@ -64,13 +64,8 @@ export function useDeprecations(): {
   notices: ReadonlyArray<DeprecationInfo>;
   dismiss: (resource: string) => void;
 } {
-  const [notices, setNotices] = useState<ReadonlyArray<DeprecationInfo>>(() => store.snapshot());
-
-  useEffect(() => {
-    ensureWired();
-    setNotices(store.snapshot());
-    return store.subscribe(setNotices);
-  }, []);
+  useEffect(ensureWired, []);
+  const notices = useSyncExternalStore(store.subscribe, store.snapshot, store.snapshot);
 
   return {
     notices,

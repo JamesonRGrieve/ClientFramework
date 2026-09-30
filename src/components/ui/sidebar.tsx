@@ -333,72 +333,68 @@ const SidebarRail = React.forwardRef<
 >(({ side = 'left', minWidth = SIDEBAR_MIN_WIDTH_PX, maxWidth = SIDEBAR_MAX_WIDTH_PX, className, ...props }, ref) => {
   const { toggleSidebar, state, width, setWidth } = useSidebar(side);
   const [isResizing, setIsResizing] = React.useState(false);
-  const startXRef = React.useRef(0);
-  const startWidthRef = React.useRef(0);
   const lastWidthRef = React.useRef(width);
+  // The press or drag in progress; aborting it removes every document listener it added.
+  const gestureRef = React.useRef<AbortController | null>(null);
 
-  const handleResize = React.useCallback(
-    (e: MouseEvent) => {
-      if (!isResizing) {
-        return;
-      }
-      e.preventDefault();
-
-      const delta = side === 'left' ? e.pageX - startXRef.current : startXRef.current - e.pageX;
-      const newWidth = Math.min(Math.max(startWidthRef.current + delta, minWidth), maxWidth);
-      setWidth(newWidth);
-      lastWidthRef.current = newWidth;
-    },
-    [isResizing, maxWidth, minWidth, setWidth, side],
-  );
-
-  const handleResizeEnd = React.useCallback(() => {
-    setIsResizing(false);
-    document.body.style.userSelect = '';
-    document.removeEventListener('mousemove', handleResize);
-    document.removeEventListener('mouseup', handleResizeEnd);
-  }, [handleResize]);
+  React.useEffect(() => () => gestureRef.current?.abort(), []);
 
   const handleMouseDown = React.useCallback(
     (e: React.MouseEvent) => {
-      startXRef.current = e.pageX;
-      startWidthRef.current = state === 'expanded' ? width : lastWidthRef.current;
+      gestureRef.current?.abort();
+      const startX = e.pageX;
+      const startWidth = state === 'expanded' ? width : lastWidthRef.current;
+      const press = new AbortController();
+      gestureRef.current = press;
 
-      // Until the press resolves into a click or a drag; aborting removes both listeners.
-      const pressWatch = new AbortController();
+      const resize = (moveEvent: MouseEvent): void => {
+        moveEvent.preventDefault();
+        const delta = side === 'left' ? moveEvent.pageX - startX : startX - moveEvent.pageX;
+        const newWidth = Math.min(Math.max(startWidth + delta, minWidth), maxWidth);
+        setWidth(newWidth);
+        lastWidthRef.current = newWidth;
+      };
 
-      const handleInitialMouseUp = (upEvent: MouseEvent): void => {
-        if (Math.abs(upEvent.pageX - startXRef.current) < RAIL_DRAG_THRESHOLD_PX) {
-          if (state === 'expanded') {
-            lastWidthRef.current = width;
+      const startDrag = (): void => {
+        press.abort();
+        const drag = new AbortController();
+        gestureRef.current = drag;
+        drag.signal.addEventListener('abort', () => {
+          setIsResizing(false);
+          document.body.style.userSelect = '';
+        });
+        setIsResizing(true);
+        document.body.style.userSelect = 'none';
+        document.addEventListener('mousemove', resize, { signal: drag.signal });
+        document.addEventListener('mouseup', () => drag.abort(), { signal: drag.signal });
+      };
+
+      // Until the press resolves into a click (released in place) or a drag (moved past the threshold).
+      document.addEventListener(
+        'mouseup',
+        (upEvent: MouseEvent): void => {
+          press.abort();
+          if (Math.abs(upEvent.pageX - startX) < RAIL_DRAG_THRESHOLD_PX) {
+            if (state === 'expanded') {
+              lastWidthRef.current = width;
+            }
+            toggleSidebar();
           }
-          toggleSidebar();
-        }
-        pressWatch.abort();
-      };
-
-      const handleInitialMouseMove = (moveEvent: MouseEvent): void => {
-        if (Math.abs(moveEvent.pageX - startXRef.current) > RAIL_DRAG_THRESHOLD_PX) {
-          setIsResizing(true);
-          document.body.style.userSelect = 'none';
-          document.addEventListener('mousemove', handleResize);
-          document.addEventListener('mouseup', handleResizeEnd);
-          pressWatch.abort();
-        }
-      };
-
-      document.addEventListener('mouseup', handleInitialMouseUp, { signal: pressWatch.signal });
-      document.addEventListener('mousemove', handleInitialMouseMove, { signal: pressWatch.signal });
+        },
+        { signal: press.signal },
+      );
+      document.addEventListener(
+        'mousemove',
+        (moveEvent: MouseEvent): void => {
+          if (Math.abs(moveEvent.pageX - startX) > RAIL_DRAG_THRESHOLD_PX) {
+            startDrag();
+          }
+        },
+        { signal: press.signal },
+      );
     },
-    [handleResize, handleResizeEnd, state, toggleSidebar, width],
+    [maxWidth, minWidth, setWidth, side, state, toggleSidebar, width],
   );
-
-  React.useEffect(() => {
-    return () => {
-      document.removeEventListener('mousemove', handleResize);
-      document.removeEventListener('mouseup', handleResizeEnd);
-    };
-  }, [handleResize, handleResizeEnd]);
 
   return (
     <button
@@ -694,9 +690,8 @@ const SidebarMenuSkeleton = React.forwardRef<
     showIcon?: boolean;
   }
 >(({ className, showIcon = false, ...props }, ref) => {
-  const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * SKELETON_WIDTH_SPREAD_PCT) + SKELETON_MIN_WIDTH_PCT}%`;
-  }, []);
+  // Chosen once per mount, so the placeholder keeps its width across re-renders.
+  const [width] = React.useState(() => `${Math.floor(Math.random() * SKELETON_WIDTH_SPREAD_PCT) + SKELETON_MIN_WIDTH_PCT}%`);
 
   return (
     <div

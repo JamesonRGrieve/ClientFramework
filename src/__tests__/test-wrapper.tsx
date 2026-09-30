@@ -25,4 +25,11 @@ export function TestWrapper({ children, config }: { children: ReactNode; config?
   );
 }
 
+/** A `wrapper` for renderHook that renders under `config` instead of the default test config. */
+export function wrapperWith(config: Partial<ZephyrexConfig>): (props: { children: ReactNode }) => ReactNode {
+  return function ConfiguredTestWrapper({ children }: { children: ReactNode }) {
+    return <TestWrapper config={config}>{children}</TestWrapper>;
+  };
+}
+
 export { testConfig };

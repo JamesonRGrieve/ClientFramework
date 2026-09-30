@@ -4,17 +4,20 @@
 import { safeRedirectPath } from '@zephyrex/auth/lib/redirect';
 import { getCookie } from 'cookies-next';
 import Link from 'next/link.js';
-import { useEffect, useState } from 'react';
 import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { SidebarInset } from '@/components/ui/sidebar';
+import { useBrowserValue } from '@/hooks/useBrowserValue';
+
+const HOME = '/';
+
+const interruptedPage = (): string => {
+  const interrupted = getCookie('href');
+  return safeRedirectPath(typeof interrupted === 'string' ? interrupted : '');
+};
 
 /** The auth middleware sends here when the API is down, remembering the page in the `href` cookie. */
 export default function BadGateway() {
-  const [link, setLink] = useState('/');
-  useEffect(() => {
-    const interrupted = getCookie('href');
-    setLink(safeRedirectPath(typeof interrupted === 'string' ? interrupted : ''));
-  }, []);
+  const link = useBrowserValue(interruptedPage, HOME);
   return (
     <SidebarInset>
       <SidebarPage title=''>

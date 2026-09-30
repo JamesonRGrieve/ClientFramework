@@ -1,30 +1,82 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Modern ESLint flat config (ESLint v9+).
+// ESLint 10 flat config.
 //
-// Migrated from the legacy `.eslintrc.json` + `.eslintignore` + `next lint`
-// setup. The full legacy ruleset is preserved verbatim and bridged into flat
-// config via `FlatCompat` (the officially supported migration path for
-// shareable configs that have not yet shipped native flat presets — here
-// `next/core-web-vitals`, `plugin:storybook/recommended`,
-// `plugin:@vitest/legacy-recommended`, etc.).
-//
-// Lint scope mirrors the old behaviour: only first-party source under `src/`
-// is linted; submodules, the Next app-router boilerplate, build output and
-// tooling files are ignored. Type-aware rules use the modern
-// `parserOptions.projectService` (TS-ESLint v8) so out-of-project files no
-// longer crash the run the way a hard-coded `project` path would.
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { FlatCompat } from '@eslint/eslintrc';
+// The preset rules are merged in a fixed order (later presets win), then this
+// repo's own rules are applied on top. Build output, the Next app-router
+// boilerplate and tooling files are ignored. Type-aware rules use
+// `parserOptions.projectService`, so out-of-project files don't crash the run
+// the way a hard-coded `project` path would.
+import eslintComments from '@eslint-community/eslint-plugin-eslint-comments';
+import eslintCommentsConfigs from '@eslint-community/eslint-plugin-eslint-comments/configs';
+import { fixupPluginRules } from '@eslint/compat';
 import js from '@eslint/js';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
+import vitest from '@vitest/eslint-plugin';
+import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
+import prettierConfig from 'eslint-config-prettier';
+import importPluginLegacy from 'eslint-plugin-import';
+import jsxA11yLegacy from 'eslint-plugin-jsx-a11y';
+import optimizeRegexLegacy from 'eslint-plugin-optimize-regex';
+import prettierPlugin from 'eslint-plugin-prettier';
+import prettierRecommended from 'eslint-plugin-prettier/recommended';
+import promise from 'eslint-plugin-promise';
+import reactPluginLegacy from 'eslint-plugin-react';
+import reactHooks from 'eslint-plugin-react-hooks';
+import security from 'eslint-plugin-security';
+import sonarjs from 'eslint-plugin-sonarjs';
+import storybook from 'eslint-plugin-storybook';
+import unusedImports from 'eslint-plugin-unused-imports';
 
-const baseDirectory = dirname(fileURLToPath(import.meta.url));
+// These plugins have no ESLint 10 release yet; the official compat shim restores the
+// context APIs (getFilename, getScope, ...) their rules still call.
+const reactPlugin = fixupPluginRules(reactPluginLegacy);
+const jsxA11y = fixupPluginRules(jsxA11yLegacy);
+const importPlugin = fixupPluginRules(importPluginLegacy);
+const optimizeRegex = fixupPluginRules(optimizeRegexLegacy);
 
-const compat = new FlatCompat({
-  baseDirectory,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
-});
+// The files eslint-config-next lints.
+const SOURCE_FILES = ['**/*.{js,jsx,mjs,ts,tsx,mts,cts}'];
+
+// eslintrc merged an entry that sets only a severity into an earlier entry with options, keeping
+// the options (ESLint still does so across flat config objects); a spread replaces the entry
+// whole. Merge rule sets the eslintrc way so preset options survive a severity override.
+const mergeRules = (...ruleSets) => {
+  const merged = {};
+  for (const rules of ruleSets) {
+    for (const [id, value] of Object.entries(rules)) {
+      const previous = merged[id];
+      const severityOnly = !Array.isArray(value) || value.length === 1;
+      const severity = Array.isArray(value) ? value[0] : value;
+      merged[id] = severityOnly && Array.isArray(previous) ? [severity, ...previous.slice(1)] : value;
+    }
+  }
+  return merged;
+};
+
+const rulesOf = (configs) => mergeRules(...configs.map((config) => config.rules ?? {}));
+
+// eslint-config-next registers the react, import and jsx-a11y plugins without the ESLint 10
+// shim, so only its rules, settings, globals and its own @next/next plugin are taken from it.
+const nextBase = nextCoreWebVitals.find((config) => config.name === 'next');
+const importTypescript = importPluginLegacy.configs.typescript;
+
+const presetRules = mergeRules(
+  rulesOf(nextCoreWebVitals),
+  prettierConfig.rules,
+  js.configs.recommended.rules,
+  rulesOf(tsPlugin.configs['flat/recommended']),
+  eslintCommentsConfigs.recommended.rules,
+  importPluginLegacy.configs.errors.rules,
+  importTypescript.rules,
+  importPluginLegacy.configs.warnings.rules,
+  jsxA11yLegacy.configs.recommended.rules,
+  optimizeRegexLegacy.configs.recommended.rules,
+  prettierRecommended.rules,
+  promise.configs.recommended.rules,
+  reactHooks.configs.recommended.rules,
+  reactPluginLegacy.configs.recommended.rules,
+);
 
 export default [
   {
@@ -52,54 +104,45 @@ export default [
       '*.config.mjs',
     ],
   },
-  ...compat.config({
-    parser: '@typescript-eslint/parser',
-    parserOptions: {
-      projectService: true,
-      tsconfigRootDir: baseDirectory,
-    },
-    extends: [
-      'next/core-web-vitals',
-      'prettier',
-      'eslint:recommended',
-      'plugin:@typescript-eslint/recommended',
-      'plugin:eslint-comments/recommended',
-      'plugin:import/errors',
-      'plugin:import/typescript',
-      'plugin:import/warnings',
-      'plugin:jsx-a11y/recommended',
-      'plugin:optimize-regex/recommended',
-      'plugin:prettier/recommended',
-      'plugin:promise/recommended',
-      'plugin:react-hooks/recommended',
-      'plugin:react/recommended',
-      'plugin:storybook/recommended',
-    ],
-    plugins: [
-      '@typescript-eslint',
-      'eslint-comments',
-      'import',
-      'jsx-a11y',
-      'optimize-regex',
-      'prettier',
-      'promise',
-      'react-hooks',
-      'react',
-      'security',
-      'sonarjs',
-      'unused-imports',
-    ],
-    settings: {
-      react: {
-        version: 'detect',
+  {
+    files: SOURCE_FILES,
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaFeatures: { jsx: true },
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
       },
+      globals: nextBase.languageOptions.globals,
     },
-    rules: {
+    plugins: {
+      '@eslint-community/eslint-comments': eslintComments,
+      '@next/next': nextBase.plugins['@next/next'],
+      '@typescript-eslint': tsPlugin,
+      import: importPlugin,
+      'jsx-a11y': jsxA11y,
+      'optimize-regex': optimizeRegex,
+      prettier: prettierPlugin,
+      promise,
+      react: reactPlugin,
+      'react-hooks': reactHooks,
+      security,
+      sonarjs,
+      'unused-imports': unusedImports,
+    },
+    settings: {
+      ...nextBase.settings,
+      ...importTypescript.settings,
+      'import/parsers': { ...nextBase.settings['import/parsers'], ...importTypescript.settings['import/parsers'] },
+      'import/resolver': { ...nextBase.settings['import/resolver'], ...importTypescript.settings['import/resolver'] },
+    },
+    rules: mergeRules(presetRules, {
       '@typescript-eslint/no-this-alias': 'warn',
       '@typescript-eslint/prefer-for-of': 'warn',
       'import/no-named-as-default-member': 'warn',
       'import/no-named-as-default': 'warn',
-      'jsx-a11y/aria-role': 'warn',
+      // A `role` prop on a component (a message's author, a required team role) is not an ARIA role.
+      'jsx-a11y/aria-role': ['warn', { ignoreNonDOM: true }],
       'jsx-a11y/no-redundant-roles': 'warn',
       'jsx-a11y/click-events-have-key-events': 'warn',
       'jsx-a11y/heading-has-content': 'warn',
@@ -143,7 +186,7 @@ export default [
       '@typescript-eslint/no-unused-expressions': 'warn',
       '@typescript-eslint/no-var-requires': 'warn',
       eqeqeq: ['warn', 'always'],
-      'eslint-comments/no-unused-disable': 'warn',
+      '@eslint-community/eslint-comments/no-unused-disable': 'warn',
       'import/newline-after-import': 'warn',
       'import/no-absolute-path': 'warn',
       'import/no-dynamic-require': 'warn',
@@ -336,6 +379,9 @@ export default [
             'document',
             // Testing Library's canonical query object, not window.screen.
             'screen',
+            // Next.js requires a page or layout's viewport export to be named `viewport`, typed `Viewport`.
+            'viewport',
+            'Viewport',
             'innerWidth',
             'innerHeight',
             'source',
@@ -456,84 +502,83 @@ export default [
       ],
       'jsx-a11y/no-autofocus': 'warn',
       'react/no-access-state-in-setstate': 'warn',
+    }),
+  },
+  ...storybook.configs['flat/recommended'],
+  {
+    files: ['**/*.tsx'],
+    rules: {
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+      // `promise-function-async`'s autofix rewrites functions to `async`,
+      // which breaks React render/children/component functions — they must
+      // return elements synchronously (an async one returns a Promise and
+      // renders nothing). Keep it off for component files.
+      '@typescript-eslint/promise-function-async': 'off',
     },
-    overrides: [
-      {
-        files: ['*.tsx'],
-        rules: {
-          '@typescript-eslint/explicit-function-return-type': 'off',
-          '@typescript-eslint/explicit-module-boundary-types': 'off',
-          // `promise-function-async`'s autofix rewrites functions to `async`,
-          // which breaks React render/children/component functions — they must
-          // return elements synchronously (an async one returns a Promise and
-          // renders nothing). Keep it off for component files.
-          '@typescript-eslint/promise-function-async': 'off',
+  },
+  {
+    // Extension entry points register synchronous render factories
+    // (`component: () => X({})`, `mfaSetup`/`mfaVerify`); the same
+    // `promise-function-async` autofix would break them the same way.
+    files: ['src/lib/zephyrex/extensions/**/*.ts'],
+    rules: {
+      '@typescript-eslint/promise-function-async': 'off',
+    },
+  },
+  {
+    // Application code logs through src/lib/log.ts, the one place that writes to the console.
+    // Tests may stub console methods to silence expected errors.
+    files: ['src/**/*.ts', 'src/**/*.tsx'],
+    ignores: ['src/lib/log.ts', '**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      'no-console': 'error',
+    },
+  },
+  {
+    // Application code names its numbers; tests and stories use literal fixtures.
+    files: ['src/**/*.ts', 'src/**/*.tsx'],
+    ignores: ['**/*.test.ts', '**/*.test.tsx', '**/*.stories.tsx', 'src/__tests__/**'],
+    rules: {
+      '@typescript-eslint/no-magic-numbers': [
+        'error',
+        {
+          ignore: [-1, 0, 1, 2],
+          ignoreArrayIndexes: true,
+          ignoreDefaultValues: true,
+          ignoreEnums: true,
+          ignoreNumericLiteralTypes: true,
+          ignoreReadonlyClassProperties: true,
+          ignoreTypeIndexes: true,
         },
-      },
-      {
-        // Extension entry points register synchronous render factories
-        // (`component: () => X({})`, `mfaSetup`/`mfaVerify`); the same
-        // `promise-function-async` autofix would break them the same way.
-        files: ['src/lib/zephyrex/extensions/**/*.ts'],
-        rules: {
-          '@typescript-eslint/promise-function-async': 'off',
-        },
-      },
-      {
-        // Application code logs through src/lib/log.ts, the one place that writes to the console.
-        // Tests may stub console methods to silence expected errors.
-        files: ['src/**/*.ts', 'src/**/*.tsx'],
-        excludedFiles: ['src/lib/log.ts', '**/*.test.ts', '**/*.test.tsx'],
-        rules: {
-          'no-console': 'error',
-        },
-      },
-      {
-        // Application code names its numbers; tests and stories use literal fixtures.
-        files: ['src/**/*.ts', 'src/**/*.tsx'],
-        excludedFiles: ['**/*.test.ts', '**/*.test.tsx', '**/*.stories.tsx', 'src/__tests__/**'],
-        rules: {
-          '@typescript-eslint/no-magic-numbers': [
-            'error',
-            {
-              ignore: [-1, 0, 1, 2],
-              ignoreArrayIndexes: true,
-              ignoreDefaultValues: true,
-              ignoreEnums: true,
-              ignoreNumericLiteralTypes: true,
-              ignoreReadonlyClassProperties: true,
-              ignoreTypeIndexes: true,
-            },
-          ],
-        },
-      },
-      {
-        files: [
-          '**/*.test.ts',
-          '**/*.test.tsx',
-          'src/__tests__/**/*.ts',
-          'src/__tests__/**/*.tsx',
-          'tests/**/*.ts',
-          'tests/**/*.tsx',
-        ],
-        plugins: ['@vitest'],
-        extends: ['plugin:@vitest/legacy-recommended'],
-        rules: {
-          '@vitest/no-focused-tests': 'error',
-          '@vitest/no-disabled-tests': 'error',
-          '@vitest/no-identical-title': 'error',
-          '@vitest/consistent-test-it': ['error', { fn: 'it', withinDescribe: 'it' }],
-          // Vitest's `expect(value, message)` takes an optional 2nd assertion
-          // message (used across the security suite for actionable failures).
-          '@vitest/valid-expect': ['error', { maxArgs: 2 }],
-          // Parametrized security suites use dynamic `describe(routePath, ...)`
-          // titles; don't require a string literal for the describe name.
-          '@vitest/valid-title': ['error', { ignoreTypeOfDescribeName: true }],
-          '@vitest/no-conditional-tests': 'warn',
-          '@vitest/no-conditional-in-test': 'warn',
-          '@vitest/no-conditional-expect': 'error',
-        },
-      },
+      ],
+    },
+  },
+  {
+    files: [
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      'src/__tests__/**/*.ts',
+      'src/__tests__/**/*.tsx',
+      'tests/**/*.ts',
+      'tests/**/*.tsx',
     ],
-  }),
+    plugins: { '@vitest': vitest },
+    rules: {
+      ...vitest.configs['legacy-recommended'].rules,
+      '@vitest/no-focused-tests': 'error',
+      '@vitest/no-disabled-tests': 'error',
+      '@vitest/no-identical-title': 'error',
+      '@vitest/consistent-test-it': ['error', { fn: 'it', withinDescribe: 'it' }],
+      // Vitest's `expect(value, message)` takes an optional 2nd assertion
+      // message (used across the security suite for actionable failures).
+      '@vitest/valid-expect': ['error', { maxArgs: 2 }],
+      // Parametrized security suites use dynamic `describe(routePath, ...)`
+      // titles; don't require a string literal for the describe name.
+      '@vitest/valid-title': ['error', { ignoreTypeOfDescribeName: true }],
+      '@vitest/no-conditional-tests': 'warn',
+      '@vitest/no-conditional-in-test': 'warn',
+      '@vitest/no-conditional-expect': 'error',
+    },
+  },
 ];

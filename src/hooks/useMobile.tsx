@@ -2,19 +2,19 @@
 import * as React from 'react';
 
 const MOBILE_BREAKPOINT = 768;
+const MOBILE_QUERY = `(max-width: ${MOBILE_BREAKPOINT - 1}px)`;
 
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined);
+const subscribe = (onChange: () => void): (() => void) => {
+  const mql = window.matchMedia(MOBILE_QUERY);
+  mql.addEventListener('change', onChange);
+  return () => mql.removeEventListener('change', onChange);
+};
 
-  React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    };
-    mql.addEventListener('change', onChange);
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    return () => mql.removeEventListener('change', onChange);
-  }, []);
+const isMobileViewport = (): boolean => window.innerWidth < MOBILE_BREAKPOINT;
 
-  return !!isMobile;
+/** The server has no viewport, so it renders the desktop layout. */
+const isMobileOnServer = (): boolean => false;
+
+export function useIsMobile(): boolean {
+  return React.useSyncExternalStore(subscribe, isMobileViewport, isMobileOnServer);
 }

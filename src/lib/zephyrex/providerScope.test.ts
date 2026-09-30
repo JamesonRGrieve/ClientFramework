@@ -12,7 +12,7 @@ import {
 const OPENAI = 'p-openai';
 const ANTHROPIC = 'p-anthropic';
 const SMTP = 'p-smtp';
-const AI = 'x-ai';
+const AI_EXTENSION = 'x-ai';
 const EMAIL = 'x-email';
 
 const providers = [
@@ -22,8 +22,8 @@ const providers = [
 ];
 
 const links = [
-  { provider_id: OPENAI, extension_id: AI },
-  { provider_id: ANTHROPIC, extension_id: AI },
+  { provider_id: OPENAI, extension_id: AI_EXTENSION },
+  { provider_id: ANTHROPIC, extension_id: AI_EXTENSION },
   { provider_id: SMTP, extension_id: EMAIL },
 ];
 
@@ -40,7 +40,7 @@ const ids = (items: readonly { id: string }[]): string[] => items.map((item) => 
 
 describe('providersInExtension', () => {
   it('keeps only providers linked to the extension', () => {
-    expect(ids(providersInExtension(providers, links, AI))).toEqual([OPENAI, ANTHROPIC]);
+    expect(ids(providersInExtension(providers, links, AI_EXTENSION))).toEqual([OPENAI, ANTHROPIC]);
   });
 
   it('keeps every provider when no extension is chosen', () => {
@@ -60,31 +60,31 @@ describe('scopeProviderInstances', () => {
   });
 
   it('scopes instances to the extension’s providers', () => {
-    const scoped = scopeProviderInstances(catalog, { extensionId: AI, providerId: null });
+    const scoped = scopeProviderInstances(catalog, { extensionId: AI_EXTENSION, providerId: null });
     expect(ids(scoped.providers)).toEqual([OPENAI, ANTHROPIC]);
     expect(ids(scoped.instances)).toEqual(['i-gpt', 'i-claude']);
   });
 
   it('then to the chosen provider', () => {
-    const scoped = scopeProviderInstances(catalog, { extensionId: AI, providerId: ANTHROPIC });
+    const scoped = scopeProviderInstances(catalog, { extensionId: AI_EXTENSION, providerId: ANTHROPIC });
     expect(ids(scoped.instances)).toEqual(['i-claude']);
   });
 
   it('selects nothing for a provider outside the extension', () => {
-    expect(scopeProviderInstances(catalog, { extensionId: AI, providerId: SMTP }).instances).toEqual([]);
+    expect(scopeProviderInstances(catalog, { extensionId: AI_EXTENSION, providerId: SMTP }).instances).toEqual([]);
   });
 });
 
 describe('selectExtension', () => {
   it('keeps the chosen provider while the new extension allows it', () => {
-    expect(selectExtension({ extensionId: null, providerId: OPENAI }, AI, providers, links)).toEqual({
-      extensionId: AI,
+    expect(selectExtension({ extensionId: null, providerId: OPENAI }, AI_EXTENSION, providers, links)).toEqual({
+      extensionId: AI_EXTENSION,
       providerId: OPENAI,
     });
   });
 
   it('drops a provider the new extension does not allow', () => {
-    expect(selectExtension({ extensionId: AI, providerId: OPENAI }, EMAIL, providers, links)).toEqual({
+    expect(selectExtension({ extensionId: AI_EXTENSION, providerId: OPENAI }, EMAIL, providers, links)).toEqual({
       extensionId: EMAIL,
       providerId: null,
     });

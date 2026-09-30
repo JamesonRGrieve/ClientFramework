@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { type ReactNode, useMemo } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { DataTable } from '../data-table';
@@ -31,10 +31,11 @@ export default function MarkdownBlock({ content, role, createdAt }: MarkdownBloc
       : ''; // Remove any newlines or backslashes at the beginning of the message.
   };
 
+  // Names downloads after the message's time, or when it was first shown if it has none.
+  const [shownAt] = useState(() => Date.now().toString());
   const fileName = useMemo(
-    () =>
-      `${role ?? ''}-${(createdAt ?? Date.now().toString()).replace(/ /g, '-').replace(/:/g, '-').replace(/,/g, '').split('.')[0]}`,
-    [role, createdAt],
+    () => `${role ?? ''}-${(createdAt ?? shownAt).replace(/ /g, '-').replace(/:/g, '-').replace(/,/g, '').split('.')[0]}`,
+    [role, createdAt, shownAt],
   );
 
   function parseMarkdownTable(markdown: string) {

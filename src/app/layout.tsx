@@ -30,9 +30,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover' };
 
 export default async function RootLayout({ children }: { children: ReactNode }): Promise<ReactNode> {
-  const cookieStore = await cookies();
-  const theme = cookieStore.get('theme')?.value ?? config.app.defaultTheme ?? 'dark';
-  const appearance = cookieStore.get('appearance')?.value ?? '';
+  const requestCookies = await cookies();
+  const theme = requestCookies.get('theme')?.value ?? config.app.defaultTheme ?? 'dark';
+  const appearance = requestCookies.get('appearance')?.value ?? '';
   const htmlThemeClass = theme === 'dark' || theme === 'colorblind' || theme === 'colorblind-dark' ? theme : '';
 
   if (config.auth?.landingOnly === true) {

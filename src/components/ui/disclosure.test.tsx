@@ -63,6 +63,29 @@ describe('Disclosure', () => {
     expect(trigger).toHaveAttribute(EXPANDED, 'true');
   });
 
+  it('follows a new open from its parent, replacing what the reader toggled', async () => {
+    const user = userEvent.setup();
+    const disclosure = (open: boolean) => (
+      <Disclosure open={open}>
+        <DisclosureTrigger>
+          <span>More</span>
+        </DisclosureTrigger>
+        <DisclosureContent>Hidden text</DisclosureContent>
+      </Disclosure>
+    );
+    const { rerender } = render(disclosure(false));
+    const trigger = screen.getByRole('button', { name: 'More' });
+    await user.click(trigger);
+    expect(trigger).toHaveAttribute(EXPANDED, 'true');
+
+    rerender(disclosure(false));
+    expect(trigger).toHaveAttribute(EXPANDED, 'true');
+    rerender(disclosure(true));
+    expect(trigger).toHaveAttribute(EXPANDED, 'true');
+    rerender(disclosure(false));
+    expect(trigger).toHaveAttribute(EXPANDED, 'false');
+  });
+
   it('refuses anything but a trigger and a content', () => {
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     expect(() => render(<Disclosure>content</Disclosure>)).toThrow(/exactly two children/);

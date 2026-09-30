@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { AnimatePresence, motion, MotionConfig, type Transition, type Variant, type Variants } from 'motion/react';
 import * as React from 'react';
-import { createContext, useContext, useEffect, useId, useState } from 'react';
+import { createContext, useContext, useId, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 type DisclosureContextType = {
@@ -24,11 +24,14 @@ type DisclosureProviderProps = {
 
 function DisclosureProvider({ children, open: openProp, onOpenChange, variants }: DisclosureProviderProps) {
   const [internalOpenValue, setInternalOpenValue] = useState<boolean>(openProp);
+  const [previousOpenProp, setPreviousOpenProp] = useState<boolean>(openProp);
   const contentId = useId();
 
-  useEffect(() => {
+  // A new `open` from the parent replaces whatever the reader toggled to.
+  if (openProp !== previousOpenProp) {
+    setPreviousOpenProp(openProp);
     setInternalOpenValue(openProp);
-  }, [openProp]);
+  }
 
   const toggle = () => {
     const newOpen = !internalOpenValue;
