@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { getCookie } from 'cookies-next';
 import { ChevronDown, Copy, Download } from 'lucide-react';
-import { type ReactNode, Suspense, lazy, useRef, useState } from 'react';
-import { Latex } from './Latex';
+import { type KeyboardEvent as ReactKeyboardEvent, type ReactNode, Suspense, lazy, useId, useRef, useState } from 'react';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { a11yDark, a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hljs/index.js';
 import { DataTable } from '../data-table';
 import { createColumns } from '../data-table/data-table-columns';
+import { Latex } from './Latex';
 import Mermaid from './Code/Mermaid';
 import { parseXSVData } from './Code/ParseXSVData';
 import TabPanel from './TabPanel';
@@ -16,6 +16,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 // Lazy import to break the MarkdownBlock <-> CodeBlock import cycle: a code
 // fence may itself contain markdown, and markdown renders code fences.
 const MarkdownBlock = lazy(async () => import('./MarkdownBlock'));
+
+/** The views a code block with a renderer switches between, in tab order. */
+const VIEW_TABS = ['Rendered', 'Source'] as const;
 
 const fileExtensions: Record<string, string> = {
   '': 'txt',
@@ -155,6 +158,22 @@ export default function CodeBlock({
   const codeBlockRef = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState(0);
   const [isOpen, setIsOpen] = useState(true);
+  const blockId = useId();
+  const tabId = (index: number): string => `${blockId}-tab-${index}`;
+  const panelId = (index: number): string => `${blockId}-panel-${index}`;
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  // Arrow keys move between the tabs and select the one reached, as a tablist should.
+  const moveTab = (event: ReactKeyboardEvent<HTMLButtonElement>): void => {
+    const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+    if (step === 0) {
+      return;
+    }
+    event.preventDefault();
+    const next = (tab + step + VIEW_TABS.length) % VIEW_TABS.length;
+    setTab(next);
+    tabRefs.current[next]?.focus();
+  };
 
   const rawChildren = children ?? '';
 
@@ -210,26 +229,47 @@ export default function CodeBlock({
       className={`my-2 overflow-hidden border rounded-lg bg-background transition-all duration-300 ease-in-out ${isOpen ? 'w-full' : 'inline-block'}`}
     >
       <div className='relative flex items-center justify-between pr-4 border-b-2 border-border'>
-        <CollapsibleTrigger className='p-2 hover:bg-muted'>
-          <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`} />
+        <CollapsibleTrigger aria-label={isOpen ? 'Collapse code' : 'Expand code'} className='p-2 hover:bg-muted'>
+          <ChevronDown
+            aria-hidden
+            className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`}
+          />
         </CollapsibleTrigger>
 
         {renderer !== undefined && (
-          <div className='flex'>
-            <button type='button' className={`px-4 py-2 ${tab === 0 ? 'bg-muted' : ''}`} onClick={() => setTab(0)}>
-              Rendered
-            </button>
-            <button type='button' className={`px-4 py-2 ${tab === 1 ? 'bg-muted' : ''}`} onClick={() => setTab(1)}>
-              Source
-            </button>
+          <div role='tablist' aria-label='View' className='flex'>
+            {VIEW_TABS.map((label, index) => (
+              <button
+                key={label}
+                ref={(element) => {
+                  tabRefs.current[index] = element;
+                }}
+                type='button'
+                role='tab'
+                id={tabId(index)}
+                aria-selected={tab === index}
+                aria-controls={panelId(index)}
+                tabIndex={tab === index ? 0 : -1}
+                className={`px-4 py-2 ${tab === index ? 'bg-muted' : ''}`}
+                onClick={() => setTab(index)}
+                onKeyDown={moveTab}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         )}
         <div className='flex items-center'>
-          <button type='button' onClick={copyCode} className='p-2 rounded-full hover:bg-muted'>
-            <Copy className='w-5 h-5' />
+          <button type='button' aria-label='Copy code' onClick={copyCode} className='p-2 rounded-full hover:bg-muted'>
+            <Copy aria-hidden className='w-5 h-5' />
           </button>
-          <button type='button' onClick={downloadCode} className='p-2 rounded-full hover:bg-muted'>
-            <Download className='w-5 h-5' />
+          <button
+            type='button'
+            aria-label={`Download ${fileNameWithExtension}`}
+            onClick={downloadCode}
+            className='p-2 rounded-full hover:bg-muted'
+          >
+            <Download aria-hidden className='w-5 h-5' />
           </button>
           <span className='ml-2 text-sm'>
             {fileNameWithExtension} | {resolvedLanguage}
@@ -239,12 +279,17 @@ export default function CodeBlock({
 
       <CollapsibleContent className='transition-all duration-300 ease-in-out'>
         {renderer !== undefined && (
-          <TabPanel value={tab} index={0}>
+          <TabPanel value={tab} index={0} id={panelId(0)} labelledBy={tabId(0)}>
             <div className='code-container'>{renderer(codeContent, _setLoading)}</div>
           </TabPanel>
         )}
 
-        <TabPanel value={tab} index={renderer !== undefined ? 1 : 0}>
+        <TabPanel
+          value={tab}
+          index={renderer !== undefined ? 1 : 0}
+          id={panelId(1)}
+          labelledBy={renderer !== undefined ? tabId(1) : undefined}
+        >
           <div className='code-container' ref={codeBlockRef}>
             {resolvedLanguage.toLowerCase() in fileExtensions ? (
               <SyntaxHighlighter

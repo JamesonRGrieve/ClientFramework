@@ -6,21 +6,20 @@ interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
   value: number;
+  id: string;
+  /** The id of the tab that names this panel; without one the panel stands alone, not as a tab panel. */
+  labelledBy?: string | undefined;
   className?: string;
   ref?: React.Ref<HTMLDivElement>;
 }
-export default function TabPanel(props: TabPanelProps): ReactNode {
-  const { children, value, index, ...other } = props;
-
+export default function TabPanel({ children, value, index, id, labelledBy, className, ref }: TabPanelProps): ReactNode {
   return (
     <div
-      role='tabpanel'
+      {...(labelledBy === undefined ? {} : { role: 'tabpanel', 'aria-labelledby': labelledBy })}
       hidden={value !== index}
-      className={props.className}
-      ref={props.ref}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
+      className={className}
+      ref={ref}
+      id={id}
     >
       {value === index && <div>{children}</div>}
     </div>
