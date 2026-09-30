@@ -207,7 +207,7 @@
     "remark-gfm": "^4.0.1",
     "rimraf": "^6.1.3",
     "serwist": "^9.5.12",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.5",
     "swr": "^2.5.1",
     "tailwind-merge": "^3.7.0",
     "vaul": "^1.1.2"
