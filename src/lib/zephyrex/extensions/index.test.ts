@@ -35,7 +35,6 @@ const SERVER_EXTENSIONS = [
   'meta_sdk_ts',
   'metadata',
   'observability',
-  'payment',
   'privacy',
   'quota',
   'secret_vault',

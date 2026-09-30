@@ -32,7 +32,6 @@ import { metaSdkPyExtension } from './meta_sdk_py';
 import { metaSdkRsExtension } from './meta_sdk_rs';
 import { metaSdkTsExtension } from './meta_sdk_ts';
 import { observabilityExtension } from './observability';
-import { paymentExtension } from './payment';
 import { privacyExtension } from './privacy';
 import { quotaExtension } from './quota';
 import { secretVaultExtension } from './secret_vault';
@@ -68,7 +67,6 @@ export {
   metaSdkRsExtension,
   metaSdkTsExtension,
   observabilityExtension,
-  paymentExtension,
   privacyExtension,
   quotaExtension,
   secretVaultExtension,
@@ -107,7 +105,6 @@ export const allExtensions: ZephyrexClientExtension[] = [
   metaSdkRsExtension,
   metaSdkTsExtension,
   observabilityExtension,
-  paymentExtension,
   privacyExtension,
   quotaExtension,
   secretVaultExtension,
