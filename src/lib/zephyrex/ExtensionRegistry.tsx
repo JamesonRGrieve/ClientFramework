@@ -11,12 +11,14 @@ export function useActiveExtensions(registeredExtensions: ZephyrexClientExtensio
 } {
   const { data: serverExtensions, isLoading } = useServerExtensions();
 
+  // Until the server says which extensions it runs (or with no session to ask), only the client
+  // extensions that need no server extension are active.
   const active = useMemo(() => {
-    if (!serverExtensions) {
-      return registeredExtensions;
+    if (serverExtensions === undefined) {
+      return registeredExtensions.filter((ext) => ext.serverExtension === undefined);
     }
     const serverNames = new Set(serverExtensions.map((e) => e.name));
-    return registeredExtensions.filter((ext) => !ext.serverExtension || serverNames.has(ext.serverExtension));
+    return registeredExtensions.filter((ext) => ext.serverExtension === undefined || serverNames.has(ext.serverExtension));
   }, [registeredExtensions, serverExtensions]);
 
   return { active, loading: isLoading };

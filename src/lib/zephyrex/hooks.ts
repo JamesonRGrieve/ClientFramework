@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+import { hasSession } from '@zephyrex/auth';
 import { getCookie } from 'cookies-next';
 import { createContext, useContext, useMemo } from 'react';
 import useSWR, { type SWRResponse } from 'swr';
 import { z } from 'zod';
-import { ZephyrexClient } from './client';
+import { HTTP_STATUS } from '../api/httpStatus';
+import { ApiError, ZephyrexClient } from './client';
 import { useZephyrexConfig } from './ZephyrexProvider';
 
 // --- Client ---
@@ -126,12 +128,25 @@ const ServerExtensionSchema = z.object({
 });
 export type ServerExtension = z.infer<typeof ServerExtensionSchema>;
 
+/** Answers that mean "no server extensions here": signed out (401), or an API without the route (404). */
+const NO_EXTENSIONS_STATUSES: ReadonlySet<number> = new Set([HTTP_STATUS.UNAUTHORIZED, HTTP_STATUS.NOT_FOUND]);
+
+/**
+ * The extensions the server runs (GET /v1/extension, which needs a session). A signed-out visitor
+ * sends nothing; a 401 or 404 reads as none.
+ */
 export function useServerExtensions(): SWRResponse<ServerExtension[], Error> {
   const client = useClient();
-  return useSWR<ServerExtension[], Error>(
-    '/v1/extension',
-    async () => z.object({ extensions: z.array(ServerExtensionSchema) }).parse(await client.get('/v1/extension')).extensions,
-  );
+  return useSWR<ServerExtension[], Error>(hasSession() ? '/v1/extension' : null, async () => {
+    try {
+      return z.object({ extensions: z.array(ServerExtensionSchema) }).parse(await client.get('/v1/extension')).extensions;
+    } catch (error) {
+      if (error instanceof ApiError && NO_EXTENSIONS_STATUSES.has(error.status)) {
+        return [];
+      }
+      throw error;
+    }
+  });
 }
 
 // --- Providers ---

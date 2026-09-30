@@ -34,9 +34,12 @@ describe('visibleTabs', () => {
 describe('ManagementSections', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    document.cookie = 'zx_csrf=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
   });
 
+  // The account page is for a signed-in user: the server is asked for its extensions only then.
   const serveExtensions = (names: string[]): void => {
+    document.cookie = 'zx_csrf=csrf-1; path=/';
     vi.stubGlobal(
       'fetch',
       vi.fn(async (url: string) =>
