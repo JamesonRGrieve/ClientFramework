@@ -9,6 +9,7 @@ import MarkdownHeading from './Heading';
 import MarkdownImage from './Image';
 import MarkdownLink from './Link';
 import textToMarkdown from './Preprocessor';
+import log, { ERRORS_ONLY } from '@/lib/log';
 
 export interface MarkdownBlockProps {
   content: string;
@@ -143,7 +144,7 @@ export default function MarkdownBlock({ content, role, createdAt }: MarkdownBloc
       )
     );
   } catch (e) {
-    console.error(e);
+    log(['Markdown could not be rendered', e], ERRORS_ONLY);
     return renderMessage(content).toString();
   }
 }

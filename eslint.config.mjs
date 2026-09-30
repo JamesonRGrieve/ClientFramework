@@ -485,6 +485,15 @@ export default [
         },
       },
       {
+        // Application code logs through src/lib/log.ts, the one place that writes to the console.
+        // Tests may stub console methods to silence expected errors.
+        files: ['src/**/*.ts', 'src/**/*.tsx'],
+        excludedFiles: ['src/lib/log.ts', '**/*.test.ts', '**/*.test.tsx'],
+        rules: {
+          'no-console': 'error',
+        },
+      },
+      {
         files: [
           '**/*.test.ts',
           '**/*.test.tsx',
