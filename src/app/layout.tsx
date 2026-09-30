@@ -15,7 +15,7 @@ export default async function RootLayout({ children }: { children: ReactNode }):
   const appearance = cookieStore.get('appearance')?.value ?? '';
   const htmlThemeClass = theme === 'dark' || theme === 'colorblind' || theme === 'colorblind-dark' ? theme : '';
 
-  if (process.env.LANDING_ONLY) {
+  if (config.auth?.landingOnly === true) {
     return (
       <html lang='en' className={htmlThemeClass} suppressHydrationWarning>
         <Head />

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { getCookie } from 'cookies-next';
+import { csrfHeaders, SESSION_CREDENTIALS } from '@zephyrex/auth';
 import { z } from 'zod';
 
 const MAX_RETRIES = 3;
@@ -21,8 +21,8 @@ export type JsonBody =
   string | number | boolean | null | readonly JsonBody[] | { readonly [key: string]: JsonBody | undefined };
 
 export interface ZephyrexClientConfig {
+  /** The API base: '' or '/api' when the app proxies the API on its own origin, else absolute. */
   baseUrl: string;
-  getToken?: () => string | null;
 }
 
 /** The server kept answering 429; `retryAfterMs` is its last Retry-After. */
@@ -79,31 +79,25 @@ async function fetchWithRetry(input: string, init: RequestInit, attempt = 0): Pr
   return fetchWithRetry(input, init, attempt + 1);
 }
 
-const defaultToken = (): string | null => {
-  const jwt = getCookie('jwt');
-  return typeof jwt === 'string' && jwt !== '' ? jwt : null;
-};
-
+/**
+ * Calls the Zephyrex API as the signed-in user. The session is the server's HttpOnly cookie, sent
+ * because the API is on the app's own origin (`baseUrl` '' or '/api' behind the app's proxy); writes
+ * carry the CSRF token. No token is ever read or sent by script.
+ */
 export class ZephyrexClient {
   private readonly baseUrl: string;
-  private readonly getToken: () => string | null;
 
   constructor(config: ZephyrexClientConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
-    this.getToken = config.getToken ?? defaultToken;
-  }
-
-  private headers(): Record<string, string> {
-    const token = this.getToken();
-    return {
-      'Content-Type': 'application/json',
-      ...(token === null || token === '' ? {} : { Authorization: `Bearer ${token}` }),
-    };
   }
 
   /** Send a request; a bodiless answer (204) is `null`. */
-  private async request(url: string, init: RequestInit): Promise<JsonValue> {
-    const res = await fetchWithRetry(url, { ...init, headers: this.headers() });
+  private async request(url: string, init: RequestInit & { method: string }): Promise<JsonValue> {
+    const res = await fetchWithRetry(url, {
+      ...init,
+      credentials: SESSION_CREDENTIALS,
+      headers: { 'Content-Type': 'application/json', ...csrfHeaders(init.method) },
+    });
     if (!res.ok) {
       throw new ApiError(res.status, await res.text());
     }
@@ -113,16 +107,13 @@ export class ZephyrexClient {
     return JsonSchema.parse(await res.json());
   }
 
-  private withBody(method: string, body: JsonBody | undefined): RequestInit {
+  private withBody(method: string, body: JsonBody | undefined): RequestInit & { method: string } {
     return { method, ...(body === undefined ? {} : { body: JSON.stringify(body) }) };
   }
 
   async get(path: string, params?: Record<string, string>): Promise<JsonValue> {
-    const url = new URL(`${this.baseUrl}${path}`);
-    for (const [key, value] of Object.entries(params ?? {})) {
-      url.searchParams.set(key, value);
-    }
-    return this.request(url.toString(), { method: 'GET' });
+    const query = new URLSearchParams(params).toString();
+    return this.request(`${this.baseUrl}${path}${query === '' ? '' : `?${query}`}`, { method: 'GET' });
   }
 
   async post(path: string, body?: JsonBody): Promise<JsonValue> {

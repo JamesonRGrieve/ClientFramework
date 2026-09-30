@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import AuthRouter from '@zephyrex/auth/Router';
 import { type ReactNode, Suspense } from 'react';
 import { ManagementSections } from '../../ManagementTabRegistry';
+import { UserPages } from './UserPages';
 
 export interface UserPageProps {
   params: Promise<{ slug?: string[] }>;
@@ -15,18 +15,7 @@ export async function UserPage({ params }: UserPageProps): Promise<ReactNode> {
   const { slug = [] } = await params;
   return (
     <Suspense fallback={<p className='p-4 text-sm text-muted-foreground'>Loading…</p>}>
-      <AuthRouter
-        params={{ slug }}
-        corePagesConfig={{
-          register: { path: '/register', heading: 'Welcome, Please Register' },
-          manage: {
-            path: '/manage',
-            heading: 'Account Management',
-            props: { sections: <ManagementSections /> },
-          },
-        }}
-        additionalPages={{}}
-      />
+      <UserPages slug={slug} sections={<ManagementSections />} />
     </Suspense>
   );
 }

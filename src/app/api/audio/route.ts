@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import { SESSION_COOKIE } from '@zephyrex/auth';
 import type { NextRequest } from 'next/server.js';
+import { apiBaseFor } from '@/lib/zephyrex/createMiddleware';
+import config from '@/zephyrex.config';
 
 const PRIVATE_IPV4_RANGES = [
   [0x7f000000, 0x7fffffff], // 127.0.0.0/8
@@ -77,9 +80,25 @@ function validateUrl(raw: string): URL | null {
   return parsed;
 }
 
+/** Whether the request carries a session the API accepts. */
+async function hasLiveSession(request: NextRequest): Promise<boolean> {
+  const session = request.cookies.get(SESSION_COOKIE)?.value;
+  if (session === undefined || session === '') {
+    return false;
+  }
+  try {
+    const response = await fetch(`${apiBaseFor(config)}/v1/user`, {
+      headers: { Cookie: `${SESSION_COOKIE}=${session}` },
+      cache: 'no-store',
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(request: NextRequest): Promise<Response> {
-  const jwt = request.cookies.get('jwt')?.value ?? request.headers.get('Authorization')?.replace('Bearer ', '');
-  if (!jwt) {
+  if (!(await hasLiveSession(request))) {
     return new Response('Unauthorized', { status: 401 });
   }
 

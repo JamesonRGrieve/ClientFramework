@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+import { csrfHeaders, SESSION_CREDENTIALS } from '@zephyrex/auth';
 import { parseErrorResponse } from './errors';
 import { extractCorrelationId, mintTraceparent, parseDeprecation, parseRateLimit } from './headers';
 import type { ApiResponse, DeprecationInfo, HttpMethod, Page, RateLimitInfo, SearchRequest } from './types';
@@ -46,8 +48,9 @@ const buildQuery = (query?: RequestOptions['query']): string => {
  *   - surfaces 429 + Retry-After via onRateLimit and ApiError.retryAfter
  *   - decodes FastAPI-style {detail, code} error envelopes
  *
- * Auth is pluggable: pass `authHeader` to inject a JWT/API key. Core never
- * imports the auth submodule directly — keeps the client decoupled.
+ * In the browser it rides the server's HttpOnly session cookie on the app's own origin (`baseUrl`
+ * '' or '/api'), sending the CSRF token on writes. Outside a browser, pass `authHeader` to send an
+ * API key instead.
  */
 export class ApiClient {
   private readonly baseUrl: string;
@@ -57,8 +60,7 @@ export class ApiClient {
   private readonly fetchImpl: typeof fetch;
 
   constructor(options: ApiClientOptions = {}) {
-    const envUrl = typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_API_URI : undefined;
-    this.baseUrl = (options.baseUrl ?? envUrl ?? '').replace(/\/+$/, '');
+    this.baseUrl = (options.baseUrl ?? '').replace(/\/+$/, '');
     this.authHeader = options.authHeader;
     this.onDeprecation = options.onDeprecation;
     this.onRateLimit = options.onRateLimit;
@@ -77,6 +79,9 @@ export class ApiClient {
     if (!headers.has('traceparent')) {
       headers.set('traceparent', mintTraceparent());
     }
+    for (const [name, value] of Object.entries(csrfHeaders(method))) {
+      headers.set(name, value);
+    }
 
     if (this.authHeader) {
       const auth = await this.authHeader();
@@ -90,7 +95,7 @@ export class ApiClient {
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
       signal: options.signal,
-      credentials: 'include',
+      credentials: SESSION_CREDENTIALS,
     });
 
     const correlationId = extractCorrelationId(response.headers);
@@ -178,16 +183,17 @@ export class ApiClient {
 }
 
 let singleton: ApiClient | undefined;
+let configured: ApiClientOptions = {};
 
 export function getApiClient(): ApiClient {
-  if (!singleton) {
-    singleton = new ApiClient();
-  }
+  singleton ??= new ApiClient(configured);
   return singleton;
 }
 
+/** Set options on the shared client, keeping any set before (the app's base URL, a listener). */
 export function configureApiClient(options: ApiClientOptions): ApiClient {
-  singleton = new ApiClient(options);
+  configured = { ...configured, ...options };
+  singleton = new ApiClient(configured);
   return singleton;
 }
 

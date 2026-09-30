@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { expect, test } from '@playwright/test';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URI ?? 'http://localhost:1996';
+const API_URL = process.env.API_URI ?? 'http://localhost:1996';
+
+const EMAIL = `e2e-crud-${Date.now()}@example.com`;
+const PASSWORD = 'CrudTest123!';
 
 let authToken = '';
 
 test.beforeAll(async ({ request }) => {
-  const email = `e2e-crud-${Date.now()}@example.com`;
-  const password = 'CrudTest123!';
+  const email = EMAIL;
+  const password = PASSWORD;
 
   // Register
   const regResponse = await request.post(`${API_URL}/v1/user`, {
@@ -130,18 +133,21 @@ test.describe('Provider and Extension listing', () => {
   });
 });
 
-test.describe('UI pages render with auth', () => {
-  test('team page loads', async ({ page, context }) => {
+test.describe('UI pages render with a session', () => {
+  // Sign in through the app's own origin (it proxies /v1), so the server's HttpOnly session
+  // cookie lands in this browser context exactly as a real sign-in leaves it.
+  test.beforeEach(async ({ context }) => {
     test.skip(!authToken, 'auth failed');
-    await context.addCookies([{ name: 'jwt', value: authToken, domain: 'localhost', path: '/' }]);
-    await page.goto('/team');
-    await expect(page.locator('body')).toBeVisible();
+    const response = await context.request.post('/v1/user/authorize', {
+      headers: { Authorization: `Basic ${Buffer.from(`${EMAIL}:${PASSWORD}`).toString('base64')}` },
+    });
+    expect(response.ok()).toBe(true);
   });
 
-  test('settings page loads', async ({ page, context }) => {
-    test.skip(!authToken, 'auth failed');
-    await context.addCookies([{ name: 'jwt', value: authToken, domain: 'localhost', path: '/' }]);
-    await page.goto('/settings');
-    await expect(page.locator('body')).toBeVisible();
-  });
+  for (const path of ['/team', '/provider']) {
+    test(`${path} stays open to a signed-in user`, async ({ page }) => {
+      await page.goto(path);
+      await expect(page).toHaveURL(new RegExp(`${path}$`));
+    });
+  }
 });

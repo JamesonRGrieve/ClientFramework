@@ -5,9 +5,10 @@ import { usePathname } from 'next/navigation.js';
 import type { ReactNode } from 'react';
 import { SidebarPage } from '../../../../components/appwrapper/src/SidebarPage';
 import { SidebarInset } from '../../../../components/ui/sidebar';
+import { DEFAULT_AUTH_PATH } from '../../authPath';
 import { useZephyrexConfig } from '../../ZephyrexProvider';
 
-const MANAGE_PATH = '/user/manage';
+const MANAGE_PAGE = '/manage';
 
 /**
  * Layout for the /user routes (mount as `app/user/layout.tsx`). The account page gets the
@@ -17,7 +18,7 @@ export function UserLayout({ children }: { children: ReactNode }): ReactNode {
   const pathname = usePathname();
   const { config } = useZephyrexConfig();
 
-  if (pathname === MANAGE_PATH) {
+  if (pathname === `${config.auth?.authPath ?? DEFAULT_AUTH_PATH}${MANAGE_PAGE}`) {
     return (
       <SidebarInset>
         <SidebarPage title=''>

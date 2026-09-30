@@ -59,7 +59,9 @@ describe('Route handler auth enforcement', () => {
           source.includes('getServerSession') ||
           source.includes('auth(') ||
           source.includes('verifyJWT') ||
-          source.includes('requireAuth');
+          source.includes('requireAuth') ||
+          // The HttpOnly cookie session: the handler reads the session cookie and checks it with the API.
+          (source.includes('SESSION_COOKIE') && source.includes('/v1/user'));
 
         expect(
           hasAuthCheck,

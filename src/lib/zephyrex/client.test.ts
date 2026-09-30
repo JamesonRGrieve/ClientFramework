@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import { deleteCookie, setCookie } from 'cookies-next/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError, parseRetryAfter, RateLimitError, ZephyrexClient } from './client';
 
@@ -10,8 +11,7 @@ const HTTP_TOO_MANY = 429;
 const RETRY_AFTER_SECONDS = 2;
 const MS = 1000;
 
-const client = (token: string | null = 'tok'): ZephyrexClient =>
-  new ZephyrexClient({ baseUrl: `${BASE}/`, getToken: () => token });
+const client = (baseUrl = `${BASE}/`): ZephyrexClient => new ZephyrexClient({ baseUrl });
 
 const reply = (...responses: Response[]): ReturnType<typeof vi.fn> => {
   const fetchMock = vi.fn();
@@ -26,25 +26,37 @@ describe('ZephyrexClient', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.useRealTimers();
+    deleteCookie('zx_csrf');
   });
 
-  it('sends the bearer token and query params, and returns the JSON body', async () => {
+  it('reads on the session cookie with query params, never a token, and returns the JSON body', async () => {
+    setCookie('zx_csrf', 'csrf-1');
     const fetchMock = reply(new Response('{"user":{"id":"u1"}}', { status: HTTP_OK }));
     await expect(client().get('/v1/user', { include: 'teams' })).resolves.toEqual({ user: { id: 'u1' } });
     expect(fetchMock).toHaveBeenCalledWith(`${BASE}/v1/user?include=teams`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer tok' },
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
     });
   });
 
-  it('omits the Authorization header when signed out', async () => {
+  it('sends the CSRF token on writes', async () => {
+    setCookie('zx_csrf', 'csrf-1');
     const fetchMock = reply(new Response('{}', { status: HTTP_OK }));
-    await client(null).post('/v1/user/authorize', { email: 'a@b.c' });
-    expect(fetchMock).toHaveBeenCalledWith(`${BASE}/v1/user/authorize`, {
+    await client().post('/v1/team', { team: { name: 'Alpha' } });
+    expect(fetchMock).toHaveBeenCalledWith(`${BASE}/v1/team`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: '{"email":"a@b.c"}',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': 'csrf-1' },
+      body: '{"team":{"name":"Alpha"}}',
     });
+  });
+
+  it('works against a same-origin base', async () => {
+    const fetchMock = reply(new Response('{}', { status: HTTP_OK }), new Response('{}', { status: HTTP_OK }));
+    await client('/api').get('/v1/team', { limit: '5' });
+    await client('').get('/v1/team');
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(['/api/v1/team?limit=5', '/v1/team']);
   });
 
   it('answers a bodiless 204 with null instead of failing to parse it', async () => {

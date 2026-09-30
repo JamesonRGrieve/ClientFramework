@@ -88,10 +88,17 @@ describe('SSRF — WebSocket destination validation', () => {
 
     // The WebSocket URL is derived from config.server.baseUrl, which is
     // set in zephyrex.config.ts from process.env. This is safe as long as
-    // the env var is controlled by the operator, not the client.
+    // the env var is controlled by the operator, not the client. A same-origin
+    // base resolves against the page's origin, which a link cannot change;
+    // the page's path, query and fragment can, so none of them may be used.
     const usesConfig = source.includes('config.server.baseUrl');
     const usesUserInput =
-      source.includes('searchParams') || source.includes('request.url') || source.includes('window.location');
+      source.includes('searchParams') ||
+      source.includes('request.url') ||
+      source.includes('location.href') ||
+      source.includes('location.search') ||
+      source.includes('location.hash') ||
+      source.includes('location.pathname');
 
     expect(
       usesUserInput,
@@ -100,5 +107,6 @@ describe('SSRF — WebSocket destination validation', () => {
         'WebSocket destinations must come from server configuration, not client input.',
       ].join('\n'),
     ).toBe(false);
+    expect(usesConfig, 'The WebSocket destination must come from config.server.baseUrl.').toBe(true);
   });
 });

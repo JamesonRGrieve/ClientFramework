@@ -140,7 +140,8 @@ interface SubmissionData {
 }
 
 function sendAsEmail(submissionData: SubmissionData) {
-  const tld = process.env.NEXT_PUBLIC_API_URI?.split('.').slice(-2).join('.') || 'example.com';
+  // The app's own registrable domain: the API is served on its origin.
+  const tld = window.location.hostname.split('.').slice(-2).join('.');
   const emailAddress = `support@${tld}`;
 
   // Format the email body

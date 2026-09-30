@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { expect, test } from '@playwright/test';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URI ?? 'http://localhost:1996';
+const API_URL = process.env.API_URI ?? 'http://localhost:1996';
 const TEST_PASSWORD = 'TestPassword123!';
 
 test.describe('Authentication', () => {

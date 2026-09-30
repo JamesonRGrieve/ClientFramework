@@ -13,15 +13,13 @@ export default function MarkdownImage({ src, alt, className, ...props }: ImagePr
     return null;
   }
 
-  const isAGInfrastructureServer = src.startsWith(process.env.NEXT_PUBLIC_API_URI as string);
+  // Only this app's own files (the API is served on its origin) go through Next's optimiser;
+  // anything remote is shown as-is rather than proxied.
+  const sameOrigin = src.startsWith('/') && !src.startsWith('//');
 
   return (
     <div className={`relative w-full h-80 ${className || ''}`} {...props}>
-      {isAGInfrastructureServer ? (
-        <Image src={src} alt={alt || ''} fill className='object-contain object-left-center' />
-      ) : (
-        <Image src={src} alt={alt || ''} fill className='object-contain object-left-center' unoptimized />
-      )}
+      <Image src={src} alt={alt || ''} fill className='object-contain object-left-center' unoptimized={!sameOrigin} />
     </div>
   );
 }

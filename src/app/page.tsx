@@ -3,6 +3,8 @@ import { cookies } from 'next/headers.js';
 import Link from 'next/link.js';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { Button } from '@/components/ui/button';
+import { DEFAULT_AUTH_PATH } from '@/lib/zephyrex/authPath';
+import config from '@/zephyrex.config';
 
 export default async function Home() {
   return (
@@ -13,12 +15,12 @@ export default async function Home() {
       >
         <div className='flex items-center'>
           <Link href='/' className='flex items-center gap-2 text-lg font-semibold md:text-lg text-foreground'>
-            <span className=''>{process.env.NEXT_PUBLIC_APP_NAME}</span>
+            <span className=''>{config.app.name}</span>
           </Link>
         </div>
         <div className='flex items-center gap-2'>
           <ThemeToggle initialTheme={(await cookies()).get('theme')?.value ?? 'light'} />
-          <Link href={process.env.NEXT_PUBLIC_AUTH_URI || '/user'}>
+          <Link href={config.auth?.authPath ?? DEFAULT_AUTH_PATH}>
             <Button size='lg' className='px-4 rounded-full'>
               Login or Register
             </Button>

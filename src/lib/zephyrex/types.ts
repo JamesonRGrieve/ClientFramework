@@ -59,7 +59,13 @@ export interface ZephyrexClientExtension {
 
 export interface ZephyrexConfig {
   server: {
+    /**
+     * Where the browser calls the API. Sessions are HttpOnly cookies, so this should be the app's own
+     * origin: '' or '/api' with the app proxying `/v1` and `/graphql` to `upstreamUrl`.
+     */
     baseUrl: string;
+    /** Where the Next server reaches the API (the proxy target), e.g. `http://server:1996`. */
+    upstreamUrl?: string;
     graphqlPath?: string;
   };
   app: {
@@ -70,7 +76,17 @@ export interface ZephyrexConfig {
     landingPage?: ComponentType;
   };
   auth?: {
+    /** Path prefixes that need a signed-in user. */
     privateRoutes?: string[];
+    /** Where the auth pages are mounted; `/user` by default. */
+    authPath?: string;
+    /** Email sign-in: `basic` (password) or `magical` (magic link); password by default. */
+    authModes?: { basic: boolean; magical: boolean };
+    /** Identity providers offered for sign-in (the server's oauth_consumer names, e.g. `google`). */
+    oauthProviders?: string[];
+    recaptchaSiteKey?: string;
+    /** Serve only the landing page (pre-launch). */
+    landingOnly?: boolean;
     enableMFA?: boolean;
     enableSubscription?: boolean;
   };

@@ -2,8 +2,19 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { getCookie } from 'cookies-next';
 import { useZephyrexConfig } from './ZephyrexProvider';
+
+const DEFAULT_GRAPHQL_PATH = '/graphql';
+
+/**
+ * The GraphQL WebSocket URL for the configured `baseUrl`: absolute as given, or same-origin on the
+ * page's own origin. Nothing from the page's path, query or fragment is used.
+ */
+export function subscriptionUrl(baseUrl: string, graphqlPath: string | undefined, origin: string): string {
+  const url = new URL(`${baseUrl.replace(/\/$/, '')}${graphqlPath ?? DEFAULT_GRAPHQL_PATH}`, origin);
+  url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+  return url.toString();
+}
 
 export interface SubscriptionOptions {
   query: string;
@@ -27,23 +38,17 @@ export function useSubscription<T = unknown>(options: SubscriptionOptions) {
       return undefined;
     }
 
-    const wsUrl =
-      config.server.baseUrl.replace(/^http/, 'ws').replace(/\/$/, '') + (config.server.graphqlPath ?? '/graphql');
-
-    const token = getCookie('jwt')?.toString();
-
     try {
-      const ws = new WebSocket(wsUrl, 'graphql-transport-ws');
+      // The browser sends the session cookie with the upgrade request; nothing is put in the payload.
+      const ws = new WebSocket(
+        subscriptionUrl(config.server.baseUrl, config.server.graphqlPath, window.location.origin),
+        'graphql-transport-ws',
+      );
       wsRef.current = ws;
 
       ws.onopen = () => {
         setConnected(true);
-        ws.send(
-          JSON.stringify({
-            type: 'connection_init',
-            payload: token ? { Authorization: `Bearer ${token}` } : {},
-          }),
-        );
+        ws.send(JSON.stringify({ type: 'connection_init', payload: {} }));
 
         ws.send(
           JSON.stringify({

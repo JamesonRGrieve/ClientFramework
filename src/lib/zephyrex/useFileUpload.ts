@@ -2,7 +2,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { getCookie } from 'cookies-next';
+import { csrfHeaders } from '@zephyrex/auth';
 import { useZephyrexConfig } from './ZephyrexProvider';
 
 export interface UploadResult {
@@ -27,7 +27,6 @@ export function useFileUpload(endpoint?: string) {
   const upload = useCallback(
     async (file: File): Promise<UploadResult | null> => {
       const url = `${config.server.baseUrl}${endpoint ?? '/v1/file'}`;
-      const token = getCookie('jwt')?.toString();
 
       const formData = new FormData();
       formData.append('file', file);
@@ -61,9 +60,10 @@ export function useFileUpload(endpoint?: string) {
           xhr.addEventListener('error', () => reject(new Error('Upload failed: network error')));
           xhr.addEventListener('abort', () => reject(new Error('Upload cancelled')));
 
+          // Same-origin: the session cookie rides along; the write carries the CSRF token.
           xhr.open('POST', url);
-          if (token) {
-            xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+          for (const [header, value] of Object.entries(csrfHeaders('POST'))) {
+            xhr.setRequestHeader(header, value);
           }
           xhr.send(formData);
         });
