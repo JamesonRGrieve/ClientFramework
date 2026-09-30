@@ -12,23 +12,30 @@ import {
 } from '@/components/ui/sidebar';
 import { ViewVerticalIcon } from '@radix-ui/react-icons';
 import { usePathname } from 'next/navigation.js';
-import { useSidebarContent } from './SidebarContentManager';
+import { DEFAULT_SIDEBAR_TITLE, useSidebarContent } from './SidebarContentManager';
 
-const visibleOnPaths = ['/chat', '/resident/', '/team', '/provider', '/rotation'];
+/** Where the context sidebar shows unless the app says otherwise. */
+export const DEFAULT_CONTEXT_SIDEBAR_PATHS: readonly string[] = ['/chat', '/resident/', '/team', '/provider', '/rotation'];
 
-export function SidebarContext({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function SidebarContext({
+  visibleOn = DEFAULT_CONTEXT_SIDEBAR_PATHS,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & {
+  /** Path prefixes the sidebar shows on. */
+  visibleOn?: readonly string[];
+}) {
   const { toggleSidebar } = useSidebar('right');
   const { content, title } = useSidebarContent();
   const pathname = usePathname();
 
-  if (!visibleOnPaths.some((path) => pathname.startsWith(path))) {
+  if (!visibleOn.some((path) => pathname.startsWith(path))) {
     return null;
   }
 
   return (
     <Sidebar collapsible='icon' side='right' {...props}>
       <SidebarHeader>
-        {title !== 'Context Sidebar' && <h3 className='group-data-[collapsible=icon]:hidden'>{title}</h3>}
+        {title !== DEFAULT_SIDEBAR_TITLE && <h3 className='group-data-[collapsible=icon]:hidden'>{title}</h3>}
       </SidebarHeader>
       <SidebarContent>{content}</SidebarContent>
       <SidebarFooter>

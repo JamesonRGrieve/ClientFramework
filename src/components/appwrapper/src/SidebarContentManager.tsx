@@ -12,9 +12,12 @@ type SidebarContentType = {
 
 const SidebarContentManager = createContext<SidebarContentType | undefined>(undefined);
 
+/** The context sidebar's title while no page has set one; it is not shown as a heading. */
+export const DEFAULT_SIDEBAR_TITLE = 'Context Sidebar';
+
 export function SidebarContentProvider({ children }: { children: ReactNode }) {
   const [content, setContent] = React.useState<ReactNode | null>(null);
-  const [title, setTitle] = React.useState<string | null>('Context Sidebar'); // Default title
+  const [title, setTitle] = React.useState<string | null>(DEFAULT_SIDEBAR_TITLE);
 
   return (
     <SidebarContentManager.Provider value={{ content, title, setContent, setTitle }}>
@@ -37,7 +40,7 @@ interface SidebarContentProps {
 }
 
 // Component to set sidebar content
-export function SidebarContent({ children, title = 'Context Sidebar' }: SidebarContentProps) {
+export function SidebarContent({ children, title = DEFAULT_SIDEBAR_TITLE }: SidebarContentProps) {
   const { setContent, setTitle } = useSidebarContent();
 
   React.useEffect(() => {
@@ -45,7 +48,7 @@ export function SidebarContent({ children, title = 'Context Sidebar' }: SidebarC
     setTitle(title);
     return () => {
       setContent(null);
-      setTitle('Context Sidebar');
+      setTitle(DEFAULT_SIDEBAR_TITLE);
     };
   }, [children, title, setContent, setTitle]);
 

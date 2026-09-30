@@ -127,17 +127,9 @@ export function NavUser() {
   );
 }
 
-function userInitials(user: { firstName?: string | null | undefined; lastName?: string | null | undefined }) {
-  if (!user) {
-    return null;
-  }
-  if (!user.firstName?.trim() || !user.lastName?.trim()) {
-    return null;
-  }
-  const firstInitial = user.firstName.trim()[0];
-  const lastInitial = user.lastName.trim()[0];
-  if (!firstInitial || !lastInitial) {
-    return null;
-  }
-  return `${firstInitial.toUpperCase()}${lastInitial.toUpperCase()}`;
+/** The user's initials for an avatar fallback, or null without both names. */
+export function userInitials(user: { firstName?: string | null | undefined; lastName?: string | null | undefined }): string | null {
+  const first = user.firstName?.trim().charAt(0) ?? '';
+  const last = user.lastName?.trim().charAt(0) ?? '';
+  return first === '' || last === '' ? null : `${first}${last}`.toUpperCase();
 }

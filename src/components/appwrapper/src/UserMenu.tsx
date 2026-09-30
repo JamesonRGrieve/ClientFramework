@@ -13,13 +13,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { LayoutGrid, MoonIcon } from 'lucide-react';
+import type { ReactElement } from 'react';
 
-type MenuItem = {
-  name: string;
-  href: string;
-};
-
-export const Themes = () => {
+/** The theme picker submenu for the user menu. */
+export const Themes = (): ReactElement => {
   const { themes, currentTheme, setTheme } = useTheme();
   return (
     <DropdownMenuSub>
@@ -44,7 +41,8 @@ export const Themes = () => {
     </DropdownMenuSub>
   );
 };
-export const Appearances = () => {
+/** The appearance (layout density) picker submenu for the user menu. */
+export const Appearances = (): ReactElement => {
   const { appearances, appearance, setAppearance } = useAppearance();
   return (
     <DropdownMenuSub>
@@ -69,10 +67,3 @@ export const Appearances = () => {
     </DropdownMenuSub>
   );
 };
-
-function userInitials({ first_name, last_name }: { first_name: string; last_name: string }): string | null {
-  if (!first_name || !last_name) {
-    return null;
-  }
-  return `${first_name.charAt(0).toUpperCase()}${last_name.charAt(0).toUpperCase()}`;
-}
