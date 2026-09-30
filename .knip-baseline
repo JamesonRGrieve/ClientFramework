@@ -8,12 +8,12 @@
     "unlisted"
   ],
   "totals": {
-    "total": 69
+    "total": 46
   },
   "counts": {
     "files": 6,
-    "dependencies": 20,
-    "devDependencies": 25,
+    "dependencies": 2,
+    "devDependencies": 20,
     "optionalPeerDependencies": 0,
     "unlisted": 0,
     "unresolved": 1,
