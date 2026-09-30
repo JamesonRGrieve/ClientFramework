@@ -22,7 +22,9 @@ const config: StorybookConfig = {
   },
   // Autodocs follow the `autodocs` tag, Storybook's default since 9.
   docs: { defaultName: 'Documentation' },
-  staticDirs: ['../public'],
+  // ./public holds msw's generated mockServiceWorker.js, kept out of the app's own public/ so
+  // production never serves the mock worker.
+  staticDirs: ['../public', './public'],
   // `@` is src/, relative to this file (not the directory storybook was started from). The
   // framework's own packages resolve from node_modules like any consumer's.
   webpackFinal: async (webpackConfig) => {

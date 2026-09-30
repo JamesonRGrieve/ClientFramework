@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { Controls, Description, Primary, Stories, Subtitle, Title } from '@storybook/addon-docs/blocks';
-import { initialize, mswLoader } from 'msw-storybook-addon';
+import { mswLoader } from 'msw-storybook-addon/csf3';
 import React from 'react';
 import './../src/app/globals.css'; // Import global styles for the app
 
-initialize({
-  onUnhandledRequest: 'bypass', // Don't warn about unhandled requests
-});
 const preview = {
   parameters: {
     actions: { argTypesRegex: '^on[A-Z].*' },
@@ -27,8 +24,9 @@ const preview = {
       appDirectory: true, // Set to true if your project uses the app directory
     },
   },
-  // A loader, not a parameter: Storybook runs preview-level loaders before each story.
-  loaders: [mswLoader],
+  // A loader, not a parameter: Storybook runs preview-level loaders before each story. The addon's
+  // default worker starts quietly and lets requests no story mocks through to the network.
+  loaders: [mswLoader()],
 };
 
 export default preview;
