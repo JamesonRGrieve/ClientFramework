@@ -37,7 +37,13 @@ export { useSubscription } from './useSubscription';
 export type { SubscriptionOptions } from './useSubscription';
 export { useOnline } from './useOnline';
 export { useRateLimit } from './useRateLimit';
-export { useRootProviderStatus } from './useRootProviderStatus';
+export { rootProviderStatusQuery, useRootProviderStatus } from './useRootProviderStatus';
+export { useObservabilityStatus } from './useObservabilityStatus';
+export type { ErrorReporterStatus, MetricsStatus, ObservabilityStatusResponse } from './useObservabilityStatus';
+export { sdkDownloadPath, useSdks } from './useSdks';
+export type { Sdk } from './useSdks';
+export { rootOnlyView } from './rootOnlyView';
+export type { RootOnlyView } from './rootOnlyView';
 export {
   useProviderExtensionLinks,
   useProviderInstances,
@@ -58,7 +64,13 @@ export {
   selectExtension,
 } from './providerScope';
 export type { ProviderExtensionLink, ProviderInstance, ProviderScopeSelection, ScopedProvider } from './providerScope';
-export type { RootProviderSetting, RootProviderStatusEntry, RootProviderStatusResponse } from './useRootProviderStatus';
+export type {
+  ProviderHealth,
+  RootProviderSetting,
+  RootProviderStatusEntry,
+  RootProviderStatusOptions,
+  RootProviderStatusResponse,
+} from './useRootProviderStatus';
 
 // Components
 export { RequireRole } from './components/RequireRole';
@@ -68,6 +80,8 @@ export { SearchInput } from './components/SearchInput';
 export type { SearchInputProps } from './components/SearchInput';
 export { RateLimitBanner } from './components/RateLimitBanner';
 export { RootProviderStatus } from './components/RootProviderStatus';
+export { ObservabilityStatus } from './components/ObservabilityStatus';
+export { SdkDownloads } from './components/SdkDownloads';
 
 // Page Injection
 export { PageSlotsProvider, usePageSlots, PageWithSlots } from './PageSlots';
@@ -77,6 +91,7 @@ export type { PageSlotDefinition, PageSlots } from './PageSlots';
 export {
   ManagementTabProvider,
   ManagementSections,
+  collectTabs,
   managementAnchor,
   useManagementTabs,
   visibleTabs,

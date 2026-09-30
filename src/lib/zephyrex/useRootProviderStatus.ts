@@ -16,21 +16,48 @@ const RootProviderSettingSchema = z.object({
 });
 export type RootProviderSetting = z.infer<typeof RootProviderSettingSchema>;
 
+/** A provider's own health check, or the base one (required settings present) when it has none. */
+const ProviderHealthSchema = z.object({
+  status: z.enum(['ok', 'degraded', 'down']),
+  detail: z.string(),
+});
+export type ProviderHealth = z.infer<typeof ProviderHealthSchema>;
+
 const RootProviderStatusEntrySchema = z.object({
   provider: z.string(),
   extension: z.string(),
   configured: z.boolean(),
   settings: z.array(RootProviderSettingSchema),
+  /** Null unless the health checks were asked for. */
+  health: ProviderHealthSchema.nullable(),
 });
 export type RootProviderStatusEntry = z.infer<typeof RootProviderStatusEntrySchema>;
 
 const RootProviderStatusResponseSchema = z.object({ providers: z.array(RootProviderStatusEntrySchema) });
 export type RootProviderStatusResponse = z.infer<typeof RootProviderStatusResponseSchema>;
 
+export interface RootProviderStatusOptions {
+  /** Only this extension's providers; an extension the server hasn't loaded has none. */
+  extension?: string | undefined;
+  /** Also run each provider's health check (the server caches each result for a minute). */
+  health?: boolean | undefined;
+}
+
+/** The status endpoint's query for `options`. */
+export function rootProviderStatusQuery({ extension, health }: RootProviderStatusOptions): Record<string, string> {
+  return {
+    ...(extension === undefined ? {} : { extension }),
+    ...(health === true ? { health: 'true' } : {}),
+  };
+}
+
 /** How each loaded provider's environment (root) configuration stands. Root only: anyone else gets a 403. */
-export function useRootProviderStatus(): SWRResponse<RootProviderStatusResponse, Error> {
+export function useRootProviderStatus(
+  options: RootProviderStatusOptions = {},
+): SWRResponse<RootProviderStatusResponse, Error> {
   const client = useClient();
-  return useSWR<RootProviderStatusResponse, Error>(ROOT_PROVIDER_STATUS_PATH, async () =>
-    RootProviderStatusResponseSchema.parse(await client.get(ROOT_PROVIDER_STATUS_PATH)),
+  const query = rootProviderStatusQuery(options);
+  return useSWR<RootProviderStatusResponse, Error>(client.url(ROOT_PROVIDER_STATUS_PATH, query), async () =>
+    RootProviderStatusResponseSchema.parse(await client.get(ROOT_PROVIDER_STATUS_PATH, query)),
   );
 }

@@ -111,24 +111,32 @@ export class ZephyrexClient {
     return { method, ...(body === undefined ? {} : { body: JSON.stringify(body) }) };
   }
 
-  async get(path: string, params?: Record<string, string>): Promise<JsonValue> {
+  /**
+   * Where `path` is on the API, with `params` as its query. Also the address for a plain link, such
+   * as a download, which the browser sends with the session cookie like any request here.
+   */
+  url(path: string, params?: Record<string, string>): string {
     const query = new URLSearchParams(params).toString();
-    return this.request(`${this.baseUrl}${path}${query === '' ? '' : `?${query}`}`, { method: 'GET' });
+    return `${this.baseUrl}${path}${query === '' ? '' : `?${query}`}`;
+  }
+
+  async get(path: string, params?: Record<string, string>): Promise<JsonValue> {
+    return this.request(this.url(path, params), { method: 'GET' });
   }
 
   async post(path: string, body?: JsonBody): Promise<JsonValue> {
-    return this.request(`${this.baseUrl}${path}`, this.withBody('POST', body));
+    return this.request(this.url(path), this.withBody('POST', body));
   }
 
   async put(path: string, body?: JsonBody): Promise<JsonValue> {
-    return this.request(`${this.baseUrl}${path}`, this.withBody('PUT', body));
+    return this.request(this.url(path), this.withBody('PUT', body));
   }
 
   async patch(path: string, body?: JsonBody): Promise<JsonValue> {
-    return this.request(`${this.baseUrl}${path}`, this.withBody('PATCH', body));
+    return this.request(this.url(path), this.withBody('PATCH', body));
   }
 
   async delete(path: string): Promise<JsonValue> {
-    return this.request(`${this.baseUrl}${path}`, { method: 'DELETE' });
+    return this.request(this.url(path), { method: 'DELETE' });
   }
 }

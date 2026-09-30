@@ -14,6 +14,20 @@ interface ManagementTabContextValue {
 
 const ManagementTabContext = createContext<ManagementTabContextValue>({ tabs: [] });
 
+/**
+ * The extensions' account-page sections, lowest priority first. Extensions that share a section
+ * (the SDK extensions share one download list) register the same id, and it appears once.
+ */
+export function collectTabs(extensions: readonly ZephyrexClientExtension[]): ManagementTab[] {
+  const byId = new Map<string, ManagementTab>();
+  for (const tab of extensions.flatMap((extension) => extension.managementTabs ?? [])) {
+    if (!byId.has(tab.id)) {
+      byId.set(tab.id, tab);
+    }
+  }
+  return [...byId.values()].sort((a, b) => (a.priority ?? DEFAULT_PRIORITY) - (b.priority ?? DEFAULT_PRIORITY));
+}
+
 /** Account-page sections from the extensions the server has loaded, lowest priority first. */
 export function useManagementTabs(): ManagementTab[] {
   return useContext(ManagementTabContext).tabs;
@@ -27,13 +41,7 @@ export function ManagementTabProvider({
   children: ReactNode;
 }): JSX.Element {
   const { active } = useActiveExtensions(extensions);
-  const tabs = useMemo(
-    () =>
-      active
-        .flatMap((extension) => extension.managementTabs ?? [])
-        .sort((a, b) => (a.priority ?? DEFAULT_PRIORITY) - (b.priority ?? DEFAULT_PRIORITY)),
-    [active],
-  );
+  const tabs = useMemo(() => collectTabs(active), [active]);
 
   return <ManagementTabContext value={{ tabs }}>{children}</ManagementTabContext>;
 }

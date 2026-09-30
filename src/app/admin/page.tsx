@@ -14,6 +14,16 @@ const ADMIN_LINKS = [
     title: 'Root Providers',
     desc: 'Environment configuration of every loaded provider (root only).',
   },
+  {
+    href: '/admin/secret-vault',
+    title: 'Secret Vault',
+    desc: 'Configuration and health of each secret-vault provider (root only).',
+  },
+  {
+    href: '/admin/observability',
+    title: 'Observability',
+    desc: 'The metrics backend and error reporter the server has wired (root only).',
+  },
 ];
 
 export default function AdminLanding(): JSX.Element {

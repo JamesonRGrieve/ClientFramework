@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import { lazy } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ADMIN_ROLE_ID } from './hooks';
-import { managementAnchor, ManagementSections, visibleTabs } from './ManagementTabRegistry';
+import { collectTabs, managementAnchor, ManagementSections, visibleTabs } from './ManagementTabRegistry';
 import type { ManagementTab, ZephyrexClientExtension } from './types';
 import { TestWrapper, testConfig } from '@/__tests__/test-wrapper';
 
@@ -28,6 +28,27 @@ describe('visibleTabs', () => {
 
   it('anchors each tab for linking', () => {
     expect(managementAnchor({ id: 'plain', label: 'Plain', component: Plain })).toBe('manage-plain');
+  });
+});
+
+describe('collectTabs', () => {
+  const extension = (name: string, managementTabs: ManagementTab[]): ZephyrexClientExtension => ({ name, managementTabs });
+
+  it('orders every extension’s tabs by priority', () => {
+    const collected = collectTabs([
+      extension('a', [{ id: 'late', label: 'Late', component: Plain, priority: 90 }]),
+      extension('b', [
+        { id: 'early', label: 'Early', component: Plain, priority: 10 },
+        { id: 'default', label: 'Default', component: Plain },
+      ]),
+    ]);
+    expect(collected.map((tab) => tab.id)).toEqual(['early', 'default', 'late']);
+  });
+
+  it('shows a section that several extensions share once, as the first registered it', () => {
+    const shared = (label: string): ManagementTab => ({ id: 'shared', label, component: Plain });
+    const collected = collectTabs([extension('a', [shared('First')]), extension('b', [shared('Second')])]);
+    expect(collected.map((tab) => tab.label)).toEqual(['First']);
   });
 });
 

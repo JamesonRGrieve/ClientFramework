@@ -13,8 +13,8 @@ const MS = 1000;
 
 const client = (baseUrl = `${BASE}/`): ZephyrexClient => new ZephyrexClient({ baseUrl });
 
-const reply = (...responses: Response[]): ReturnType<typeof vi.fn> => {
-  const fetchMock = vi.fn();
+const reply = (...responses: Response[]): ReturnType<typeof vi.fn<typeof fetch>> => {
+  const fetchMock = vi.fn<typeof fetch>();
   for (const response of responses) {
     fetchMock.mockResolvedValueOnce(response);
   }
@@ -57,6 +57,14 @@ describe('ZephyrexClient', () => {
     await client('/api').get('/v1/team', { limit: '5' });
     await client('').get('/v1/team');
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(['/api/v1/team?limit=5', '/v1/team']);
+  });
+
+  it('gives the address of a path on the API, for links as well as requests', () => {
+    expect(client().url('/v1/sdk/python/download')).toBe(`${BASE}/v1/sdk/python/download`);
+    expect(client('/api').url('/v1/provider/root/status', { extension: 'secret_vault', health: 'true' })).toBe(
+      '/api/v1/provider/root/status?extension=secret_vault&health=true',
+    );
+    expect(client('').url('/v1/sdk', {})).toBe('/v1/sdk');
   });
 
   it('answers a bodiless 204 with null instead of failing to parse it', async () => {

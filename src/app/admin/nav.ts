@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { Activity, AlertOctagon, Boxes, KeyRound, ListChecks, Workflow } from 'lucide-react';
+import { Activity, AlertOctagon, Boxes, Gauge, KeyRound, ListChecks, Vault, Workflow } from 'lucide-react';
 import type { Item } from '@zephyrex/auth/NavMenu';
 
 export const adminNavItems: Item[] = [
@@ -13,6 +13,8 @@ export const adminNavItems: Item[] = [
       { title: 'Rotations', url: '/admin/rotations', icon: Workflow },
       { title: 'Extensions', url: '/admin/extensions', icon: Boxes },
       { title: 'Root Providers', url: '/admin/providers', icon: KeyRound },
+      { title: 'Secret Vault', url: '/admin/secret-vault', icon: Vault },
+      { title: 'Observability', url: '/admin/observability', icon: Gauge },
     ],
   },
 ];
