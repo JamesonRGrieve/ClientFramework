@@ -20,9 +20,16 @@ test.ipynb
 .github
 .gitignore
 
+# Local environment files hold secrets; the image takes configuration at build (ARG) and run time.
+.env
+.env.*
+
+# Storybook
+.storybook
+storybook-static
+
 # Scripts
 *.sh
-!env.sh
 merge-out.py
 merge-out.json
 merge-boilerplate.sh

@@ -1,24 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// server-wrapper.js
+// Container entry point: load a mounted .env.local (or .env) into the environment, then start
+// Next's standalone server, which reads its configuration from process.env.
 const { existsSync } = require('fs');
 const { config } = require('dotenv');
 const path = require('path');
 
-// Load environment variables from .env files or environment
-if (existsSync(path.join(process.cwd(), '.env.local'))) {
-  config({ path: '.env.local' });
-} else if (existsSync(path.join(process.cwd(), '.env'))) {
-  config({ path: '.env' });
+const ENV_FILES = ['.env.local', '.env'];
+const envFile = ENV_FILES.find((name) => existsSync(path.join(process.cwd(), name)));
+if (envFile !== undefined) {
+  config({ path: envFile });
 }
 
-// Create a global runtime config object
-global.__RUNTIME_CONFIG__ = {
-  // Add your runtime variables here
-  API_URI: process.env.API_URI,
-  APP_URI: process.env.APP_URI,
-  AUTH_URI: process.env.AUTH_URI,
-  // Add other variables you want to be available at runtime
-};
-
-// Now load and run the original Next.js server
 require('./server');
