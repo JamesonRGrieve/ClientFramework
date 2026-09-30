@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { Slider } from './slider';
 
 const meta: Meta<typeof Slider> = {
@@ -17,7 +17,7 @@ export const Default: Story = {
   },
 };
 
-export const Range: Story = {
+export const TwoThumbs: Story = {
   args: {
     defaultValue: [25, 75],
   },

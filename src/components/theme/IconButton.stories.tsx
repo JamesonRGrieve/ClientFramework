@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { LuSun as Sun } from 'react-icons/lu';
 import IconButton from './IconButton';
 import { TooltipProvider } from '@/components/ui/tooltip';
