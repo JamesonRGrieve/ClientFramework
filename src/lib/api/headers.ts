@@ -1,17 +1,29 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { DeprecationInfo, RateLimitInfo } from './types';
 
+const HEX_RADIX = 16;
 const HEX_BYTE_LENGTH = 2;
 const TRACE_ID_BYTES = 16;
 const SPAN_ID_BYTES = 8;
 
-export function parseDeprecation(headers: Headers, resource: string): DeprecationInfo | undefined {
-  const deprecation = headers.get('deprecation') ?? undefined;
-  const sunset = headers.get('sunset') ?? undefined;
-  if (!deprecation && !sunset) {
+/** A header that is sent and not empty. */
+const present = (value: string | null): value is string => value !== null && value !== '';
+
+const numberOrUndefined = (value: string | null): number | undefined => {
+  if (value === null) {
     return undefined;
   }
-  return { resource, deprecation, sunset };
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+export function parseDeprecation(headers: Headers, resource: string): DeprecationInfo | undefined {
+  const deprecation = headers.get('deprecation');
+  const sunset = headers.get('sunset');
+  if (!present(deprecation) && !present(sunset)) {
+    return undefined;
+  }
+  return { resource, deprecation: deprecation ?? undefined, sunset: sunset ?? undefined };
 }
 
 export function parseRateLimit(headers: Headers): RateLimitInfo | undefined {
@@ -19,7 +31,7 @@ export function parseRateLimit(headers: Headers): RateLimitInfo | undefined {
   const remaining = headers.get('x-ratelimit-remaining');
   const reset = headers.get('x-ratelimit-reset');
   const retryAfter = headers.get('retry-after');
-  if (!limit && !remaining && !reset && !retryAfter) {
+  if (![limit, remaining, reset, retryAfter].some(present)) {
     return undefined;
   }
   return {
@@ -30,18 +42,10 @@ export function parseRateLimit(headers: Headers): RateLimitInfo | undefined {
   };
 }
 
-const numberOrUndefined = (value: string | null): number | undefined => {
-  if (value === null) {
-    return undefined;
-  }
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : undefined;
-};
-
 const randomHex = (bytes: number): string => {
   const buf = new Uint8Array(bytes);
   crypto.getRandomValues(buf);
-  return Array.from(buf, (b) => b.toString(16).padStart(HEX_BYTE_LENGTH, '0')).join('');
+  return Array.from(buf, (b) => b.toString(HEX_RADIX).padStart(HEX_BYTE_LENGTH, '0')).join('');
 };
 
 /**
@@ -54,13 +58,12 @@ export function mintTraceparent(): string {
 
 export function extractCorrelationId(headers: Headers): string | undefined {
   const direct = headers.get('x-correlation-id');
-  if (direct) {
+  if (present(direct)) {
     return direct;
   }
   const traceparent = headers.get('traceparent');
-  if (!traceparent) {
+  if (!present(traceparent)) {
     return undefined;
   }
-  const parts = traceparent.split('-');
-  return parts[1];
+  return traceparent.split('-')[1];
 }

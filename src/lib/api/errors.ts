@@ -1,5 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import { z } from 'zod';
+import { HTTP_STATUS, isServerErrorStatus } from './httpStatus';
 import type { ApiEnvelopeError } from './types';
+
+const DECIMAL_RADIX = 10;
+
+/** The error envelope, as far as the server sent one. */
+const ErrorBodySchema = z.object({
+  detail: z.union([z.string(), z.record(z.string(), z.unknown())]).optional(),
+  code: z.string().optional(),
+});
 
 export class ApiError extends Error {
   readonly status: number;
@@ -26,23 +36,23 @@ export class ApiError extends Error {
   }
 
   isRateLimited(): boolean {
-    return this.status === 429;
+    return this.status === HTTP_STATUS.TOO_MANY_REQUESTS;
   }
 
   isUnauthorized(): boolean {
-    return this.status === 401;
+    return this.status === HTTP_STATUS.UNAUTHORIZED;
   }
 
   isForbidden(): boolean {
-    return this.status === 403;
+    return this.status === HTTP_STATUS.FORBIDDEN;
   }
 
   isNotFound(): boolean {
-    return this.status === 404;
+    return this.status === HTTP_STATUS.NOT_FOUND;
   }
 
   isServerError(): boolean {
-    return this.status >= 500;
+    return isServerErrorStatus(this.status);
   }
 }
 
@@ -50,15 +60,15 @@ export async function parseErrorResponse(response: Response, correlationId?: str
   let detail: ApiEnvelopeError['detail'] = response.statusText;
   let code: string | undefined;
   try {
-    const body = (await response.clone().json()) as ApiEnvelopeError;
-    if (body && typeof body === 'object') {
-      detail = body.detail ?? response.statusText;
-      code = body.code;
+    const body = ErrorBodySchema.safeParse(await response.clone().json());
+    if (body.success) {
+      detail = body.data.detail ?? response.statusText;
+      code = body.data.code;
     }
   } catch {
     try {
       const text = await response.clone().text();
-      if (text) {
+      if (text !== '') {
         detail = text;
       }
     } catch {
@@ -66,7 +76,8 @@ export async function parseErrorResponse(response: Response, correlationId?: str
     }
   }
   const retryAfterRaw = response.headers.get('retry-after');
-  const retryAfter = retryAfterRaw ? Number.parseInt(retryAfterRaw, 10) : undefined;
+  const retryAfter =
+    retryAfterRaw !== null && retryAfterRaw !== '' ? Number.parseInt(retryAfterRaw, DECIMAL_RADIX) : undefined;
   return new ApiError({
     status: response.status,
     detail,
