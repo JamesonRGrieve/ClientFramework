@@ -31,7 +31,6 @@ function splitUnEscaped(text: string, delimiter: string): string[] {
     .map((section) => section.replaceAll('´', `\\${delimiter}`));
 }
 export default function textToMarkdown(text: string): Segment[] {
-  // Only split code on code blocks (not inline code)
-  // const splitCode = reprocess(splitCodeBlocks, (content: string) => splitUnEscaped(content, '`'), 'code');
+  // Only fenced code blocks split the text; inline code stays in its paragraph.
   return reprocess([{ content: text }], (content: string) => splitUnEscaped(content, '```'), 'codeblock');
 }

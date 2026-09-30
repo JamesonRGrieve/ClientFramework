@@ -1,38 +1,16 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { getCookie } from 'cookies-next';
-import { useEffect, useState } from 'react';
 import { LuBook, LuCommand, LuGraduationCap, LuMic, LuPaperclip, LuThumbsDown, LuThumbsUp } from 'react-icons/lu';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 
 export default function GettingStartedPage() {
-  const [_hasStarted, setHasStarted] = useState(false);
-  useEffect(() => {
-    if (getCookie('client-has-started') === 'true') {
-      setHasStarted(true);
-    }
-  }, []);
-
   return (
     <SidebarPage title='Getting Started'>
       {/* Introduction */}
       <div className='max-w-3xl space-y-4'>
         <h1 className='text-4xl font-bold'>Welcome to {process.env.NEXT_PUBLIC_APP_NAME}!</h1>
-        {/* {!hasStarted && (
-              <Button
-                size='lg'
-                onClick={() => {
-                  setCookie('client-has-started', 'true', {
-                    domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN,
-                    expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-                  });
-                }}
-              >
-                I Know What I'm Doing
-              </Button>
-            )} */}
         <p className='text-lg text-muted-foreground'>
           This guide will help you get started with our AI-powered chat interface and its powerful features.
         </p>

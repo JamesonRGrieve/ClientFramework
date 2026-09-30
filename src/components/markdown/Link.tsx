@@ -2,20 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import type React from 'react';
-import { type ReactNode, useRef } from 'react';
+import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-
-const _handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>): void => {
-  const href = e.currentTarget.getAttribute('href');
-  if (href?.startsWith('#')) {
-    e.preventDefault();
-    const id = href.slice(1);
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  }
-};
 
 const getYoutubeId = (url: string): string | null => {
   const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
@@ -28,8 +16,6 @@ type MarkdownLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement>;
 export default function MarkdownLink({ children, href, className, ...props }: MarkdownLinkProps): ReactNode {
   const isExternal = href && !href.startsWith('#');
   const youtubeId = href ? getYoutubeId(href) : null;
-  const _isVideo = href?.match(/\.(mp4|webm|ogg)$/i);
-  const targetRef = useRef<HTMLAnchorElement>(null);
   if (youtubeId) {
     return (
       <div className='w-96'>
@@ -46,32 +32,12 @@ export default function MarkdownLink({ children, href, className, ...props }: Ma
     );
   }
 
-  // if (isVideo) {
-  //   return (
-  //     <div className='w-96'>
-  //       <div className='relative w-full aspect-video'>
-  //         <Plyr
-  //           source={{
-  //             type: 'video',
-  //             sources: [{ src: href, type: 'video/mp4' }],
-  //           }}
-  //           options={{
-  //             controls: ['play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
-  //           }}
-  //         />
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
   return (
     <a
-      ref={targetRef}
       href={href}
       className={cn('underline hover:no-underline', className)}
       target={isExternal ? '_blank' : undefined}
       rel={isExternal ? 'noopener noreferrer' : undefined}
-      // onClick={isExternal ? undefined : handleAnchorClick}
       {...props}
     >
       {children}

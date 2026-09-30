@@ -29,7 +29,6 @@ export default function SupportPage() {
     user: '',
     platform: '',
     description: '',
-    attachments: null as FileList | null,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,17 +103,6 @@ export default function SupportPage() {
                     required
                   />
                 </div>
-
-                {/* TODO: Add support endpoint that supports images. Mailto can't pass attachments */}
-                {/* <div>
-                    <Label htmlFor='attachments'>Attachments (optional)</Label>
-                    <Input
-                      id='attachments'
-                      type='file'
-                      multiple
-                      onChange={(e) => setFormData({ ...formData, attachments: e.target.files })}
-                    />
-                  </div> */}
               </>
             )}
           </CardContent>
