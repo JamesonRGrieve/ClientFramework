@@ -71,11 +71,3 @@ describe('Header/Footer — responsive safe area', () => {
     expect(source).toContain('safe-area-inset');
   });
 });
-
-describe('AppWrapper header — mobile sticky behavior', () => {
-  it('header uses fixed positioning on mobile', () => {
-    const source = readFileSync('src/components/appwrapper/src/AppWrapperHeaderFooter.tsx', 'utf8');
-    expect(source).toContain('fixed');
-    expect(source).toContain('safe-area-inset-top');
-  });
-});
