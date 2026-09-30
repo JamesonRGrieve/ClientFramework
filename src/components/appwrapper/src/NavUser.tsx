@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { CaretRightIcon, ComponentPlaceholderIcon } from '@radix-ui/react-icons';
+import { CaretRightIcon } from '@radix-ui/react-icons';
 import { BadgeCheck, LogOut } from 'lucide-react';
 
 import { getGravatarUrl } from '@zephyrex/auth/gravatar';
 import { useUser } from '@zephyrex/auth/hooks/useUser';
+import { useRouter } from 'next/navigation.js';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -18,11 +19,22 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useRouter } from 'next/navigation.js';
 import { Appearances } from '@/components/appwrapper/src/UserMenu';
 import { DEFAULT_AUTH_PATH, MANAGE_PAGE } from '@/lib/zephyrex/authPath';
 import { useZephyrexConfig } from '@/lib/zephyrex/ZephyrexProvider';
-// useUser provides a stable SWR-backed source for current user information
+
+type SignedInUser = { email: string; firstName?: string | null | undefined; lastName?: string | null | undefined };
+
+/** The user's Gravatar, falling back to their initials. */
+function UserAvatar({ user }: { user: SignedInUser | null | undefined }) {
+  const firstName = user?.firstName ?? '';
+  return (
+    <Avatar className='w-8 h-8 rounded-lg'>
+      <AvatarImage src={getGravatarUrl(user?.email ?? '')} {...(firstName === '' ? {} : { alt: firstName })} />
+      <AvatarFallback className='rounded-lg'>{user === null || user === undefined ? null : userInitials(user)}</AvatarFallback>
+    </Avatar>
+  );
+}
 
 export function NavUser() {
   const { isMobile } = useSidebar('left');
@@ -31,7 +43,9 @@ export function NavUser() {
   const authPath = config.auth?.authPath ?? DEFAULT_AUTH_PATH;
   // The shared hook: it asks only with a session, and is the one source of the user app-wide.
   const { data: user, isValidating } = useUser();
-  const hasUser = Boolean(user && user.email);
+  const email = user?.email ?? '';
+  const hasUser = email !== '';
+  const fullName = [user?.firstName, user?.lastName].filter((part) => part !== null && part !== undefined).join(' ');
 
   const handleLogout = () => {
     router.push(`${authPath}/logout`);
@@ -48,17 +62,12 @@ export function NavUser() {
                 size='lg'
                 className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:my-2 pl-0 transition-none'
               >
-                <Avatar className='w-8 h-8 rounded-lg'>
-                  <AvatarImage src={getGravatarUrl(user?.email ?? '')} {...(user?.firstName != null ? { alt: user.firstName } : {})} />
-                  <AvatarFallback className='rounded-lg'>{user ? userInitials(user) : null}</AvatarFallback>
-                </Avatar>
+                <UserAvatar user={user} />
                 <div className='grid flex-1 text-sm leading-tight text-left'>
-                  {user && user.email ? (
+                  {hasUser ? (
                     <>
-                      <span className='font-semibold capitalize truncate'>
-                        {user?.firstName} {user?.lastName}
-                      </span>
-                      <span className='text-xs truncate'>{user?.email}</span>
+                      <span className='font-semibold capitalize truncate'>{fullName}</span>
+                      <span className='text-xs truncate'>{email}</span>
                     </>
                   ) : (
                     // Loading state: show skeleton while validating
@@ -80,15 +89,10 @@ export function NavUser() {
             >
               <DropdownMenuLabel className='p-0 font-normal'>
                 <div className='flex items-center gap-2 px-1 py-2 text-sm text-left'>
-                  <Avatar className='w-8 h-8 rounded-lg'>
-                    <AvatarImage src={getGravatarUrl(user?.email ?? '')} {...(user?.firstName != null ? { alt: user.firstName } : {})} />
-                    <AvatarFallback className='rounded-lg'>{user ? userInitials(user) : null}</AvatarFallback>
-                  </Avatar>
+                  <UserAvatar user={user} />
                   <div className='grid flex-1 text-sm leading-tight text-left'>
-                    <span className='font-semibold truncate'>
-                      {user?.firstName} {user?.lastName}
-                    </span>
-                    <span className='text-xs truncate'>{user?.email}</span>
+                    <span className='font-semibold truncate'>{fullName}</span>
+                    <span className='text-xs truncate'>{email}</span>
                   </div>
                 </div>
               </DropdownMenuLabel>

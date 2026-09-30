@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import React, { createContext, ReactNode, useContext } from 'react';
+import React, { createContext, type ReactNode, useContext } from 'react';
 
 type SidebarContentType = {
   content: ReactNode | null;

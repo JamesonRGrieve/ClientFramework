@@ -44,12 +44,10 @@ export default [
       'postcss.config.js',
       'tailwind.config.js',
       'server-wrapper.js',
-      'env.sh',
       '*.cjs',
       '*.config.js',
       '*.config.cjs',
       '*.config.mjs',
-      'src/components/appwrapper/**',
     ],
   },
   ...compat.config({
@@ -93,13 +91,6 @@ export default [
       react: {
         version: 'detect',
       },
-      // Submodules are resolved via tsconfig path aliases (`@jgrieve/*` ->
-      // ./src/components/*/src), not npm packages. Classifying them as internal
-      // imports stops import/no-extraneous-dependencies (which only checks
-      // external packages) and import/no-unresolved from flagging the internal
-      // submodule entry points, and groups them correctly for import/order.
-      'import/internal-regex': '^(@jgrieve/|zod2gql$)',
-      'import/core-modules': ['@jgrieve/auth', '@jgrieve/appwrapper', '@jgrieve/dynamic-form', '@jgrieve/zod2gql'],
     },
     rules: {
       '@typescript-eslint/no-this-alias': 'warn',

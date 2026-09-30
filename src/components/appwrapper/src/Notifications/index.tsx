@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { TooltipBasic } from '@/components/ui/tooltip';
 import { formatTimeAgo } from '@/lib/time-ago';
-import type { Notification } from '@/lib/zephyrex/hooks';
+import type { Notification as InboxNotification } from '@/lib/zephyrex/hooks';
 
 const formatDate = (timestamp: string): string =>
   new Date(timestamp).toLocaleString(undefined, { dateStyle: 'full', timeStyle: 'short' });
@@ -15,8 +15,8 @@ export function Notifications({
   notifications,
   onMarkRead,
 }: {
-  notifications: readonly Notification[];
-  onMarkRead: (notification: Notification) => void;
+  notifications: readonly InboxNotification[];
+  onMarkRead: (notification: InboxNotification) => void;
 }): JSX.Element {
   return (
     <ul aria-label='Notifications' className='space-y-2 p-4'>

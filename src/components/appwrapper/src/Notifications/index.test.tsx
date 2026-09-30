@@ -4,9 +4,9 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { EmptyNotifications, Notifications } from './index';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import type { Notification } from '@/lib/zephyrex/hooks';
+import type { Notification as InboxNotification } from '@/lib/zephyrex/hooks';
 
-const notification = (id: string, read: boolean): Notification => ({
+const notification = (id: string, read: boolean): InboxNotification => ({
   id,
   notificationId: `n-${id}`,
   title: `Title ${id}`,

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+import { LayoutGrid, MoonIcon } from 'lucide-react';
+import type { ReactElement } from 'react';
 import { useAppearance } from '@/components/theme/useAppearance';
 import { useTheme } from '@/components/theme/useTheme';
 import {
@@ -12,8 +14,6 @@ import {
   DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { LayoutGrid, MoonIcon } from 'lucide-react';
-import type { ReactElement } from 'react';
 
 /** The theme picker submenu for the user menu. */
 export const Themes = (): ReactElement => {

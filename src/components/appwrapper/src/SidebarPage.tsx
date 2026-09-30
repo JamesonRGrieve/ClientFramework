@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { ReactNode } from 'react';
-import { SidebarHeader, SidebarHeaderTitle, SidebarMain } from './SidebarHeader';
+import type { ReactNode } from 'react';
+import { ViewVerticalIcon } from '@radix-ui/react-icons';
 import { useSidebar } from '../../ui/sidebar';
 import { Separator } from '../../ui/separator';
 import { Button } from '../../ui/button';
-import { ViewVerticalIcon } from '@radix-ui/react-icons';
+import { SidebarHeader, SidebarHeaderTitle, SidebarMain } from './SidebarHeader';
 
 interface SidebarPageProps {
   title: string;
@@ -26,7 +26,7 @@ export function SidebarPage({ title, children, className }: SidebarPageProps) {
           <ViewVerticalIcon />
           <span className='sr-only'>Toggle Sidebar</span>
         </Button>
-      </div>
+        </div>
       </SidebarHeader>
       <SidebarMain className={className}>{children}</SidebarMain>
     </>

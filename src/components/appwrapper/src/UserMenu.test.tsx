@@ -2,8 +2,8 @@
 import { render, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Appearances, Themes } from './UserMenu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const openMenu = async (user: ReturnType<typeof userEvent.setup>, submenu: string): Promise<HTMLElement> => {
   await user.click(document.querySelector<HTMLElement>('[data-testid="menu-trigger"]') ?? document.body);

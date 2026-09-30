@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+import { ViewVerticalIcon } from '@radix-ui/react-icons';
+import { usePathname } from 'next/navigation.js';
+import { DEFAULT_SIDEBAR_TITLE, useSidebarContent } from './SidebarContentManager';
 import {
   Sidebar,
   SidebarContent,
@@ -10,9 +13,6 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { ViewVerticalIcon } from '@radix-ui/react-icons';
-import { usePathname } from 'next/navigation.js';
-import { DEFAULT_SIDEBAR_TITLE, useSidebarContent } from './SidebarContentManager';
 
 /** Where the context sidebar shows unless the app says otherwise. */
 export const DEFAULT_CONTEXT_SIDEBAR_PATHS: readonly string[] = ['/chat', '/resident/', '/team', '/provider', '/rotation'];

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import type { Notification } from '@/lib/zephyrex/hooks';
 import { EmptyNotifications, Notifications } from './index';
+import type { Notification as InboxNotification } from '@/lib/zephyrex/hooks';
 
-const notification = (id: string, title: string, read: boolean, createdAt: string): Notification => ({
+const notification = (id: string, title: string, read: boolean, createdAt: string): InboxNotification => ({
   id,
   notificationId: `n-${id}`,
   title,
