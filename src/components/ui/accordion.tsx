@@ -121,13 +121,13 @@ export const AccordionContent = ({ children, className = '', parentValue = '' }:
   const { triggerId, contentId } = context.idsFor(parentValue);
 
   return context.isOpen(parentValue) ? (
-    <div
+    // A labelled section is a region landmark: the panel its trigger names.
+    <section
       id={contentId}
-      role='region'
       aria-labelledby={triggerId}
       className={`overflow-hidden transition-all duration-300 ${className}`}
     >
       {children}
-    </div>
+    </section>
   ) : null;
 };
