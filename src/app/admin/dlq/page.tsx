@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import type { JSX } from 'react';
-import { useState } from 'react';
+import { type JSX, useState } from 'react';
 import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,19 +9,29 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDlq, useDlqActions } from '@/hooks/api';
 
+/** How much of an entry's id the table shows. */
+const SHORT_ID_LENGTH = 8;
+
 export default function DlqPage(): JSX.Element {
   const [extension, setExtension] = useState('');
   const [ability, setAbility] = useState('');
-  const dlq = useDlq({ extension: extension || undefined, ability: ability || undefined });
+  const dlq = useDlq({
+    extension: extension === '' ? undefined : extension,
+    ability: ability === '' ? undefined : ability,
+  });
   const { replay, discard } = useDlqActions();
+  const [actionError, setActionError] = useState('');
+  const loadError = dlq.error instanceof Error ? dlq.error.message : undefined;
+  const entries = dlq.data?.items ?? [];
 
-  const handleReplay = async (id: string): Promise<void> => {
-    await replay(id);
-    await dlq.mutate();
-  };
-  const handleDiscard = async (id: string): Promise<void> => {
-    await discard(id);
-    await dlq.mutate();
+  // Replaying or discarding refreshes the list; a failure is shown, not dropped.
+  const act = (action: (id: string) => Promise<unknown>, id: string): void => {
+    setActionError('');
+    action(id)
+      .then(async () => dlq.mutate())
+      .catch((error: Error) => {
+        setActionError(error.message);
+      });
   };
 
   return (
@@ -34,12 +43,19 @@ export default function DlqPage(): JSX.Element {
           </CardHeader>
           <CardContent className='flex flex-wrap gap-2'>
             <Input
+              aria-label='Extension'
               placeholder='Extension'
               value={extension}
               onChange={(e) => setExtension(e.target.value)}
               className='w-48'
             />
-            <Input placeholder='Ability' value={ability} onChange={(e) => setAbility(e.target.value)} className='w-48' />
+            <Input
+              aria-label='Ability'
+              placeholder='Ability'
+              value={ability}
+              onChange={(e) => setAbility(e.target.value)}
+              className='w-48'
+            />
           </CardContent>
         </Card>
 
@@ -48,9 +64,16 @@ export default function DlqPage(): JSX.Element {
             <CardTitle>Failed operations ({dlq.data?.total ?? dlq.data?.items.length ?? 0})</CardTitle>
           </CardHeader>
           <CardContent>
-            {dlq.error ? (
-              <p className='text-sm text-destructive'>Failed to load: {dlq.error.message}</p>
-            ) : !dlq.data?.items.length ? (
+            {actionError !== '' && (
+              <p role='alert' className='mb-2 text-sm text-destructive'>
+                {actionError}
+              </p>
+            )}
+            {loadError !== undefined ? (
+              <p role='alert' className='text-sm text-destructive'>
+                Failed to load: {loadError}
+              </p>
+            ) : entries.length === 0 ? (
               <p className='text-sm text-muted-foreground'>No entries.</p>
             ) : (
               <Table>
@@ -65,9 +88,9 @@ export default function DlqPage(): JSX.Element {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {dlq.data.items.map((entry) => (
+                  {entries.map((entry) => (
                     <TableRow key={entry.id}>
-                      <TableCell className='font-mono text-xs'>{entry.id.slice(0, 8)}</TableCell>
+                      <TableCell className='font-mono text-xs'>{entry.id.slice(0, SHORT_ID_LENGTH)}</TableCell>
                       <TableCell>{entry.extension}</TableCell>
                       <TableCell>{entry.ability}</TableCell>
                       <TableCell className='max-w-md truncate' title={entry.error_message}>
@@ -75,10 +98,10 @@ export default function DlqPage(): JSX.Element {
                       </TableCell>
                       <TableCell>{entry.attempts}</TableCell>
                       <TableCell className='space-x-2 text-right'>
-                        <Button size='sm' variant='outline' onClick={async () => handleReplay(entry.id)}>
+                        <Button size='sm' variant='outline' onClick={() => act(replay, entry.id)}>
                           Replay
                         </Button>
-                        <Button size='sm' variant='destructive' onClick={async () => handleDiscard(entry.id)}>
+                        <Button size='sm' variant='destructive' onClick={() => act(discard, entry.id)}>
                           Discard
                         </Button>
                       </TableCell>
