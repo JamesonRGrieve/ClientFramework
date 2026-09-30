@@ -18,7 +18,7 @@
           "number": "1.1.2",
           "feature": "Add security headers in `next.config.js` `headers()`",
           "description": "Add a `Content-Security-Policy` header to `SECURITY_HEADERS` in `next.config.js:19-25` (the other five security headers are present; HSTS only when ENV=production)",
-          "done": false,
+          "done": true,
           "priority": "high"
         },
         {
@@ -501,7 +501,7 @@
           "number": "3.1.6",
           "feature": "`Subscribe.tsx:47`",
           "description": "`auth/src/Subscribe.tsx` loads js.stripe.com/v3/pricing-table.js, which Stripe updates in place and does not support SRI on; restrict it with a Content-Security-Policy script-src (see 1.1.2) instead",
-          "done": false,
+          "done": true,
           "priority": "high"
         },
         {

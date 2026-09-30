@@ -2,6 +2,7 @@
 import { createAuthMiddleware } from '@zephyrex/auth/auth.middleware';
 import { NextResponse, type NextRequest } from 'next/server.js';
 import { DEFAULT_AUTH_PATH } from './authPath';
+import { contentSecurityPolicy, mintNonce } from './contentSecurityPolicy';
 import type { MiddlewareHook, ZephyrexClientExtension, ZephyrexConfig } from './types';
 
 const ABSOLUTE_URL = /^https?:\/\//;
@@ -32,13 +33,18 @@ export const authHookFor = (config: Pick<ZephyrexConfig, 'server' | 'auth'>): Mi
     landingOnly: config.auth?.landingOnly ?? false,
   });
 
+/** The request header that carries this response's CSP nonce to server components. */
+export const NONCE_HEADER = 'x-nonce';
+const CSP_HEADER = 'Content-Security-Policy';
+
 /**
  * Next.js middleware that runs the session guard, then any app hooks, then every extension's
  * hooks, in that order. The first hook that activates answers the request; otherwise the request
- * continues. Every response carries `x-next-pathname`.
+ * continues. Every response carries `x-next-pathname` and a Content-Security-Policy with a fresh
+ * nonce, which the continuing request also carries so Next stamps it on its own scripts.
  */
 export function createMiddleware(
-  config: Pick<ZephyrexConfig, 'server' | 'auth' | 'extensions'>,
+  config: Pick<ZephyrexConfig, 'server' | 'auth' | 'extensions' | 'contentSecurityPolicy'>,
   options?: {
     hooks?: MiddlewareHook[];
     builtinHooks?: readonly MiddlewareHook[];
@@ -50,19 +56,34 @@ export function createMiddleware(
     ...(config.extensions ?? []).flatMap((ext: ZephyrexClientExtension) => ext.middleware ?? []),
   ];
 
+  const development = process.env.NODE_ENV !== 'production';
+
   return async function middleware(req: NextRequest): Promise<NextResponse> {
-    const withPathname = (response: NextResponse): NextResponse => {
+    const nonce = mintNonce();
+    const policy = contentSecurityPolicy({
+      nonce,
+      development,
+      ...(config.contentSecurityPolicy === undefined ? {} : { additions: config.contentSecurityPolicy }),
+    });
+    const finish = (response: NextResponse): NextResponse => {
       response.headers.set('x-next-pathname', req.nextUrl.pathname);
+      response.headers.set(CSP_HEADER, policy);
       return response;
+    };
+    const continueRequest = (): NextResponse => {
+      const headers = new Headers(req.headers);
+      headers.set(NONCE_HEADER, nonce);
+      headers.set(CSP_HEADER, policy);
+      return NextResponse.next({ request: { headers } });
     };
     // Hooks are order-dependent: each may short-circuit the ones after it.
     const runFrom = async (index: number): Promise<NextResponse> => {
       const hook = hooks.at(index);
       if (hook === undefined) {
-        return withPathname(NextResponse.next());
+        return finish(continueRequest());
       }
       const result = await hook(req);
-      return result.activated ? withPathname(result.response) : runFrom(index + 1);
+      return result.activated ? finish(result.response) : runFrom(index + 1);
     };
     return runFrom(0);
   };

@@ -4,7 +4,8 @@
 export { ZephyrexApp } from './ZephyrexApp';
 export { ZephyrexProvider, useZephyrexConfig } from './ZephyrexProvider';
 export { ZephyrexRouter } from './ZephyrexRouter';
-export { createMiddleware } from './createMiddleware';
+export { createMiddleware, NONCE_HEADER } from './createMiddleware';
+export type { CspAdditions, CspDirective } from './contentSecurityPolicy';
 
 // API Client
 export { ZephyrexClient, ApiError, RateLimitError } from './client';

@@ -6,6 +6,10 @@ import type { MiddlewareHook } from './types';
 
 const ORIGIN = 'https://app.example.com';
 const HTTP_OK = 200;
+const API_ORIGIN = 'https://api.example.com';
+/** The header Next sets on a response that lets the request continue. */
+const CONTINUES = 'x-middleware-next';
+const UPSTREAM_REQUIRED = 'upstreamUrl is required';
 
 const request = (path = '/team/1', session?: string): NextRequest => {
   const req = new NextRequest(`${ORIGIN}${path}`);
@@ -37,7 +41,7 @@ describe('createMiddleware', () => {
     );
     const response = await middleware(request());
     expect(log).toEqual(['builtin', 'app', 'extension']);
-    expect(response.headers.get('x-middleware-next')).toBe('1');
+    expect(response.headers.get(CONTINUES)).toBe('1');
     expect(response.headers.get('x-next-pathname')).toBe('/team/1');
   });
 
@@ -59,6 +63,29 @@ describe('createMiddleware', () => {
     await expect(middleware(request())).rejects.toThrow('boom');
   });
 
+  it('sends a fresh-nonce CSP on every response, and hands the nonce on with a continuing request', async () => {
+    const middleware = createMiddleware(CONFIG, { builtinHooks: [] });
+    const first = await middleware(request());
+    const policy = first.headers.get('content-security-policy') ?? '';
+    const nonce = first.headers.get('x-middleware-request-x-nonce') ?? '';
+    expect(nonce).not.toBe('');
+    expect(policy).toContain(`'nonce-${nonce}'`);
+    // Next reads the policy from the request to stamp the nonce on its own scripts.
+    expect(first.headers.get('x-middleware-request-content-security-policy')).toBe(policy);
+    const second = await middleware(request());
+    expect(second.headers.get('x-middleware-request-x-nonce')).not.toBe(nonce);
+  });
+
+  it('puts the CSP on a hook’s own answer too, and adds the app’s sources', async () => {
+    const middleware = createMiddleware(
+      { ...CONFIG, contentSecurityPolicy: { 'connect-src': ['https://analytics.example.org'] } },
+      { builtinHooks: [recording([], 'redirect', true)] },
+    );
+    const response = await middleware(request());
+    expect(response.headers.get('location')).toBe(`${ORIGIN}/elsewhere`);
+    expect(response.headers.get('content-security-policy')).toContain('https://analytics.example.org');
+  });
+
   it('guards the configured private routes by default', async () => {
     const middleware = createMiddleware({
       server: { baseUrl: '/api', upstreamUrl: 'http://server:1996' },
@@ -66,7 +93,7 @@ describe('createMiddleware', () => {
     });
     const response = await middleware(request('/team/1'));
     expect(response.headers.get('location')).toBe(`${ORIGIN}/user`);
-    expect((await middleware(request('/pricing'))).headers.get('x-middleware-next')).toBe('1');
+    expect((await middleware(request('/pricing'))).headers.get(CONTINUES)).toBe('1');
   });
 
   it('checks a session against the upstream API', async () => {
@@ -77,7 +104,7 @@ describe('createMiddleware', () => {
       auth: { privateRoutes: ['/team'], authPath: '/account' },
     });
     const response = await middleware(request('/team/1', 'sess-1'));
-    expect(response.headers.get('x-middleware-next')).toBe('1');
+    expect(response.headers.get(CONTINUES)).toBe('1');
     expect(fetchMock).toHaveBeenCalledWith('http://server:1996/v1/user', expect.anything());
   });
 });
@@ -85,17 +112,17 @@ describe('createMiddleware', () => {
 describe('apiBaseFor', () => {
   it('is the upstream, else an absolute base', () => {
     expect(apiBaseFor({ server: { baseUrl: '/api', upstreamUrl: 'http://server:1996/' } })).toBe('http://server:1996');
-    expect(apiBaseFor({ server: { baseUrl: 'https://api.example.com/' } })).toBe('https://api.example.com');
+    expect(apiBaseFor({ server: { baseUrl: 'https://api.example.com/' } })).toBe(API_ORIGIN);
   });
 
   it('takes an empty upstream as none', () => {
-    expect(apiBaseFor({ server: { baseUrl: 'https://api.example.com', upstreamUrl: '' } })).toBe('https://api.example.com');
-    expect(() => apiBaseFor({ server: { baseUrl: '/api', upstreamUrl: ' ' } })).toThrow('upstreamUrl is required');
+    expect(apiBaseFor({ server: { baseUrl: API_ORIGIN, upstreamUrl: '' } })).toBe(API_ORIGIN);
+    expect(() => apiBaseFor({ server: { baseUrl: '/api', upstreamUrl: ' ' } })).toThrow(UPSTREAM_REQUIRED);
   });
 
   it('refuses a same-origin base with no upstream rather than trust the request’s host', () => {
-    expect(() => apiBaseFor({ server: { baseUrl: '/api' } })).toThrow('upstreamUrl is required');
-    expect(() => apiBaseFor({ server: { baseUrl: '' } })).toThrow('upstreamUrl is required');
-    expect(() => createMiddleware({ server: { baseUrl: '' } })).toThrow('upstreamUrl is required');
+    expect(() => apiBaseFor({ server: { baseUrl: '/api' } })).toThrow(UPSTREAM_REQUIRED);
+    expect(() => apiBaseFor({ server: { baseUrl: '' } })).toThrow(UPSTREAM_REQUIRED);
+    expect(() => createMiddleware({ server: { baseUrl: '' } })).toThrow(UPSTREAM_REQUIRED);
   });
 });

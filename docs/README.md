@@ -71,6 +71,13 @@ import config from '@/zephyrex.config';
 export default createMiddleware(config);
 ```
 
+The middleware sends a Content-Security-Policy with a fresh nonce on every response: scripts run only
+with that nonce or when a trusted script loaded them (`'strict-dynamic'`), with no plugins, framing or
+cross-origin form posts. Next stamps the nonce on its own scripts, which needs pages rendered per
+request (the root layout reads cookies, so they are). A server component that renders its own
+`<script>` reads the nonce from the `NONCE_HEADER` request header. Add an app's sources with
+`contentSecurityPolicy` in the config, e.g. `{ 'connect-src': ['https://analytics.example.org'] }`.
+
 Create `src/app/[...slug]/page.tsx`:
 
 ```tsx
@@ -88,7 +95,7 @@ export default function CatchAll({ params, searchParams }) {
 Import individual extensions or all at once:
 
 ```typescript
-import { authMfaExtension, paymentExtension } from 'zephyrex/extensions';
+import { authMfaExtension, webhooksExtension } from 'zephyrex/extensions';
 import { allExtensions } from 'zephyrex/extensions';
 ```
 
@@ -96,7 +103,7 @@ Add to config:
 
 ```typescript
 const config: ZephyrexConfig = {
-  extensions: [authMfaExtension, paymentExtension, myCustomExtension],
+  extensions: [authMfaExtension, webhooksExtension, myCustomExtension],
 };
 ```
 

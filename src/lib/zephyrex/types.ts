@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ComponentType, LazyExoticComponent, ReactNode } from 'react';
 import type { NextRequest, NextResponse } from 'next/server.js';
+import type { CspAdditions } from './contentSecurityPolicy';
 import type { PageSlots } from './PageSlots';
 
 export interface RouteDefinition {
@@ -90,6 +91,8 @@ export interface ZephyrexConfig {
     enableMFA?: boolean;
     enableSubscription?: boolean;
   };
+  /** Sources the app adds to the framework's Content-Security-Policy, e.g. an analytics host. */
+  contentSecurityPolicy?: CspAdditions;
   extensions?: ZephyrexClientExtension[];
   pages?: RouteDefinition[];
   navItems?: NavItemDefinition[];
