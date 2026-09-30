@@ -8,6 +8,8 @@ import { cn } from '@/lib/utils';
 type DisclosureContextType = {
   open: boolean;
   toggle: () => void;
+  /** The content's id, which the trigger names as the region it controls. */
+  contentId: string;
   variants?: { expanded: Variant; collapsed: Variant } | undefined;
 };
 
@@ -22,6 +24,7 @@ type DisclosureProviderProps = {
 
 function DisclosureProvider({ children, open: openProp, onOpenChange, variants }: DisclosureProviderProps) {
   const [internalOpenValue, setInternalOpenValue] = useState<boolean>(openProp);
+  const contentId = useId();
 
   useEffect(() => {
     setInternalOpenValue(openProp);
@@ -40,6 +43,7 @@ function DisclosureProvider({ children, open: openProp, onOpenChange, variants }
       value={{
         open: internalOpenValue,
         toggle,
+        contentId,
         variants,
       }}
     >
@@ -55,6 +59,9 @@ function useDisclosure() {
   }
   return context;
 }
+
+/** A trigger and its content. */
+const DISCLOSURE_PARTS = 2;
 
 type DisclosureProps = {
   open?: boolean;
@@ -73,12 +80,15 @@ export function Disclosure({
   transition,
   variants,
 }: DisclosureProps) {
+  const parts = React.Children.toArray(children);
+  if (parts.length !== DISCLOSURE_PARTS) {
+    throw new Error('Disclosure takes exactly two children: a DisclosureTrigger, then a DisclosureContent.');
+  }
   return (
     <MotionConfig {...(transition !== undefined ? { transition } : {})}>
       <div className={className}>
         <DisclosureProvider open={openProp} onOpenChange={onOpenChange} variants={variants}>
-          {React.Children.toArray(children)[0]}
-          {React.Children.toArray(children)[1]}
+          {parts}
         </DisclosureProvider>
       </div>
     </MotionConfig>
@@ -86,35 +96,43 @@ export function Disclosure({
 }
 
 export function DisclosureTrigger({ children, className }: { children: React.ReactNode; className?: string }) {
-  const { toggle, open } = useDisclosure();
+  const { toggle, open, contentId } = useDisclosure();
 
   return (
     <>
       {React.Children.map(children, (child) => {
-        return React.isValidElement<React.HTMLAttributes<HTMLElement>>(child)
-          ? React.cloneElement(child, {
-              onClick: toggle,
-              role: 'button',
-              'aria-expanded': open,
-              tabIndex: 0,
-              onKeyDown: (e: { key: string; preventDefault: () => void }) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  toggle();
-                }
-              },
-              className: cn(className, child.props.className),
-              ...child.props,
-            })
-          : child;
+        if (!React.isValidElement<React.HTMLAttributes<HTMLElement>>(child)) {
+          return child;
+        }
+        const { onClick, onKeyDown } = child.props;
+        // The child's own props come first, so they cannot switch off the toggle or its ARIA;
+        // its own handlers still run.
+        return React.cloneElement(child, {
+          ...child.props,
+          role: 'button',
+          'aria-expanded': open,
+          'aria-controls': contentId,
+          tabIndex: 0,
+          onClick: (event: React.MouseEvent<HTMLElement>) => {
+            onClick?.(event);
+            toggle();
+          },
+          onKeyDown: (event: React.KeyboardEvent<HTMLElement>) => {
+            onKeyDown?.(event);
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              toggle();
+            }
+          },
+          className: cn(className, child.props.className),
+        });
       })}
     </>
   );
 }
 
 export function DisclosureContent({ children, className }: { children: React.ReactNode; className?: string }) {
-  const { open, variants } = useDisclosure();
-  const uniqueId = useId();
+  const { open, variants, contentId } = useDisclosure();
 
   const BASE_VARIANTS: Variants = {
     expanded: {
@@ -136,7 +154,7 @@ export function DisclosureContent({ children, className }: { children: React.Rea
     <div className={cn('overflow-hidden', className)}>
       <AnimatePresence initial={false}>
         {open && (
-          <motion.div id={uniqueId} initial='collapsed' animate='expanded' exit='collapsed' variants={combinedVariants}>
+          <motion.div id={contentId} initial='collapsed' animate='expanded' exit='collapsed' variants={combinedVariants}>
             {children}
           </motion.div>
         )}
@@ -145,9 +163,11 @@ export function DisclosureContent({ children, className }: { children: React.Rea
   );
 }
 
-export default {
+const DisclosureParts = {
   Disclosure,
   DisclosureProvider,
   DisclosureTrigger,
   DisclosureContent,
 };
+
+export default DisclosureParts;
