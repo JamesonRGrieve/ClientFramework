@@ -2,10 +2,13 @@
 // Checks that dist/ loads under Node's own ESM resolver, not only under a bundler (which
 // tolerates extensionless paths and packages without an "exports" map):
 //   1. every relative import names a file that exists, and
-//   2. every module imports cleanly when executed by plain Node.
+//   2. every module imports cleanly when executed by plain Node, and
+//   3. every module calling a browser-only React hook is marked 'use client', so a server
+//      component can render it.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { needsClientDirective } from './client-directive.ts';
 
 const DIST = resolve('dist');
 const RELATIVE_IMPORT = /(?:from|import)\s*\(?\s*['"](\.{1,2}\/[^'"]+)['"]/g;
@@ -37,6 +40,11 @@ for (const file of files) {
 
 const modules = files.filter((file) => file.endsWith('.js'));
 for (const file of modules) {
+  if (needsClientDirective(readFileSync(file, 'utf8'))) {
+    broken.push(`${relativeName(file)}: calls a browser-only React hook but is not marked 'use client'`);
+  }
+}
+for (const file of modules) {
   try {
     await import(pathToFileURL(file).href);
   } catch (error) {
@@ -45,7 +53,7 @@ for (const file of modules) {
 }
 
 if (broken.length > 0) {
-  console.error(`[verify-dist] ${broken.length} problems loading dist/ under Node:`);
+  console.error(`[verify-dist] ${broken.length} problems with dist/:`);
   for (const entry of broken) {
     console.error(`  ${entry}`);
   }

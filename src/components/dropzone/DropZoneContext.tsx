@@ -1,6 +1,6 @@
+'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type React from 'react';
-import { createContext, useContext, useState, useCallback, useEffect, type PropsWithChildren, useRef } from 'react';
+import { type FC, createContext, useContext, useState, useCallback, useEffect, type PropsWithChildren, useRef } from 'react';
 
 interface DropZoneContextType {
   isDragActive: boolean;
@@ -26,7 +26,6 @@ interface DropZoneProviderProps {
   onUpload: (files: File[]) => void;
   allowList?: string[];
   blockList?: string[];
-  [key: string]: unknown;
 }
 
 const preventDefault = (e: DragEvent) => {
@@ -37,7 +36,7 @@ const preventDefault = (e: DragEvent) => {
 const defaultBlockList = ['text/plain', 'application/x-msdownload'];
 
 const getFileTypeValidation = (files: DataTransferItemList | FileList, allowList?: string[], blockList?: string[]) => {
-  const effectiveBlockList = blockList || defaultBlockList;
+  const effectiveBlockList = blockList ?? defaultBlockList;
   const fileArray = Array.from(files as FileList);
   let commonFileType = fileArray[0]?.type ?? '';
   for (const file of fileArray) {
@@ -55,7 +54,7 @@ const getFileTypeValidation = (files: DataTransferItemList | FileList, allowList
   return { isValid: true, commonFileType };
 };
 
-export const DropZoneProvider: React.FC<PropsWithChildren<DropZoneProviderProps>> = ({
+export const DropZoneProvider: FC<PropsWithChildren<DropZoneProviderProps>> = ({
   onUpload,
   allowList,
   blockList,
@@ -143,19 +142,13 @@ export const DropZoneProvider: React.FC<PropsWithChildren<DropZoneProviderProps>
   }, []);
 
   useEffect(() => {
-    const addListener = document.body.addEventListener;
-    addListener('dragenter', handleDragIn);
-    addListener('dragleave', handleDragOut);
-    addListener('dragover', handleDragOver);
-    addListener('drop', handleDrop);
-
-    return () => {
-      const removeListener = document.body.removeEventListener;
-      removeListener('dragenter', handleDragIn);
-      removeListener('dragleave', handleDragOut);
-      removeListener('dragover', handleDragOver);
-      removeListener('drop', handleDrop);
-    };
+    const listening = new AbortController();
+    const { signal } = listening;
+    document.body.addEventListener('dragenter', handleDragIn, { signal });
+    document.body.addEventListener('dragleave', handleDragOut, { signal });
+    document.body.addEventListener('dragover', handleDragOver, { signal });
+    document.body.addEventListener('drop', handleDrop, { signal });
+    return () => listening.abort();
   }, [handleDragIn, handleDragOut, handleDragOver, handleDrop]);
 
   return (
