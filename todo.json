@@ -514,14 +514,14 @@
         {
           "number": "3.1.8",
           "feature": "Add CSRF token validation on Login and Register forms",
-          "done": false,
-          "description": "Add CSRF protection for the pre-session Login and Register POSTs (`auth/src/Login.tsx:54-82`, `Register.tsx:38-65`); `lib/session.ts:19-25` double-submit only applies once a zx_csrf cookie exists"
+          "done": true,
+          "description": "Add CSRF protection for the pre-session Login and Register POSTs (`auth/src/Login.tsx:54-82`, `Register.tsx:38-65`); `lib/session.ts:19-25` double-submit only applies once a zx_csrf cookie exists. Resolved server-side, as agreed with the server: server 6f0c456a refuses any non-GET/HEAD/OPTIONS request without Authorization or X-API-Key whose Origin is not the app's own (403 \"Cross-site request refused\"). The app's pages are same-origin, so no client change; session writes keep the zx_csrf double-submit"
         },
         {
           "number": "3.1.9",
           "feature": "Add password strength validation in `Register.tsx`",
-          "done": false,
-          "description": "Password strength: show the server’s password policy in `auth/src/Register.tsx` once the server exposes it (the client must not invent a stricter or looser rule)"
+          "done": true,
+          "description": "Password strength: show the server’s password policy in `auth/src/Register.tsx` once the server exposes it (the client must not invent a stricter or looser rule). Done in @zephyrex/auth 53bbf0d and 701cbbf against server b17a28a1 and d9f45083: Register and change-password read GET /v1/user/password-policy, show it as a live checklist, hold the form until it is kept, and mark the rules a 422 names; the fetch happens only when authModes.basic is on"
         },
         {
           "number": "3.1.10",
