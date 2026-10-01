@@ -36,15 +36,53 @@ export class RateLimitError extends Error {
   }
 }
 
+/** The server's error body: a message, or a message with the rules a refused value broke. */
+const ErrorBodySchema = z.object({
+  detail: z.union([z.string(), z.object({ message: z.string(), failed: z.array(z.string()).optional() })]),
+});
+
+/**
+ * `body`'s `detail` and `failed`, when it is the server's error shape; else the start of the body
+ * itself, or the status when there is none.
+ */
+function errorDetail(status: number, body: string): { detail: string; failed: string[] } {
+  try {
+    const parsed = ErrorBodySchema.safeParse(JSON.parse(body));
+    if (parsed.success) {
+      const { detail } = parsed.data;
+      return typeof detail === 'string' ? { detail, failed: [] } : { detail: detail.message, failed: detail.failed ?? [] };
+    }
+  } catch {
+    // Not JSON: the body is the message.
+  }
+  return { detail: body === '' ? `HTTP ${status}` : body.slice(0, ERROR_PREVIEW_CHARS), failed: [] };
+}
+
+/**
+ * A non-2xx answer. Its message is the server's `detail`, fit to show the user; `failed` names the
+ * rules a refused value broke (e.g. the password policy's), when the server listed them.
+ */
 export class ApiError extends Error {
-  constructor(
-    readonly status: number,
-    readonly body: string,
-  ) {
-    super(`API ${status}: ${body.slice(0, ERROR_PREVIEW_CHARS)}`);
+  readonly status: number;
+  readonly body: string;
+  readonly detail: string;
+  readonly failed: readonly string[];
+
+  constructor(status: number, body: string) {
+    const { detail, failed } = errorDetail(status, body);
+    super(detail);
     this.name = 'ApiError';
+    this.status = status;
+    this.body = body;
+    this.detail = detail;
+    this.failed = failed;
   }
 }
+
+/** How many rows `list` asks for per page. */
+export const LIST_PAGE_SIZE = 100;
+
+const ListPageSchema = z.looseObject({ pagination: z.object({ has_more: z.boolean() }).optional() });
 
 /** Retry-After as milliseconds: delta-seconds or an HTTP date, else the base backoff. */
 export function parseRetryAfter(res: Response): number {
@@ -138,5 +176,23 @@ export class ZephyrexClient {
 
   async delete(path: string): Promise<JsonValue> {
     return this.request(this.url(path), { method: 'DELETE' });
+  }
+
+  /**
+   * Every row of a paginated list route (`{ <key>: [...], pagination: { has_more } }`), walking
+   * `offset`/`limit` pages until the server says there are no more. Each page decides whether there
+   * is a next, so they are fetched one after another. `params` is the rest of each page's query.
+   */
+  async list<T>(path: string, key: string, itemSchema: z.ZodType<T>, params: Record<string, string> = {}): Promise<T[]> {
+    const fromOffset = async (offset: number): Promise<T[]> => {
+      const query = { ...params, offset: String(offset), limit: String(LIST_PAGE_SIZE) };
+      const page = ListPageSchema.parse(await this.get(path, query));
+      const items = z.array(itemSchema).parse(new Map(Object.entries(page)).get(key));
+      if (page.pagination?.has_more !== true || items.length === 0) {
+        return items;
+      }
+      return [...items, ...(await fromOffset(offset + LIST_PAGE_SIZE))];
+    };
+    return fromOffset(0);
   }
 }

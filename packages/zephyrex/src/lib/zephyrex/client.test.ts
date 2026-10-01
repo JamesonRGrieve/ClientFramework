@@ -1,13 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { deleteCookie, setCookie } from 'cookies-next/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiError, parseRetryAfter, RateLimitError, ZephyrexClient } from './client';
+import { z } from 'zod';
+import { ApiError, LIST_PAGE_SIZE, parseRetryAfter, RateLimitError, ZephyrexClient } from './client';
 
 const BASE = 'https://api.example.com';
 const HTTP_OK = 200;
 const HTTP_NO_CONTENT = 204;
 const HTTP_NOT_FOUND = 404;
+const HTTP_UNPROCESSABLE = 422;
 const HTTP_TOO_MANY = 429;
+const HTTP_SERVER_ERROR = 500;
+const HTTP_BAD_GATEWAY = 502;
+const NOT_FOUND_BODY = '{"detail":"Not found"}';
 const RETRY_AFTER_SECONDS = 2;
 const MS = 1000;
 
@@ -73,8 +78,39 @@ describe('ZephyrexClient', () => {
   });
 
   it('raises ApiError with the status and body on failure', async () => {
-    reply(new Response('{"detail":"Not found"}', { status: HTTP_NOT_FOUND }));
-    await expect(client().get('/v1/team/missing')).rejects.toEqual(new ApiError(HTTP_NOT_FOUND, '{"detail":"Not found"}'));
+    reply(new Response(NOT_FOUND_BODY, { status: HTTP_NOT_FOUND }));
+    await expect(client().get('/v1/team/missing')).rejects.toEqual(new ApiError(HTTP_NOT_FOUND, NOT_FOUND_BODY));
+  });
+
+  describe('list', () => {
+    const page = (rows: { id: string }[], hasMore?: boolean): Response =>
+      new Response(JSON.stringify({ keys: rows, ...(hasMore === undefined ? {} : { pagination: { has_more: hasMore } }) }), {
+        status: HTTP_OK,
+      });
+    const Row = z.object({ id: z.string() });
+    const ROUTE = '/v1/key';
+
+    it('walks the pages in order until the server says there are no more', async () => {
+      const fetchMock = reply(page([{ id: 'a' }], true), page([{ id: 'b' }], false));
+      await expect(client().list(ROUTE, 'keys', Row, { team_id: 't1' })).resolves.toEqual([{ id: 'a' }, { id: 'b' }]);
+      expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+        `${BASE}${ROUTE}?team_id=t1&offset=0&limit=${LIST_PAGE_SIZE}`,
+        `${BASE}${ROUTE}?team_id=t1&offset=${LIST_PAGE_SIZE}&limit=${LIST_PAGE_SIZE}`,
+      ]);
+    });
+
+    it('stops at an unpaginated answer or an empty page', async () => {
+      reply(page([{ id: 'a' }]));
+      await expect(client().list(ROUTE, 'keys', Row)).resolves.toEqual([{ id: 'a' }]);
+      const fetchMock = reply(page([], true));
+      await expect(client().list(ROUTE, 'keys', Row)).resolves.toEqual([]);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects rows that do not match the schema', async () => {
+      reply(page([{ id: 'a' }]));
+      await expect(client().list(ROUTE, 'keys', z.object({ name: z.string() }))).rejects.toThrow(z.ZodError);
+    });
   });
 
   describe('on 429', () => {
@@ -104,6 +140,30 @@ describe('ZephyrexClient', () => {
       await expect(failure).resolves.toEqual(new RateLimitError(MS, 'slow down'));
       expect(fetchMock).toHaveBeenCalledTimes(4);
     });
+  });
+});
+
+describe('ApiError', () => {
+  it("reads the server's message and the rules a refused value broke", () => {
+    const refused = new ApiError(
+      HTTP_UNPROCESSABLE,
+      '{"detail":{"message":"Password does not meet the policy","failed":["min_length","require_digit"]}}',
+    );
+    expect(refused.message).toBe('Password does not meet the policy');
+    expect(refused.detail).toBe(refused.message);
+    expect(refused.failed).toEqual(['min_length', 'require_digit']);
+    expect(new ApiError(HTTP_NOT_FOUND, NOT_FOUND_BODY)).toMatchObject({
+      message: 'Not found',
+      status: HTTP_NOT_FOUND,
+      body: NOT_FOUND_BODY,
+      failed: [],
+    });
+  });
+
+  it('falls back to the body when it is not the error shape, or the status when there is none', () => {
+    expect(new ApiError(HTTP_BAD_GATEWAY, 'Bad Gateway')).toMatchObject({ message: 'Bad Gateway', failed: [] });
+    expect(new ApiError(HTTP_SERVER_ERROR, '{"error":"boom"}')).toMatchObject({ message: '{"error":"boom"}' });
+    expect(new ApiError(HTTP_SERVER_ERROR, '').message).toBe(`HTTP ${HTTP_SERVER_ERROR}`);
   });
 });
 
