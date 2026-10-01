@@ -22,6 +22,10 @@ import { Button } from 'zephyrex/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { Input } from 'zephyrex/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'zephyrex/ui/table';
+import { Textarea } from 'zephyrex/ui/textarea';
+
+/** How many lines a multi-line setting's editor shows: enough for a PEM key's header and some body. */
+const MULTILINE_ROWS = 6;
 
 const formatTime = (value: string | null | undefined): string =>
   value === null || value === undefined ? '—' : new Date(value).toLocaleString();
@@ -88,7 +92,23 @@ function SettingRow({
       </TableCell>
       <TableCell>
         {draft === null ? (
-          <span className={row.setting === null ? 'text-muted-foreground' : ''}>{shownValue(row)}</span>
+          <span className={`whitespace-pre-wrap ${row.setting === null ? 'text-muted-foreground' : ''}`}>
+            {shownValue(row)}
+          </span>
+        ) : row.spec?.multiline === true ? (
+          // A key or certificate spans lines, which a password field can't hold; a secret one is
+          // still entered blank and never shown back.
+          <Textarea
+            id={inputId}
+            autoComplete='off'
+            spellCheck={false}
+            rows={MULTILINE_ROWS}
+            className='font-mono'
+            value={draft}
+            onChange={(event) => {
+              setDraft(event.target.value);
+            }}
+          />
         ) : (
           <Input
             id={inputId}

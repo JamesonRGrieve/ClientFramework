@@ -20,6 +20,8 @@ const ProviderSettingSpecSchema = z.object({
   write_only: z.boolean(),
   /** Set when the value is the instance's own column (e.g. `api_key`), edited on the instance. */
   field: optionalText,
+  /** The value spans lines (a PEM key, a certificate, a JSON blob). */
+  multiline: z.boolean().optional(),
 });
 export type ProviderSettingSpec = z.infer<typeof ProviderSettingSpecSchema>;
 

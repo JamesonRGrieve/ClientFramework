@@ -146,7 +146,7 @@ describe('Providers with a settings catalogue', () => {
 
   const settingsFor = (rows: object[]): object => ({ provider_instance_settings: rows });
 
-  const renderSns = (): { view: ReturnType<typeof render>; writes: [string, string][] } => {
+  const renderSns = (extra: ProviderSettingSpec[] = []): { view: ReturnType<typeof render>; writes: [string, string][] } => {
     const writes: [string, string][] = [];
     let stored: object[] = [{ id: 's1', provider_instance_id: 'i1', key: 'aws_secret_key', value: null, write_only: true }];
     vi.mocked(useParams).mockReturnValue({ id: 'i1' });
@@ -162,7 +162,7 @@ describe('Providers with a settings catalogue', () => {
         }
         const body: Record<string, object> = {
           '/v1/provider/instance': { provider_instances: [instance] },
-          '/v1/provider/p1/settings': { provider_id: 'p1', provider: 'amazon_sns', settings: SNS },
+          '/v1/provider/p1/settings': { provider_id: 'p1', provider: 'amazon_sns', settings: [...SNS, ...extra] },
           '/v1/provider/instance/setting/search': settingsFor(stored),
         };
         return Promise.resolve(new Response(JSON.stringify(body[path] ?? {}), { status: HTTP_OK }));
@@ -201,6 +201,15 @@ describe('Providers with a settings catalogue', () => {
         ],
       ]);
     });
+  });
+
+  it('enters a multi-line secret, such as a private key, in a blank text area', async () => {
+    const { view } = renderSns([{ ...secret, key: 'private_key', multiline: true }]);
+    const user = userEvent.setup();
+    await user.click(await view.findByRole('button', { name: 'Set private_key' }));
+    const editor = view.getByLabelText('private_key');
+    expect(editor.tagName).toBe('TEXTAREA');
+    expect(editor).toHaveValue('');
   });
 
   it('starts a secret blank, as a password, when replacing it', async () => {
