@@ -39,8 +39,6 @@ export type { SubscriptionOptions } from './useSubscription';
 export { useOnline } from './useOnline';
 export { useRateLimit } from './useRateLimit';
 export { rootProviderStatusQuery, useRootProviderStatus } from './useRootProviderStatus';
-export { useObservabilityStatus } from './useObservabilityStatus';
-export type { ErrorReporterStatus, MetricsStatus, ObservabilityStatusResponse } from './useObservabilityStatus';
 export { sdkDownloadPath, useSdks } from './useSdks';
 export type { Sdk } from './useSdks';
 export { rootOnlyView } from './rootOnlyView';
@@ -81,7 +79,6 @@ export { SearchInput } from './components/SearchInput';
 export type { SearchInputProps } from './components/SearchInput';
 export { RateLimitBanner } from './components/RateLimitBanner';
 export { RootProviderStatus } from './components/RootProviderStatus';
-export { ObservabilityStatus } from './components/ObservabilityStatus';
 export { SdkDownloads } from './components/SdkDownloads';
 
 // Page Injection

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ApiError } from './client';
+import { ApiError } from 'zephyrex';
+import { TestWrapper, testConfig } from 'zephyrex/testing';
 import { OBSERVABILITY_STATUS_PATH, useObservabilityStatus } from './useObservabilityStatus';
-import { TestWrapper, testConfig } from '@/testing/TestWrapper';
 
 const HTTP_OK = 200;
 const HTTP_FORBIDDEN = 403;

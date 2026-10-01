@@ -3,7 +3,7 @@
 
 import useSWR, { type SWRResponse } from 'swr';
 import { z } from 'zod';
-import { useClient } from './hooks';
+import { useClient } from 'zephyrex';
 
 export const OBSERVABILITY_STATUS_PATH = '/v1/observability/status';
 

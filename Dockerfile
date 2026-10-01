@@ -12,13 +12,14 @@ RUN corepack enable && corepack prepare "pnpm@${PNPM_VERSION}" --activate
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # Every workspace package's manifest, so the frozen install sees the whole workspace.
 COPY packages/zephyrex/package.json ./packages/zephyrex/
+COPY packages/observability/package.json ./packages/observability/
 RUN pnpm install --frozen-lockfile
 COPY . .
 # Read by next.config.js and zephyrex.config.ts at build time; nothing is written to disk or logged.
 ARG API_URI
 ARG APP_NAME
 ARG APP_URI
-# The app consumes the compiled zephyrex package, so it is built first.
+# The app consumes the compiled workspace packages, so they are built first.
 RUN pnpm compile && pnpm build
 
 FROM ${NODE_IMAGE} AS runner

@@ -11,6 +11,7 @@
         "postcss.config.js",
         "tailwind.config.js",
         "vitest.config.ts",
+        "vitest.setup.ts",
         "server-wrapper.js",
         "scripts/**/*.{mjs,js,ts}",
         ".storybook/main.{ts,tsx,js,jsx}",
@@ -24,7 +25,6 @@
       "entry": [
         "src/**/*.stories.{ts,tsx}",
         "src/**/*.test.{ts,tsx}",
-        "src/__tests__/setup.ts",
         "src/components/ui/**/*.{ts,tsx}",
         "src/components/api/**/*.{ts,tsx}",
         "src/components/{markdown,data-table,theme,dropzone}/**/*.{ts,tsx}",
@@ -40,6 +40,10 @@
       ],
       "project": ["src/**/*.{ts,tsx,js,jsx}", "!src/**/*.d.ts"],
       "ignore": ["src/components/appwrapper/**"]
+    },
+    "packages/observability": {
+      "entry": ["src/index.ts", "src/**/*.stories.{ts,tsx}", "src/**/*.test.{ts,tsx}"],
+      "project": ["src/**/*.{ts,tsx}"]
     }
   },
   "ignoreDependencies": ["@tailwindcss/oxide-*", "lightningcss-*"],

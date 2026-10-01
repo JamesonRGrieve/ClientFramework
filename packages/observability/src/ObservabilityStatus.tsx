@@ -2,10 +2,10 @@
 'use client';
 
 import type { JSX, ReactNode } from 'react';
-import { Badge } from '../../../components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
-import { rootOnlyView } from '../rootOnlyView';
-import { useObservabilityStatus } from '../useObservabilityStatus';
+import { rootOnlyView } from 'zephyrex';
+import { Badge } from 'zephyrex/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from 'zephyrex/ui/card';
+import { useObservabilityStatus } from './useObservabilityStatus';
 
 const BACKEND_NAMES: Record<string, string> = {
   prometheus: 'Prometheus',

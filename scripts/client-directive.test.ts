@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest';
-import { needsClientDirective } from './client-directive';
+import { needsClientDirective } from './client-directive.mjs';
 
 const SPDX = '// SPDX-License-Identifier: AGPL-3.0-or-later\n';
 const USES_STATE = "import { useState } from 'react';\nexport const C = () => { const [v] = useState(0); return v; };\n";

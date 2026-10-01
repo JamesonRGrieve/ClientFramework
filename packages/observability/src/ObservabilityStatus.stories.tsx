@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import { http, HttpResponse } from 'msw';
-import { OBSERVABILITY_STATUS_PATH, type ObservabilityStatusResponse as Status } from '../useObservabilityStatus';
-import { withZephyrexApi } from '../../../testing/storyRoot';
+import { withZephyrexApi } from 'zephyrex/testing';
 import { ObservabilityStatus } from './ObservabilityStatus';
+import { OBSERVABILITY_STATUS_PATH, type ObservabilityStatusResponse as Status } from './useObservabilityStatus';
 
 const HTTP_FORBIDDEN = 403;
 
@@ -11,7 +11,7 @@ const statusRoute = `*${OBSERVABILITY_STATUS_PATH}`;
 const serving = (body: Status) => ({ msw: { handlers: [http.get(statusRoute, () => HttpResponse.json(body))] } });
 
 const meta: Meta<typeof ObservabilityStatus> = {
-  title: 'zephyrex/ObservabilityStatus',
+  title: 'observability/ObservabilityStatus',
   component: ObservabilityStatus,
   tags: ['autodocs'],
   decorators: [withZephyrexApi],
