@@ -41,7 +41,7 @@
       "project": ["src/**/*.{ts,tsx,js,jsx}", "!src/**/*.d.ts"],
       "ignore": ["src/components/appwrapper/**"]
     },
-    "packages/observability": {
+    "packages/*": {
       "entry": ["src/index.ts", "src/**/*.stories.{ts,tsx}", "src/**/*.test.{ts,tsx}"],
       "project": ["src/**/*.{ts,tsx}"]
     }

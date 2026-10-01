@@ -1,0 +1,11 @@
+{
+  // What every extension package's tsconfig.json extends: the workspace settings, its own src/
+  // (`${configDir}` is the extending package), and the shared test setup's matcher types. The
+  // packages import relatively and reach zephyrex through its exports, so `@/` means nothing here.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {}
+  },
+  "include": ["./next-env.d.ts", "./vitest.setup.ts", "${configDir}/src/**/*.ts", "${configDir}/src/**/*.tsx"],
+  "exclude": ["${configDir}/node_modules", "${configDir}/dist", "${configDir}/dist.next", "${configDir}/dist.old"]
+}

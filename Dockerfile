@@ -13,6 +13,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # Every workspace package's manifest, so the frozen install sees the whole workspace.
 COPY packages/zephyrex/package.json ./packages/zephyrex/
 COPY packages/observability/package.json ./packages/observability/
+COPY packages/auth-api-keys/package.json ./packages/auth-api-keys/
 RUN pnpm install --frozen-lockfile
 COPY . .
 # Read by next.config.js and zephyrex.config.ts at build time; nothing is written to disk or logged.
