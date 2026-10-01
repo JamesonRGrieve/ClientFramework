@@ -12,16 +12,16 @@
         "tailwind.config.js",
         "vitest.config.ts",
         "server-wrapper.js",
-        "scripts/**/*.{mjs,js}",
+        "scripts/**/*.{mjs,js,ts}",
+        ".storybook/main.{ts,tsx,js,jsx}",
+        ".storybook/preview.{ts,tsx,js,jsx}",
+        ".storybook/**/*.test.ts",
         "src/**/*.test.{ts,tsx}"
       ],
       "project": ["src/**/*.{ts,tsx,js,jsx}", "!src/**/*.d.ts"]
     },
     "packages/zephyrex": {
       "entry": [
-        ".storybook/main.{ts,tsx,js,jsx}",
-        ".storybook/preview.{ts,tsx,js,jsx}",
-        "scripts/**/*.{mjs,js,ts}",
         "src/**/*.stories.{ts,tsx}",
         "src/**/*.test.{ts,tsx}",
         "src/__tests__/setup.ts",
@@ -36,7 +36,7 @@
         "src/lib/utils.ts",
         "src/hooks/api/index.ts",
         "src/hooks/*.{ts,tsx}",
-        "src/testing/TestWrapper.tsx"
+        "src/testing/index.ts"
       ],
       "project": ["src/**/*.{ts,tsx,js,jsx}", "!src/**/*.d.ts"],
       "ignore": ["src/components/appwrapper/**"]

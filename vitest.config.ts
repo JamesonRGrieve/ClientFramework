@@ -8,13 +8,15 @@ const SETUP = path.resolve(__dirname, './packages/zephyrex/src/__tests__/setup.t
 // the way Next does instead of handing them to Node's loader.
 const BUNDLER_PACKAGES = ['zephyrex', '@zephyrex/auth', '@jgrieve/forms'];
 
+const SOURCE_TESTS = 'src/**/*.test.{ts,tsx}';
+
 /** One test project: its files, and what `@` means inside them. */
-const project = (name: string, root: string) => ({
+const project = (name: string, root: string, include: string[] = [SOURCE_TESTS]) => ({
   extends: true,
   test: {
     name,
     root,
-    include: ['src/**/*.test.{ts,tsx}'],
+    include,
     environment: 'jsdom',
     setupFiles: [SETUP],
     globals: true,
@@ -26,7 +28,8 @@ const project = (name: string, root: string) => ({
 export default defineConfig({
   test: {
     projects: [
-      project('template', path.resolve(__dirname)),
+      // The template app, and the workspace's own tooling (build scripts, Storybook).
+      project('template', path.resolve(__dirname), [SOURCE_TESTS, 'scripts/**/*.test.ts', '.storybook/**/*.test.ts']),
       project('zephyrex', path.resolve(__dirname, 'packages/zephyrex')),
     ],
   },

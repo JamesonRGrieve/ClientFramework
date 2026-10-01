@@ -2,7 +2,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import { http, HttpResponse } from 'msw';
 import { OBSERVABILITY_STATUS_PATH, type ObservabilityStatusResponse as Status } from '../useObservabilityStatus';
-import { withZephyrexApi } from '../../../../.storybook/withZephyrexApi';
+import { withZephyrexApi } from '../../../testing/storyRoot';
 import { ObservabilityStatus } from './ObservabilityStatus';
 
 const HTTP_FORBIDDEN = 403;

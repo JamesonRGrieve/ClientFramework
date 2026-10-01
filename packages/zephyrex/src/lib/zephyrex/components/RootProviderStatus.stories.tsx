@@ -2,7 +2,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import { http, HttpResponse } from 'msw';
 import { ROOT_PROVIDER_STATUS_PATH, type RootProviderStatusResponse } from '../useRootProviderStatus';
-import { withZephyrexApi } from '../../../../.storybook/withZephyrexApi';
+import { withZephyrexApi } from '../../../testing/storyRoot';
 import { RootProviderStatus } from './RootProviderStatus';
 
 const HTTP_FORBIDDEN = 403;

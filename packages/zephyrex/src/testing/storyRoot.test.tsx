@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { useSWRConfig } from 'swr';
 import { describe, expect, it } from 'vitest';
-import { STORY_CONFIG, ZephyrexStoryRoot } from '../../.storybook/withZephyrexApi';
+import { STORY_CONFIG, ZephyrexStoryRoot } from './storyRoot';
 import { useZephyrexConfig } from '@/lib/zephyrex/ZephyrexProvider';
 
 function ConfigProbe(): ReactElement {

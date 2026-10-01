@@ -2,7 +2,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import { http, HttpResponse } from 'msw';
 import { SDK_LIST_PATH, type Sdk } from '../useSdks';
-import { withZephyrexApi } from '../../../../.storybook/withZephyrexApi';
+import { withZephyrexApi } from '../../../testing/storyRoot';
 import { SdkDownloads } from './SdkDownloads';
 
 const HTTP_UNAUTHORIZED = 401;

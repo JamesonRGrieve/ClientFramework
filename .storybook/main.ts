@@ -7,7 +7,8 @@ import type { StorybookConfig } from '@storybook/nextjs';
 const here = path.dirname(fileURLToPath(import.meta.url));
 
 const config: StorybookConfig = {
-  stories: ['../src/**/*.stories.@(js|jsx|mjs|ts|tsx|mdx)'],
+  // The workspace's Storybook: every package's stories in one catalogue.
+  stories: ['../packages/*/src/**/*.stories.@(js|jsx|mjs|ts|tsx|mdx)'],
   // Storybook 9+ ships actions, controls, viewport and interactions in core.
   addons: [
     '@storybook/addon-links',
@@ -25,11 +26,14 @@ const config: StorybookConfig = {
   // ./public holds msw's generated mockServiceWorker.js, kept out of the template app's public/ so
   // production never serves the mock worker.
   staticDirs: ['./public'],
-  // `@` is src/, relative to this file (not the directory storybook was started from). The
-  // framework's own packages resolve from node_modules like any consumer's.
+  // `@` is the zephyrex library's src/, the only package that uses it; the extension packages
+  // import relatively, and reach zephyrex through its published exports like any consumer.
   webpackFinal: async (webpackConfig) => {
     if (webpackConfig.resolve) {
-      webpackConfig.resolve.alias = { ...webpackConfig.resolve.alias, '@': path.resolve(here, '../src') };
+      webpackConfig.resolve.alias = {
+        ...webpackConfig.resolve.alias,
+        '@': path.resolve(here, '../packages/zephyrex/src'),
+      };
     }
     return webpackConfig;
   },

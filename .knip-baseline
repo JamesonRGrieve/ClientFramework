@@ -1,5 +1,6 @@
 {
   "strict": [
+    "binaries",
     "classMembers",
     "duplicates",
     "enumMembers",
@@ -10,7 +11,7 @@
     "unlisted"
   ],
   "totals": {
-    "total": 9
+    "total": 8
   },
   "counts": {
     "files": 2,
@@ -19,7 +20,7 @@
     "optionalPeerDependencies": 0,
     "unlisted": 0,
     "unresolved": 1,
-    "binaries": 1,
+    "binaries": 0,
     "exports": 0,
     "types": 0,
     "enumMembers": 0,

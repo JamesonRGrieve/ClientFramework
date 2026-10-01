@@ -1,0 +1,8 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+/* The stories' styles: the design system as an app gets it, with Tailwind scanning every
+ * workspace package's source and the compiled packages the stories render. */
+@import '../packages/zephyrex/src/styles/zephyrex.css';
+
+@source '../packages/*/src';
+@source '../node_modules/@zephyrex/auth/dist';
+@source '../node_modules/@jgrieve/forms/dist';

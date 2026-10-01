@@ -1,9 +1,9 @@
+'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { Decorator } from '@storybook/nextjs';
-import type { ReactElement, ReactNode } from 'react';
+import type { ComponentType, ReactElement, ReactNode } from 'react';
 import { SWRConfig } from 'swr';
-import { ZephyrexProvider } from '../src/lib/zephyrex/ZephyrexProvider';
-import type { ZephyrexConfig } from '../src/lib/zephyrex/types';
+import { ZephyrexProvider } from '../lib/zephyrex/ZephyrexProvider';
+import type { ZephyrexConfig } from '../lib/zephyrex/types';
 
 export const STORY_CONFIG: ZephyrexConfig = { server: { baseUrl: 'http://localhost:1996' }, app: { name: 'Storybook' } };
 
@@ -19,7 +19,8 @@ export function ZephyrexStoryRoot({ children }: { children: ReactNode }): ReactE
   );
 }
 
-export const withZephyrexApi: Decorator = (Story) => (
+/** A Storybook decorator rendering the story under {@link ZephyrexStoryRoot}. */
+export const withZephyrexApi = (Story: ComponentType): ReactElement => (
   <ZephyrexStoryRoot>
     <Story />
   </ZephyrexStoryRoot>
