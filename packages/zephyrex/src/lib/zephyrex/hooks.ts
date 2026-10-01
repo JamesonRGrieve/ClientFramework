@@ -2,12 +2,13 @@
 'use client';
 
 import { hasSession } from '@zephyrex/auth';
-import { getCookie } from 'cookies-next';
+import { getCookie, setCookie } from 'cookies-next/client';
 import { createContext, useContext, useMemo } from 'react';
 import useSWR, { type SWRResponse } from 'swr';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../api/httpStatus';
 import { ApiError, ZephyrexClient } from './client';
+import { ACTIVE_TEAM_COOKIE, cookieDomainOptions, teamToActivate } from './cookies';
 import { useZephyrexConfig } from './ZephyrexProvider';
 
 // --- Client ---
@@ -39,11 +40,14 @@ const UserSchema = z.object({
 });
 export type User = z.infer<typeof UserSchema>;
 
-/** The signed-in user (GET /v1/user answers `{ user }`). */
+/**
+ * The signed-in user (GET /v1/user answers `{ user }`). Without a session nothing is asked, so the
+ * shell can call this on every page without drawing a 401 for a signed-out visitor.
+ */
 export function useUser(): SWRResponse<User, Error> {
   const client = useClient();
   return useSWR<User, Error>(
-    '/v1/user',
+    hasSession() ? '/v1/user' : null,
     async () => z.object({ user: UserSchema }).parse(await client.get('/v1/user')).user,
   );
 }
@@ -67,7 +71,7 @@ export interface Role {
 }
 
 const activeTeamId = (): string | null => {
-  const team = getCookie('auth-team');
+  const team = getCookie(ACTIVE_TEAM_COOKIE);
   return typeof team === 'string' && team !== '' ? team : null;
 };
 
@@ -103,12 +107,29 @@ const TeamSchema = z.object({
 });
 export type Team = z.infer<typeof TeamSchema>;
 
+/** The server's own team, which every user is in and none works in. */
+export const SYSTEM_TEAM_ID = 'FFFFFFFF-FFFF-FFFF-0000-FFFFFFFFFFFF';
+
+/**
+ * The signed-in user's teams, without the system team; nothing is asked without a session. The
+ * active team is kept on one of them: a removed or missing one is replaced by the first.
+ */
 export function useTeams(): SWRResponse<Team[], Error> {
   const client = useClient();
-  return useSWR<Team[], Error>(
-    '/v1/team',
-    async () => z.object({ teams: z.array(TeamSchema) }).parse(await client.get('/v1/team')).teams,
-  );
+  return useSWR<Team[], Error>(hasSession() ? '/v1/team' : null, async () => {
+    const teams = z
+      .object({ teams: z.array(TeamSchema) })
+      .parse(await client.get('/v1/team'))
+      .teams.filter((team) => team.id !== SYSTEM_TEAM_ID);
+    const active = teamToActivate(
+      teams.map((team) => team.id),
+      activeTeamId() ?? undefined,
+    );
+    if (active !== null) {
+      setCookie(ACTIVE_TEAM_COOKIE, active, cookieDomainOptions());
+    }
+    return teams;
+  });
 }
 
 export function useTeam(id?: string): SWRResponse<Team, Error> {

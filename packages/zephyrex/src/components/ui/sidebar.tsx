@@ -14,6 +14,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { cookieDomainOptions } from '@/lib/zephyrex/cookies';
 
 const SIDEBAR_WIDTH = '16rem';
 const SIDEBAR_WIDTH_MOBILE = '18rem';
@@ -107,11 +108,10 @@ const SidebarProvider = React.forwardRef<
             setRightOpen(openState);
           }
 
-          const cookieDomain = process.env.NEXT_PUBLIC_COOKIE_DOMAIN;
           setCookie(`sidebar-${side}-state`, openState, {
             path: '/',
             maxAge: SIDEBAR_STATE_MAX_AGE_S,
-            ...(cookieDomain !== undefined && cookieDomain !== '' ? { domain: cookieDomain } : {}),
+            ...cookieDomainOptions(),
           });
         };
       },

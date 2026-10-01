@@ -3,6 +3,7 @@
 
 import { getCookie, setCookie } from 'cookies-next/client';
 import { useCallback, useEffect, useState } from 'react';
+import { cookieDomainOptions } from '@/lib/zephyrex/cookies';
 
 const MS_PER_DAY = 86_400_000;
 const DAYS_PER_YEAR = 365;
@@ -54,10 +55,9 @@ export function useCookiePreference({
       el.classList.add(current);
     }
 
-    const cookieDomain = process.env.NEXT_PUBLIC_COOKIE_DOMAIN;
     setCookie(cookieName, current, {
       expires: new Date(Date.now() + COOKIE_MAX_AGE_MS),
-      ...(cookieDomain !== undefined && cookieDomain !== '' ? { domain: cookieDomain } : {}),
+      ...cookieDomainOptions(),
     });
   }, [current, options, cookieName, target, shouldAddClass]);
 

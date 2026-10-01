@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, type Mock, vi } from 'vitest';
+import { deleteCookie, getCookie, setCookie } from 'cookies-next/client';
+import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import {
   ADMIN_ROLE_ID,
   SUPERADMIN_ROLE_ID,
+  SYSTEM_TEAM_ID,
   toInbox,
   useMarkNotificationRead,
   useNotifications,
@@ -35,24 +37,41 @@ const members = (roleId: string): object => ({
   ],
 });
 
+/** A signed-in browser: the server's readable CSRF cookie is what marks a session. */
+const signIn = (): void => {
+  setCookie('zx_csrf', 'csrf-1');
+};
+
+const signOut = (): void => {
+  deleteCookie('zx_csrf');
+  deleteCookie('auth-team');
+  vi.unstubAllGlobals();
+};
+
 describe('useUser', () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
+  beforeEach(signIn);
+  afterEach(signOut);
 
   it('unwraps the `{ user }` envelope from GET /v1/user', async () => {
     serve({ '/v1/user': { user: ME } });
-    const { result } = renderHook(() => useUser(), { wrapper: TestWrapper });
+    const { result } = renderHook(() => useUser().data, { wrapper: TestWrapper });
     await waitFor(() => {
-      expect(result.current.data).toEqual(ME);
+      expect(result.current).toEqual(ME);
     });
+  });
+
+  it('asks nothing without a session', () => {
+    deleteCookie('zx_csrf');
+    const fetchMock = serve({ '/v1/user': { user: ME } });
+    const { result } = renderHook(() => useUser().data, { wrapper: TestWrapper });
+    expect(result.current).toBeUndefined();
+    expect(fetchMock.mock.calls.map(([url]) => url)).not.toContain(`${BASE}/v1/user`);
   });
 });
 
 describe('useRole', () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
+  beforeEach(signIn);
+  afterEach(signOut);
 
   it('reads the signed-in user’s membership role in the team', async () => {
     serve({ '/v1/user': { user: ME }, '/v1/team/t1/user': members(ADMIN_ROLE_ID) });
@@ -79,16 +98,26 @@ describe('useRole', () => {
 });
 
 describe('useTeams', () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
+  const alpha = { id: 't1', name: 'Alpha', description: null };
+
+  beforeEach(signIn);
+  afterEach(signOut);
+
+  it('lists the teams from the `{ teams }` envelope, without the system team', async () => {
+    serve({ '/v1/team': { teams: [alpha, { id: SYSTEM_TEAM_ID, name: 'System', description: null }] } });
+    const { result } = renderHook(() => useTeams().data, { wrapper: TestWrapper });
+    await waitFor(() => {
+      expect(result.current).toEqual([alpha]);
+    });
   });
 
-  it('lists the teams from the `{ teams }` envelope', async () => {
-    serve({ '/v1/team': { teams: [{ id: 't1', name: 'Alpha', description: null }] } });
-    const { result } = renderHook(() => useTeams(), { wrapper: TestWrapper });
+  it('makes the first team active when the active one is not theirs', async () => {
+    serve({ '/v1/team': { teams: [alpha] } });
+    const { result } = renderHook(() => useTeams().data, { wrapper: TestWrapper });
     await waitFor(() => {
-      expect(result.current.data).toEqual([{ id: 't1', name: 'Alpha', description: null }]);
+      expect(result.current).toEqual([alpha]);
     });
+    expect(getCookie('auth-team')).toBe('t1');
   });
 });
 
