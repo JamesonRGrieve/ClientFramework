@@ -7,6 +7,7 @@ import { type ReactElement, type SyntheticEvent, useId, useState } from 'react';
 import useSWR from 'swr';
 import { useClient } from 'zephyrex';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
+import { CopyButton } from 'zephyrex/ui/copy-button';
 import { z } from 'zod';
 
 export const API_KEYS_ENDPOINT = '/v1/auth/api-keys';
@@ -31,7 +32,7 @@ export const IssuedKeySchema = z.object({
 });
 export type IssuedKey = z.infer<typeof IssuedKeySchema>;
 
-const when = (value: string | null | undefined, never: string): string =>
+const dateOr = (value: string | null | undefined, never: string): string =>
   value === null || value === undefined ? never : new Date(value).toLocaleDateString();
 
 /** An `<input type=date>` value as the end of that day in the viewer's time zone, or none. */
@@ -39,32 +40,16 @@ export const expiryFromDate = (date: string): string | undefined =>
   date === '' ? undefined : new Date(`${date}T23:59:59`).toISOString();
 
 function IssuedKeyNotice({ issued, onDone }: { issued: IssuedKey; onDone: () => void }): ReactElement {
-  const [copied, setCopied] = useState<string | null>(null);
   return (
     <div role='status' className='grid gap-2 rounded-md border border-primary p-4'>
       <p className='text-sm font-medium'>Copy the key for “{issued.name}” now. It will not be shown again.</p>
       <code className='break-all rounded bg-muted p-2 text-sm'>{issued.key}</code>
       <div className='flex gap-2'>
-        <Button
-          size='sm'
-          onClick={() => {
-            void (async (): Promise<void> => {
-              try {
-                await navigator.clipboard.writeText(issued.key);
-                setCopied('Copied.');
-              } catch (error) {
-                setCopied(error instanceof Error ? error.message : 'The key could not be copied.');
-              }
-            })();
-          }}
-        >
-          Copy key
-        </Button>
+        <CopyButton content={issued.key} label='Copy key' />
         <Button size='sm' variant='outline' onClick={onDone}>
           Done
         </Button>
       </div>
-      {copied !== null && <p className='text-sm'>{copied}</p>}
     </div>
   );
 }
@@ -94,8 +79,8 @@ function KeyRow({
         <div>
           <p className='font-medium'>{apiKey.name}</p>
           <p className='text-sm text-muted-foreground'>
-            Created {when(apiKey.created_at, '')} · last used {when(apiKey.last_used_at, 'never')} · expires{' '}
-            {when(apiKey.expires_at, 'never')}
+            Created {dateOr(apiKey.created_at, '')} · last used {dateOr(apiKey.last_used_at, 'never')} · expires{' '}
+            {dateOr(apiKey.expires_at, 'never')}
           </p>
         </div>
         <div className='flex gap-2'>

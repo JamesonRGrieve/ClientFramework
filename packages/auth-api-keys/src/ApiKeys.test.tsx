@@ -83,6 +83,18 @@ describe('ApiKeys', () => {
     expect(await view.findByText('Deploy')).toBeInTheDocument();
   });
 
+  it('copies a newly issued key', async () => {
+    const user = userEvent.setup();
+    // After setup, which installs a clipboard of its own.
+    const writeText = vi.fn(async () => Promise.resolve());
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    const view = renderKeys();
+    await user.type(await view.findByLabelText('Key name'), 'Deploy');
+    await user.click(view.getByRole('button', { name: 'Issue key' }));
+    await user.click(await view.findByRole('button', { name: 'Copy key' }));
+    expect(writeText).toHaveBeenCalledWith('zx_raw_key_3');
+  });
+
   it('asks for a name before issuing', async () => {
     const user = userEvent.setup();
     const view = renderKeys();
