@@ -1,6 +1,7 @@
 {
-  // What every extension package's tsconfig.compile.json extends: its src/ without tests or stories,
-  // emitted with declarations into its dist/ (compile-package.mjs passes dist.next/ as --outDir).
+  // What every extension package's tsconfig.compile.json extends: its src/ without tests, stories or
+  // the mock servers they share (*.mocks.ts), emitted with declarations into its dist/
+  // (compile-package.mjs passes dist.next/ as --outDir).
   "extends": "./tsconfig.package.json",
   "compilerOptions": {
     "noEmit": false,
@@ -20,6 +21,7 @@
     "${configDir}/src/**/*.test.ts",
     "${configDir}/src/**/*.test.tsx",
     "${configDir}/src/**/*.stories.ts",
-    "${configDir}/src/**/*.stories.tsx"
+    "${configDir}/src/**/*.stories.tsx",
+    "${configDir}/src/**/*.mocks.ts"
   ]
 }

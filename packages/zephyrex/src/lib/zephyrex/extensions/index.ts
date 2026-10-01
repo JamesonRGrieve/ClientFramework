@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// One client extension per extension bundled with the Zephyrex server, name-for-name.
-// Extensions that ship in their own projects (identity providers in zephyrex-auth,
-// campaign extensions in zephyrex-rpg) keep their client counterparts there.
+// One client extension per extension bundled with the Zephyrex server, name-for-name: the
+// registry's metadata. An extension with client code ships it as @zephyrex/<extension>, whose
+// extension object extends the entry here.
 import type { ZephyrexClientExtension } from '../types';
 import { aclRbacExtension } from './acl_rbac';
 import { auditRetentionExtension } from './audit_retention';
@@ -24,6 +24,7 @@ import { databaseMemoryExtension } from './database_memory';
 import { emailExtension } from './email';
 import { federationExtension } from './federation';
 import { fileioExtension } from './fileio';
+import { genealogyExtension } from './genealogy';
 import { metadataExtension } from './metadata';
 import { metaLabelsExtension } from './meta_labels';
 import { metaLoggingExtension } from './meta_logging';
@@ -58,6 +59,7 @@ export {
   emailExtension,
   federationExtension,
   fileioExtension,
+  genealogyExtension,
   metadataExtension,
   metaLabelsExtension,
   metaLoggingExtension,
@@ -95,6 +97,7 @@ export const allExtensions: ZephyrexClientExtension[] = [
   emailExtension,
   federationExtension,
   fileioExtension,
+  genealogyExtension,
   metadataExtension,
   metaLabelsExtension,
   metaLoggingExtension,

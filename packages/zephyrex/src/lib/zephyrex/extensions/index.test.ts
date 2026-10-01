@@ -27,6 +27,7 @@ const SERVER_EXTENSIONS = [
   'email',
   'federation',
   'fileio',
+  'genealogy',
   'meta_labels',
   'meta_logging',
   'meta_sdk_py',
