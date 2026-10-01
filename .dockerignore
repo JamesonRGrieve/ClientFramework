@@ -1,5 +1,6 @@
-# Dependencies
-node_modules
+# Dependencies, at every level: each workspace package has its own node_modules, which would
+# otherwise overwrite the image's freshly installed links at `COPY . .`.
+**/node_modules
 /.pnp
 .pnp.js
 npm-debug.log*
@@ -11,9 +12,12 @@ yarn-error.log*
 /coverage
 test.ipynb
 
-# Next.js build output
+# Build output: the template's, and each package's dist (the image compiles its own)
 /.next/
 /out/
+**/dist
+**/dist.next
+**/dist.old
 
 # Version control
 .git
