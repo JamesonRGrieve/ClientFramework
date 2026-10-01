@@ -1,14 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { lazy } from 'react';
 import { createExtension } from '../createExtension';
 
-const Notifications = lazy(async () =>
-  import('@zephyrex/auth/management/Notifications').then((m) => ({ default: m.Notifications })),
-);
-
+// The notification inbox is the app's own page (/notifications), on zephyrex's notification hooks.
 export const authNotificationsExtension = createExtension('auth_notifications', {
   displayName: 'Notifications',
   description: 'User notification preferences and delivery',
-  managementTabs: [{ id: 'notifications', label: 'Notifications', component: Notifications, priority: 40 }],
   navItems: [{ title: 'Notifications', url: '/notifications' }],
 });

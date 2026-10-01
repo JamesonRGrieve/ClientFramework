@@ -20,6 +20,8 @@ export {
   useRole,
   useTeams,
   useTeam,
+  useSelectedTeam,
+  SYSTEM_TEAM_ID,
   useServerExtensions,
   useProviders,
   useNotifications,

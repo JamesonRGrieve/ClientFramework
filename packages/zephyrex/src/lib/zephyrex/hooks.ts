@@ -132,6 +132,19 @@ export function useTeams(): SWRResponse<Team[], Error> {
   });
 }
 
+/**
+ * One of the user's teams: `teamId`, or the active team when it is omitted. Undefined while the
+ * teams load; null when the user isn't in it (or has no active team).
+ */
+export function useSelectedTeam(teamId?: string): Team | null | undefined {
+  const { data: teams } = useTeams();
+  if (teams === undefined) {
+    return undefined;
+  }
+  const id = teamId === undefined || teamId === '' ? activeTeamId() : teamId;
+  return teams.find((team) => team.id === id) ?? null;
+}
+
 export function useTeam(id?: string): SWRResponse<Team, Error> {
   const client = useClient();
   return useSWR<Team, Error>(

@@ -1,9 +1,9 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { useUser } from '@zephyrex/auth/hooks/useUser';
 import Link from 'next/link.js';
 import { useState } from 'react';
+import { useUser } from 'zephyrex/hooks';
 import { SidebarPage } from 'zephyrex/components/appwrapper/src/SidebarPage';
 import { Alert, AlertDescription, AlertTitle } from 'zephyrex/ui/alert';
 import { Button } from 'zephyrex/ui/button';
@@ -38,7 +38,8 @@ export default function SupportPage() {
     e.preventDefault();
     const submissionData = {
       ...formData,
-      user: JSON.stringify(userData),
+      // Signed out, there is no user; the email then says so.
+      user: userData === undefined ? '' : JSON.stringify(userData),
       platform: JSON.stringify(window.navigator.userAgent),
     };
     sendAsEmail(submissionData);

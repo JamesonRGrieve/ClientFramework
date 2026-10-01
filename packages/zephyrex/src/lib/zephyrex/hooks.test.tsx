@@ -10,9 +10,11 @@ import {
   useMarkNotificationRead,
   useNotifications,
   useRole,
+  useSelectedTeam,
   useTeams,
   useUser,
 } from './hooks';
+import { withSession } from '@/testing/session';
 import { TestWrapper, testConfig } from '@/testing/TestWrapper';
 
 const HTTP_OK = 200;
@@ -37,13 +39,14 @@ const members = (roleId: string): object => ({
   ],
 });
 
-/** A signed-in browser: the server's readable CSRF cookie is what marks a session. */
+let endSession: () => void = () => undefined;
+
 const signIn = (): void => {
-  setCookie('zx_csrf', 'csrf-1');
+  endSession = withSession();
 };
 
 const signOut = (): void => {
-  deleteCookie('zx_csrf');
+  endSession();
   deleteCookie('auth-team');
   vi.unstubAllGlobals();
 };
@@ -61,7 +64,7 @@ describe('useUser', () => {
   });
 
   it('asks nothing without a session', () => {
-    deleteCookie('zx_csrf');
+    endSession();
     const fetchMock = serve({ '/v1/user': { user: ME } });
     const { result } = renderHook(() => useUser().data, { wrapper: TestWrapper });
     expect(result.current).toBeUndefined();
@@ -109,6 +112,27 @@ describe('useTeams', () => {
     await waitFor(() => {
       expect(result.current).toEqual([alpha]);
     });
+  });
+
+  it('selects a named team, or the active one, from the user’s teams', async () => {
+    const beta = { id: 't2', name: 'Beta', description: null };
+    serve({ '/v1/team': { teams: [alpha, beta] } });
+    setCookie('auth-team', 't2');
+    const { result } = renderHook(
+      () => ({ named: useSelectedTeam('t1'), active: useSelectedTeam(), gone: useSelectedTeam('x') }),
+      {
+        wrapper: TestWrapper,
+      },
+    );
+    await waitFor(() => {
+      expect(result.current).toEqual({ named: alpha, active: beta, gone: null });
+    });
+  });
+
+  it('has no selected team until the teams load', () => {
+    serve({});
+    const { result } = renderHook(() => useSelectedTeam('t1'), { wrapper: TestWrapper });
+    expect(result.current).toBeUndefined();
   });
 
   it('makes the first team active when the active one is not theirs', async () => {

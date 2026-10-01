@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { Team } from '@zephyrex/auth/management/Team';
-import { TeamMembers } from '@zephyrex/auth/management/TeamMembers';
 import type { ReactNode } from 'react';
 import { SidebarPage } from '../../../../components/appwrapper/src/SidebarPage';
 import { PageWithSlots } from '../../PageSlots';
+import { Team } from './Team';
+import { TeamMembers } from './TeamMembers';
 
 export interface TeamPageProps {
   params: Promise<{ id?: string }>;

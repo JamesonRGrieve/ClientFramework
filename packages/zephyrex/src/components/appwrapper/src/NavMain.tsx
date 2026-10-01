@@ -5,7 +5,6 @@ import { ChevronRightIcon } from '@radix-ui/react-icons';
 
 import Link from 'next/link.js';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation.js';
-import { useTeam } from '@zephyrex/auth/hooks/useTeam';
 import type { Item as NavItem } from '@zephyrex/auth/NavMenu';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
@@ -20,6 +19,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
+import { useSelectedTeam } from '@/lib/zephyrex/hooks';
 import { toNavMenuItems } from '@/lib/zephyrex/navigation';
 import { useZephyrexConfig } from '@/lib/zephyrex/ZephyrexProvider';
 
@@ -30,9 +30,8 @@ export function NavMain(): React.JSX.Element {
   const router = useRouter();
   const pathname = usePathname();
   const queryParams = useSearchParams();
-  const { data: companyData } = useTeam();
   // `my_role` is a runtime-only field not present on the base team schema.
-  const company: { name?: string; my_role?: number } | undefined = companyData ?? undefined;
+  const company: { name?: string; my_role?: number } | undefined = useSelectedTeam() ?? undefined;
   const { toggleSidebar, open } = useSidebar('left');
   const { navItems: contributedNavItems } = useZephyrexConfig();
 

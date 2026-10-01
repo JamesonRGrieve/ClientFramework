@@ -6,8 +6,7 @@
  */
 import type { ReactNode } from 'react';
 import { SWRConfig } from 'swr';
-import { ZephyrexApp } from '@/lib/zephyrex';
-import type { ZephyrexConfig } from '@/lib/zephyrex';
+import { ZephyrexApp, type ZephyrexConfig } from '@/lib/zephyrex';
 
 const testConfig: ZephyrexConfig = {
   server: { baseUrl: 'http://localhost:1996' },

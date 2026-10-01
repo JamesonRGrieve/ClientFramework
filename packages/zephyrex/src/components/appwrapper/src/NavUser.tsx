@@ -5,7 +5,6 @@ import { CaretRightIcon } from '@radix-ui/react-icons';
 import { BadgeCheck, LogOut } from 'lucide-react';
 
 import { getGravatarUrl } from '@zephyrex/auth/gravatar';
-import { useUser } from '@zephyrex/auth/hooks/useUser';
 import { useRouter } from 'next/navigation.js';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -21,17 +20,18 @@ import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/c
 import { Skeleton } from '@/components/ui/skeleton';
 import { Appearances } from '@/components/appwrapper/src/UserMenu';
 import { DEFAULT_AUTH_PATH, MANAGE_PAGE } from '@/lib/zephyrex/authPath';
+import { type User, useUser } from '@/lib/zephyrex/hooks';
 import { useZephyrexConfig } from '@/lib/zephyrex/ZephyrexProvider';
 
-type SignedInUser = { email: string; firstName?: string | null | undefined; lastName?: string | null | undefined };
+type SignedInUser = Pick<User, 'email' | 'first_name' | 'last_name'>;
 
 /** The user's Gravatar, falling back to their initials. */
-function UserAvatar({ user }: { user: SignedInUser | null | undefined }) {
-  const firstName = user?.firstName ?? '';
+function UserAvatar({ user }: { user: SignedInUser | undefined }) {
+  const firstName = user?.first_name ?? '';
   return (
     <Avatar className='w-8 h-8 rounded-lg'>
       <AvatarImage src={getGravatarUrl(user?.email ?? '')} {...(firstName === '' ? {} : { alt: firstName })} />
-      <AvatarFallback className='rounded-lg'>{user === null || user === undefined ? null : userInitials(user)}</AvatarFallback>
+      <AvatarFallback className='rounded-lg'>{user === undefined ? null : userInitials(user)}</AvatarFallback>
     </Avatar>
   );
 }
@@ -45,7 +45,7 @@ export function NavUser() {
   const { data: user, isValidating } = useUser();
   const email = user?.email ?? '';
   const hasUser = email !== '';
-  const fullName = [user?.firstName, user?.lastName].filter((part) => part !== null && part !== undefined).join(' ');
+  const fullName = [user?.first_name, user?.last_name].filter((part) => part !== null && part !== undefined).join(' ');
 
   const handleLogout = () => {
     router.push(`${authPath}/logout`);
@@ -134,8 +134,8 @@ export function NavUser() {
 }
 
 /** The user's initials for an avatar fallback, or null without both names. */
-export function userInitials(user: { firstName?: string | null | undefined; lastName?: string | null | undefined }): string | null {
-  const first = user.firstName?.trim().charAt(0) ?? '';
-  const last = user.lastName?.trim().charAt(0) ?? '';
+export function userInitials(user: Partial<Pick<User, 'first_name' | 'last_name'>>): string | null {
+  const first = user.first_name?.trim().charAt(0) ?? '';
+  const last = user.last_name?.trim().charAt(0) ?? '';
   return first === '' || last === '' ? null : `${first}${last}`.toUpperCase();
 }

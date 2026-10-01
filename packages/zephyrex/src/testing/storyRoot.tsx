@@ -4,6 +4,7 @@ import type { ComponentType, ReactElement, ReactNode } from 'react';
 import { SWRConfig } from 'swr';
 import { ZephyrexProvider } from '../lib/zephyrex/ZephyrexProvider';
 import type { ZephyrexConfig } from '../lib/zephyrex/types';
+import { withSession } from './session';
 
 export const STORY_CONFIG: ZephyrexConfig = { server: { baseUrl: 'http://localhost:1996' }, app: { name: 'Storybook' } };
 
@@ -25,3 +26,12 @@ export const withZephyrexApi = (Story: ComponentType): ReactElement => (
     <Story />
   </ZephyrexStoryRoot>
 );
+
+/**
+ * A Storybook decorator for a signed-in story: the browser gets the session's CSRF cookie, without
+ * which the session-only reads (the user, their teams) ask nothing. Put it outside withZephyrexApi.
+ */
+export const withSignedIn = (Story: ComponentType): ReactElement => {
+  withSession();
+  return <Story />;
+};

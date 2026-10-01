@@ -11,11 +11,11 @@
     "unlisted"
   ],
   "totals": {
-    "total": 8
+    "total": 7
   },
   "counts": {
     "files": 2,
-    "dependencies": 2,
+    "dependencies": 1,
     "devDependencies": 3,
     "optionalPeerDependencies": 0,
     "unlisted": 0,

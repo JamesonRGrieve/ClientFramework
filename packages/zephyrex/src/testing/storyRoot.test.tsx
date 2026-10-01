@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { render } from '@testing-library/react';
+import { CSRF_COOKIE, hasSession } from '@zephyrex/auth';
+import { deleteCookie } from 'cookies-next/client';
 import type { ReactElement } from 'react';
 import { useSWRConfig } from 'swr';
 import { describe, expect, it } from 'vitest';
-import { STORY_CONFIG, ZephyrexStoryRoot } from './storyRoot';
+import { STORY_CONFIG, withSignedIn, ZephyrexStoryRoot } from './storyRoot';
 import { useZephyrexConfig } from '@/lib/zephyrex/ZephyrexProvider';
 
 function ConfigProbe(): ReactElement {
@@ -39,5 +41,14 @@ describe('ZephyrexStoryRoot', () => {
       </ZephyrexStoryRoot>,
     );
     expect(seenCaches.size).toBe(2);
+  });
+});
+
+describe('withSignedIn', () => {
+  it('renders the story in a browser with a session', () => {
+    const { container } = render(withSignedIn(() => <p>story</p>));
+    expect(container.textContent).toBe('story');
+    expect(hasSession()).toBe(true);
+    deleteCookie(CSRF_COOKIE);
   });
 });

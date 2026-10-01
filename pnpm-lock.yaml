@@ -23,7 +23,7 @@ importers:
         version: 9.5.12(next@16.3.7(@babel/core@7.29.7)(@playwright/test@1.63.0(zod@4.6.5))(@types/node@26.6.3)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)(typescript@6.0.3)(webpack@5.111.1(@swc/core@1.16.12(@swc/helpers@0.5.23))(lightningcss@1.32.0)(postcss@8.5.28)(sharp@0.35.5(@types/node@26.6.3)))
       '@zephyrex/auth':
         specifier: file:../auth
-        version: file:../auth(@sinclair/typebox@0.34.52)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(ajv@6.15.0)(graphql@16.14.2)(joi@17.13.8)(next@16.3.7(@babel/core@7.29.7)(@playwright/test@1.63.0(zod@4.6.5))(@types/node@26.6.3)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.5)
+        version: file:../auth(@sinclair/typebox@0.34.52)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(ajv@6.15.0)(joi@17.13.8)(next@16.3.7(@babel/core@7.29.7)(@playwright/test@1.63.0(zod@4.6.5))(@types/node@26.6.3)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.5)
       '@zephyrex/observability':
         specifier: workspace:*
         version: link:packages/observability
@@ -197,10 +197,10 @@ importers:
         version: 6.38.0
       msw:
         specifier: ^3.0.1
-        version: 3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+        version: 3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       msw-storybook-addon:
         specifier: ^3.0.3
-        version: 3.0.3(msw@3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(storybook@10.6.1(@types/react@19.3.0)(prettier@3.9.9)(react@19.3.0))
+        version: 3.0.3(msw@3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(storybook@10.6.1(@types/react@19.3.0)(prettier@3.9.9)(react@19.3.0))
       next:
         specifier: ^16.3.7
         version: 16.3.7(@babel/core@7.29.7)(@playwright/test@1.63.0(zod@4.6.5))(@types/node@26.6.3)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -245,7 +245,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^5.0.2
-        version: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+        version: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       zod:
         specifier: ^4.6.5
         version: 4.6.5
@@ -322,7 +322,7 @@ importers:
         version: 14.6.7(@testing-library/dom@10.4.2)
       msw:
         specifier: ^3.0.1
-        version: 3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+        version: 3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       react:
         specifier: ^19.3.0
         version: 19.3.0
@@ -331,7 +331,7 @@ importers:
         version: 2.5.1(react@19.3.0)
       vitest:
         specifier: ^5.0.2
-        version: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+        version: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       zephyrex:
         specifier: workspace:^
         version: link:../zephyrex
@@ -362,7 +362,7 @@ importers:
         version: 14.6.7(@testing-library/dom@10.4.2)
       msw:
         specifier: ^3.0.1
-        version: 3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+        version: 3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       react:
         specifier: ^19.3.0
         version: 19.3.0
@@ -371,7 +371,7 @@ importers:
         version: 2.5.1(react@19.3.0)
       vitest:
         specifier: ^5.0.2
-        version: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+        version: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       zephyrex:
         specifier: workspace:^
         version: link:../zephyrex
@@ -399,7 +399,7 @@ importers:
         version: 14.6.7(@testing-library/dom@10.4.2)
       msw:
         specifier: ^3.0.1
-        version: 3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+        version: 3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       react:
         specifier: ^19.3.0
         version: 19.3.0
@@ -408,7 +408,7 @@ importers:
         version: 2.5.1(react@19.3.0)
       vitest:
         specifier: ^5.0.2
-        version: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+        version: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       zephyrex:
         specifier: workspace:^
         version: link:../zephyrex
@@ -436,7 +436,7 @@ importers:
         version: 14.6.7(@testing-library/dom@10.4.2)
       msw:
         specifier: ^3.0.1
-        version: 3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+        version: 3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       next:
         specifier: ^16.3.7
         version: 16.3.7(@babel/core@7.29.7)(@playwright/test@1.63.0(zod@4.6.5))(@types/node@26.6.3)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -448,7 +448,7 @@ importers:
         version: 2.5.1(react@19.3.0)
       vitest:
         specifier: ^5.0.2
-        version: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+        version: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       zephyrex:
         specifier: workspace:^
         version: link:../zephyrex
@@ -466,7 +466,7 @@ importers:
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       msw:
         specifier: ^3.0.1
-        version: 3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+        version: 3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       react:
         specifier: ^19.3.0
         version: 19.3.0
@@ -475,7 +475,7 @@ importers:
         version: 2.5.1(react@19.3.0)
       vitest:
         specifier: ^5.0.2
-        version: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+        version: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       zephyrex:
         specifier: workspace:^
         version: link:../zephyrex
@@ -550,7 +550,7 @@ importers:
         version: 9.2.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@zephyrex/auth':
         specifier: file:../../../auth
-        version: file:../auth(@sinclair/typebox@0.34.52)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(ajv@8.20.0)(graphql@16.14.2)(joi@17.13.8)(next@16.3.7(@babel/core@7.29.7)(@playwright/test@1.63.0(zod@4.6.5))(@types/node@26.6.3)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.5)
+        version: file:../auth(@sinclair/typebox@0.34.52)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(ajv@8.20.0)(joi@17.13.8)(next@16.3.7(@babel/core@7.29.7)(@playwright/test@1.63.0(zod@4.6.5))(@types/node@26.6.3)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.5)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -631,7 +631,7 @@ importers:
         version: 14.6.7(@testing-library/dom@10.4.2)
       msw:
         specifier: ^3.0.1
-        version: 3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+        version: 3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       next:
         specifier: ^16.3.7
         version: 16.3.7(@babel/core@7.29.7)(@playwright/test@1.63.0(zod@4.6.5))(@types/node@26.6.3)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -646,7 +646,7 @@ importers:
         version: 10.6.1(@types/react@19.3.0)(prettier@3.9.9)(react@19.3.0)
       vitest:
         specifier: ^5.0.2
-        version: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+        version: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       zod:
         specifier: ^4.6.5
         version: 4.6.5
@@ -1888,11 +1888,6 @@ packages:
 
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
-
-  '@graphql-typed-document-node/core@3.2.0':
-    resolution: {integrity: sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==}
-    peerDependencies:
-      graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
 
   '@hapi/hoek@9.3.0':
     resolution: {integrity: sha512-/c6rf4UJlmHlC9b5BaNvzAcFv7HZ2QHaV0D4/HNlBdvFnvQq8RI4kYdhyPCl7Xj+oWvTWQ8ujhqS53LIgAe6KQ==}
@@ -6625,15 +6620,6 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
-  graphql-request@7.4.0:
-    resolution: {integrity: sha512-xfr+zFb/QYbs4l4ty0dltqiXIp07U6sl+tOKAb0t50/EnQek6CVVBLjETXi+FghElytvgaAWtIOt3EV7zLzIAQ==}
-    peerDependencies:
-      graphql: 14 - 16
-
-  graphql@16.14.2:
-    resolution: {integrity: sha512-Chq1s4CY7jmh8gO2qvLIJyfCDIN+EHLFW/9iShnp1z8FjBQMoodWP1kDC36VAMXXIvAjj4ARa7ntfAV2BrjsbA==}
-    engines: {node: ^12.22.0 || ^14.16.0 || ^16.0.0 || >=17.0.0}
-
   hachure-fill@0.5.2:
     resolution: {integrity: sha512-3GKBOn+m2LX9iq+JC1064cSFprJY4jL1jCXTcpnfER5HYE2l/4EfWSGzkPa/ZDBmYI0ZOEj5VHV/eKnPGkHuOg==}
 
@@ -10146,11 +10132,6 @@ packages:
     peerDependencies:
       zod: ^3.25.0 || ^4.0.0
 
-  zod2gql@file:../zod2gql:
-    resolution: {directory: ../zod2gql, type: directory}
-    peerDependencies:
-      zod: ^4.0.0
-
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
@@ -11409,10 +11390,6 @@ snapshots:
       react-dom: 19.3.0(react@19.3.0)
 
   '@floating-ui/utils@0.2.12': {}
-
-  '@graphql-typed-document-node/core@3.2.0(graphql@16.14.2)':
-    dependencies:
-      graphql: 16.14.2
 
   '@hapi/hoek@9.3.0': {}
 
@@ -13506,7 +13483,7 @@ snapshots:
       picocolors: 1.1.1
       redent: 3.0.0
     optionalDependencies:
-      vitest: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+      vitest: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
 
   '@testing-library/react@16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
@@ -13952,7 +13929,7 @@ snapshots:
       obug: 2.2.1
       std-env: 4.3.0
       tinyrainbow: 3.1.1
-      vitest: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+      vitest: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
 
   '@vitest/eslint-plugin@1.6.27(@typescript-eslint/eslint-plugin@8.71.0(@typescript-eslint/parser@8.71.0(eslint@10.11.0(jiti@2.7.0))(typescript@6.0.3))(eslint@10.11.0(jiti@2.7.0))(typescript@6.0.3))(eslint@10.11.0(jiti@2.7.0))(typescript@6.0.3)(vitest@5.0.2)':
     dependencies:
@@ -13962,7 +13939,7 @@ snapshots:
     optionalDependencies:
       '@typescript-eslint/eslint-plugin': 8.71.0(@typescript-eslint/parser@8.71.0(eslint@10.11.0(jiti@2.7.0))(typescript@6.0.3))(eslint@10.11.0(jiti@2.7.0))(typescript@6.0.3)
       typescript: 6.0.3
-      vitest: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+      vitest: 5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -13980,14 +13957,14 @@ snapshots:
     dependencies:
       '@vitest/istanbul-lib-coverage': 1.0.2
 
-  '@vitest/mocker@5.0.2(msw@3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))':
+  '@vitest/mocker@5.0.2(msw@3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       '@vitest/spy': 5.0.2
       estree-walker: 3.0.3
       magic-string: 1.4.2
     optionalDependencies:
-      msw: 3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+      msw: 3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       vite: 7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)
 
   '@vitest/pretty-format@3.2.4':
@@ -14088,7 +14065,7 @@ snapshots:
 
   '@xtuc/long@4.2.2': {}
 
-  '@zephyrex/auth@file:../auth(@sinclair/typebox@0.34.52)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(ajv@6.15.0)(graphql@16.14.2)(joi@17.13.8)(next@16.3.7(@babel/core@7.29.7)(@playwright/test@1.63.0(zod@4.6.5))(@types/node@26.6.3)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.5)':
+  '@zephyrex/auth@file:../auth(@sinclair/typebox@0.34.52)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(ajv@6.15.0)(joi@17.13.8)(next@16.3.7(@babel/core@7.29.7)(@playwright/test@1.63.0(zod@4.6.5))(@types/node@26.6.3)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.5)':
     dependencies:
       '@hookform/resolvers': 5.9.1(@sinclair/typebox@0.34.52)(ajv@6.15.0)(joi@17.13.8)(react-hook-form@7.89.0(@types/react@19.3.0)(react@19.3.0))(zod@4.6.5)
       '@jgrieve/forms': file:../dynamic-form(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -14106,7 +14083,6 @@ snapshots:
       clsx: 2.1.1
       cmdk: 1.1.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       cookies-next: 6.1.1(next@16.3.7(@babel/core@7.29.7)(@playwright/test@1.63.0(zod@4.6.5))(@types/node@26.6.3)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
-      graphql-request: 7.4.0(graphql@16.14.2)
       lucide-react: 1.49.0(@types/react@19.3.0)(react@19.3.0)
       md5: 2.3.0
       motion: 13.4.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -14120,7 +14096,6 @@ snapshots:
       swr: 2.5.1(react@19.3.0)
       tailwind-merge: 3.7.0
       zod: 4.6.5
-      zod2gql: file:../zod2gql(zod@4.6.5)
     transitivePeerDependencies:
       - '@sinclair/typebox'
       - '@standard-schema/spec'
@@ -14139,7 +14114,6 @@ snapshots:
       - effect
       - fluentvalidation-ts
       - fp-ts
-      - graphql
       - io-ts
       - joi
       - nope-validator
@@ -14149,7 +14123,7 @@ snapshots:
       - vest
       - yup
 
-  '@zephyrex/auth@file:../auth(@sinclair/typebox@0.34.52)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(ajv@8.20.0)(graphql@16.14.2)(joi@17.13.8)(next@16.3.7(@babel/core@7.29.7)(@playwright/test@1.63.0(zod@4.6.5))(@types/node@26.6.3)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.5)':
+  '@zephyrex/auth@file:../auth(@sinclair/typebox@0.34.52)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(ajv@8.20.0)(joi@17.13.8)(next@16.3.7(@babel/core@7.29.7)(@playwright/test@1.63.0(zod@4.6.5))(@types/node@26.6.3)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.5)':
     dependencies:
       '@hookform/resolvers': 5.9.1(@sinclair/typebox@0.34.52)(ajv@8.20.0)(joi@17.13.8)(react-hook-form@7.89.0(@types/react@19.3.0)(react@19.3.0))(zod@4.6.5)
       '@jgrieve/forms': file:../dynamic-form(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -14167,7 +14141,6 @@ snapshots:
       clsx: 2.1.1
       cmdk: 1.1.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       cookies-next: 6.1.1(next@16.3.7(@babel/core@7.29.7)(@playwright/test@1.63.0(zod@4.6.5))(@types/node@26.6.3)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
-      graphql-request: 7.4.0(graphql@16.14.2)
       lucide-react: 1.49.0(@types/react@19.3.0)(react@19.3.0)
       md5: 2.3.0
       motion: 13.4.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -14181,7 +14154,6 @@ snapshots:
       swr: 2.5.1(react@19.3.0)
       tailwind-merge: 3.7.0
       zod: 4.6.5
-      zod2gql: file:../zod2gql(zod@4.6.5)
     transitivePeerDependencies:
       - '@sinclair/typebox'
       - '@standard-schema/spec'
@@ -14200,7 +14172,6 @@ snapshots:
       - effect
       - fluentvalidation-ts
       - fp-ts
-      - graphql
       - io-ts
       - joi
       - nope-validator
@@ -16519,13 +16490,6 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  graphql-request@7.4.0(graphql@16.14.2):
-    dependencies:
-      '@graphql-typed-document-node/core': 3.2.0(graphql@16.14.2)
-      graphql: 16.14.2
-
-  graphql@16.14.2: {}
-
   hachure-fill@0.5.2: {}
 
   has-bigints@1.1.0: {}
@@ -18254,12 +18218,12 @@ snapshots:
 
   ms@2.1.3: {}
 
-  msw-storybook-addon@3.0.3(msw@3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(storybook@10.6.1(@types/react@19.3.0)(prettier@3.9.9)(react@19.3.0)):
+  msw-storybook-addon@3.0.3(msw@3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(storybook@10.6.1(@types/react@19.3.0)(prettier@3.9.9)(react@19.3.0)):
     dependencies:
-      msw: 3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+      msw: 3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       storybook: 10.6.1(@types/react@19.3.0)(prettier@3.9.9)(react@19.3.0)
 
-  msw@3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)):
+  msw@3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)):
     dependencies:
       '@inquirer/confirm': 6.3.2(@types/node@26.6.3)
       '@msw/url': 0.1.2
@@ -18274,7 +18238,6 @@ snapshots:
       until-async: 3.0.2
       yargs: 18.2.0
     optionalDependencies:
-      graphql: 16.14.2
       typescript: 6.0.3
       vite: 7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)
     transitivePeerDependencies:
@@ -20523,10 +20486,10 @@ snapshots:
       terser: 5.51.2
       yaml: 2.9.1
 
-  vitest@5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)):
+  vitest@5.0.2(@types/node@26.6.3)(@vitest/coverage-v8@5.0.2)(jsdom@30.1.1)(msw@3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)):
     dependencies:
       '@types/chai': 5.2.3
-      '@vitest/mocker': 5.0.2(msw@3.0.1(@types/node@26.6.3)(graphql@16.14.2)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
+      '@vitest/mocker': 5.0.2(msw@3.0.1(@types/node@26.6.3)(typescript@6.0.3)(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1)))(vite@7.3.3(@types/node@26.6.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.51.2)(yaml@2.9.1))
       chai: 6.2.2
       es-module-lexer: 2.3.2
       expect-type: 1.4.0
@@ -20829,10 +20792,6 @@ snapshots:
   yocto-queue@1.2.2: {}
 
   zod-validation-error@4.0.2(zod@4.6.5):
-    dependencies:
-      zod: 4.6.5
-
-  zod2gql@file:../zod2gql(zod@4.6.5):
     dependencies:
       zod: 4.6.5
 

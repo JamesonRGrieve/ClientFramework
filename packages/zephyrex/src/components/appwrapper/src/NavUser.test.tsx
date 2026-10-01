@@ -4,13 +4,13 @@ import { userInitials } from './NavUser';
 
 describe('userInitials', () => {
   it('is the first letter of each name, capitalised', () => {
-    expect(userInitials({ firstName: 'ada', lastName: ' lovelace' })).toBe('AL');
+    expect(userInitials({ first_name: 'ada', last_name: ' lovelace' })).toBe('AL');
   });
 
   it('is null without both names', () => {
-    expect(userInitials({ firstName: 'Ada', lastName: '' })).toBeNull();
-    expect(userInitials({ firstName: '  ', lastName: 'Lovelace' })).toBeNull();
-    expect(userInitials({ firstName: null })).toBeNull();
+    expect(userInitials({ first_name: 'Ada', last_name: '' })).toBeNull();
+    expect(userInitials({ first_name: '  ', last_name: 'Lovelace' })).toBeNull();
+    expect(userInitials({ first_name: null })).toBeNull();
     expect(userInitials({})).toBeNull();
   });
 });
