@@ -27,7 +27,10 @@ const SERVER_EXTENSIONS = [
   'email',
   'federation',
   'fileio',
+  'cloud',
   'genealogy',
+  'maps',
+  'math',
   'media',
   'messaging',
   'meta_labels',
@@ -41,7 +44,9 @@ const SERVER_EXTENSIONS = [
   'quota',
   'secret_vault',
   'sms',
+  'source',
   'webhooks',
+  'wearable',
   'wiki',
 ];
 
