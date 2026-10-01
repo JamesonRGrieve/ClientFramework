@@ -14,6 +14,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/zephyrex/package.json ./packages/zephyrex/
 COPY packages/observability/package.json ./packages/observability/
 COPY packages/auth-api-keys/package.json ./packages/auth-api-keys/
+COPY packages/auth-session/package.json ./packages/auth-session/
 RUN pnpm install --frozen-lockfile
 COPY . .
 # Read by next.config.js and zephyrex.config.ts at build time; nothing is written to disk or logged.
