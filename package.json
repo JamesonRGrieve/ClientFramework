@@ -69,7 +69,7 @@
     "theme:coverage": "node scripts/theme-coverage.mjs",
     "theme:ratchet": "node scripts/theme-ratchet.mjs",
     "theme:ratchet:update": "node scripts/theme-ratchet.mjs --update",
-    "size-limit": "pnpm --filter zephyrex size-limit",
+    "size-limit": "size-limit",
     "lockfile:validate": "node scripts/lockfile-validate.mjs",
     "check": "pnpm lockfile:validate && pnpm lint:ratchet && pnpm typecheck:ratchet && pnpm symmetry:ratchet && pnpm js-coverage:ratchet && pnpm knip:ratchet && pnpm deps:ratchet && pnpm type-coverage:ratchet && pnpm strict:ratchet && pnpm test:typecheck:ratchet && pnpm important:ratchet && pnpm css:ratchet && pnpm biome:ratchet && pnpm animation:ratchet && pnpm theme:ratchet"
   },
