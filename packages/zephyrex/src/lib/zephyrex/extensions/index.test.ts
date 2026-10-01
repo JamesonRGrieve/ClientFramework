@@ -28,6 +28,8 @@ const SERVER_EXTENSIONS = [
   'federation',
   'fileio',
   'genealogy',
+  'media',
+  'messaging',
   'meta_labels',
   'meta_logging',
   'meta_sdk_py',
@@ -38,7 +40,9 @@ const SERVER_EXTENSIONS = [
   'privacy',
   'quota',
   'secret_vault',
+  'sms',
   'webhooks',
+  'wiki',
 ];
 
 describe('allExtensions', () => {

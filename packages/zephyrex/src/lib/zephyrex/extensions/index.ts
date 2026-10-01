@@ -25,6 +25,8 @@ import { emailExtension } from './email';
 import { federationExtension } from './federation';
 import { fileioExtension } from './fileio';
 import { genealogyExtension } from './genealogy';
+import { mediaExtension } from './media';
+import { messagingExtension } from './messaging';
 import { metadataExtension } from './metadata';
 import { metaLabelsExtension } from './meta_labels';
 import { metaLoggingExtension } from './meta_logging';
@@ -35,7 +37,9 @@ import { observabilityExtension } from './observability';
 import { privacyExtension } from './privacy';
 import { quotaExtension } from './quota';
 import { secretVaultExtension } from './secret_vault';
+import { smsExtension } from './sms';
 import { webhooksExtension } from './webhooks';
+import { wikiExtension } from './wiki';
 
 export {
   aclRbacExtension,
@@ -60,6 +64,8 @@ export {
   federationExtension,
   fileioExtension,
   genealogyExtension,
+  mediaExtension,
+  messagingExtension,
   metadataExtension,
   metaLabelsExtension,
   metaLoggingExtension,
@@ -70,7 +76,9 @@ export {
   privacyExtension,
   quotaExtension,
   secretVaultExtension,
+  smsExtension,
   webhooksExtension,
+  wikiExtension,
 };
 
 export { createExtension } from './createExtension';
@@ -98,6 +106,8 @@ export const allExtensions: ZephyrexClientExtension[] = [
   federationExtension,
   fileioExtension,
   genealogyExtension,
+  mediaExtension,
+  messagingExtension,
   metadataExtension,
   metaLabelsExtension,
   metaLoggingExtension,
@@ -108,5 +118,7 @@ export const allExtensions: ZephyrexClientExtension[] = [
   privacyExtension,
   quotaExtension,
   secretVaultExtension,
+  smsExtension,
   webhooksExtension,
+  wikiExtension,
 ];
