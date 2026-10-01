@@ -9,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import log from '../../../../log';
 import { useTeams } from '../../../hooks';
 import { useZephyrexConfig } from '../../../ZephyrexProvider';
-import { PendingInvitations } from '../../team/Invitations';
 import { Account } from './Account';
 import { Profile } from './Profile';
 import { detectTimezone } from './profileModel';
@@ -51,7 +50,7 @@ function Teams(): ReactNode {
   );
 }
 
-/** The signed-in user's account page: profile, password, teams and pending invitations. */
+/** The signed-in user's account page: profile, password, the extensions' sections and teams. */
 export function Manage({ heading, returnPath = '/', sections }: ManageProps): ReactNode {
   const router = useRouter();
   const { config } = useZephyrexConfig();
@@ -100,7 +99,6 @@ export function Manage({ heading, returnPath = '/', sections }: ManageProps): Re
           {passwords && <Account onChangePassword={changePassword} passwordPolicy={passwordPolicy} />}
           {sections}
           <Teams />
-          <PendingInvitations />
         </>
       )}
     </main>

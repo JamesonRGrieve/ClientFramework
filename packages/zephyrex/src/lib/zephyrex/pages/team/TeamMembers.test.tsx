@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { render, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactElement } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { TeamSectionProps } from '../../types';
 import { TeamMembers } from './TeamMembers';
 import { withSession } from '@/testing/session';
 import { TestWrapper, testConfig } from '@/testing/TestWrapper';
@@ -44,7 +46,6 @@ const LAST_ADMIN = 'A team must keep at least one admin';
 
 interface Server {
   myRole: string;
-  invitations: object[];
   /** Whether THEM has been removed from the team. */
   themRemoved: boolean;
   calls: { url: string; init: RequestInit | undefined }[];
@@ -67,10 +68,6 @@ function written(server: Server, url: string, method: string): Response {
   if (url === `${members}/${ME}` && method === 'DELETE') {
     return new Response(JSON.stringify({ detail: LAST_ADMIN }), { status: HTTP_CONFLICT });
   }
-  if (url === `${SERVER}/v1/invitation/inv-1` && method === 'DELETE') {
-    server.invitations = [];
-    return new Response(null, { status: HTTP_NO_CONTENT });
-  }
   return new Response('{"detail":"unexpected"}', { status: HTTP_SERVER_ERROR });
 }
 
@@ -92,9 +89,6 @@ function read(server: Server, url: string): Response {
   }
   if (url.startsWith(`${SERVER}/v1/role`)) {
     return json({ roles: ROLES, pagination: { has_more: false } });
-  }
-  if (url.startsWith(`${SERVER}/v1/team/${TEAM}/invitation`)) {
-    return json({ invitations: server.invitations, pagination: { has_more: false } });
   }
   return json({});
 }
@@ -124,16 +118,6 @@ describe('TeamMembers', () => {
   beforeEach(() => {
     server = {
       myRole: 'r-admin',
-      invitations: [
-        {
-          id: 'inv-1',
-          code: 'AB12CD34',
-          role_id: 'r-user',
-          team_id: TEAM,
-          created_at: '2026-09-02T00:00:00Z',
-          invitees: [{ id: 'e1', email: 'new@example.com', created_at: '2026-09-02T00:00:00Z' }],
-        },
-      ],
       themRemoved: false,
       calls: [],
     };
@@ -191,23 +175,37 @@ describe('TeamMembers', () => {
     expect(view.queryByRole('button', { name: /^Remove / })).toBeNull();
   });
 
-  it('shows an admin the pending invitations, and revokes one', async () => {
-    const user = userEvent.setup();
-    const view = renderMembers();
-    const list = await view.findByRole('list', { name: 'Pending team invitations' });
-    expect(await within(list).findByText('new@example.com')).toBeInTheDocument();
-    await user.click(within(list).getByRole('button', { name: /^Revoke the invitation/ }));
-    expect(await view.findByText('No pending invitations.')).toBeInTheDocument();
-  });
-
-  it('shows a member who is not an admin only the members', async () => {
+  it('shows a member who is not an admin the members without controls', async () => {
     server.myRole = 'r-user';
     const view = renderMembers();
     const list = await view.findByRole('list', { name: 'Team members' });
     expect(await within(list).findByText(THEIR_EMAIL)).toBeInTheDocument();
     expect(await within(list).findAllByText('User')).toHaveLength(2);
     expect(view.queryByRole('combobox')).toBeNull();
-    expect(view.queryByText('Invite people')).toBeNull();
-    expect(server.calls.some(({ url }) => url.includes('/invitation'))).toBe(false);
+  });
+
+  it('renders each active extension’s team sections, told about the team and the viewer', async () => {
+    const Section = ({ teamId, teamName, admin, roles, assignable }: TeamSectionProps): ReactElement => (
+      <p>
+        {`${teamId} ${teamName} ${String(admin)} ${String(roles.length)} ${assignable.map((role) => role.id).join(',')}`}
+      </p>
+    );
+    const view = render(
+      <TestWrapper config={{ extensions: [{ name: 'probe', teamSections: [Section, Section] }] }}>
+        <TeamMembers teamId={TEAM} />
+      </TestWrapper>,
+    );
+    expect(await view.findAllByText(`${TEAM} Alpha true 3 r-user,r-admin`)).toHaveLength(2);
+  });
+
+  it('leaves out the team sections of an extension the server does not run', async () => {
+    const Section = (): ReactElement => <p>From the server extension</p>;
+    const view = render(
+      <TestWrapper config={{ extensions: [{ name: 'absent', serverExtension: 'absent', teamSections: [Section] }] }}>
+        <TeamMembers teamId={TEAM} />
+      </TestWrapper>,
+    );
+    expect(await view.findByText(THEIR_EMAIL)).toBeInTheDocument();
+    expect(view.queryByText('From the server extension')).toBeNull();
   });
 });

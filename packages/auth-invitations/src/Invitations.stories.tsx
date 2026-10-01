@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import { http, HttpResponse } from 'msw';
-import { withZephyrexApi } from '../../../../testing/storyRoot';
+import { withZephyrexApi } from 'zephyrex/testing';
 import { PendingInvitations } from './Invitations';
 import type { PendingInvitation } from './invitationsModel';
 import { USER_INVITATIONS_ENDPOINT } from './useUserInvitations';
@@ -11,7 +11,7 @@ const awaiting = (invitations: PendingInvitation[]) => ({
 });
 
 const meta: Meta<typeof PendingInvitations> = {
-  title: 'zephyrex/Team/PendingInvitations',
+  title: 'auth-invitations/PendingInvitations',
   component: PendingInvitations,
   tags: ['autodocs'],
   parameters: { nextjs: { appDirectory: true }, layout: 'padded' },

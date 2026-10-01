@@ -1,6 +1,22 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import { deleteCookie, getCookie } from 'cookies-next/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cookieDomainOptions, teamToActivate } from './cookies';
+import { ACTIVE_TEAM_COOKIE, activeTeamId, cookieDomainOptions, setActiveTeam, teamToActivate } from './cookies';
+
+describe('the active team', () => {
+  afterEach(() => {
+    deleteCookie(ACTIVE_TEAM_COOKIE);
+  });
+
+  it('is kept in the auth-team cookie, and none is null', () => {
+    expect(activeTeamId()).toBeNull();
+    setActiveTeam('t1');
+    expect(getCookie(ACTIVE_TEAM_COOKIE)).toBe('t1');
+    expect(activeTeamId()).toBe('t1');
+    setActiveTeam('');
+    expect(activeTeamId()).toBeNull();
+  });
+});
 
 describe('cookieDomainOptions', () => {
   afterEach(() => {

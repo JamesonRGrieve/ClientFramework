@@ -18,7 +18,7 @@ const membership = (
   return { id, user_id: user.id, team_id: TEAM, role_id: role.id, user, role };
 };
 
-/** The team's members, with Ada an admin or not, and one pending invitation. */
+/** The team's members, with Ada an admin or not. */
 const team = (admin: boolean) => ({
   msw: {
     handlers: [
@@ -39,20 +39,6 @@ const team = (admin: boolean) => ({
         }),
       ),
       http.get('*/v1/role', () => HttpResponse.json({ roles: [USER_ROLE, ADMIN_ROLE], pagination: { has_more: false } })),
-      http.get(`*/v1/team/${TEAM}/invitation`, () =>
-        HttpResponse.json({
-          invitations: [
-            {
-              id: 'inv-1',
-              created_at: '2026-09-20T00:00:00Z',
-              role_id: USER_ROLE.id,
-              code: 'ABCD1234',
-              invitees: [{ id: 'e1', email: 'mary@example.com', created_at: '2026-09-20T00:00:00Z' }],
-            },
-          ],
-          pagination: { has_more: false },
-        }),
-      ),
     ],
   },
 });

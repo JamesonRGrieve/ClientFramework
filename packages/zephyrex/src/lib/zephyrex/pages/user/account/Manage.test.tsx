@@ -23,7 +23,6 @@ const serve = (routes: Record<string, { status?: number; body: object }>): Retur
 const ACCOUNT = {
   '/v1/user': { body: { user: PROFILE } },
   '/v1/team': { body: { teams: [{ id: 't1', name: 'Analytical Engines', description: null }] } },
-  '/v1/user/invitation': { body: { invitations: [] } },
   '/v1/user/password-policy': { body: { min_length: 8, max_bytes: 72, require_letter: true, require_digit: true } },
 };
 

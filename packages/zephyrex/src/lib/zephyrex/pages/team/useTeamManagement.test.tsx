@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useTeamAccess, useTeamActions, useTeamInvitations } from './useTeamManagement';
+import { useTeamAccess, useTeamActions } from './useTeamManagement';
 import { withSession } from '@/testing/session';
 import { TestWrapper as wrapper, testConfig } from '@/testing/TestWrapper';
 
@@ -59,21 +59,6 @@ describe('useTeamManagement', () => {
         if (url.startsWith(`${SERVER}/v1/role`)) {
           return Promise.resolve(json({ roles: ROLES, pagination: { has_more: false } }));
         }
-        if (url.startsWith(`${SERVER}/v1/team/${TEAM}/invitation`)) {
-          return Promise.resolve(
-            json({
-              invitations: [
-                {
-                  id: 'inv-1',
-                  created_at: '2026-09-02T00:00:00Z',
-                  invitees: [{ id: 'e1', email: 'new@example.com', created_at: '2026-09-02T00:00:00Z' }],
-                },
-                { id: 'inv-2', created_at: '2026-09-03T00:00:00Z' },
-              ],
-              pagination: { has_more: false },
-            }),
-          );
-        }
         if (url === `${SERVER}/v1/team` && init?.method === 'POST') {
           return Promise.resolve(json({ team: { id: 't-new', name: 'Beta' } }, HTTP_CREATED));
         }
@@ -101,38 +86,18 @@ describe('useTeamManagement', () => {
     expect(calls.some(({ url }) => url.includes('/v1/team/'))).toBe(false);
   });
 
-  it('loads each invitation with who it went to, in one request', async () => {
-    const { result } = renderHook(() => useTeamInvitations(TEAM), { wrapper });
-    await waitFor(() => {
-      expect(result.current.data).toHaveLength(2);
-    });
-    expect(result.current.data?.map(({ invitees }) => invitees.map((invitee) => invitee.email))).toEqual([
-      ['new@example.com'],
-      [],
-    ]);
-    expect(calls.filter(({ url }) => url.includes('/invitation')).map(({ url }) => url)).toEqual([
-      `${SERVER}/v1/team/${TEAM}/invitation?include=invitees&offset=0&limit=100`,
-    ]);
-  });
-
   it('sends each write the server’s shape', async () => {
     const { result } = renderHook(() => useTeamActions(), { wrapper });
     await expect(result.current.createTeam('Beta', 'parent-1')).resolves.toBe('t-new');
     await result.current.renameTeam(TEAM, 'Gamma');
-    await result.current.invite(TEAM, 'r-user', ['a@example.com', 'b@example.com']);
-    await result.current.revokeInvitation('inv-1');
     await result.current.changeRole(TEAM, 'u-2', 'r-admin');
+    await result.current.removeMember(TEAM, 'u-2');
     const writes = calls.filter(({ init }) => (init?.method ?? 'GET') !== 'GET');
     expect(writes.map(({ url, init }) => [init?.method, url, init?.body])).toEqual([
       ['POST', `${SERVER}/v1/team`, '{"team":{"name":"Beta","parent_id":"parent-1"}}'],
       ['PUT', `${SERVER}/v1/team/${TEAM}`, '{"team":{"name":"Gamma"}}'],
-      [
-        'POST',
-        `${SERVER}/v1/team/${TEAM}/invitation`,
-        '{"invitation":{"role_id":"r-user","email":["a@example.com","b@example.com"]}}',
-      ],
-      ['DELETE', `${SERVER}/v1/invitation/inv-1`, undefined],
       ['PATCH', `${SERVER}/v1/team/${TEAM}/user/u-2`, '{"user_team":{"role_id":"r-admin"}}'],
+      ['DELETE', `${SERVER}/v1/team/${TEAM}/user/u-2`, undefined],
     ]);
   });
 });

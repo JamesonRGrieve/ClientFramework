@@ -4,7 +4,6 @@
 import { Button } from '@jgrieve/forms/components/ui/button';
 import { Input } from '@jgrieve/forms/components/ui/input';
 import { Label } from '@jgrieve/forms/components/ui/label';
-import { setCookie } from 'cookies-next/client';
 import { useRouter } from 'next/navigation.js';
 import { type ReactElement, type SyntheticEvent, useId, useState } from 'react';
 import { LuPencil, LuPlus } from 'react-icons/lu';
@@ -17,7 +16,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '../../../../components/ui/sidebar';
-import { ACTIVE_TEAM_COOKIE, cookieDomainOptions } from '../../cookies';
+import { setActiveTeam } from '../../cookies';
 import { type Team as TeamRecord, useSelectedTeam, useTeams } from '../../hooks';
 import { useTeamAccess, useTeamActions } from './useTeamManagement';
 
@@ -157,7 +156,7 @@ export function Team({ teamId }: TeamProps): ReactElement {
   const [dialog, setDialog] = useState<'create' | 'rename' | null>(null);
 
   const open = (teamIdToOpen: string): void => {
-    setCookie(ACTIVE_TEAM_COOKIE, teamIdToOpen, cookieDomainOptions());
+    setActiveTeam(teamIdToOpen);
     router.push(`/team/${encodeURIComponent(teamIdToOpen)}`);
   };
 

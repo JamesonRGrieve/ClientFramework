@@ -3,9 +3,10 @@
 import { Button } from '@jgrieve/forms/components/ui/button';
 import { Label } from '@jgrieve/forms/components/ui/label';
 import { type ReactElement, type SyntheticEvent, useId, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
-import { MAX_INVITE_EMAILS, parseInviteEmails, type Role, roleLabel } from './teamModel';
-import { useTeamActions } from './useTeamManagement';
+import { type Role, roleLabel } from 'zephyrex/pages/team';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
+import { MAX_INVITE_EMAILS, parseInviteEmails } from './teamInvitationsModel';
+import { useInvitationActions } from './useTeamInvitations';
 
 export type InviteFormProps = {
   teamId: string;
@@ -18,7 +19,7 @@ export type InviteFormProps = {
 export function InviteForm({ teamId, roles, onInvited }: InviteFormProps): ReactElement {
   const emailsId = useId();
   const roleId = useId();
-  const { invite } = useTeamActions();
+  const { invite } = useInvitationActions();
   const [emails, setEmails] = useState('');
   const [chosenRole, setChosenRole] = useState('');
   const [pending, setPending] = useState(false);

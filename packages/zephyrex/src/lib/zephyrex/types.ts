@@ -3,6 +3,7 @@ import type { ComponentType, LazyExoticComponent, ReactNode } from 'react';
 import type { NextRequest, NextResponse } from 'next/server.js';
 import type { CspAdditions } from './contentSecurityPolicy';
 import type { PageSlots } from './PageSlots';
+import type { Role } from './pages/team/teamModel';
 
 export interface RouteDefinition {
   path: string;
@@ -32,6 +33,20 @@ export interface ManagementTab {
   priority?: number;
 }
 
+// --- Team page injection ---
+
+/** What a section an extension adds below a team's members is told about the team and the viewer. */
+export interface TeamSectionProps {
+  teamId: string;
+  teamName: string;
+  /** Whether the viewer is an admin (or higher) of the team. */
+  admin: boolean;
+  /** Every role the viewer can see. */
+  roles: Role[];
+  /** The roles the viewer may grant on the team; empty unless they are an admin. */
+  assignable: Role[];
+}
+
 // --- Full extension contract ---
 
 export interface ZephyrexClientExtension {
@@ -56,6 +71,9 @@ export interface ZephyrexClientExtension {
 
   // Management page tabs (/user/manage)
   managementTabs?: ManagementTab[];
+
+  // Sections below a team's members (/team)
+  teamSections?: ComponentType<TeamSectionProps>[];
 }
 
 export interface ZephyrexConfig {

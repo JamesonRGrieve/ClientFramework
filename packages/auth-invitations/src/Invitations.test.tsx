@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { render, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { deleteCookie, getCookie, setCookie } from 'cookies-next/client';
 import { afterEach, describe, expect, it, type Mock, vi } from 'vitest';
-import { ACTIVE_TEAM_COOKIE } from '../../cookies';
+import { activeTeamId, setActiveTeam } from 'zephyrex';
+import { TestWrapper, testConfig } from 'zephyrex/testing';
 import { PendingInvitations } from './Invitations';
-import { TestWrapper, testConfig } from '@/testing/TestWrapper';
 
 const SERVER = testConfig.server.baseUrl;
 
@@ -60,7 +59,7 @@ const renderInvitations = (): ReturnType<typeof render> =>
 describe('PendingInvitations', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
-    deleteCookie(ACTIVE_TEAM_COOKIE);
+    setActiveTeam('');
   });
 
   it('lists each invitation with its team and role', async () => {
@@ -87,11 +86,11 @@ describe('PendingInvitations', () => {
       `${SERVER}/v1/invitation/inv-1`,
       expect.objectContaining({ method: 'PATCH', body: '{"invitation":{"invitee_id":"row-1","action":"accept"}}' }),
     );
-    expect(getCookie(ACTIVE_TEAM_COOKIE)).toBe(ALPHA_TEAM_ID);
+    expect(activeTeamId()).toBe(ALPHA_TEAM_ID);
   });
 
   it('leaves the active team alone when declining', async () => {
-    setCookie(ACTIVE_TEAM_COOKIE, 'team-current');
+    setActiveTeam('team-current');
     serve();
     const user = userEvent.setup();
     const view = renderInvitations();
@@ -99,7 +98,7 @@ describe('PendingInvitations', () => {
     await vi.waitFor(() => {
       expect(view.queryByText(ALPHA_INVITATION)).not.toBeInTheDocument();
     });
-    expect(getCookie(ACTIVE_TEAM_COOKIE)).toBe('team-current');
+    expect(activeTeamId()).toBe('team-current');
   });
 
   it('shows the server’s reason when an answer is refused', async () => {

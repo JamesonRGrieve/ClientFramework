@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import { withZephyrexApi } from '../../../../testing/storyRoot';
+import { withZephyrexApi } from 'zephyrex/testing';
 import { InviteForm } from './InviteForm';
 
 const meta: Meta<typeof InviteForm> = {
-  title: 'zephyrex/Team/InviteForm',
+  title: 'auth-invitations/InviteForm',
   component: InviteForm,
   tags: ['autodocs'],
   parameters: { layout: 'centered' },

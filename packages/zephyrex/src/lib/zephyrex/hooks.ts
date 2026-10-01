@@ -2,13 +2,12 @@
 'use client';
 
 import { hasSession } from '@zephyrex/auth';
-import { getCookie, setCookie } from 'cookies-next/client';
 import { createContext, useContext, useMemo } from 'react';
 import useSWR, { type SWRResponse } from 'swr';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../api/httpStatus';
 import { ApiError, ZephyrexClient } from './client';
-import { ACTIVE_TEAM_COOKIE, cookieDomainOptions, teamToActivate } from './cookies';
+import { activeTeamId, setActiveTeam, teamToActivate } from './cookies';
 import { useZephyrexConfig } from './ZephyrexProvider';
 
 // --- Client ---
@@ -70,11 +69,6 @@ export interface Role {
   roleId: string | null;
 }
 
-const activeTeamId = (): string | null => {
-  const team = getCookie(ACTIVE_TEAM_COOKIE);
-  return typeof team === 'string' && team !== '' ? team : null;
-};
-
 /**
  * The signed-in user's role in `teamId` (default: the active team). Roles belong to team
  * memberships, not users, so this reads the team's members (GET /v1/team/{id}/user).
@@ -126,7 +120,7 @@ export function useTeams(): SWRResponse<Team[], Error> {
       activeTeamId() ?? undefined,
     );
     if (active !== null) {
-      setCookie(ACTIVE_TEAM_COOKIE, active, cookieDomainOptions());
+      setActiveTeam(active);
     }
     return teams;
   });

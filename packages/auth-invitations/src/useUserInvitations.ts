@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { setCookie } from 'cookies-next/client';
 import { useCallback } from 'react';
 import useSWR, { type SWRResponse } from 'swr';
-import { ACTIVE_TEAM_COOKIE, cookieDomainOptions } from '../../cookies';
-import { useClient } from '../../hooks';
+import { setActiveTeam, useClient } from 'zephyrex';
 import {
   type InvitationAnswer,
   invitationAnswer,
@@ -36,7 +34,7 @@ export function useUserInvitations(): UserInvitations {
       // Joining a team puts the user in it, as choosing it in the team switcher would.
       const teamId = invitation.team_id ?? '';
       if (action === 'accept' && teamId !== '') {
-        setCookie(ACTIVE_TEAM_COOKIE, teamId, cookieDomainOptions());
+        setActiveTeam(teamId);
       }
       await mutate();
     },

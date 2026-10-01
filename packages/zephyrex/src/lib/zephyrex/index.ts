@@ -30,6 +30,7 @@ export {
   SUPERADMIN_ROLE_ID,
 } from './hooks';
 export type { User, Role, Team, TeamMembership, ServerExtension, Provider, Notification } from './hooks';
+export { activeTeamId, setActiveTeam } from './cookies';
 
 // Feature Hooks
 export { useSearch } from './useSearch';
@@ -110,4 +111,5 @@ export type {
   NavItemDefinition,
   MiddlewareHook,
   ManagementTab,
+  TeamSectionProps,
 } from './types';

@@ -10,7 +10,7 @@ export interface TeamPageProps {
 }
 
 /**
- * Team management: the team switcher in the sidebar, members and invitations in the page. Mount as
+ * Team management: the team switcher in the sidebar, members and extension sections in the page. Mount as
  * `app/team/page.tsx` (the active team) and `app/team/[id]/page.tsx` (a named team).
  */
 export async function TeamPage({ params }: TeamPageProps): Promise<ReactNode> {

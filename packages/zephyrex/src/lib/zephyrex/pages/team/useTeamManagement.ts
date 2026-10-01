@@ -4,28 +4,11 @@
 import useSWR, { type SWRResponse } from 'swr';
 import { z } from 'zod';
 import { useClient, useUser } from '../../hooks';
-import {
-  invitableRoles,
-  type Invitee,
-  InviteeSchema,
-  isTeamAdmin,
-  type Membership,
-  MembershipsResponseSchema,
-  type Role,
-  RoleSchema,
-  type TeamInvitation,
-  TeamInvitationSchema,
-} from './teamModel';
-
-export interface InvitationWithInvitees {
-  invitation: TeamInvitation;
-  invitees: Invitee[];
-}
+import { invitableRoles, isTeamAdmin, type Membership, MembershipsResponseSchema, type Role, RoleSchema } from './teamModel';
 
 const segment = encodeURIComponent;
 
 const membersPath = (teamId: string): string => `/v1/team/${segment(teamId)}/user`;
-const invitationsPath = (teamId: string): string => `/v1/team/${segment(teamId)}/invitation`;
 const ROLES_PATH = '/v1/role';
 
 /** The team's memberships, each with its user and role. */
@@ -34,21 +17,6 @@ export function useTeamMembers(teamId: string | undefined): SWRResponse<Membersh
   return useSWR<Membership[], Error>(
     teamId === undefined || teamId === '' ? null : client.url(membersPath(teamId)),
     async () => MembershipsResponseSchema.parse(await client.get(membersPath(teamId ?? ''))).user_teams,
-  );
-}
-
-const InvitationWithInviteesSchema = TeamInvitationSchema.extend({ invitees: z.array(InviteeSchema).default([]) });
-
-/** Every invitation into the team (all pages), each with who it went to. */
-export function useTeamInvitations(teamId: string | undefined): SWRResponse<InvitationWithInvitees[], Error> {
-  const client = useClient();
-  const params = { include: 'invitees' };
-  return useSWR<InvitationWithInvitees[], Error>(
-    teamId === undefined || teamId === '' ? null : client.url(invitationsPath(teamId), params),
-    async () =>
-      (await client.list(invitationsPath(teamId ?? ''), 'invitations', InvitationWithInviteesSchema, params)).map(
-        ({ invitees, ...invitation }) => ({ invitation, invitees }),
-      ),
   );
 }
 
@@ -91,9 +59,6 @@ export interface TeamActions {
   /** Create a team; resolves to its id. */
   createTeam: (name: string, parentId?: string) => Promise<string>;
   renameTeam: (teamId: string, name: string) => Promise<void>;
-  /** Invite `emails` into the team with `roleId`; the server emails each address its link. */
-  invite: (teamId: string, roleId: string, emails: string[]) => Promise<void>;
-  revokeInvitation: (invitationId: string) => Promise<void>;
   changeRole: (teamId: string, userId: string, roleId: string) => Promise<void>;
   /** Remove a member; given your own id, leave the team. The team's last admin cannot go (409). */
   removeMember: (teamId: string, userId: string) => Promise<void>;
@@ -110,12 +75,6 @@ export function useTeamActions(): TeamActions {
       ).team.id,
     renameTeam: async (teamId, name): Promise<void> => {
       await client.put(`/v1/team/${segment(teamId)}`, { team: { name } });
-    },
-    invite: async (teamId, roleId, emails): Promise<void> => {
-      await client.post(invitationsPath(teamId), { invitation: { role_id: roleId, email: emails } });
-    },
-    revokeInvitation: async (invitationId): Promise<void> => {
-      await client.delete(`/v1/invitation/${segment(invitationId)}`);
     },
     changeRole: async (teamId, userId, roleId): Promise<void> => {
       await client.patch(memberPath(teamId, userId), { user_team: { role_id: roleId } });

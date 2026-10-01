@@ -2,9 +2,9 @@
 import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Role } from 'zephyrex/pages/team';
+import { TestWrapper, testConfig } from 'zephyrex/testing';
 import { InviteForm } from './InviteForm';
-import type { Role } from './teamModel';
-import { TestWrapper, testConfig } from '@/testing/TestWrapper';
 
 const SERVER = testConfig.server.baseUrl;
 const TEAM = 't1';

@@ -13,7 +13,6 @@ const account = (teams: { id: string; name: string }[]) => ({
         }),
       ),
       http.get('*/v1/team', () => HttpResponse.json({ teams: teams.map((team) => ({ ...team, description: null })) })),
-      http.get('*/v1/user/invitation', () => HttpResponse.json({ invitations: [] })),
       http.get('*/v1/user/password-policy', () =>
         HttpResponse.json({ min_length: 8, max_bytes: 72, require_letter: true, require_digit: true }),
       ),

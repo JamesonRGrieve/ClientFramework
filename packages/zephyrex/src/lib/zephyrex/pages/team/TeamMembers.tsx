@@ -2,13 +2,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { Button } from '@jgrieve/forms/components/ui/button';
 import { Label } from '@jgrieve/forms/components/ui/label';
-import { type ReactElement, useId, useState } from 'react';
+import { type ComponentType, type ReactElement, useId, useState } from 'react';
 import { Badge } from '../../../../components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
+import { useActiveExtensions } from '../../ExtensionRegistry';
 import { useSelectedTeam, useUser } from '../../hooks';
-import { InviteForm } from './InviteForm';
-import { inviteeStatus, inviteLink, type Membership, memberName, type Role, roleLabel } from './teamModel';
-import { type InvitationWithInvitees, useTeamAccess, useTeamActions, useTeamInvitations } from './useTeamManagement';
+import type { TeamSectionProps, ZephyrexClientExtension } from '../../types';
+import { useZephyrexConfig } from '../../ZephyrexProvider';
+import { type Membership, memberName, type Role, roleLabel } from './teamModel';
+import { useTeamAccess, useTeamActions } from './useTeamManagement';
 
 /**
  * Remove a member, or leave the team from your own row, in two steps: the first press asks, the
@@ -152,153 +154,12 @@ function MemberRow({
   );
 }
 
-function InvitationRow({
-  entry: { invitation, invitees },
-  role,
-  teamName,
-  onRevoke,
-}: {
-  entry: InvitationWithInvitees;
-  role: Role | undefined;
-  /** Named in the copied link, so the invitee's acceptance page says which team. */
-  teamName: string;
-  onRevoke: (invitationId: string) => Promise<string | null>;
-}): ReactElement {
-  const [pending, setPending] = useState(false);
-  const [notice, setNotice] = useState<{ text: string; alert: boolean } | null>(null);
-  const code = invitation.code ?? '';
-  const sent = new Date(invitation.created_at).toLocaleDateString();
-
-  const copyLink = (email: string): void => {
-    void (async (): Promise<void> => {
-      try {
-        await navigator.clipboard.writeText(inviteLink(window.location.origin, code, email, teamName));
-        setNotice({ text: `Copied the invite link for ${email}.`, alert: false });
-      } catch (error) {
-        setNotice({ text: error instanceof Error ? error.message : 'The link could not be copied.', alert: true });
-      }
-    })();
-  };
-
-  return (
-    <li className='grid gap-2 p-4'>
-      <div className='flex flex-wrap items-center justify-between gap-2'>
-        <p className='text-sm'>
-          <span className='font-medium'>{roleLabel(role)}</span>
-          <span className='text-muted-foreground'> · sent {sent}</span>
-        </p>
-        <Button
-          size='sm'
-          variant='outline'
-          disabled={pending}
-          aria-label={`Revoke the invitation sent ${sent}`}
-          onClick={() => {
-            setPending(true);
-            void (async (): Promise<void> => {
-              const problem = await onRevoke(invitation.id);
-              if (problem !== null) {
-                setNotice({ text: problem, alert: true });
-                setPending(false);
-              }
-            })();
-          }}
-        >
-          Revoke
-        </Button>
-      </div>
-      <ul className='grid gap-1'>
-        {invitees.map((invitee) => {
-          const status = inviteeStatus(invitee);
-          return (
-            <li key={invitee.id} className='flex flex-wrap items-center gap-2 text-sm'>
-              <span>{invitee.email}</span>
-              <Badge variant={status === 'accepted' ? 'default' : 'secondary'}>{status}</Badge>
-              {status === 'pending' && code !== '' && (
-                <Button size='sm' variant='ghost' onClick={() => copyLink(invitee.email)}>
-                  Copy link<span className='sr-only'> for {invitee.email}</span>
-                </Button>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-      {notice !== null && (
-        <p role={notice.alert ? 'alert' : 'status'} className={notice.alert ? 'text-sm text-destructive' : 'text-sm'}>
-          {notice.text}
-        </p>
-      )}
-    </li>
-  );
-}
-
-function TeamInvitations({
-  teamId,
-  teamName,
-  roles,
-  assignable,
-}: {
-  teamId: string;
-  teamName: string;
-  roles: Role[];
-  /** Roles the viewer may invite with. */
-  assignable: Role[];
-}): ReactElement {
-  const invitations = useTeamInvitations(teamId);
-  const { revokeInvitation } = useTeamActions();
-  const rolesById = new Map(roles.map((role) => [role.id, role]));
-  const open = (invitations.data ?? []).filter(({ invitees }) =>
-    invitees.some((invitee) => inviteeStatus(invitee) === 'pending'),
-  );
-
-  const onRevoke = async (invitationId: string): Promise<string | null> => {
-    try {
-      await revokeInvitation(invitationId);
-      await invitations.mutate();
-      return null;
-    } catch (error) {
-      return error instanceof Error ? error.message : 'The invitation could not be revoked.';
-    }
-  };
-
-  return (
-    <>
-      <InviteForm
-        teamId={teamId}
-        roles={assignable}
-        onInvited={async () => {
-          await invitations.mutate();
-        }}
-      />
-      <Card>
-        <CardHeader>
-          <CardTitle>Pending invitations</CardTitle>
-          <CardDescription>Invitations into this team that are still waiting for an answer.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {invitations.error !== undefined && (
-            <p role='alert' className='text-sm text-destructive'>
-              The invitations could not be loaded: {invitations.error.message}
-            </p>
-          )}
-          {invitations.error === undefined && open.length === 0 && (
-            <p className='text-sm text-muted-foreground'>{invitations.isLoading ? 'Loading…' : 'No pending invitations.'}</p>
-          )}
-          {open.length > 0 && (
-            <ul aria-label='Pending team invitations' className='divide-y rounded-md border'>
-              {open.map((entry) => (
-                <InvitationRow
-                  key={entry.invitation.id}
-                  entry={entry}
-                  role={rolesById.get(entry.invitation.role_id ?? '')}
-                  teamName={teamName}
-                  onRevoke={onRevoke}
-                />
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-    </>
+/** The active extensions' team sections in extension order, each keyed by its extension. */
+function teamSections(
+  extensions: readonly ZephyrexClientExtension[],
+): { key: string; Section: ComponentType<TeamSectionProps> }[] {
+  return extensions.flatMap(({ name, teamSections: sections = [] }) =>
+    sections.map((Section, index) => ({ key: `${name}-${String(index)}`, Section })),
   );
 }
 
@@ -308,8 +169,8 @@ export type TeamMembersProps = {
 };
 
 /**
- * A team's members, and for its admins the role controls, pending invitations and the invite form.
- * What an admin may grant is capped at their own role, as the server enforces.
+ * A team's members, the role controls for its admins, and below them the active extensions' team
+ * sections (`teamSections`). What an admin may grant is capped at their own role, as the server enforces.
  */
 export function TeamMembers({ teamId }: TeamMembersProps): ReactElement {
   const activeTeam = useSelectedTeam(teamId);
@@ -317,6 +178,8 @@ export function TeamMembers({ teamId }: TeamMembersProps): ReactElement {
   const { data: user } = useUser();
   const { members, roles, admin, assignable } = useTeamAccess(resolvedTeamId);
   const { changeRole, removeMember } = useTeamActions();
+  const { active } = useActiveExtensions(useZephyrexConfig().activeExtensions);
+  const sections = teamSections(active);
 
   if (resolvedTeamId === undefined || resolvedTeamId === '') {
     return <p className='text-sm text-muted-foreground'>Choose or create a team to manage its members.</p>;
@@ -379,9 +242,16 @@ export function TeamMembers({ teamId }: TeamMembersProps): ReactElement {
           )}
         </CardContent>
       </Card>
-      {admin && (
-        <TeamInvitations teamId={resolvedTeamId} teamName={activeTeam?.name ?? ''} roles={roles} assignable={assignable} />
-      )}
+      {sections.map(({ key, Section }) => (
+        <Section
+          key={key}
+          teamId={resolvedTeamId}
+          teamName={activeTeam?.name ?? ''}
+          admin={admin}
+          roles={roles}
+          assignable={assignable}
+        />
+      ))}
     </div>
   );
 }

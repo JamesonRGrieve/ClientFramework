@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { deleteCookie, getCookie } from 'cookies-next/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ACTIVE_TEAM_COOKIE } from '../../cookies';
+import { activeTeamId, setActiveTeam } from 'zephyrex';
+import { TestWrapper as wrapper, testConfig } from 'zephyrex/testing';
 import type { PendingInvitation } from './invitationsModel';
 import { USER_INVITATIONS_ENDPOINT, useUserInvitations } from './useUserInvitations';
-import { TestWrapper as wrapper, testConfig } from '@/testing/TestWrapper';
 
 const HTTP_OK = 200;
 const INVITATION: PendingInvitation = {
@@ -19,7 +18,7 @@ const INVITATION: PendingInvitation = {
 describe('useUserInvitations', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
-    deleteCookie(ACTIVE_TEAM_COOKIE);
+    setActiveTeam('');
   });
 
   it('lists the invitations awaiting an answer, and accepting one joins and opens its team', async () => {
@@ -46,7 +45,7 @@ describe('useUserInvitations', () => {
       `${testConfig.server.baseUrl}/v1/invitation/inv-1`,
       expect.objectContaining({ method: 'PATCH', body: '{"invitation":{"invitee_id":"row-1","action":"accept"}}' }),
     );
-    expect(getCookie(ACTIVE_TEAM_COOKIE)).toBe('t-alpha');
+    expect(activeTeamId()).toBe('t-alpha');
     await waitFor(() => {
       expect(result.current.data).toEqual([]);
     });
