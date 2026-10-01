@@ -12,6 +12,7 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { describe, expect, it } from 'vitest';
+import { SOURCE_ROOTS } from '../sourceRoots';
 
 const SERVER_ONLY_MODULES = [
   'server-only',
@@ -70,7 +71,7 @@ function findClientComponents(dir: string): string[] {
 }
 
 describe('Client/server boundary — secret leakage prevention', () => {
-  const clientFiles = findClientComponents('src');
+  const clientFiles = SOURCE_ROOTS.flatMap((root) => findClientComponents(root));
 
   it('found client components to test', () => {
     expect(clientFiles.length).toBeGreaterThan(0);

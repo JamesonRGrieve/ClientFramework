@@ -1,10 +1,10 @@
 {
   "strict": [],
   "totals": {
-    "totalViolations": 6
+    "totalViolations": 5
   },
   "byRule": {
     "no-circular": 2,
-    "no-orphans": 4
+    "no-orphans": 3
   }
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { JSX } from 'react';
 import Link from 'next/link.js';
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
+import { SidebarPage } from 'zephyrex/components/appwrapper/src/SidebarPage';
 
 const ADMIN_LINKS = [
   { href: '/admin/health', title: 'Health & Readiness', desc: 'Liveness, readiness, critical-provider hysteresis.' },

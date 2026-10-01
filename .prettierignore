@@ -18,5 +18,5 @@ public/sw.js.map
 public/workbox-*.js
 public/worker-*.js
 # msw's generated mock worker, served only by Storybook
-.storybook/public/
-src/components/appwrapper/
+**/.storybook/public/
+packages/zephyrex/src/components/appwrapper/

@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { type ReactNode, useState } from 'react';
-import { EmptyNotifications, Notifications } from '@/components/appwrapper/src/Notifications';
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
-import { useMarkNotificationRead, useNotifications } from '@/lib/zephyrex/hooks';
+import { EmptyNotifications, Notifications } from 'zephyrex/components/appwrapper/src/Notifications/index';
+import { SidebarPage } from 'zephyrex/components/appwrapper/src/SidebarPage';
+import { useMarkNotificationRead, useNotifications } from 'zephyrex/hooks';
 
 export default function NotificationsPage(): ReactNode {
   const { data: notifications = [], error, isLoading } = useNotifications();

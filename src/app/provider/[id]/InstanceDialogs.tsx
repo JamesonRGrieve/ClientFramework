@@ -1,11 +1,11 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { type JSX, type SyntheticEvent, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import type { ProviderInstance } from '@/lib/zephyrex/providerScope';
+import type { ProviderInstance } from 'zephyrex';
+import { Button } from 'zephyrex/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from 'zephyrex/ui/dialog';
+import { Input } from 'zephyrex/ui/input';
+import { Label } from 'zephyrex/ui/label';
 
 export type InstanceDialog = 'create' | 'rename' | 'delete' | null;
 

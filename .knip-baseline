@@ -3,23 +3,25 @@
     "classMembers",
     "duplicates",
     "enumMembers",
+    "exports",
     "namespaceMembers",
     "optionalPeerDependencies",
+    "types",
     "unlisted"
   ],
   "totals": {
-    "total": 26
+    "total": 9
   },
   "counts": {
-    "files": 6,
+    "files": 2,
     "dependencies": 2,
     "devDependencies": 3,
     "optionalPeerDependencies": 0,
     "unlisted": 0,
     "unresolved": 1,
     "binaries": 1,
-    "exports": 3,
-    "types": 10,
+    "exports": 0,
+    "types": 0,
     "enumMembers": 0,
     "classMembers": 0,
     "duplicates": 0,

@@ -3,7 +3,7 @@
 // exports the client hooks.
 import { SESSION_COOKIE } from '@zephyrex/auth/lib/session';
 import type { NextRequest } from 'next/server.js';
-import { apiBaseFor } from '@/lib/zephyrex/createMiddleware';
+import { apiBaseFor } from 'zephyrex/middleware';
 import config from '@/zephyrex.config';
 
 const IPV4_OCTETS = 4;

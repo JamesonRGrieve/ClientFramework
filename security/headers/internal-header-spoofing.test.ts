@@ -13,6 +13,7 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { describe, expect, it } from 'vitest';
+import { SOURCE_ROOTS } from '../sourceRoots';
 
 const INTERNAL_HEADERS = [
   'x-nextjs-data',
@@ -50,7 +51,7 @@ function scanFiles(dir: string, ext: string[]): string[] {
 }
 
 describe('Internal header spoofing protection', () => {
-  const serverFiles = scanFiles('src', ['.ts', '.tsx']).filter(
+  const serverFiles = SOURCE_ROOTS.flatMap((root) => scanFiles(root, ['.ts', '.tsx'])).filter(
     (f) => !f.includes('.test.') && !f.includes('.stories.') && !f.includes('node_modules'),
   );
 

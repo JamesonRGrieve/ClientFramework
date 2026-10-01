@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { LuBook, LuCommand, LuGraduationCap, LuMic, LuPaperclip, LuThumbsDown, LuThumbsUp } from 'react-icons/lu';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
+import { SidebarPage } from 'zephyrex/components/appwrapper/src/SidebarPage';
+import { Card, CardContent, CardHeader, CardTitle } from 'zephyrex/ui/card';
 
 export default function GettingStartedPage() {
   return (

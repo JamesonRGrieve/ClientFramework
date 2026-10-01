@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * dependency-cruiser ratchet. Runs `depcruise --output-type json src` and
+ * dependency-cruiser ratchet. Runs `depcruise --output-type json` over every source root and
  * tallies violation counts per rule name. Per-rule counts cannot rise. When
  * a rule's count reaches 0 it auto-flips to strict.
  *
@@ -10,6 +10,7 @@
 import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { SOURCE_ROOTS } from './source-roots.mjs';
 
 const BASELINE = resolve(process.cwd(), '.depcruise-baseline');
 const args = new Set(process.argv.slice(2));
@@ -17,11 +18,14 @@ const updateMode = args.has('--update');
 
 let raw = '';
 try {
-  raw = execSync('./node_modules/.bin/depcruise --config .dependency-cruiser.cjs --output-type json src', {
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-    maxBuffer: 256 * 1024 * 1024,
-  });
+  raw = execSync(
+    `./node_modules/.bin/depcruise --config .dependency-cruiser.cjs --output-type json ${SOURCE_ROOTS.join(' ')}`,
+    {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      maxBuffer: 256 * 1024 * 1024,
+    },
+  );
 } catch (err) {
   raw = err.stdout?.toString() ?? '';
 }

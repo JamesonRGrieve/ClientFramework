@@ -4,19 +4,19 @@ import { useParams } from 'next/navigation.js';
 import { type JSX, useState } from 'react';
 import { LuCheck, LuPencil } from 'react-icons/lu';
 import DynamicForm, { type DynamicFormFieldValueTypes } from '@jgrieve/forms/DynamicForm';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useToast } from '@/hooks/useToast';
-import type { ProviderInstance } from '@/lib/zephyrex/providerScope';
 import {
+  type ProviderInstance,
   type ProviderInstanceChanges,
   type ProviderInstanceSetting,
   useProviderInstanceActions,
   useProviderInstanceDetail,
   useProviderInstances,
-} from '@/lib/zephyrex/useProviderInstances';
+} from 'zephyrex';
+import { useToast } from 'zephyrex/hooks/useToast';
+import { Button } from 'zephyrex/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
+import { Input } from 'zephyrex/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'zephyrex/ui/table';
 
 const formatTime = (value: string | null | undefined): string =>
   value === null || value === undefined ? '—' : new Date(value).toLocaleString();

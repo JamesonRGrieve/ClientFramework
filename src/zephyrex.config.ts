@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { BookOpen, HelpCircle, Rocket, Server, Users, VenetianMask } from 'lucide-react';
-import type { ZephyrexConfig } from '@/lib/zephyrex';
+import type { ZephyrexConfig } from 'zephyrex';
 
 const config: ZephyrexConfig = {
   server: {

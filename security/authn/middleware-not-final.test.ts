@@ -11,6 +11,7 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { describe, expect, it } from 'vitest';
+import { SOURCE_ROOTS } from '../sourceRoots';
 
 function scanFiles(dir: string): string[] {
   const results: string[] = [];
@@ -37,7 +38,7 @@ function scanFiles(dir: string): string[] {
 }
 
 describe('API calls include authorization', () => {
-  const files = scanFiles('src');
+  const files = SOURCE_ROOTS.flatMap((root) => scanFiles(root));
 
   it('axios mutation calls must include Authorization header', () => {
     const violations: string[] = [];

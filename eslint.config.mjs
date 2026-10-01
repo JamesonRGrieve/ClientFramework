@@ -38,6 +38,9 @@ const optimizeRegex = fixupPluginRules(optimizeRegexLegacy);
 // The files eslint-config-next lints.
 const SOURCE_FILES = ['**/*.{js,jsx,mjs,ts,tsx,mts,cts}'];
 
+// Application and library code: the template app's src and each package's.
+const CODE_FILES = ['src/**/*.ts', 'src/**/*.tsx', 'packages/*/src/**/*.ts', 'packages/*/src/**/*.tsx'];
+
 // eslintrc merged an entry that sets only a severity into an earlier entry with options, keeping
 // the options (ESLint still does so across flat config objects); a spread replaces the entry
 // whole. Merge rule sets the eslintrc way so preset options survive a severity override.
@@ -81,18 +84,19 @@ const presetRules = mergeRules(
 export default [
   {
     ignores: [
-      '.next/**',
-      'node_modules/**',
-      'dist/**',
-      'dist.next/**',
-      'dist.old/**',
-      'storybook-static/**',
+      '**/.next/**',
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/dist.next/**',
+      '**/dist.old/**',
+      '**/storybook-static/**',
       'coverage/**',
       'docs/**',
       'public/**',
       'app/**',
       'scripts/**',
-      '.storybook/**',
+      'packages/*/scripts/**',
+      '**/.storybook/**',
       'next-env.d.ts',
       'next.config.js',
       'postcss.config.js',
@@ -135,6 +139,9 @@ export default [
       ...importTypescript.settings,
       'import/parsers': { ...nextBase.settings['import/parsers'], ...importTypescript.settings['import/parsers'] },
       'import/resolver': { ...nextBase.settings['import/resolver'], ...importTypescript.settings['import/resolver'] },
+      // Workspace packages resolve into packages/ rather than node_modules; they are dependencies
+      // all the same, as they are for any app that installs them.
+      'import/external-module-folders': [...importTypescript.settings['import/external-module-folders'], 'packages'],
     },
     rules: mergeRules(presetRules, {
       '@typescript-eslint/no-this-alias': 'warn',
@@ -521,24 +528,24 @@ export default [
     // Extension entry points register synchronous render factories
     // (`component: () => X({})`, `mfaSetup`/`mfaVerify`); the same
     // `promise-function-async` autofix would break them the same way.
-    files: ['src/lib/zephyrex/extensions/**/*.ts'],
+    files: ['packages/zephyrex/src/lib/zephyrex/extensions/**/*.ts'],
     rules: {
       '@typescript-eslint/promise-function-async': 'off',
     },
   },
   {
-    // Application code logs through src/lib/log.ts, the one place that writes to the console.
-    // Tests may stub console methods to silence expected errors.
-    files: ['src/**/*.ts', 'src/**/*.tsx'],
-    ignores: ['src/lib/log.ts', '**/*.test.ts', '**/*.test.tsx'],
+    // Application code logs through zephyrex's lib/log.ts, the one place that writes to the
+    // console. Tests may stub console methods to silence expected errors.
+    files: CODE_FILES,
+    ignores: ['packages/zephyrex/src/lib/log.ts', '**/*.test.ts', '**/*.test.tsx'],
     rules: {
       'no-console': 'error',
     },
   },
   {
     // Application code names its numbers; tests and stories use literal fixtures.
-    files: ['src/**/*.ts', 'src/**/*.tsx'],
-    ignores: ['**/*.test.ts', '**/*.test.tsx', '**/*.stories.tsx', 'src/__tests__/**'],
+    files: CODE_FILES,
+    ignores: ['**/*.test.ts', '**/*.test.tsx', '**/*.stories.tsx', '**/src/__tests__/**'],
     rules: {
       '@typescript-eslint/no-magic-numbers': [
         'error',
@@ -558,8 +565,8 @@ export default [
     files: [
       '**/*.test.ts',
       '**/*.test.tsx',
-      'src/__tests__/**/*.ts',
-      'src/__tests__/**/*.tsx',
+      '**/src/__tests__/**/*.ts',
+      '**/src/__tests__/**/*.tsx',
       'tests/**/*.ts',
       'tests/**/*.tsx',
     ],

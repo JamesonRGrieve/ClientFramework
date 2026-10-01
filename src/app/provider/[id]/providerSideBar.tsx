@@ -3,23 +3,21 @@
 import { useParams, useRouter } from 'next/navigation.js';
 import { type JSX, useMemo, useState } from 'react';
 import { LuPencil, LuPlus, LuTrash2 } from 'react-icons/lu';
-import { type InstanceDialog, InstanceDialogs, type NewInstanceFields } from './InstanceDialogs';
-import { ScopePicker } from './ScopePicker';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/useToast';
-import { useProviders, useServerExtensions, useUser } from '@/lib/zephyrex/hooks';
 import {
   EMPTY_SELECTION,
   providerLabel,
   type ProviderScopeSelection,
   scopeProviderInstances,
   selectExtension,
-} from '@/lib/zephyrex/providerScope';
-import {
   useProviderExtensionLinks,
   useProviderInstanceActions,
   useProviderInstances,
-} from '@/lib/zephyrex/useProviderInstances';
+} from 'zephyrex';
+import { useProviders, useServerExtensions, useUser } from 'zephyrex/hooks';
+import { useToast } from 'zephyrex/hooks/useToast';
+import { Button } from 'zephyrex/ui/button';
+import { type InstanceDialog, InstanceDialogs, type NewInstanceFields } from './InstanceDialogs';
+import { ScopePicker } from './ScopePicker';
 
 /**
  * Narrow provider instances first by extension, then by provider, then pick the instance to

@@ -2,12 +2,12 @@
 'use client';
 
 import type { JSX } from 'react';
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useFailedServices, useServiceActions } from '@/hooks/api';
+import { SidebarPage } from 'zephyrex/components/appwrapper/src/SidebarPage';
+import { useFailedServices, useServiceActions } from 'zephyrex/hooks/api';
+import { Badge } from 'zephyrex/ui/badge';
+import { Button } from 'zephyrex/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from 'zephyrex/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'zephyrex/ui/table';
 
 const stateVariant = (state: string): 'default' | 'destructive' | 'secondary' => {
   if (state === 'healthy') {

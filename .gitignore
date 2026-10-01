@@ -4,8 +4,8 @@ dist
 dist.next
 dist.old
 /.vscode/
-# dependencies
-/node_modules
+# dependencies (the root's and every workspace package's)
+node_modules/
 /.pnp
 .pnp.js
 *.log

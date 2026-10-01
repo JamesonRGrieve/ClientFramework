@@ -14,7 +14,7 @@ import { describe, expect, it } from 'vitest';
 
 describe('SWR cache key isolation', () => {
   it('useUser must include auth token in cache identity', () => {
-    const source = readFileSync('src/lib/zephyrex/hooks.ts', 'utf8');
+    const source = readFileSync('packages/zephyrex/src/lib/zephyrex/hooks.ts', 'utf8');
     const usesUserEndpoint = source.includes('/v1/user');
     if (!usesUserEndpoint) {
       return;
@@ -36,7 +36,7 @@ describe('SWR cache key isolation', () => {
   });
 
   it('useTeam must not use a static cache key for tenant-specific data', () => {
-    const source = readFileSync('src/lib/zephyrex/hooks.ts', 'utf8');
+    const source = readFileSync('packages/zephyrex/src/lib/zephyrex/hooks.ts', 'utf8');
     const teamKeyMatch = source.match(/useSWR<Team>\(\s*['"`]([^'"`]+)['"`]/);
 
     // Client-side SWR<Team> keys are per-browser; a static key is only a concern

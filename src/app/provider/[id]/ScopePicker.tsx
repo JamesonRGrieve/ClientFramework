@@ -1,8 +1,8 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { JSX } from 'react';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from 'zephyrex/ui/label';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from 'zephyrex/ui/select';
 
 /** Radix Select can't hold `null`; this value stands for "no narrowing". */
 const ANY = '__any__';

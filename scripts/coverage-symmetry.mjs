@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * Coverage symmetry: walks src/ and reports component sources without a
+ * Coverage symmetry: walks every source root (the app's src and each package's) and reports component sources without a
  * matching *.stories.* file, and source files without a matching *.test.*
  * file. Output is a JSON object written to .symmetry-coverage.json and
  * a summary printed to stdout.
@@ -12,8 +12,8 @@
  */
 import { readdirSync, statSync, writeFileSync } from 'node:fs';
 import { extname, join, relative, resolve } from 'node:path';
+import { SOURCE_ROOTS } from './source-roots.mjs';
 
-const ROOT = resolve(process.cwd(), 'src');
 const OUT = resolve(process.cwd(), '.symmetry-coverage.json');
 
 const SKIP_DIRS = new Set(['app', 'node_modules', 'dist', '__generated__']);
@@ -41,7 +41,7 @@ function walk(dir, acc = []) {
 // reusable components and get no story/test, same as the app/ dir (see §8).
 const CONVENTION_RE = /(^|\/)(proxy|middleware|instrumentation)\.(ts|tsx)$/;
 
-const all = walk(ROOT);
+const all = SOURCE_ROOTS.flatMap((root) => walk(resolve(process.cwd(), root)));
 const sources = all.filter((p) => SOURCE_RE.test(p) && !STORY_RE.test(p) && !TEST_RE.test(p) && !CONVENTION_RE.test(p));
 const stories = new Set(all.filter((p) => STORY_RE.test(p)).map((p) => p.replace(STORY_RE, '')));
 const tests = new Set(all.filter((p) => TEST_RE.test(p)).map((p) => p.replace(TEST_RE, '')));

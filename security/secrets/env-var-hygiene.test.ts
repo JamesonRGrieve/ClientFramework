@@ -9,6 +9,7 @@
 import { readdirSync, readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { describe, expect, it } from 'vitest';
+import { SOURCE_ROOTS } from '../sourceRoots';
 
 const SECRET_PATTERNS = [
   /secret/i,
@@ -103,7 +104,9 @@ describe('Environment variable hygiene', () => {
       }
     }
 
-    scanDir('src');
+    for (const root of SOURCE_ROOTS) {
+      scanDir(root);
+    }
 
     expect(
       violations,

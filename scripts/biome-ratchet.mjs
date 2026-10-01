@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * Biome diagnostics ratchet. Runs `biome lint src/` and compares the total
+ * Biome diagnostics ratchet. Runs `biome lint` over every source root and compares the total
  * (errors + warnings) count to .biome-baseline. Fails when the count goes UP.
  *
  * Usage:
@@ -12,6 +12,7 @@ import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
+import { SOURCE_ROOTS } from './source-roots.mjs';
 
 const BASELINE_PATH = resolve(process.cwd(), '.biome-baseline');
 const updateMode = process.argv.slice(2).includes('--update');
@@ -19,7 +20,7 @@ const updateMode = process.argv.slice(2).includes('--update');
 let biomeOutput;
 const biomeOutputPath = resolve(tmpdir(), `client-framework-biome-${process.pid}.json`);
 try {
-  execSync(`./node_modules/.bin/biome lint src/ --reporter=json > "${biomeOutputPath}"`, {
+  execSync(`./node_modules/.bin/biome lint ${SOURCE_ROOTS.join(' ')} --reporter=json > "${biomeOutputPath}"`, {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
     maxBuffer: 128 * 1024 * 1024,

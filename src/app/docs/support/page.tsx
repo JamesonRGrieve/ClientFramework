@@ -4,14 +4,14 @@
 import { useUser } from '@zephyrex/auth/hooks/useUser';
 import Link from 'next/link.js';
 import { useState } from 'react';
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { SidebarPage } from 'zephyrex/components/appwrapper/src/SidebarPage';
+import { Alert, AlertDescription, AlertTitle } from 'zephyrex/ui/alert';
+import { Button } from 'zephyrex/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from 'zephyrex/ui/card';
+import { Input } from 'zephyrex/ui/input';
+import { Label } from 'zephyrex/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from 'zephyrex/ui/select';
+import { Textarea } from 'zephyrex/ui/textarea';
 
 /** The labels of a registrable domain, e.g. `example.com` of `app.example.com`. */
 const REGISTRABLE_DOMAIN_LABELS = 2;

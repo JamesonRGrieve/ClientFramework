@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "allowJs": false,
+    "incremental": false,
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "plugins": []
+  },
+  "include": ["src/env.d.ts", "src/lib/**/*", "src/components/**/*", "src/hooks/**/*", "src/testing/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.stories.ts",
+    "src/**/*.stories.tsx",
+    "src/**/*.mdx",
+    "src/__tests__/**/*"
+  ]
+}

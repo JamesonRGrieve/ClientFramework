@@ -14,7 +14,7 @@ import { readFileSync } from 'fs';
 import { describe, expect, it } from 'vitest';
 
 describe('Middleware auth architecture', () => {
-  const source = readFileSync('src/lib/zephyrex/createMiddleware.ts', 'utf8');
+  const source = readFileSync('packages/zephyrex/src/lib/zephyrex/createMiddleware.ts', 'utf8');
 
   it('middleware must not set a trust header that bypasses downstream auth', () => {
     const setsTrustHeader =

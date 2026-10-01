@@ -4,9 +4,9 @@
 import { safeRedirectPath } from '@zephyrex/auth/lib/redirect';
 import { getCookie } from 'cookies-next';
 import Link from 'next/link.js';
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
-import { SidebarInset } from '@/components/ui/sidebar';
-import { useBrowserValue } from '@/hooks/useBrowserValue';
+import { SidebarPage } from 'zephyrex/components/appwrapper/src/SidebarPage';
+import { useBrowserValue } from 'zephyrex/hooks/useBrowserValue';
+import { SidebarInset } from 'zephyrex/ui/sidebar';
 
 const HOME = '/';
 

@@ -54,9 +54,7 @@
     ".next/**",
     "dist/**",
     "storybook-static/**",
-    "src/components/auth/**",
-    "src/components/appwrapper/**",
-    "src/components/dynamic-form/**",
-    "src/lib/zod2gql/**"
+    "packages/*/dist/**",
+    "packages/zephyrex/src/components/appwrapper/**"
   ]
 }

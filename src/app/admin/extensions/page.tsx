@@ -2,11 +2,11 @@
 'use client';
 
 import type { JSX } from 'react';
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useAbilities, useExtensions } from '@/hooks/api';
+import { SidebarPage } from 'zephyrex/components/appwrapper/src/SidebarPage';
+import { useAbilities, useExtensions } from 'zephyrex/hooks/api';
+import { Badge } from 'zephyrex/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from 'zephyrex/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'zephyrex/ui/table';
 
 /**
  * Read-only catalog of installed framework extensions and their abilities,

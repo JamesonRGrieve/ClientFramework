@@ -2,19 +2,20 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * !important ratchet. Counts `!important` occurrences in stylesheets and
- * inline `style=` attributes under `src/`. Each one is a cascade workaround
+ * inline `style=` attributes in every source root. Each one is a cascade workaround
  * that prevents a downstream consumer from overriding the framework cleanly.
  *
  * Baseline file: .important-baseline (plain number).
  */
 import { readFileSync, readdirSync, statSync, existsSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { SOURCE_ROOTS } from './source-roots.mjs';
 
 const BASELINE = resolve(process.cwd(), '.important-baseline');
 const COVERAGE = resolve(process.cwd(), '.important-coverage.json');
 const updateMode = process.argv.slice(2).includes('--update');
 
-const ROOTS = ['src'];
+const ROOTS = SOURCE_ROOTS;
 const STYLE_EXTS = new Set(['.css', '.scss', '.sass', '.less']);
 const CODE_EXTS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']);
 const SKIP_DIRS = new Set([

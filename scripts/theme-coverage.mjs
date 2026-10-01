@@ -14,6 +14,7 @@
  */
 import { readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { SOURCE_ROOTS } from './source-roots.mjs';
 
 const EXCLUDED_DIRS = new Set([
   'node_modules',
@@ -43,7 +44,7 @@ function walk(dir, out = []) {
   return out;
 }
 
-const SCAN_DIRS = ['src', 'app'].filter((d) => existsSync(d));
+const SCAN_DIRS = [...SOURCE_ROOTS, 'app'].filter((d) => existsSync(d));
 const sources = [];
 for (const d of SCAN_DIRS) walk(d, sources);
 sources.sort();

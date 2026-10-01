@@ -12,6 +12,7 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { describe, expect, it } from 'vitest';
+import { SOURCE_ROOTS } from '../sourceRoots';
 
 const AUTH_COOKIE_NAMES = ['jwt', 'auth-team', 'invitation', 'email', 'href'];
 const PREFERENCE_COOKIES = ['theme', 'appearance', 'sidebar', 'client-has-started'];
@@ -39,7 +40,7 @@ function scanFiles(dir: string): string[] {
 }
 
 describe('Cookie security attributes', () => {
-  const files = scanFiles('src');
+  const files = SOURCE_ROOTS.flatMap((root) => scanFiles(root));
 
   it('auth-related setCookie calls must include httpOnly', () => {
     const violations: string[] = [];

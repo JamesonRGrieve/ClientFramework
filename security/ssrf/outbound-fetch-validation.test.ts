@@ -84,7 +84,7 @@ describe('SSRF — server-side outbound fetch validation', () => {
 
 describe('SSRF — WebSocket destination validation', () => {
   it('useSubscription must not allow attacker-controlled WebSocket URLs', () => {
-    const source = readFileSync('src/lib/zephyrex/useSubscription.ts', 'utf8');
+    const source = readFileSync('packages/zephyrex/src/lib/zephyrex/useSubscription.ts', 'utf8');
 
     // The WebSocket URL is derived from config.server.baseUrl, which is
     // set in zephyrex.config.ts from process.env. This is safe as long as

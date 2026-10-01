@@ -2,12 +2,12 @@
 'use client';
 
 import { type JSX, useState } from 'react';
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useDlq, useDlqActions } from '@/hooks/api';
+import { SidebarPage } from 'zephyrex/components/appwrapper/src/SidebarPage';
+import { useDlq, useDlqActions } from 'zephyrex/hooks/api';
+import { Button } from 'zephyrex/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from 'zephyrex/ui/card';
+import { Input } from 'zephyrex/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'zephyrex/ui/table';
 
 /** How much of an entry's id the table shows. */
 const SHORT_ID_LENGTH = 8;

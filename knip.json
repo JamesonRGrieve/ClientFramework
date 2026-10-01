@@ -1,29 +1,47 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "entry": [
-    "src/app/**/{page,layout,template,error,loading,not-found,route,default,head,manifest,sitemap,robots,opengraph-image,twitter-image,icon,apple-icon}.{ts,tsx,js,jsx}",
-    "src/app/**/{global-error,_app,_document}.{ts,tsx,js,jsx}",
-    "src/proxy.{ts,tsx,js,jsx}",
-    "next.config.js",
-    "postcss.config.js",
-    "tailwind.config.js",
-    "vitest.config.ts",
-    ".storybook/main.{ts,tsx,js,jsx}",
-    ".storybook/preview.{ts,tsx,js,jsx}",
-    "server-wrapper.js",
-    "scripts/**/*.{mjs,js}",
-    "src/**/*.stories.{ts,tsx}",
-    "src/**/*.test.{ts,tsx}",
-    "src/__tests__/setup.ts",
-    "src/components/ui/**/*.{ts,tsx}",
-    "src/lib/zephyrex/{index,types,hooks,client}.ts",
-    "src/lib/zephyrex/extensions/index.ts",
-    "src/lib/zephyrex/extensions/*/index.ts",
-    "src/lib/zephyrex/pages/*/index.ts",
-    "src/components/{markdown,data-table,theme,dropzone}/**/*.{ts,tsx}"
-  ],
-  "project": ["src/**/*.{ts,tsx,js,jsx}", "!src/**/*.d.ts"],
-  "ignore": ["src/components/appwrapper/**", "next-env.d.ts"],
+  "workspaces": {
+    ".": {
+      "entry": [
+        "src/app/**/{page,layout,template,error,loading,not-found,route,default,head,manifest,sitemap,robots,opengraph-image,twitter-image,icon,apple-icon}.{ts,tsx,js,jsx}",
+        "src/app/**/{global-error,_app,_document}.{ts,tsx,js,jsx}",
+        "src/app/sw.ts",
+        "src/proxy.{ts,tsx,js,jsx}",
+        "next.config.js",
+        "postcss.config.js",
+        "tailwind.config.js",
+        "vitest.config.ts",
+        "server-wrapper.js",
+        "scripts/**/*.{mjs,js}",
+        "src/**/*.test.{ts,tsx}"
+      ],
+      "project": ["src/**/*.{ts,tsx,js,jsx}", "!src/**/*.d.ts"]
+    },
+    "packages/zephyrex": {
+      "entry": [
+        ".storybook/main.{ts,tsx,js,jsx}",
+        ".storybook/preview.{ts,tsx,js,jsx}",
+        "scripts/**/*.{mjs,js,ts}",
+        "src/**/*.stories.{ts,tsx}",
+        "src/**/*.test.{ts,tsx}",
+        "src/__tests__/setup.ts",
+        "src/components/ui/**/*.{ts,tsx}",
+        "src/components/api/**/*.{ts,tsx}",
+        "src/components/{markdown,data-table,theme,dropzone}/**/*.{ts,tsx}",
+        "src/lib/zephyrex/{index,types,hooks,client,createMiddleware}.ts",
+        "src/lib/zephyrex/extensions/index.ts",
+        "src/lib/zephyrex/extensions/*/index.ts",
+        "src/lib/zephyrex/pages/*/index.ts",
+        "src/lib/api/index.ts",
+        "src/lib/utils.ts",
+        "src/hooks/api/index.ts",
+        "src/hooks/*.{ts,tsx}",
+        "src/testing/TestWrapper.tsx"
+      ],
+      "project": ["src/**/*.{ts,tsx,js,jsx}", "!src/**/*.d.ts"],
+      "ignore": ["src/components/appwrapper/**"]
+    }
+  },
   "ignoreDependencies": ["@tailwindcss/oxide-*", "lightningcss-*"],
   "ignoreBinaries": ["docker-compose"]
 }

@@ -8,31 +8,31 @@ import { describe, expect, it } from 'vitest';
 
 describe('SidebarPage — responsive toggle', () => {
   it('sidebar toggle uses md:hidden for desktop hiding', () => {
-    const source = readFileSync('src/components/appwrapper/src/SidebarPage.tsx', 'utf8');
+    const source = readFileSync('packages/zephyrex/src/components/appwrapper/src/SidebarPage.tsx', 'utf8');
     expect(source).toContain('md:hidden');
   });
 });
 
 describe('NavUser — responsive layout', () => {
   it('user name uses truncate class to prevent overflow', () => {
-    const source = readFileSync('src/components/appwrapper/src/NavUser.tsx', 'utf8');
+    const source = readFileSync('packages/zephyrex/src/components/appwrapper/src/NavUser.tsx', 'utf8');
     expect(source).toContain('truncate');
   });
 
   it('dropdown changes side based on isMobile', () => {
-    const source = readFileSync('src/components/appwrapper/src/NavUser.tsx', 'utf8');
+    const source = readFileSync('packages/zephyrex/src/components/appwrapper/src/NavUser.tsx', 'utf8');
     expect(source).toContain("isMobile ? 'bottom' : 'right'");
   });
 });
 
 describe('Sidebar — responsive behavior classes', () => {
   it('sidebar uses group-data-[collapsible=icon] for collapsed state', () => {
-    const source = readFileSync('src/components/ui/sidebar.tsx', 'utf8');
+    const source = readFileSync('packages/zephyrex/src/components/ui/sidebar.tsx', 'utf8');
     expect(source).toContain('group-data-[collapsible=icon]');
   });
 
   it('sidebar has lg: breakpoint classes for desktop layout', () => {
-    const source = readFileSync('src/components/ui/sidebar.tsx', 'utf8');
+    const source = readFileSync('packages/zephyrex/src/components/ui/sidebar.tsx', 'utf8');
     expect(source).toContain('lg:');
   });
 });
@@ -47,19 +47,19 @@ describe('App page — responsive header', () => {
 
 describe('DataTable — responsive overflow', () => {
   it('data table has border or overflow container', () => {
-    const source = readFileSync('src/components/data-table/index.tsx', 'utf8');
+    const source = readFileSync('packages/zephyrex/src/components/data-table/index.tsx', 'utf8');
     const hasContainer =
       source.includes('overflow-x-auto') || source.includes('overflow-auto') || source.includes('border rounded-md');
     expect(hasContainer).toBe(true);
   });
 
   it('pagination uses responsive spacing', () => {
-    const source = readFileSync('src/components/data-table/data-table-pagination.tsx', 'utf8');
+    const source = readFileSync('packages/zephyrex/src/components/data-table/data-table-pagination.tsx', 'utf8');
     expect(source).toContain('lg:');
   });
 
   it('pagination first/last buttons hidden on small screens', () => {
-    const source = readFileSync('src/components/data-table/data-table-pagination.tsx', 'utf8');
+    const source = readFileSync('packages/zephyrex/src/components/data-table/data-table-pagination.tsx', 'utf8');
     expect(source).toContain('hidden');
     expect(source).toContain('lg:flex');
   });

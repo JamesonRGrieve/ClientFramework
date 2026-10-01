@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import { PageWithSlots } from 'zephyrex';
+import { SidebarPage } from 'zephyrex/components/appwrapper/src/SidebarPage';
 import { ProviderSidebar } from './[id]/providerSideBar';
 import ProviderInstances from './[id]/providers';
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
-import { PageWithSlots } from '@/lib/zephyrex/PageSlots';
 
 export default function ProviderPage() {
   return (

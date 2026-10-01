@@ -26,6 +26,7 @@
     },
     "includes": [
       "src/**",
+      "packages/*/src/**",
       "!**/node_modules",
       "!**/dist",
       "!**/.next",
@@ -35,10 +36,7 @@
       "!**/*.spec.ts",
       "!**/*.stories.ts",
       "!**/*.stories.tsx",
-      "!src/components/appwrapper/**",
-      "!src/components/auth/**",
-      "!src/components/dynamic-form/**",
-      "!src/lib/zod2gql/**"
+      "!packages/zephyrex/src/components/appwrapper/**"
     ]
   },
   "formatter": {

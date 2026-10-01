@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * Stylelint warning ratchet. Runs `stylelint --formatter json` over
- * stylesheets under `src/` and tracks the total warning count.
+ * stylesheets in every source root (the app's src and each package's) and tracks the total
+ * warning count.
  *
  * Baseline file: .css-baseline (plain number).
  */
@@ -10,6 +11,7 @@ import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
+import { SOURCE_ROOTS } from './source-roots.mjs';
 
 const BASELINE = resolve(process.cwd(), '.css-baseline');
 const updateMode = process.argv.slice(2).includes('--update');
@@ -17,7 +19,7 @@ const outFile = resolve(tmpdir(), `client-framework-stylelint-${process.pid}.jso
 
 try {
   execSync(
-    `./node_modules/.bin/stylelint "src/**/*.{css,scss,sass}" --formatter json --allow-empty-input --output-file "${outFile}"`,
+    `./node_modules/.bin/stylelint ${SOURCE_ROOTS.map((root) => `"${root}/**/*.{css,scss,sass}"`).join(' ')} --formatter json --allow-empty-input --output-file "${outFile}"`,
     { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024, shell: '/bin/bash' },
   );
 } catch {

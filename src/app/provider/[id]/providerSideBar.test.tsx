@@ -2,8 +2,8 @@
 import { render } from '@testing-library/react';
 import { useParams } from 'next/navigation.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { TestWrapper, testConfig } from 'zephyrex/testing';
 import { ProviderSidebar } from './providerSideBar';
-import { TestWrapper, testConfig } from '@/__tests__/test-wrapper';
 
 const HTTP_OK = 200;
 

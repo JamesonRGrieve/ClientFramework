@@ -1,3 +1,7 @@
+# The root is the template app and the shared gates; the published packages live in packages/.
+packages:
+  - 'packages/*'
+
 # Until @zephyrex/auth, @jgrieve/forms and zod2gql are published, resolve them from the
 # sibling checkouts. `file:` installs a copy whose peers (react, next, zod) resolve from
 # this package, so there is one React and one zod; `link:` would not. Remove once published.

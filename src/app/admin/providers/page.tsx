@@ -2,8 +2,8 @@
 'use client';
 
 import type { JSX } from 'react';
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
-import { RootProviderStatus } from '@/lib/zephyrex/components/RootProviderStatus';
+import { RootProviderStatus } from 'zephyrex';
+import { SidebarPage } from 'zephyrex/components/appwrapper/src/SidebarPage';
 
 export default function RootProvidersPage(): JSX.Element {
   return (

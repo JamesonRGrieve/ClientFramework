@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { cookies } from 'next/headers.js';
 import Link from 'next/link.js';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
-import { Button } from '@/components/ui/button';
-import { accountsEnabled, DEFAULT_AUTH_PATH } from '@/lib/zephyrex/authPath';
+import { ThemeToggle } from 'zephyrex/components/theme/ThemeToggle';
+import { Button } from 'zephyrex/ui/button';
+import { accountsEnabled, DEFAULT_AUTH_PATH } from 'zephyrex';
 import config from '@/zephyrex.config';
 
 export default async function Home() {

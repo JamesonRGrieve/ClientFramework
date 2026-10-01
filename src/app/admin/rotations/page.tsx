@@ -2,10 +2,10 @@
 'use client';
 
 import type { JSX } from 'react';
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useRotationProviderInstances, useRotations } from '@/hooks/api';
+import { SidebarPage } from 'zephyrex/components/appwrapper/src/SidebarPage';
+import { useRotationProviderInstances, useRotations } from 'zephyrex/hooks/api';
+import { Card, CardContent, CardHeader, CardTitle } from 'zephyrex/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'zephyrex/ui/table';
 
 export default function RotationsPage(): JSX.Element {
   const rotations = useRotations();

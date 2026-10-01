@@ -2,11 +2,11 @@
 'use client';
 
 import type { JSX } from 'react';
-import { SidebarPage } from '@/components/appwrapper/src/SidebarPage';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useHealth, useLiveness, useReadiness } from '@/hooks/api';
-import type { ReadinessCheck } from '@/lib/api/types';
+import type { ReadinessCheck } from 'zephyrex/api';
+import { SidebarPage } from 'zephyrex/components/appwrapper/src/SidebarPage';
+import { useHealth, useLiveness, useReadiness } from 'zephyrex/hooks/api';
+import { Badge } from 'zephyrex/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from 'zephyrex/ui/card';
 
 const stateBadgeVariant = (status?: string): 'default' | 'destructive' | 'secondary' => {
   if (!status) {

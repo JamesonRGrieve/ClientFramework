@@ -2,10 +2,10 @@
 import type { Metadata, Viewport } from 'next';
 import { cookies } from 'next/headers.js';
 import type { ReactNode } from 'react';
-import { SidebarContext } from '@/components/appwrapper/src/SidebarContext';
-import { SidebarMain } from '@/components/appwrapper/src/SidebarMain';
-import { ZephyrexApp } from '@/lib/zephyrex';
-import { cn } from '@/lib/utils';
+import { ZephyrexApp } from 'zephyrex';
+import { SidebarContext } from 'zephyrex/components/appwrapper/src/SidebarContext';
+import { SidebarMain } from 'zephyrex/components/appwrapper/src/SidebarMain';
+import { cn } from 'zephyrex/utils';
 import config from '@/zephyrex.config';
 import './globals.css';
 
