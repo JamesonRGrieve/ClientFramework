@@ -55,6 +55,8 @@ export type {
   ProviderInstanceSetting,
   ProviderInstanceUsage,
 } from './useProviderInstances';
+export { fieldDescription, settingRows, useProviderSettingCatalogue } from './providerSettings';
+export type { ProviderSettingRow, ProviderSettingSpec } from './providerSettings';
 export {
   EMPTY_SELECTION,
   providerLabel,

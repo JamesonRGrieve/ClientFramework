@@ -12,6 +12,7 @@ import { TestWrapper, testConfig } from '@/testing/TestWrapper';
 const BASE = testConfig.server.baseUrl;
 const HTTP_OK = 200;
 const HTTP_NO_CONTENT = 204;
+const SETTINGS = '/v1/provider/instance/setting';
 
 const instance = { id: 'i1', name: 'GPT', provider_id: 'p1', created_at: '2026-09-01T00:00:00Z' };
 
@@ -52,7 +53,7 @@ describe('provider instance hooks', () => {
 
   it('find an instance’s settings and usage through the search routes', async () => {
     const fetchMock = serve((path) =>
-      path.startsWith('/v1/provider/instance/setting')
+      path.startsWith(SETTINGS)
         ? { provider_instance_settings: [{ id: 's1', provider_instance_id: 'i1', key: 'temperature', value: '0.2' }] }
         : { provider_instance_usages: [{ id: 'u1', key: 'input_tokens', value: 42 }] },
     );
@@ -62,7 +63,7 @@ describe('provider instance hooks', () => {
       expect(result.current.usage.data?.map((record) => record.value)).toEqual([42]);
     });
     expect(fetchMock).toHaveBeenCalledWith(
-      `${BASE}/v1/provider/instance/setting/search`,
+      `${BASE}${SETTINGS}/search`,
       expect.objectContaining({
         method: 'POST',
         body: '{"provider_instance_setting":{"provider_instance_id":{"eq":"i1"}}}',
@@ -85,7 +86,18 @@ describe('provider instance hooks', () => {
       if (init.method === 'DELETE') {
         return null;
       }
-      if (path.startsWith('/v1/provider/instance/setting/')) {
+      if (path === SETTINGS) {
+        return {
+          provider_instance_setting: {
+            id: 's2',
+            provider_instance_id: 'i1',
+            key: 'aws_secret_key',
+            value: null,
+            write_only: true,
+          },
+        };
+      }
+      if (path.startsWith(`${SETTINGS}/`)) {
         return { provider_instance_setting: {} };
       }
       return init.method === 'GET' ? { provider_instances: [instance] } : { provider_instance: instance };
@@ -97,6 +109,13 @@ describe('provider instance hooks', () => {
       await result.current.update('i1', { name: 'GPT-5' });
       await result.current.remove('i1');
       await result.current.updateSetting({ id: 's1', provider_instance_id: 'i1', key: 'temperature' }, '0.5');
+      // A secret comes back without its value: only that it is set.
+      await expect(result.current.createSetting('i1', 'aws_secret_key', 'shh')).resolves.toMatchObject({
+        id: 's2',
+        value: null,
+        write_only: true,
+      });
+      await result.current.removeSetting({ id: 's2', provider_instance_id: 'i1', key: 'aws_secret_key' });
     });
 
     const calls = fetchMock.mock.calls
@@ -106,7 +125,9 @@ describe('provider instance hooks', () => {
       ['POST', '/v1/provider/instance', '{"provider_instance":{"name":"GPT","provider_id":"p1","api_key":"sk-1"}}'],
       ['PUT', '/v1/provider/instance/i1', '{"provider_instance":{"name":"GPT-5"}}'],
       ['DELETE', '/v1/provider/instance/i1', undefined],
-      ['PUT', '/v1/provider/instance/setting/s1', '{"provider_instance_setting":{"value":"0.5"}}'],
+      ['PUT', `${SETTINGS}/s1`, '{"provider_instance_setting":{"value":"0.5"}}'],
+      ['POST', SETTINGS, '{"provider_instance_setting":{"provider_instance_id":"i1","key":"aws_secret_key","value":"shh"}}'],
+      ['DELETE', `${SETTINGS}/s2`, undefined],
     ]);
   });
 });

@@ -31,10 +31,13 @@ const SettingSchema = z.object({
   id: z.string(),
   provider_instance_id: z.string(),
   key: z.string(),
+  /** Always null for a write-only setting: the server keeps the value encrypted and never returns it. */
   value: optionalText,
+  write_only: z.boolean().optional(),
   updated_at: optionalText,
 });
 export type ProviderInstanceSetting = z.infer<typeof SettingSchema>;
+const SettingEnvelopeSchema = z.object({ provider_instance_setting: SettingSchema });
 
 const UsageSchema = z.object({
   id: z.string(),
@@ -118,6 +121,9 @@ export function useProviderInstanceActions(): {
   update: (id: string, changes: ProviderInstanceChanges) => Promise<ProviderInstance>;
   remove: (id: string) => Promise<void>;
   updateSetting: (setting: ProviderInstanceSetting, value: string) => Promise<void>;
+  createSetting: (instanceId: string, key: string, value: string) => Promise<ProviderInstanceSetting>;
+  /** Deleting is the only way to clear a write-only setting. */
+  removeSetting: (setting: ProviderInstanceSetting) => Promise<void>;
 } {
   const client = useClient();
   const { mutate } = useProviderInstances();
@@ -157,5 +163,22 @@ export function useProviderInstanceActions(): {
     [client],
   );
 
-  return { create, update, remove, updateSetting };
+  const createSetting = useCallback(
+    async (instanceId: string, key: string, value: string): Promise<ProviderInstanceSetting> =>
+      SettingEnvelopeSchema.parse(
+        await client.post(SETTINGS_PATH, {
+          provider_instance_setting: { provider_instance_id: instanceId, key, value },
+        }),
+      ).provider_instance_setting,
+    [client],
+  );
+
+  const removeSetting = useCallback(
+    async (setting: ProviderInstanceSetting): Promise<void> => {
+      await client.delete(`${SETTINGS_PATH}/${encodeURIComponent(setting.id)}`);
+    },
+    [client],
+  );
+
+  return { create, update, remove, updateSetting, createSetting, removeSetting };
 }

@@ -2,15 +2,20 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { useParams } from 'next/navigation.js';
 import { type JSX, useState } from 'react';
-import { LuCheck, LuPencil } from 'react-icons/lu';
+import { LuCheck, LuPencil, LuX } from 'react-icons/lu';
 import DynamicForm, { type DynamicFormFieldValueTypes } from '@jgrieve/forms/DynamicForm';
 import {
+  fieldDescription,
   type ProviderInstance,
   type ProviderInstanceChanges,
   type ProviderInstanceSetting,
+  type ProviderSettingRow,
+  type ProviderSettingSpec,
+  settingRows,
   useProviderInstanceActions,
   useProviderInstanceDetail,
   useProviderInstances,
+  useProviderSettingCatalogue,
 } from 'zephyrex';
 import { useToast } from 'zephyrex/hooks/useToast';
 import { Button } from 'zephyrex/ui/button';
@@ -39,27 +44,56 @@ export function instanceChanges(
   };
 }
 
+/** Where a setting's value comes from when the instance sets none: its environment variable, then its default. */
+export function fallbackText(spec: ProviderSettingSpec | null): string {
+  if (spec === null) {
+    return 'No longer read by this provider';
+  }
+  const fallbacks = [
+    ...(spec.env === null || spec.env === undefined || spec.env === '' ? [] : [`$${spec.env}`]),
+    ...(spec.default === null || spec.default === undefined ? [] : [`default ${String(spec.default)}`]),
+  ];
+  return fallbacks.length === 0 ? 'Not set' : `Not set: falls back to ${fallbacks.join(', then ')}`;
+}
+
+/** What the table shows for a row's value: a secret only says whether it is set. */
+export function shownValue(row: ProviderSettingRow): string {
+  if (row.setting === null) {
+    return fallbackText(row.spec);
+  }
+  return row.writeOnly ? 'Set' : (row.setting.value ?? '');
+}
+
 function SettingRow({
-  setting,
+  row,
   onSave,
+  onClear,
 }: {
-  setting: ProviderInstanceSetting;
+  row: ProviderSettingRow;
   /** Resolves true once saved; on failure the caller has reported why and the row stays in edit mode. */
-  onSave: (setting: ProviderInstanceSetting, value: string) => Promise<boolean>;
+  onSave: (row: ProviderSettingRow, value: string) => Promise<boolean>;
+  onClear: (setting: ProviderInstanceSetting) => Promise<void>;
 }): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
-  const inputId = `setting-${setting.id}`;
+  const inputId = `setting-${row.key}`;
   return (
     <TableRow>
-      <TableCell className='font-mono'>
-        <label htmlFor={inputId}>{setting.key}</label>
+      <TableCell>
+        <label htmlFor={inputId} className='font-mono'>
+          {row.key}
+        </label>
+        {row.spec?.description !== null && row.spec?.description !== undefined && (
+          <p className='text-xs text-muted-foreground'>{row.spec.description}</p>
+        )}
       </TableCell>
       <TableCell>
         {draft === null ? (
-          <span>{setting.value ?? ''}</span>
+          <span className={row.setting === null ? 'text-muted-foreground' : ''}>{shownValue(row)}</span>
         ) : (
           <Input
             id={inputId}
+            type={row.writeOnly ? 'password' : 'text'}
+            autoComplete='off'
             value={draft}
             onChange={(event) => {
               setDraft(event.target.value);
@@ -67,27 +101,44 @@ function SettingRow({
           />
         )}
       </TableCell>
-      <TableCell>{formatTime(setting.updated_at)}</TableCell>
+      <TableCell>{formatTime(row.setting?.updated_at)}</TableCell>
       <TableCell className='text-right'>
         {draft === null ? (
-          <Button
-            variant='ghost'
-            size='icon'
-            aria-label={`Edit ${setting.key}`}
-            onClick={() => {
-              setDraft(setting.value ?? '');
-            }}
-          >
-            <LuPencil aria-hidden='true' />
-          </Button>
+          <>
+            <Button
+              variant='ghost'
+              size='icon'
+              aria-label={`${row.setting === null ? 'Set' : row.writeOnly ? 'Replace' : 'Edit'} ${row.key}`}
+              onClick={() => {
+                // A secret's value never comes back, so editing one starts blank.
+                setDraft(row.writeOnly ? '' : (row.setting?.value ?? ''));
+              }}
+            >
+              <LuPencil aria-hidden='true' />
+            </Button>
+            {row.setting !== null && (
+              <Button
+                variant='ghost'
+                size='icon'
+                aria-label={`Clear ${row.key}`}
+                onClick={() => {
+                  if (row.setting !== null) {
+                    void onClear(row.setting);
+                  }
+                }}
+              >
+                <LuX aria-hidden='true' />
+              </Button>
+            )}
+          </>
         ) : (
           <Button
             variant='ghost'
             size='icon'
-            aria-label={`Save ${setting.key}`}
+            aria-label={`Save ${row.key}`}
             onClick={() => {
               void (async (): Promise<void> => {
-                if (await onSave(setting, draft)) {
+                if (await onSave(row, draft)) {
                   setDraft(null);
                 }
               })();
@@ -109,6 +160,8 @@ function Providers(): JSX.Element {
   const { data: instances, isLoading } = useProviderInstances();
   const { settings, usage } = useProviderInstanceDetail(instanceId);
   const actions = useProviderInstanceActions();
+  const instance = instances?.find((candidate) => candidate.id === instanceId);
+  const { data: catalogue = [] } = useProviderSettingCatalogue(instance?.provider_id ?? null);
 
   if (instanceId === null) {
     return <p className='p-8 text-center text-muted-foreground'>Choose an instance to manage it.</p>;
@@ -116,7 +169,6 @@ function Providers(): JSX.Element {
   if (isLoading) {
     return <p className='p-8 text-center text-muted-foreground'>Loading…</p>;
   }
-  const instance = instances?.find((candidate) => candidate.id === instanceId);
   if (instance === undefined) {
     return <p className='p-8 text-center text-muted-foreground'>This instance does not exist or is not visible to you.</p>;
   }
@@ -139,20 +191,38 @@ function Providers(): JSX.Element {
     }
   };
 
-  const saveSetting = async (setting: ProviderInstanceSetting, value: string): Promise<boolean> => {
+  const saveSetting = async (row: ProviderSettingRow, value: string): Promise<boolean> => {
     try {
-      await actions.updateSetting(setting, value);
+      await (row.setting === null
+        ? actions.createSetting(instance.id, row.key, value)
+        : actions.updateSetting(row.setting, value));
       await settings.mutate();
       return true;
     } catch (error) {
       toast({
-        title: `Could not save ${setting.key}`,
-        description: error instanceof Error ? error.message : setting.key,
+        title: `Could not save ${row.key}`,
+        description: error instanceof Error ? error.message : row.key,
         variant: 'destructive',
       });
       return false;
     }
   };
+
+  const clearSetting = async (setting: ProviderInstanceSetting): Promise<void> => {
+    try {
+      await actions.removeSetting(setting);
+      await settings.mutate();
+    } catch (error) {
+      toast({
+        title: `Could not clear ${setting.key}`,
+        description: error instanceof Error ? error.message : setting.key,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const rows = settingRows(catalogue, settings.data ?? []);
+  const apiKeyName = fieldDescription(catalogue, 'api_key') ?? 'API key';
 
   return (
     <div className='grid w-full gap-6 px-2 py-6 md:px-8'>
@@ -173,7 +243,7 @@ function Providers(): JSX.Element {
                 validation: (value) => typeof value === 'string' && value.trim() !== '',
               },
               model_name: { type: 'text', display: 'Model name', value: instance.model_name ?? '' },
-              api_key: { type: 'password', display: 'New API key (leave blank to keep the current one)', value: '' },
+              api_key: { type: 'password', display: `New ${apiKeyName} (leave blank to keep the current one)`, value: '' },
               enabled: { type: 'boolean', display: 'Enabled', value: instance.enabled ?? true },
             }}
             submitButtonText='Save instance'
@@ -189,8 +259,8 @@ function Providers(): JSX.Element {
           <CardTitle>Settings</CardTitle>
         </CardHeader>
         <CardContent>
-          {(settings.data ?? []).length === 0 ? (
-            <p className='text-sm text-muted-foreground'>No settings configured for this instance.</p>
+          {rows.length === 0 ? (
+            <p className='text-sm text-muted-foreground'>This provider reads no settings.</p>
           ) : (
             <Table aria-label='Instance settings'>
               <TableHeader>
@@ -202,8 +272,8 @@ function Providers(): JSX.Element {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(settings.data ?? []).map((setting) => (
-                  <SettingRow key={setting.id} setting={setting} onSave={saveSetting} />
+                {rows.map((row) => (
+                  <SettingRow key={row.key} row={row} onSave={saveSetting} onClear={clearSetting} />
                 ))}
               </TableBody>
             </Table>
