@@ -3,7 +3,8 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZephyrexClient } from 'zephyrex';
 import { TestWrapper, testConfig } from 'zephyrex/testing';
-import { familyFixture, fetchFrom, genealogyHandlers } from './genealogy.mocks';
+import { fetchFrom } from 'zephyrex/testing/msw';
+import { familyFixture, genealogyHandlers } from './genealogy.mocks';
 import { genealogyApi, useKinship, useLineage, usePersons, useRelationships } from './genealogyApi';
 
 const client = new ZephyrexClient({ baseUrl: testConfig.server.baseUrl });

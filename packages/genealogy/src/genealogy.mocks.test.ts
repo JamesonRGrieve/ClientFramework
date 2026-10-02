@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { fetchFrom, genealogyHandlers } from './genealogy.mocks';
+import { fetchFrom } from 'zephyrex/testing/msw';
+import { genealogyHandlers } from './genealogy.mocks';
 import { PersonSchema, RelationshipSchema } from './genealogyApi';
 
 const BASE = 'http://localhost:1996';

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // An in-memory genealogy server for the package's tests and stories (never compiled into dist):
 // the routes and shapes of the server's genealogy extension, over a small family.
-import { getResponse, http, HttpResponse, type RequestHandler } from 'msw';
+import { http, HttpResponse, type RequestHandler } from 'msw';
 import { z } from 'zod';
 import {
   ANCESTRY,
@@ -231,15 +231,4 @@ export function genealogyHandlers(store: Store = familyFixture()): RequestHandle
       return new HttpResponse(null, { status: HTTP_NO_CONTENT });
     }),
   ];
-}
-
-/**
- * A `fetch` that answers from `handlers`, for a test to stub in: the genealogy routes, and an empty
- * object for the app shell's other requests.
- */
-export function fetchFrom(handlers: RequestHandler[]): typeof fetch {
-  return async (input, init) => {
-    const request = new Request(input instanceof Request ? input : String(input), init);
-    return (await getResponse(handlers, request)) ?? HttpResponse.json({});
-  };
 }
