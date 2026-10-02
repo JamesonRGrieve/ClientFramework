@@ -20,6 +20,7 @@ COPY packages/auth-magic-link/package.json ./packages/auth-magic-link/
 COPY packages/auth-mfa/package.json ./packages/auth-mfa/
 COPY packages/auth-session/package.json ./packages/auth-session/
 COPY packages/genealogy/package.json ./packages/genealogy/
+COPY packages/payment/package.json ./packages/payment/
 RUN pnpm install --frozen-lockfile
 COPY . .
 # Read by next.config.js and zephyrex.config.ts at build time; nothing is written to disk or logged.

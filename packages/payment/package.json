@@ -1,0 +1,56 @@
+{
+  "name": "@zephyrex/payment",
+  "version": "1.0.0-alpha.1",
+  "description": "Zephyrex payment client: the subscribe page, with the payment provider's hosted pricing table.",
+  "author": "Jameson R Grieve",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JamesonRGrieve/ClientFramework.git",
+    "directory": "packages/payment"
+  },
+  "bugs": {
+    "url": "https://github.com/JamesonRGrieve/ClientFramework/issues"
+  },
+  "keywords": [
+    "zephyrex",
+    "payment",
+    "stripe",
+    "react",
+    "nextjs"
+  ],
+  "scripts": {
+    "compile": "node ../../scripts/compile-package.mjs",
+    "verify:dist": "node ../../scripts/verify-dist.mjs",
+    "prepack": "pnpm compile && pnpm verify:dist"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "cookies-next": "^6.1.1",
+    "next": "^16.3.7",
+    "react": "^19.2.8",
+    "zephyrex": "workspace:^"
+  },
+  "devDependencies": {
+    "@storybook/nextjs": "^10.6.1",
+    "@testing-library/react": "^16.3.3",
+    "cookies-next": "^6.1.1",
+    "next": "^16.3.7",
+    "react": "^19.3.0",
+    "vitest": "^5.0.2",
+    "zephyrex": "workspace:^"
+  }
+}
