@@ -2,7 +2,7 @@
 'use client';
 
 import { hasSession } from '@zephyrex/auth';
-import { createContext, useContext, useMemo } from 'react';
+import { createContext, useContext, useMemo, useSyncExternalStore } from 'react';
 import useSWR, { type SWRResponse } from 'swr';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../api/httpStatus';
@@ -21,6 +21,22 @@ export function useClient(): ZephyrexClient {
   const baseUrl = config.server.baseUrl;
   const fallback = useMemo(() => new ZephyrexClient({ baseUrl }), [baseUrl]);
   return ctx ?? fallback;
+}
+
+// --- Session ---
+
+// The session cookie can't be observed for changes; each render reads it afresh.
+const subscribeToNothing = (): (() => void) => () => undefined;
+const signedOutOnServer = (): boolean => false;
+
+/**
+ * Whether this browser holds a session, safe to render with: the server can't read the cookie, so
+ * it renders signed out, and hydration does too before the client re-renders with the cookie.
+ * Reading `hasSession()` during render instead makes the server and the first client render
+ * disagree for a signed-in user, a hydration mismatch.
+ */
+export function useHasSession(): boolean {
+  return useSyncExternalStore(subscribeToNothing, hasSession, signedOutOnServer);
 }
 
 const optionalText = z.string().nullable().optional();
@@ -46,7 +62,7 @@ export type User = z.infer<typeof UserSchema>;
 export function useUser(): SWRResponse<User, Error> {
   const client = useClient();
   return useSWR<User, Error>(
-    hasSession() ? '/v1/user' : null,
+    useHasSession() ? '/v1/user' : null,
     async () => z.object({ user: UserSchema }).parse(await client.get('/v1/user')).user,
   );
 }
@@ -110,7 +126,7 @@ export const SYSTEM_TEAM_ID = 'FFFFFFFF-FFFF-FFFF-0000-FFFFFFFFFFFF';
  */
 export function useTeams(): SWRResponse<Team[], Error> {
   const client = useClient();
-  return useSWR<Team[], Error>(hasSession() ? '/v1/team' : null, async () => {
+  return useSWR<Team[], Error>(useHasSession() ? '/v1/team' : null, async () => {
     const teams = z
       .object({ teams: z.array(TeamSchema) })
       .parse(await client.get('/v1/team'))
@@ -165,7 +181,7 @@ const NO_EXTENSIONS_STATUSES: ReadonlySet<number> = new Set([HTTP_STATUS.UNAUTHO
  */
 export function useServerExtensions(): SWRResponse<ServerExtension[], Error> {
   const client = useClient();
-  return useSWR<ServerExtension[], Error>(hasSession() ? '/v1/extension' : null, async () => {
+  return useSWR<ServerExtension[], Error>(useHasSession() ? '/v1/extension' : null, async () => {
     try {
       return z.object({ extensions: z.array(ServerExtensionSchema) }).parse(await client.get('/v1/extension')).extensions;
     } catch (error) {

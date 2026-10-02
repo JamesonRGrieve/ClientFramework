@@ -1,12 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { deleteCookie, getCookie, setCookie } from 'cookies-next/client';
+import type { ReactElement } from 'react';
+import { hydrateRoot } from 'react-dom/client';
+import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import {
   ADMIN_ROLE_ID,
   SUPERADMIN_ROLE_ID,
   SYSTEM_TEAM_ID,
   toInbox,
+  useHasSession,
   useMarkNotificationRead,
   useNotifications,
   useRole,
@@ -50,6 +54,34 @@ const signOut = (): void => {
   deleteCookie('auth-team');
   vi.unstubAllGlobals();
 };
+
+function SessionProbe(): ReactElement {
+  return <p>{useHasSession() ? 'signed in' : 'signed out'}</p>;
+}
+
+describe('useHasSession', () => {
+  beforeEach(signIn);
+  afterEach(signOut);
+
+  it('renders signed out on the server, and hydrates without a mismatch before showing the session', async () => {
+    const html = renderToString(<SessionProbe />);
+    expect(html).toContain('signed out');
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    const onRecoverableError = vi.fn();
+    await act(async () => {
+      hydrateRoot(container, <SessionProbe />, { onRecoverableError });
+      await Promise.resolve();
+    });
+    expect(onRecoverableError).not.toHaveBeenCalled();
+    expect(container.textContent).toBe('signed in');
+  });
+
+  it('is signed out without the session cookie', () => {
+    endSession();
+    expect(renderHook(() => useHasSession()).result.current).toBe(false);
+  });
+});
 
 describe('useUser', () => {
   beforeEach(signIn);

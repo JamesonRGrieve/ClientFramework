@@ -16,6 +16,7 @@ export type { ZephyrexClientConfig, JsonValue, JsonBody } from './client';
 export {
   ClientProvider,
   useClient,
+  useHasSession,
   useUser,
   useRole,
   useTeams,
