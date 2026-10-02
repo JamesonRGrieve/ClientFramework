@@ -21,7 +21,7 @@ describe('authPagesConfig', () => {
         app: APP,
         auth: {
           authPath: '/account',
-          authModes: { basic: false, magical: false },
+          authModes: { basic: false },
           oauthProviders: ['google'],
           recaptchaSiteKey: 'site-key',
         },
@@ -33,6 +33,18 @@ describe('authPagesConfig', () => {
       oauthProviders: ['google'],
       signInAlternatives: [],
       recaptchaSiteKey: 'site-key',
+    });
+  });
+
+  it('turns magic-link sign-in on only when a registered extension does', () => {
+    expect(authPagesConfig({ app: APP, extensions: [{ name: 'other' }] }).authModes).toEqual({
+      basic: true,
+      magical: false,
+    });
+    const magicLink = { name: 'auth_magic_link', authModes: { magical: true } };
+    expect(authPagesConfig({ app: APP, auth: { authModes: { basic: false } }, extensions: [magicLink] }).authModes).toEqual({
+      basic: false,
+      magical: true,
     });
   });
 

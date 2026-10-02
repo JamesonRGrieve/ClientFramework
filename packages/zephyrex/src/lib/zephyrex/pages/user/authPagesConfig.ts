@@ -12,7 +12,10 @@ export function authPagesConfig({
   return {
     appName: app.name,
     authPath: auth?.authPath ?? DEFAULT_AUTH_PATH,
-    authModes: auth?.authModes ?? { basic: true, magical: false },
+    authModes: {
+      basic: auth?.authModes?.basic ?? true,
+      magical: extensions.some((extension) => extension.authModes?.magical === true),
+    },
     oauthProviders: auth?.oauthProviders ?? [],
     signInAlternatives: extensions.flatMap((extension) => extension.signInAlternatives ?? []),
     ...(auth?.recaptchaSiteKey === undefined ? {} : { recaptchaSiteKey: auth.recaptchaSiteKey }),

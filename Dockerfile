@@ -16,6 +16,7 @@ COPY packages/observability/package.json ./packages/observability/
 COPY packages/auth-api-keys/package.json ./packages/auth-api-keys/
 COPY packages/auth-device-pairing/package.json ./packages/auth-device-pairing/
 COPY packages/auth-invitations/package.json ./packages/auth-invitations/
+COPY packages/auth-magic-link/package.json ./packages/auth-magic-link/
 COPY packages/auth-mfa/package.json ./packages/auth-mfa/
 COPY packages/auth-session/package.json ./packages/auth-session/
 COPY packages/genealogy/package.json ./packages/genealogy/

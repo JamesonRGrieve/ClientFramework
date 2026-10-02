@@ -1,0 +1,47 @@
+{
+  "name": "@zephyrex/auth-magic-link",
+  "version": "1.0.0-alpha.1",
+  "description": "Zephyrex magic-link client: turns on signing in from a link emailed to the user.",
+  "author": "Jameson R Grieve",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JamesonRGrieve/ClientFramework.git",
+    "directory": "packages/auth-magic-link"
+  },
+  "bugs": {
+    "url": "https://github.com/JamesonRGrieve/ClientFramework/issues"
+  },
+  "keywords": [
+    "zephyrex",
+    "magic-link",
+    "passwordless",
+    "nextjs"
+  ],
+  "scripts": {
+    "compile": "node ../../scripts/compile-package.mjs",
+    "verify:dist": "node ../../scripts/verify-dist.mjs",
+    "prepack": "pnpm compile && pnpm verify:dist"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "zephyrex": "workspace:^"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.2",
+    "zephyrex": "workspace:^"
+  }
+}

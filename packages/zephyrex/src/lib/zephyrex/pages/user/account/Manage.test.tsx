@@ -60,7 +60,7 @@ describe('Manage', () => {
 
   it('leaves out the password section when the app signs in without passwords', async () => {
     const fetchMock = serve(ACCOUNT);
-    const Wrapper = wrapperWith({ auth: { authModes: { basic: false, magical: true } } });
+    const Wrapper = wrapperWith({ auth: { authModes: { basic: false } } });
     const view = render(
       <Wrapper>
         <Manage />

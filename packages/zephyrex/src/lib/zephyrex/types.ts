@@ -91,6 +91,8 @@ export interface ZephyrexClientExtension {
   // the extension is what turns them on.
   authPages?: AuthPageDefinition[];
   signInAlternatives?: SignInAlternative[];
+  /** Email sign-in modes this extension turns on, e.g. `{ magical: true }` for magic links. */
+  authModes?: { magical?: boolean };
 }
 
 export interface ZephyrexConfig {
@@ -121,8 +123,11 @@ export interface ZephyrexConfig {
     privateRoutes?: string[];
     /** Where the auth pages are mounted; `/user` by default. */
     authPath?: string;
-    /** Email sign-in: `basic` (password) or `magical` (magic link); password by default. */
-    authModes?: { basic: boolean; magical: boolean };
+    /**
+     * Password sign-in (`basic`), on by default. Magic-link sign-in is the auth_magic_link
+     * extension's: register @zephyrex/auth-magic-link to turn it on.
+     */
+    authModes?: { basic: boolean };
     /** Identity providers offered for sign-in (the server's oauth_consumer names, e.g. `google`). */
     oauthProviders?: string[];
     recaptchaSiteKey?: string;
