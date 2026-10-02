@@ -5,14 +5,26 @@ import { abilityExtensions } from './abilities';
 describe('abilityExtensions', () => {
   it('each pairs with its server extension by name, named and described, with no client pages or sections', () => {
     expect(abilityExtensions.map((extension) => extension.name)).toEqual([
+      'automotive',
+      'book',
+      'cad',
+      'calendar',
       'cloud',
+      'crypto',
+      'fdm_sla_printing',
+      'local_ai',
+      'local_ai_gguf',
+      'local_ai_torch',
       'maps',
       'math',
+      'mcp_client',
       'media',
       'messaging',
       'sms',
+      'social',
       'source',
       'wearable',
+      'websearch',
       'wiki',
     ]);
     for (const extension of abilityExtensions) {

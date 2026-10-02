@@ -35,6 +35,7 @@ import { metaSdkTsExtension } from './meta_sdk_ts';
 import { observabilityExtension } from './observability';
 import { privacyExtension } from './privacy';
 import { quotaExtension } from './quota';
+import { registryOnlyExtensions } from './registryOnly';
 import { secretVaultExtension } from './secret_vault';
 import { webhooksExtension } from './webhooks';
 
@@ -74,16 +75,30 @@ export {
   webhooksExtension,
 };
 export {
+  automotiveExtension,
+  bookExtension,
+  cadExtension,
+  calendarExtension,
   cloudExtension,
+  cryptoExtension,
+  fdmSlaPrintingExtension,
+  localAiExtension,
+  localAiGgufExtension,
+  localAiTorchExtension,
   mapsExtension,
   mathExtension,
+  mcpClientExtension,
   mediaExtension,
   messagingExtension,
   smsExtension,
+  socialExtension,
   sourceExtension,
   wearableExtension,
+  websearchExtension,
   wikiExtension,
 } from './abilities';
+// Each registry-only entry, for the package that will extend it.
+export * from './registryOnly';
 
 export { createExtension } from './createExtension';
 
@@ -122,4 +137,5 @@ export const allExtensions: ZephyrexClientExtension[] = [
   secretVaultExtension,
   webhooksExtension,
   ...abilityExtensions,
+  ...registryOnlyExtensions,
 ];
