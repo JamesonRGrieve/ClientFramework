@@ -30,7 +30,9 @@ describe('Notifications', () => {
     );
 
     const items = within(view.getByRole('list', { name: 'Notifications' })).getAllByRole('listitem');
+    // What a screen reader announces, not the raw text: the sr-only marker must stay a separate word.
     expect(items.map((item) => within(item).getByRole('heading').textContent)).toEqual(['Title d1 (unread)', 'Title d2']);
+    expect(view.getByRole('heading', { name: 'Title d1 (unread)' })).toBeInTheDocument();
     expect(view.getAllByRole('button', { name: /as read$/ })).toHaveLength(1);
 
     await user.click(view.getByRole('button', { name: 'Mark “Title d1” as read' }));

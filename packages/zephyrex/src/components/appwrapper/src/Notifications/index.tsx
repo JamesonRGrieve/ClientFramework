@@ -27,7 +27,12 @@ export function Notifications({
               <div className='flex items-start justify-between gap-2'>
                 <h3 className='font-semibold'>
                   {notification.title}
-                  {!notification.read && <span className='sr-only'> (unread)</span>}
+                  {!notification.read && (
+                    <>
+                      {' '}
+                      <span className='sr-only'>(unread)</span>
+                    </>
+                  )}
                 </h3>
                 <TooltipBasic title={formatDate(notification.createdAt)}>
                   <span className='cursor-default text-sm text-muted-foreground'>
