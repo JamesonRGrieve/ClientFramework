@@ -10,6 +10,7 @@ const API_ORIGIN = 'https://api.example.com';
 /** The header Next sets on a response that lets the request continue. */
 const CONTINUES = 'x-middleware-next';
 const UPSTREAM_REQUIRED = 'upstreamUrl is required';
+const UPSTREAM = 'http://server:1996';
 
 const request = (path = '/team/1', session?: string): NextRequest => {
   const req = new NextRequest(`${ORIGIN}${path}`);
@@ -98,12 +99,31 @@ describe('createMiddleware', () => {
 
   it('guards the configured private routes by default', async () => {
     const middleware = createMiddleware({
-      server: { baseUrl: '/api', upstreamUrl: 'http://server:1996' },
+      server: { baseUrl: '/api', upstreamUrl: UPSTREAM },
       auth: { privateRoutes: ['/team'] },
     });
     const response = await middleware(request('/team/1'));
     expect(response.headers.get('location')).toBe(`${ORIGIN}/user`);
     expect((await middleware(request('/pricing'))).headers.get(CONTINUES)).toBe('1');
+  });
+
+  it('guards the extensions’ auth pages that need a session, and only those', async () => {
+    const Page = (): null => null;
+    const middleware = createMiddleware({
+      server: { baseUrl: '/api', upstreamUrl: UPSTREAM },
+      extensions: [
+        {
+          name: 'pairing',
+          authPages: [
+            { path: '/pair', component: Page },
+            { path: '/pair/approve', component: Page, requiresSession: true },
+          ],
+        },
+      ],
+    });
+    const approve = await middleware(request('/user/pair/approve?token=t1'));
+    expect(approve.headers.get('location')).toBe(`${ORIGIN}/user`);
+    expect((await middleware(request('/user/pair'))).headers.get(CONTINUES)).toBe('1');
   });
 
   it('checks a session against the upstream API', async () => {

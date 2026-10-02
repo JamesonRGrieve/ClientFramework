@@ -1,21 +1,24 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest';
-import { authPagesConfig } from './authPagesConfig';
+import { authPagesConfig, extensionAuthPages, sessionOnlyAuthPaths } from './authPagesConfig';
+
+const APP = { name: 'Zephyreader' };
 
 describe('authPagesConfig', () => {
   it('defaults to password sign-in at /user with no identity providers', () => {
-    expect(authPagesConfig({ app: { name: 'Zephyreader' } })).toEqual({
+    expect(authPagesConfig({ app: APP })).toEqual({
       appName: 'Zephyreader',
       authPath: '/user',
       authModes: { basic: true, magical: false },
       oauthProviders: [],
+      signInAlternatives: [],
     });
   });
 
   it('carries an OAuth-only setup from the config', () => {
     expect(
       authPagesConfig({
-        app: { name: 'Zephyreader' },
+        app: APP,
         auth: {
           authPath: '/account',
           authModes: { basic: false, magical: false },
@@ -28,7 +31,38 @@ describe('authPagesConfig', () => {
       authPath: '/account',
       authModes: { basic: false, magical: false },
       oauthProviders: ['google'],
+      signInAlternatives: [],
       recaptchaSiteKey: 'site-key',
     });
+  });
+
+  it('links the registered extensions’ other ways to sign in', () => {
+    const pairing = { label: 'Sign in with another device', path: '/pair' };
+    const extensions = [{ name: 'a', signInAlternatives: [pairing] }, { name: 'b' }];
+    expect(authPagesConfig({ app: APP, extensions }).signInAlternatives).toEqual([pairing]);
+  });
+});
+
+describe('the extensions’ auth pages', () => {
+  const Page = (): null => null;
+  const extensions = [
+    {
+      name: 'pairing',
+      authPages: [
+        { path: '/pair', component: Page },
+        { path: '/pair/approve', component: Page, requiresSession: true },
+      ],
+    },
+    { name: 'other' },
+  ];
+
+  it('lists every page the registered extensions add', () => {
+    expect(extensionAuthPages({ extensions }).map((page) => page.path)).toEqual(['/pair', '/pair/approve']);
+    expect(extensionAuthPages({})).toEqual([]);
+  });
+
+  it('puts the ones that need a session under the app’s auth path', () => {
+    expect(sessionOnlyAuthPaths({ extensions })).toEqual(['/user/pair/approve']);
+    expect(sessionOnlyAuthPaths({ auth: { authPath: '/account' }, extensions })).toEqual(['/account/pair/approve']);
   });
 });

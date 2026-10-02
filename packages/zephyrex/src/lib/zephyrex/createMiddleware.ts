@@ -3,6 +3,7 @@ import { createAuthMiddleware } from '@zephyrex/auth/auth.middleware';
 import { NextResponse, type NextRequest } from 'next/server.js';
 import { accountsEnabled, DEFAULT_AUTH_PATH } from './authPath';
 import { contentSecurityPolicy, mintNonce } from './contentSecurityPolicy';
+import { sessionOnlyAuthPaths } from './pages/user/authPagesConfig';
 import type { MiddlewareHook, ZephyrexClientExtension, ZephyrexConfig } from './types';
 
 const ABSOLUTE_URL = /^https?:\/\//;
@@ -24,12 +25,15 @@ export function apiBaseFor({ server }: Pick<ZephyrexConfig, 'server'>): string {
   return base;
 }
 
-/** The session guard for `config`: private routes and the account page need a live session. */
-export const authHookFor = (config: Pick<ZephyrexConfig, 'server' | 'auth'>): MiddlewareHook =>
+/**
+ * The session guard for `config`: private routes, the account page and the extensions' auth pages
+ * that need a signed-in user need a live session.
+ */
+export const authHookFor = (config: Pick<ZephyrexConfig, 'server' | 'auth' | 'extensions'>): MiddlewareHook =>
   createAuthMiddleware({
     authPath: config.auth?.authPath ?? DEFAULT_AUTH_PATH,
     apiBase: apiBaseFor(config),
-    privateRoutes: config.auth?.privateRoutes ?? [],
+    privateRoutes: [...(config.auth?.privateRoutes ?? []), ...sessionOnlyAuthPaths(config)],
     landingOnly: config.auth?.landingOnly ?? false,
   });
 

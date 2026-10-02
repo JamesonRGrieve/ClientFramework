@@ -113,4 +113,5 @@ export type {
   MiddlewareHook,
   ManagementTab,
   TeamSectionProps,
+  AuthPageDefinition,
 } from './types';

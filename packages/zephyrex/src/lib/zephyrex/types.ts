@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import type { SignInAlternative } from '@zephyrex/auth';
 import type { ComponentType, LazyExoticComponent, ReactNode } from 'react';
 import type { NextRequest, NextResponse } from 'next/server.js';
 import type { CspAdditions } from './contentSecurityPolicy';
@@ -47,6 +48,16 @@ export interface TeamSectionProps {
   assignable: Role[];
 }
 
+// --- Auth page injection ---
+
+/** A page an extension adds to the auth pages, at `<authPath><path>`, inside the auth router. */
+export interface AuthPageDefinition {
+  path: string;
+  component: ComponentType;
+  /** Only for a signed-in user; the middleware sends anyone else to sign in first. */
+  requiresSession?: boolean;
+}
+
 // --- Full extension contract ---
 
 export interface ZephyrexClientExtension {
@@ -74,6 +85,12 @@ export interface ZephyrexClientExtension {
 
   // Sections below a team's members (/team)
   teamSections?: ComponentType<TeamSectionProps>[];
+
+  // Auth pages (<authPath>/…) and the other ways to sign in the welcome page links to. These are
+  // in the sign-in flow, before the server can be asked which extensions it runs, so registering
+  // the extension is what turns them on.
+  authPages?: AuthPageDefinition[];
+  signInAlternatives?: SignInAlternative[];
 }
 
 export interface ZephyrexConfig {
