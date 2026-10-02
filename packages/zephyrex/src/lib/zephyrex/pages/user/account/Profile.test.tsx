@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Profile } from './Profile';
-import type { UserProfile } from './profileModel';
+import { detectTimezone, type UserProfile } from './profileModel';
 
 const SAVE = 'Save profile';
 
@@ -38,6 +38,16 @@ describe('Profile', () => {
     await user.click(view.getByRole('button', { name: SAVE }));
     expect(onSave).not.toHaveBeenCalled();
     expect(view.getByRole('status')).toHaveTextContent('Nothing to save.');
+  });
+
+  it('suggests the browser’s timezone when none is set, and records it only when saved', async () => {
+    const onSave = vi.fn(async () => Promise.resolve());
+    const user = userEvent.setup();
+    const view = render(<Profile profile={{ ...profile, timezone: null }} onSave={onSave} />);
+    expect(view.getByLabelText('Timezone')).toHaveTextContent(detectTimezone());
+    expect(onSave).not.toHaveBeenCalled();
+    await user.click(view.getByRole('button', { name: SAVE }));
+    expect(onSave).toHaveBeenCalledWith({ timezone: detectTimezone() });
   });
 
   it('reports the server’s reason when saving fails', async () => {

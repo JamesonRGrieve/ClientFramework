@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { render, within } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import { Manage } from './Manage';
+import { detectTimezone } from './profileModel';
 import { withSession } from '@/testing/session';
 import { TestWrapper, testConfig, wrapperWith } from '@/testing/TestWrapper';
 
@@ -9,9 +10,13 @@ const HTTP_OK = 200;
 const HTTP_UNAUTHORIZED = 401;
 const PROFILE = { id: 'u1', email: 'ada@example.com', first_name: 'Ada', last_name: 'Lovelace', timezone: 'Europe/London' };
 
-const serve = (routes: Record<string, { status?: number; body: object }>): ReturnType<typeof vi.fn> => {
+const YOUR_TEAMS = 'Your teams';
+
+type FetchMock = Mock<(url: string, init?: RequestInit) => Promise<Response>>;
+
+const serve = (routes: Record<string, { status?: number; body: object }>): FetchMock => {
   const byPath = new Map(Object.entries(routes));
-  const fetchMock = vi.fn(async (url: string) => {
+  const fetchMock: FetchMock = vi.fn(async (url: string) => {
     const [path = ''] = url.replace(testConfig.server.baseUrl, '').split('?');
     const route = byPath.get(path);
     return Promise.resolve(new Response(JSON.stringify(route?.body ?? {}), { status: route?.status ?? HTTP_OK }));
@@ -47,7 +52,7 @@ describe('Manage', () => {
     );
     expect(view.getByRole('heading', { name: 'Account Management' })).toBeInTheDocument();
     expect(view.getByRole('button', { name: `Go to ${testConfig.app.name}` })).toBeInTheDocument();
-    const teams = await view.findByRole('list', { name: 'Your teams' });
+    const teams = await view.findByRole('list', { name: YOUR_TEAMS });
     expect(within(teams).getByRole('link', { name: 'Analytical Engines' })).toHaveAttribute('href', '/team/t1');
     expect(view.getByRole('form', { name: 'Change password' })).toBeInTheDocument();
     expect(view.getByText('Two-factor authentication')).toBeInTheDocument();
@@ -61,9 +66,21 @@ describe('Manage', () => {
         <Manage />
       </Wrapper>,
     );
-    expect(await view.findByRole('list', { name: 'Your teams' })).toBeInTheDocument();
+    expect(await view.findByRole('list', { name: YOUR_TEAMS })).toBeInTheDocument();
     expect(view.queryByRole('form', { name: 'Change password' })).toBeNull();
     expect(fetchMock.mock.calls.map(([url]) => String(url))).not.toContainEqual(expect.stringContaining('password-policy'));
+  });
+
+  it('changes nothing on the server just for being opened, even for a user with no timezone', async () => {
+    const fetchMock = serve({ ...ACCOUNT, '/v1/user': { body: { user: { ...PROFILE, timezone: null } } } });
+    const view = render(
+      <TestWrapper>
+        <Manage />
+      </TestWrapper>,
+    );
+    expect(await view.findByRole('list', { name: YOUR_TEAMS })).toBeInTheDocument();
+    expect(view.getByLabelText('Timezone')).toHaveTextContent(detectTimezone());
+    expect(fetchMock.mock.calls.filter(([, init]) => (init?.method ?? 'GET') !== 'GET')).toEqual([]);
   });
 
   it('says why the account could not be loaded', async () => {

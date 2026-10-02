@@ -4,14 +4,12 @@ import { Button } from '@jgrieve/forms/components/ui/button';
 import { usePasswordPolicy } from '@zephyrex/auth/hooks/usePasswordPolicy';
 import Link from 'next/link.js';
 import { useRouter } from 'next/navigation.js';
-import { type ReactNode, useEffect, useRef } from 'react';
+import type { ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../../components/ui/card';
-import log from '../../../../log';
 import { useTeams } from '../../../hooks';
 import { useZephyrexConfig } from '../../../ZephyrexProvider';
 import { Account } from './Account';
 import { Profile } from './Profile';
-import { detectTimezone } from './profileModel';
 import { useProfile } from './useProfile';
 
 export type ManageProps = {
@@ -58,22 +56,6 @@ export function Manage({ heading, returnPath = '/', sections }: ManageProps): Re
   const passwords = config.auth?.authModes?.basic ?? true;
   const { profile, error, isLoading, update, changePassword } = useProfile();
   const { data: passwordPolicy } = usePasswordPolicy(config.server.baseUrl, passwords);
-
-  // A new account has no timezone; record the browser's once so times render locally.
-  const timezoneRecorded = useRef(false);
-  useEffect(() => {
-    if (profile === undefined || (profile.timezone ?? '') !== '' || timezoneRecorded.current) {
-      return;
-    }
-    timezoneRecorded.current = true;
-    void (async (): Promise<void> => {
-      try {
-        await update({ timezone: detectTimezone() });
-      } catch (failure) {
-        log(['Recording the browser timezone failed', failure], { client: 1 });
-      }
-    })();
-  }, [profile, update]);
 
   return (
     <main className='mx-auto flex w-full max-w-4xl flex-col gap-6 p-4 md:p-10'>
