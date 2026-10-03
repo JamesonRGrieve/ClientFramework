@@ -8,6 +8,7 @@ import { createExtension } from './createExtension';
 const abilities = (name: string, displayName: string, description: string): ZephyrexClientExtension =>
   createExtension(name, { displayName, description });
 
+export const aiExtension = abilities('ai', 'AI', 'AI models through rotating providers');
 export const automotiveExtension = abilities(
   'automotive',
   'Automotive',
@@ -59,6 +60,7 @@ export const wikiExtension = abilities('wiki', 'Wiki', 'Wikipedia, Fandom and Ka
 
 /** Every abilities-only extension, for the registry. */
 export const abilityExtensions: readonly ZephyrexClientExtension[] = [
+  aiExtension,
   automotiveExtension,
   bookExtension,
   cadExtension,

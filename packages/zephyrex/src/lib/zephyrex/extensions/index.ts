@@ -75,6 +75,7 @@ export {
   webhooksExtension,
 };
 export {
+  aiExtension,
   automotiveExtension,
   bookExtension,
   cadExtension,

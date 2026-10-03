@@ -4,7 +4,7 @@ import { kerberosConsumerExtension, oauthProviderExtension, registryOnlyExtensio
 
 describe('registryOnlyExtensions', () => {
   it('each pairs with its server extension by name, named and described, with no client code yet', () => {
-    expect(registryOnlyExtensions).toHaveLength(36);
+    expect(registryOnlyExtensions).toHaveLength(35);
     for (const extension of registryOnlyExtensions) {
       expect(extension.serverExtension).toBe(extension.name);
       expect(extension.displayName).not.toBe('');

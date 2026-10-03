@@ -9,7 +9,6 @@ const entry = (name: string, displayName: string, description: string): Zephyrex
   createExtension(name, { displayName, description });
 
 // AI, ported from AGInfrastructure: these have routes, and their pages come with the port.
-export const aiExtension = entry('ai', 'AI', 'AI models through rotating providers');
 export const aiAgentsExtension = entry('ai_agents', 'AI Agents', 'Agents, their abilities, memories, projects and activity');
 export const aiChainsExtension = entry('ai_chains', 'AI Chains', 'Chains of AI steps for automating multi-step tasks');
 export const aiMemoriesExtension = entry(
@@ -88,7 +87,6 @@ export const x509ProviderExtension = provider('x509', 'X.509', 'This server as a
 
 /** Every registry-only extension, for the registry. */
 export const registryOnlyExtensions: readonly ZephyrexClientExtension[] = [
-  aiExtension,
   aiAgentsExtension,
   aiChainsExtension,
   aiMemoriesExtension,

@@ -5,6 +5,7 @@ import { abilityExtensions } from './abilities';
 describe('abilityExtensions', () => {
   it('each pairs with its server extension by name, named and described, with no client pages or sections', () => {
     expect(abilityExtensions.map((extension) => extension.name)).toEqual([
+      'ai',
       'automotive',
       'book',
       'cad',
