@@ -16,12 +16,12 @@
     "precommit": "npx prettier --check . && pnpm check && pnpm test && pnpm test:security",
     "build": "rimraf ./.next && next build --webpack",
     "clean-build": "rimraf ./.next && rimraf ./node_modules && pnpm install && pnpm build && pnpm start",
-    "compile": "pnpm -r compile",
-    "verify:dist": "pnpm -r verify:dist",
+    "compile": "pnpm -r --workspace-concurrency=Infinity compile",
+    "verify:dist": "pnpm -r --workspace-concurrency=Infinity verify:dist",
     "start": "next start -p 1109",
     "docker": "docker-compose down && docker-compose pull && docker-compose build && docker-compose up -d",
-    "lint": "eslint .",
-    "lint-fix": "eslint . --fix",
+    "lint": "eslint --concurrency auto .",
+    "lint-fix": "eslint --concurrency auto . --fix",
     "prettier": "prettier .",
     "prettier-fix": "prettier --write .",
     "fix": "prettier --write . && eslint . --fix",
@@ -72,7 +72,7 @@
     "theme:ratchet:update": "node scripts/theme-ratchet.mjs --update",
     "size-limit": "size-limit",
     "lockfile:validate": "node scripts/lockfile-validate.mjs",
-    "check": "pnpm lockfile:validate && pnpm lint:ratchet && pnpm typecheck:ratchet && pnpm symmetry:ratchet && pnpm js-coverage:ratchet && pnpm knip:ratchet && pnpm deps:ratchet && pnpm type-coverage:ratchet && pnpm strict:ratchet && pnpm test:typecheck:ratchet && pnpm important:ratchet && pnpm css:ratchet && pnpm biome:ratchet && pnpm animation:ratchet && pnpm theme:ratchet"
+    "check": "run-p --aggregate-output lockfile:validate lint:ratchet typecheck:ratchet symmetry:ratchet js-coverage:ratchet knip:ratchet deps:ratchet type-coverage:ratchet strict:ratchet test:typecheck:ratchet important:ratchet css:ratchet biome:ratchet animation:ratchet theme:ratchet"
   },
   "keywords": [
     "react",

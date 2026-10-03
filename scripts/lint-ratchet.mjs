@@ -26,7 +26,8 @@ let lintOutput;
 let runError;
 const lintOutputPath = resolve(tmpdir(), `client-framework-eslint-${process.pid}.json`);
 try {
-  execSync(`./node_modules/.bin/eslint . --format json --output-file "${lintOutputPath}"`, {
+  // `--concurrency auto` lints across worker threads (the type-aware rules dominate the run).
+  execSync(`./node_modules/.bin/eslint --concurrency auto . --format json --output-file "${lintOutputPath}"`, {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
     maxBuffer: 64 * 1024 * 1024,
