@@ -5,12 +5,14 @@ import { Label } from '@jgrieve/forms/components/ui/label';
 import { type ComponentType, type ReactElement, useId, useState } from 'react';
 import { Badge } from '../../../../components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
+import { type ConflictField, ConflictPanel } from '../../components/ConflictPanel';
 import { useActiveExtensions } from '../../ExtensionRegistry';
 import { useSelectedTeam, useUser } from '../../hooks';
 import type { TeamSectionProps, ZephyrexClientExtension } from '../../types';
+import { writeProblem } from '../../useGuardedSave';
 import { useZephyrexConfig } from '../../ZephyrexProvider';
 import { type Membership, memberName, type Role, roleLabel } from './teamModel';
-import { useTeamAccess, useTeamActions } from './useTeamManagement';
+import { useMembershipActions, useTeamAccess } from './useTeamManagement';
 
 /**
  * Remove a member, or leave the team from your own row, in two steps: the first press asks, the
@@ -75,24 +77,40 @@ function RemoveMember({
   );
 }
 
+const ROLE_FAILURE = 'The role could not be changed.';
+const REMOVE_FAILURE = 'The member could not be removed.';
+
 function MemberRow({
   member,
   isSelf,
   assignable,
-  onChangeRole,
-  onRemove,
+  roles,
 }: {
   member: Membership;
   isSelf: boolean;
   /** Roles the viewer may give this member; empty when they can't change it. */
   assignable: Role[];
-  onChangeRole: (member: Membership, roleId: string) => Promise<string | null>;
-  onRemove: (member: Membership) => Promise<string | null>;
+  /** Every role the viewer can see, to name a role in a conflict. */
+  roles: Role[];
 }): ReactElement {
   const selectId = useId();
   const [pending, setPending] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  const { changeRole, remove } = useMembershipActions(member.team_id);
   const name = memberName(member);
+  const roleField: ConflictField<Membership> = {
+    key: 'role_id',
+    label: `Role for ${name}`,
+    format: ({ role_id: roleId = '' }) => {
+      const role = roles.find((candidate) => candidate.id === roleId);
+      return role === undefined ? roleId : roleLabel(role);
+    },
+  };
+
+  // A refusal (the team's last admin, or a member above the viewer) keeps the row and says why.
+  const run = async (writing: Promise<boolean>, failure: string): Promise<void> => {
+    setProblem(await writeProblem(writing, failure));
+  };
   // The server lets an admin act on members up to their own rank, and anyone leave; nobody changes
   // their own membership any other way.
   const canChange = !isSelf && assignable.some((option) => option.id === member.role_id);
@@ -118,12 +136,10 @@ function MemberRow({
             value={member.role_id}
             disabled={pending}
             onChange={(event) => {
-              const roleId = event.target.value;
               setPending(true);
-              void (async (): Promise<void> => {
-                setProblem(await onChangeRole(member, roleId));
+              void run(changeRole.save(member, { role_id: event.target.value }), ROLE_FAILURE).finally(() => {
                 setPending(false);
-              })();
+              });
             }}
           >
             {assignable.map((option) => (
@@ -137,13 +153,32 @@ function MemberRow({
         <Badge variant='outline'>{roleLabel(member.role)}</Badge>
       )}
       {canRemove && (
-        <RemoveMember
-          name={name}
-          isSelf={isSelf}
-          onRemove={async () => {
-            setProblem(await onRemove(member));
-          }}
-        />
+        <RemoveMember name={name} isSelf={isSelf} onRemove={async () => run(remove.save(member, {}), REMOVE_FAILURE)} />
+      )}
+      {changeRole.conflict !== null && (
+        <div className='w-full'>
+          <ConflictPanel
+            conflict={changeRole.conflict}
+            fields={[roleField]}
+            onResolve={(merged) => {
+              void run(changeRole.resolve(merged), ROLE_FAILURE);
+            }}
+            onDiscard={changeRole.discard}
+          />
+        </div>
+      )}
+      {remove.conflict !== null && (
+        <div className='w-full'>
+          <ConflictPanel
+            conflict={remove.conflict}
+            fields={[]}
+            applyLabel={isSelf ? 'Leave anyway' : `Remove ${name} anyway`}
+            onResolve={(merged) => {
+              void run(remove.resolve(merged), REMOVE_FAILURE);
+            }}
+            onDiscard={remove.discard}
+          />
+        </div>
       )}
       {problem !== null && (
         <p role='alert' className='w-full text-sm text-destructive'>
@@ -177,34 +212,12 @@ export function TeamMembers({ teamId }: TeamMembersProps): ReactElement {
   const resolvedTeamId = teamId ?? activeTeam?.id;
   const { data: user } = useUser();
   const { members, roles, admin, assignable } = useTeamAccess(resolvedTeamId);
-  const { changeRole, removeMember } = useTeamActions();
   const { active } = useActiveExtensions(useZephyrexConfig().activeExtensions);
   const sections = teamSections(active);
 
   if (resolvedTeamId === undefined || resolvedTeamId === '') {
     return <p className='text-sm text-muted-foreground'>Choose or create a team to manage its members.</p>;
   }
-
-  const onChangeRole = async (member: Membership, roleId: string): Promise<string | null> => {
-    try {
-      await changeRole(resolvedTeamId, member.user_id, roleId);
-      await members.mutate();
-      return null;
-    } catch (error) {
-      return error instanceof Error ? error.message : 'The role could not be changed.';
-    }
-  };
-
-  // A refusal (the team's last admin, or a member above the viewer) keeps the row and says why.
-  const onRemove = async (member: Membership): Promise<string | null> => {
-    try {
-      await removeMember(resolvedTeamId, member.user_id);
-      await members.mutate();
-      return null;
-    } catch (error) {
-      return error instanceof Error ? error.message : 'The member could not be removed.';
-    }
-  };
 
   return (
     <div className='grid gap-6'>
@@ -234,8 +247,7 @@ export function TeamMembers({ teamId }: TeamMembersProps): ReactElement {
                   member={member}
                   isSelf={member.user_id === user?.id}
                   assignable={assignable}
-                  onChangeRole={onChangeRole}
-                  onRemove={onRemove}
+                  roles={roles}
                 />
               ))}
             </ul>

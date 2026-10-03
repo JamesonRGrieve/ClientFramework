@@ -13,6 +13,7 @@ const notification = (id: string, title: string, read: boolean, createdAt: strin
   createdAt,
   read,
   acknowledged: read,
+  delivery: { created_at: createdAt },
 });
 
 const meta: Meta<typeof Notifications> = {

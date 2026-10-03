@@ -2,6 +2,7 @@
 // An in-memory genealogy server for the package's tests and stories (never compiled into dist):
 // the routes and shapes of the server's genealogy extension, over a small family.
 import { http, HttpResponse, type RequestHandler } from 'msw';
+import { refuseStale, versionStamp } from 'zephyrex/testing/msw';
 import { z } from 'zod';
 import {
   ANCESTRY,
@@ -24,6 +25,9 @@ const HTTP_NO_CONTENT = 204;
 const HTTP_NOT_FOUND = 404;
 const HTTP_UNPROCESSABLE = 422;
 
+/** When the fixture's rows were recorded: their version until a test or story changes one. */
+export const FIXTURE_VERSION = '2026-10-01T09:00:00.000001';
+
 const person = (id: string, name: string, born: string | null, died: string | null, gender: string | null): Person => ({
   id,
   name,
@@ -31,6 +35,8 @@ const person = (id: string, name: string, born: string | null, died: string | nu
   birth_date: born === null ? null : `${born}T00:00:00`,
   death_date: died === null ? null : `${died}T00:00:00`,
   gender,
+  created_at: FIXTURE_VERSION,
+  updated_at: null,
 });
 
 const edge = (id: string, from: string, to: string, kind: string, discriminator: string | null): Relationship => ({
@@ -44,6 +50,8 @@ const edge = (id: string, from: string, to: string, kind: string, discriminator:
   valid_from: null,
   valid_to: null,
   notes: null,
+  created_at: FIXTURE_VERSION,
+  updated_at: null,
 });
 
 /** Byron's family: Ada, her parents, her husband and their three children. */
@@ -189,7 +197,11 @@ export function genealogyHandlers(store: Store = familyFixture()): RequestHandle
     http.get(`*${PERSON_ENDPOINT}`, () => page('persons', store.persons)),
     http.post(`*${PERSON_ENDPOINT}`, async ({ request }) => {
       const { person: fields } = PersonBodySchema.parse(await request.json());
-      const row = PersonSchema.parse({ ...person(nextId('person'), '', null, null, null), ...defined(fields) });
+      const row = PersonSchema.parse({
+        ...person(nextId('person'), '', null, null, null),
+        ...defined(fields),
+        created_at: versionStamp(),
+      });
       store.persons.push(row);
       return HttpResponse.json({ person: row }, { status: HTTP_CREATED });
     }),
@@ -199,12 +211,24 @@ export function genealogyHandlers(store: Store = familyFixture()): RequestHandle
       if (index < 0 || current === undefined) {
         return HttpResponse.json({ detail: 'Not found' }, { status: HTTP_NOT_FOUND });
       }
+      const refused = refuseStale(request, current);
+      if (refused !== null) {
+        return refused;
+      }
       const { person: fields } = PersonBodySchema.parse(await request.json());
-      const updated = PersonSchema.parse({ ...current, ...defined(fields) });
+      const updated = PersonSchema.parse({ ...current, ...defined(fields), updated_at: versionStamp() });
       store.persons.splice(index, 1, updated);
       return HttpResponse.json({ person: updated });
     }),
-    http.delete(`*${PERSON_ENDPOINT}/:id`, ({ params: { id } }) => {
+    http.delete(`*${PERSON_ENDPOINT}/:id`, ({ params: { id }, request }) => {
+      const current = store.persons.find((row) => row.id === id);
+      if (current === undefined) {
+        return HttpResponse.json({ detail: 'Not found' }, { status: HTTP_NOT_FOUND });
+      }
+      const refused = refuseStale(request, current);
+      if (refused !== null) {
+        return refused;
+      }
       store.persons = store.persons.filter((row) => row.id !== id);
       store.relationships = store.relationships.filter((row) => row.person_id !== id && row.target_person_id !== id);
       return new HttpResponse(null, { status: HTTP_NO_CONTENT });
@@ -222,11 +246,23 @@ export function genealogyHandlers(store: Store = familyFixture()): RequestHandle
     }),
     http.post(`*${RELATIONSHIP_ENDPOINT}`, async ({ request }) => {
       const { relationship: fields } = RelationshipBodySchema.parse(await request.json());
-      const row = RelationshipSchema.parse({ ...edge(nextId('relationship'), '', '', '', null), ...defined(fields) });
+      const row = RelationshipSchema.parse({
+        ...edge(nextId('relationship'), '', '', '', null),
+        ...defined(fields),
+        created_at: versionStamp(),
+      });
       store.relationships.push(row);
       return HttpResponse.json({ relationship: row }, { status: HTTP_CREATED });
     }),
-    http.delete(`*${RELATIONSHIP_ENDPOINT}/:id`, ({ params: { id } }) => {
+    http.delete(`*${RELATIONSHIP_ENDPOINT}/:id`, ({ params: { id }, request }) => {
+      const current = store.relationships.find((row) => row.id === id);
+      if (current === undefined) {
+        return HttpResponse.json({ detail: 'Not found' }, { status: HTTP_NOT_FOUND });
+      }
+      const refused = refuseStale(request, current);
+      if (refused !== null) {
+        return refused;
+      }
       store.relationships = store.relationships.filter((row) => row.id !== id);
       return new HttpResponse(null, { status: HTTP_NO_CONTENT });
     }),

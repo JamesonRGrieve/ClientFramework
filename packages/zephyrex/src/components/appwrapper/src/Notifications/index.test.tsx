@@ -16,6 +16,7 @@ const notification = (id: string, read: boolean): InboxNotification => ({
   createdAt: '2026-09-01T00:00:00Z',
   read,
   acknowledged: false,
+  delivery: { created_at: '2026-09-01T00:00:00Z' },
 });
 
 describe('Notifications', () => {

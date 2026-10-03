@@ -9,8 +9,8 @@ export { accountsEnabled, DEFAULT_AUTH_PATH, MANAGE_PAGE } from './authPath';
 export type { CspAdditions, CspDirective } from './contentSecurityPolicy';
 
 // API Client
-export { ZephyrexClient, ApiError, RateLimitError } from './client';
-export type { ZephyrexClientConfig, JsonValue, JsonBody } from './client';
+export { ZephyrexClient, ApiError, RateLimitError, StaleWriteError, etagOf } from './client';
+export type { ZephyrexClientConfig, JsonValue, JsonBody, Versioned } from './client';
 
 // Data Hooks
 export {
@@ -41,6 +41,8 @@ export type { UploadResult, UploadProgress } from './useFileUpload';
 export { useSubscription } from './useSubscription';
 export type { SubscriptionOptions } from './useSubscription';
 export { useOnline } from './useOnline';
+export { useGuardedSave, writeProblem } from './useGuardedSave';
+export type { Conflict, GuardedSave } from './useGuardedSave';
 export { useRateLimit } from './useRateLimit';
 export { rootProviderStatusQuery, useRootProviderStatus } from './useRootProviderStatus';
 export { sdkDownloadPath, useSdks } from './useSdks';
@@ -54,7 +56,9 @@ export {
   useProviderInstanceActions,
 } from './useProviderInstances';
 export type {
+  EditableProviderInstance,
   NewProviderInstance,
+  ProviderInstanceActions,
   ProviderInstanceChanges,
   ProviderInstanceSetting,
   ProviderInstanceUsage,
@@ -86,6 +90,8 @@ export type { SearchInputProps } from './components/SearchInput';
 export { RateLimitBanner } from './components/RateLimitBanner';
 export { RootProviderStatus } from './components/RootProviderStatus';
 export { SdkDownloads } from './components/SdkDownloads';
+export { ConflictPanel } from './components/ConflictPanel';
+export type { ConflictField } from './components/ConflictPanel';
 
 // Page Injection
 export { PageSlotsProvider, usePageSlots, PageWithSlots } from './PageSlots';

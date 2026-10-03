@@ -7,6 +7,8 @@ import type { ApiResponse, DeprecationInfo, HttpMethod, Page, RateLimitInfo, Sea
 const NO_CONTENT = 204;
 const STATUS_OK = 200;
 const STATUS_ACCEPTED = 202;
+const CONTENT_TYPE = 'content-type';
+const JSON_TYPE = 'application/json';
 
 export type AuthHeaderProvider = () => string | undefined | Promise<string | undefined>;
 export type DeprecationListener = (info: DeprecationInfo) => void;
@@ -48,6 +50,9 @@ const buildQuery = (query?: RequestOptions['query']): string => {
  *   - surfaces 429 + Retry-After via onRateLimit and ApiError.retryAfter
  *   - decodes FastAPI-style {detail, code} error envelopes
  *
+ * It reads, creates and runs actions; it does not change existing rows. Those writes go through
+ * ZephyrexClient, which guards each one with the row's version (If-Match).
+ *
  * In the browser it rides the server's HttpOnly session cookie on the app's own origin (`baseUrl`
  * '' or '/api'), sending the CSRF token on writes. Outside a browser, pass `authHeader` to send an
  * API key instead.
@@ -71,10 +76,10 @@ export class ApiClient {
     const url = `${this.baseUrl}${path}${buildQuery(options.query)}`;
     const headers = new Headers(options.headers);
     if (!headers.has('accept')) {
-      headers.set('accept', 'application/json');
+      headers.set('accept', JSON_TYPE);
     }
-    if (body !== undefined && !headers.has('content-type')) {
-      headers.set('content-type', 'application/json');
+    if (body !== undefined && !headers.has(CONTENT_TYPE)) {
+      headers.set(CONTENT_TYPE, JSON_TYPE);
     }
     if (!headers.has('traceparent')) {
       headers.set('traceparent', mintTraceparent());
@@ -85,7 +90,7 @@ export class ApiClient {
 
     if (this.authHeader) {
       const auth = await this.authHeader();
-      if (auth && !headers.has('authorization')) {
+      if (auth !== undefined && auth !== '' && !headers.has('authorization')) {
         headers.set('authorization', auth);
       }
     }
@@ -121,8 +126,8 @@ export class ApiClient {
     if (response.status === NO_CONTENT) {
       return undefined as T;
     }
-    const contentType = response.headers.get('content-type') ?? '';
-    if (contentType.includes('application/json')) {
+    const contentType = response.headers.get(CONTENT_TYPE) ?? '';
+    if (contentType.includes(JSON_TYPE)) {
       return (await response.json()) as T;
     }
     const text = await response.text();
@@ -135,18 +140,6 @@ export class ApiClient {
 
   async post<T>(path: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>('POST', path, body, options);
-  }
-
-  async put<T>(path: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T>('PUT', path, body, options);
-  }
-
-  async patch<T>(path: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T>('PATCH', path, body, options);
-  }
-
-  async delete<T = void>(path: string, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T>('DELETE', path, undefined, options);
   }
 
   async list<T>(resource: string, options?: RequestOptions): Promise<ApiResponse<Page<T>>> {
@@ -163,22 +156,6 @@ export class ApiClient {
 
   async create<T>(resource: string, body: unknown): Promise<ApiResponse<T>> {
     return this.post<T>(`/v1/${resource}`, body);
-  }
-
-  async update<T>(resource: string, id: string, body: unknown): Promise<ApiResponse<T>> {
-    return this.put<T>(`/v1/${resource}/${encodeURIComponent(id)}`, body);
-  }
-
-  async remove<T = void>(resource: string, id: string): Promise<ApiResponse<T>> {
-    return this.delete<T>(`/v1/${resource}/${encodeURIComponent(id)}`);
-  }
-
-  async batchUpdate<T>(resource: string, body: unknown): Promise<ApiResponse<T>> {
-    return this.put<T>(`/v1/${resource}`, body);
-  }
-
-  async batchDelete<T = void>(resource: string, body: unknown): Promise<ApiResponse<T>> {
-    return this.request<T>('DELETE', `/v1/${resource}`, body);
   }
 }
 

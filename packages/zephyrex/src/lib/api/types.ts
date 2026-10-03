@@ -8,7 +8,11 @@
  *   - endpoints/EP_Outbox (tracking-id polling schema)
  */
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+/**
+ * Reads, creates and actions only. A change to an existing row goes through ZephyrexClient, whose
+ * writes are guarded by the row's version.
+ */
+export type HttpMethod = 'GET' | 'POST';
 
 export interface ApiEnvelopeError {
   detail: string | Record<string, unknown>;

@@ -9,6 +9,8 @@ export const TeamInvitationSchema = z.object({
   team_id: z.string().nullable().optional(),
   expires_at: z.string().nullable().optional(),
   created_at: z.string(),
+  // The row's version, sent back verbatim as If-Match on a revoke.
+  updated_at: z.string().nullable().optional(),
 });
 export type TeamInvitation = z.infer<typeof TeamInvitationSchema>;
 

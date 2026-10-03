@@ -6,6 +6,7 @@ import useSWR, { type SWRResponse } from 'swr';
 import { z } from 'zod';
 import { useClient } from './hooks';
 import type { ProviderExtensionLink, ProviderInstance } from './providerScope';
+import { type GuardedSave, useGuardedSave } from './useGuardedSave';
 
 const INSTANCES_PATH = '/v1/provider/instance';
 const LINKS_PATH = '/v1/provider/extension';
@@ -34,6 +35,7 @@ const SettingSchema = z.object({
   /** Always null for a write-only setting: the server keeps the value encrypted and never returns it. */
   value: optionalText,
   write_only: z.boolean().optional(),
+  created_at: optionalText,
   updated_at: optionalText,
 });
 export type ProviderInstanceSetting = z.infer<typeof SettingSchema>;
@@ -115,16 +117,28 @@ export type ProviderInstanceChanges = Partial<Pick<NewProviderInstance, 'name' |
 
 const InstanceEnvelopeSchema = z.object({ provider_instance: ProviderInstanceSchema });
 
-/** Create, change and delete provider instances and their settings; each refreshes the instance list. */
-export function useProviderInstanceActions(): {
+/** An instance as an edit sees it: its fields, and the write-only key an edit may replace. */
+export type EditableProviderInstance = ProviderInstance & { api_key?: string | undefined };
+const EditableInstanceSchema = ProviderInstanceSchema.extend({ api_key: z.string().optional() });
+
+export interface ProviderInstanceActions {
   create: (instance: NewProviderInstance) => Promise<ProviderInstance>;
-  update: (id: string, changes: ProviderInstanceChanges) => Promise<ProviderInstance>;
-  remove: (id: string) => Promise<void>;
-  updateSetting: (setting: ProviderInstanceSetting, value: string) => Promise<void>;
+  /** `update.save(instance, changes)`: change an instance, guarded by it as loaded. */
+  update: GuardedSave<EditableProviderInstance>;
+  /** `remove.save(instance, {})`: delete an instance, guarded by it as loaded. */
+  remove: GuardedSave<EditableProviderInstance>;
+  /** `updateSetting.save(setting, { value })`; the caller refreshes the settings it shows. */
+  updateSetting: GuardedSave<ProviderInstanceSetting>;
   createSetting: (instanceId: string, key: string, value: string) => Promise<ProviderInstanceSetting>;
-  /** Deleting is the only way to clear a write-only setting. */
-  removeSetting: (setting: ProviderInstanceSetting) => Promise<void>;
-} {
+  /**
+   * `removeSetting.save(setting, {})`. Deleting is the only way to clear a write-only setting; the
+   * caller refreshes the settings it shows.
+   */
+  removeSetting: GuardedSave<ProviderInstanceSetting>;
+}
+
+/** Create, change and delete provider instances and their settings; instance writes refresh the instance list. */
+export function useProviderInstanceActions(): ProviderInstanceActions {
   const client = useClient();
   const { mutate } = useProviderInstances();
 
@@ -138,27 +152,28 @@ export function useProviderInstanceActions(): {
   );
 
   const update = useCallback(
-    async (id: string, changes: ProviderInstanceChanges): Promise<ProviderInstance> => {
-      const updated = InstanceEnvelopeSchema.parse(
-        await client.put(`${INSTANCES_PATH}/${encodeURIComponent(id)}`, { provider_instance: changes }),
-      );
+    async (seen: EditableProviderInstance, changes: Partial<EditableProviderInstance>): Promise<void> => {
+      await client.put(`${INSTANCES_PATH}/${encodeURIComponent(seen.id)}`, { provider_instance: changes }, seen);
       await mutate();
-      return updated.provider_instance;
     },
     [client, mutate],
   );
 
   const remove = useCallback(
-    async (id: string): Promise<void> => {
-      await client.delete(`${INSTANCES_PATH}/${encodeURIComponent(id)}`);
+    async (seen: EditableProviderInstance): Promise<void> => {
+      await client.delete(`${INSTANCES_PATH}/${encodeURIComponent(seen.id)}`, seen);
       await mutate();
     },
     [client, mutate],
   );
 
   const updateSetting = useCallback(
-    async (setting: ProviderInstanceSetting, value: string): Promise<void> => {
-      await client.put(`${SETTINGS_PATH}/${encodeURIComponent(setting.id)}`, { provider_instance_setting: { value } });
+    async (seen: ProviderInstanceSetting, changes: Partial<ProviderInstanceSetting>): Promise<void> => {
+      await client.put(
+        `${SETTINGS_PATH}/${encodeURIComponent(seen.id)}`,
+        { provider_instance_setting: { value: changes.value } },
+        seen,
+      );
     },
     [client],
   );
@@ -174,11 +189,18 @@ export function useProviderInstanceActions(): {
   );
 
   const removeSetting = useCallback(
-    async (setting: ProviderInstanceSetting): Promise<void> => {
-      await client.delete(`${SETTINGS_PATH}/${encodeURIComponent(setting.id)}`);
+    async (seen: ProviderInstanceSetting): Promise<void> => {
+      await client.delete(`${SETTINGS_PATH}/${encodeURIComponent(seen.id)}`, seen);
     },
     [client],
   );
 
-  return { create, update, remove, updateSetting, createSetting, removeSetting };
+  return {
+    create,
+    update: useGuardedSave(update, EditableInstanceSchema),
+    remove: useGuardedSave(remove, EditableInstanceSchema),
+    updateSetting: useGuardedSave(updateSetting, SettingSchema),
+    createSetting,
+    removeSetting: useGuardedSave(removeSetting, SettingSchema),
+  };
 }

@@ -4,7 +4,11 @@ import { useParams, useRouter } from 'next/navigation.js';
 import { type JSX, useMemo, useState } from 'react';
 import { LuPencil, LuPlus, LuTrash2 } from 'react-icons/lu';
 import {
+  type ConflictField,
+  ConflictPanel,
+  type EditableProviderInstance,
   EMPTY_SELECTION,
+  type ProviderInstance,
   providerLabel,
   type ProviderScopeSelection,
   scopeProviderInstances,
@@ -18,6 +22,8 @@ import { useToast } from 'zephyrex/hooks/useToast';
 import { Button } from 'zephyrex/ui/button';
 import { type InstanceDialog, InstanceDialogs, type NewInstanceFields } from './InstanceDialogs';
 import { ScopePicker } from './ScopePicker';
+
+const RENAME_FIELDS: readonly ConflictField<EditableProviderInstance>[] = [{ key: 'name', label: 'Name' }];
 
 /**
  * Narrow provider instances first by extension, then by provider, then pick the instance to
@@ -84,30 +90,43 @@ export function ProviderSidebar(): JSX.Element {
     }
   };
 
-  const rename = async (name: string): Promise<void> => {
-    if (current === null) {
-      return;
-    }
+  // A refusal as stale closes the dialog; the conflict then shows below the buttons.
+  const settleRename = async (saving: Promise<boolean>, name: string): Promise<void> => {
     try {
-      await actions.update(current.id, { name });
+      const written = await saving;
       setDialog(null);
-      toast({ title: 'Instance renamed', description: name });
+      if (written) {
+        toast({ title: 'Instance renamed', description: name });
+      }
     } catch (error) {
       reportFailure('Could not rename the instance', error instanceof Error ? error : null);
     }
   };
 
-  const remove = async (): Promise<void> => {
-    if (current === null) {
-      return;
-    }
+  const settleRemove = async (saving: Promise<boolean>, removed: ProviderInstance): Promise<void> => {
     try {
-      await actions.remove(current.id);
+      const written = await saving;
       setDialog(null);
-      toast({ title: 'Instance deleted', description: current.name });
-      open(scoped.instances.find((instance) => instance.id !== current.id)?.id ?? null);
+      if (written) {
+        toast({ title: 'Instance deleted', description: removed.name });
+        open(scoped.instances.find((instance) => instance.id !== removed.id)?.id ?? null);
+      }
     } catch (error) {
       reportFailure('Could not delete the instance', error instanceof Error ? error : null);
+    }
+  };
+
+  const removeConflict = actions.remove.conflict;
+
+  const rename = async (name: string): Promise<void> => {
+    if (current !== null) {
+      await settleRename(actions.update.save(current, { name }), name);
+    }
+  };
+
+  const remove = async (): Promise<void> => {
+    if (current !== null) {
+      await settleRemove(actions.remove.save(current, {}), current);
     }
   };
 
@@ -172,6 +191,29 @@ export function ProviderSidebar(): JSX.Element {
           <LuTrash2 aria-hidden='true' /> Delete
         </Button>
       </div>
+      {actions.update.conflict !== null && (
+        <ConflictPanel
+          conflict={actions.update.conflict}
+          fields={RENAME_FIELDS}
+          onResolve={(merged) => {
+            void settleRename(actions.update.resolve(merged), merged.name ?? '');
+          }}
+          onDiscard={actions.update.discard}
+        />
+      )}
+      {removeConflict !== null && (
+        <ConflictPanel
+          conflict={removeConflict}
+          fields={[]}
+          applyLabel='Delete anyway'
+          onResolve={(merged) => {
+            if (removeConflict.theirs !== null) {
+              void settleRemove(actions.remove.resolve(merged), removeConflict.theirs);
+            }
+          }}
+          onDiscard={actions.remove.discard}
+        />
+      )}
       <InstanceDialogs
         open={dialog}
         providerLabel={selectedProvider === null ? null : providerLabel(selectedProvider)}

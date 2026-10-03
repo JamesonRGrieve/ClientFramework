@@ -20,7 +20,7 @@ const json = (body: object, init: ResponseInit = {}): Response =>
 
 const sent = (fetchImpl: ReturnType<typeof vi.fn<typeof fetch>>): { url: string; init: RequestInit } => {
   const [url, init] = fetchImpl.mock.calls[0] ?? ['', {}];
-  return { url: String(url), init: init ?? {} };
+  return { url: url instanceof Request ? url.url : String(url), init: init ?? {} };
 };
 
 describe('ApiClient', () => {
@@ -49,8 +49,12 @@ describe('ApiClient', () => {
 
   it('sends an API key instead where there is no browser session', async () => {
     const fetchImpl = answering(new Response(null, { status: HTTP_NO_CONTENT }));
-    const client = new ApiClient({ baseUrl: 'https://api.example.com', authHeader: () => 'Bearer key-1', fetchImpl });
-    await expect(client.remove('team', 't/1')).resolves.toMatchObject({ data: undefined, status: HTTP_NO_CONTENT });
+    const client = new ApiClient({
+      baseUrl: 'https://api.example.com',
+      authHeader: (): string => 'Bearer key-1',
+      fetchImpl,
+    });
+    await expect(client.read('team', 't/1')).resolves.toMatchObject({ data: undefined, status: HTTP_NO_CONTENT });
     expect(sent(fetchImpl).url).toBe('https://api.example.com/v1/team/t%2F1');
     expect(new Headers(sent(fetchImpl).init.headers).get('Authorization')).toBe('Bearer key-1');
   });

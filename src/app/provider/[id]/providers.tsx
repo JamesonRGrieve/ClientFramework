@@ -5,6 +5,9 @@ import { type JSX, useState } from 'react';
 import { LuCheck, LuPencil, LuX } from 'react-icons/lu';
 import DynamicForm, { type DynamicFormFieldValueTypes } from '@jgrieve/forms/DynamicForm';
 import {
+  type ConflictField,
+  ConflictPanel,
+  type EditableProviderInstance,
   fieldDescription,
   type ProviderInstance,
   type ProviderInstanceChanges,
@@ -26,6 +29,13 @@ import { Textarea } from 'zephyrex/ui/textarea';
 
 /** How many lines a multi-line setting's editor shows: enough for a PEM key's header and some body. */
 const MULTILINE_ROWS = 6;
+
+/** The instance fields a conflict compares; a replaced API key is write-only, so it is never shown. */
+const INSTANCE_CONFLICT_FIELDS: readonly ConflictField<EditableProviderInstance>[] = [
+  { key: 'name', label: 'Name' },
+  { key: 'model_name', label: 'Model name' },
+  { key: 'enabled', label: 'Enabled' },
+];
 
 const formatTime = (value: string | null | undefined): string =>
   value === null || value === undefined ? '—' : new Date(value).toLocaleString();
@@ -193,15 +203,12 @@ function Providers(): JSX.Element {
     return <p className='p-8 text-center text-muted-foreground'>This instance does not exist or is not visible to you.</p>;
   }
 
-  const save = async (submitted: Record<string, DynamicFormFieldValueTypes>): Promise<void> => {
-    const changes = instanceChanges(instance, submitted);
-    if (Object.keys(changes).length === 0) {
-      toast({ title: 'Nothing to save', description: instance.name });
-      return;
-    }
+  // An instance edit says when it is saved; refused as stale, its conflict shows under the form.
+  const settleInstance = async (saving: Promise<boolean>): Promise<void> => {
     try {
-      await actions.update(instance.id, changes);
-      toast({ title: 'Instance saved', description: instance.name });
+      if (await saving) {
+        toast({ title: 'Instance saved', description: instance.name });
+      }
     } catch (error) {
       toast({
         title: 'Could not save the instance',
@@ -211,34 +218,44 @@ function Providers(): JSX.Element {
     }
   };
 
-  const saveSetting = async (row: ProviderSettingRow, value: string): Promise<boolean> => {
+  const save = async (submitted: Record<string, DynamicFormFieldValueTypes>): Promise<void> => {
+    const changes = instanceChanges(instance, submitted);
+    if (Object.keys(changes).length === 0) {
+      toast({ title: 'Nothing to save', description: instance.name });
+      return;
+    }
+    await settleInstance(actions.update.save(instance, changes));
+  };
+
+  // A setting write refreshes the settings once written; refused as stale, its conflict shows above them.
+  const settleSetting = async (saving: Promise<boolean>, key: string, failure: string): Promise<boolean> => {
     try {
-      await (row.setting === null
-        ? actions.createSetting(instance.id, row.key, value)
-        : actions.updateSetting(row.setting, value));
-      await settings.mutate();
-      return true;
+      const written = await saving;
+      if (written) {
+        await settings.mutate();
+      }
+      return written;
     } catch (error) {
       toast({
-        title: `Could not save ${row.key}`,
-        description: error instanceof Error ? error.message : row.key,
+        title: `${failure} ${key}`,
+        description: error instanceof Error ? error.message : key,
         variant: 'destructive',
       });
       return false;
     }
   };
 
+  const saveSetting = async (row: ProviderSettingRow, value: string): Promise<boolean> =>
+    settleSetting(
+      row.setting === null
+        ? actions.createSetting(instance.id, row.key, value).then(() => true)
+        : actions.updateSetting.save(row.setting, { value }),
+      row.key,
+      'Could not save',
+    );
+
   const clearSetting = async (setting: ProviderInstanceSetting): Promise<void> => {
-    try {
-      await actions.removeSetting(setting);
-      await settings.mutate();
-    } catch (error) {
-      toast({
-        title: `Could not clear ${setting.key}`,
-        description: error instanceof Error ? error.message : setting.key,
-        variant: 'destructive',
-      });
-    }
+    await settleSetting(actions.removeSetting.save(setting, {}), setting.key, 'Could not clear');
   };
 
   const rows = settingRows(catalogue, settings.data ?? []);
@@ -271,6 +288,16 @@ function Providers(): JSX.Element {
               void save(submitted);
             }}
           />
+          {actions.update.conflict !== null && (
+            <ConflictPanel
+              conflict={actions.update.conflict}
+              fields={INSTANCE_CONFLICT_FIELDS}
+              onResolve={(merged) => {
+                void settleInstance(actions.update.resolve(merged));
+              }}
+              onDiscard={actions.update.discard}
+            />
+          )}
         </CardContent>
       </Card>
 
@@ -278,7 +305,28 @@ function Providers(): JSX.Element {
         <CardHeader>
           <CardTitle>Settings</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className='grid gap-4'>
+          {actions.updateSetting.conflict !== null && (
+            <ConflictPanel
+              conflict={actions.updateSetting.conflict}
+              fields={[{ key: 'value', label: actions.updateSetting.conflict.theirs?.key ?? 'Value' }]}
+              onResolve={(merged) => {
+                void settleSetting(actions.updateSetting.resolve(merged), 'the setting', 'Could not save');
+              }}
+              onDiscard={actions.updateSetting.discard}
+            />
+          )}
+          {actions.removeSetting.conflict !== null && (
+            <ConflictPanel
+              conflict={actions.removeSetting.conflict}
+              fields={[]}
+              applyLabel='Clear anyway'
+              onResolve={(merged) => {
+                void settleSetting(actions.removeSetting.resolve(merged), 'the setting', 'Could not clear');
+              }}
+              onDiscard={actions.removeSetting.discard}
+            />
+          )}
           {rows.length === 0 ? (
             <p className='text-sm text-muted-foreground'>This provider reads no settings.</p>
           ) : (

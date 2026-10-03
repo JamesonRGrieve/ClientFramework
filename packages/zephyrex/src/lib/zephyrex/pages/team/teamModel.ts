@@ -20,13 +20,16 @@ const MemberUserSchema = z.object({
 });
 
 /** One membership of a team, with its user and role (GET /v1/team/{id}/user). */
-const MembershipSchema = z.object({
+export const MembershipSchema = z.object({
   id: z.string(),
   user_id: z.string(),
   team_id: z.string(),
   role_id: z.string(),
   user: MemberUserSchema,
   role: RoleSchema,
+  // The row's version, sent back verbatim as If-Match on every change.
+  created_at: z.string().nullable().optional(),
+  updated_at: z.string().nullable().optional(),
 });
 export type Membership = z.infer<typeof MembershipSchema>;
 

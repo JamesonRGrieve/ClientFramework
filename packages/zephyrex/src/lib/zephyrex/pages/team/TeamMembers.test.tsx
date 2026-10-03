@@ -39,6 +39,7 @@ const member = (id: string, userId: string, roleId: string, email: string): obje
   role_id: roleId,
   user: { id: userId, email },
   role: ROLES.find((role) => role.id === roleId),
+  created_at: '2026-09-29T11:00:00.000001',
 });
 
 const HTTP_CONFLICT = 409;
@@ -48,6 +49,8 @@ interface Server {
   myRole: string;
   /** Whether THEM has been removed from the team. */
   themRemoved: boolean;
+  /** Whether someone else changed THEM's role after the page loaded. */
+  theirRoleChanged: boolean;
   calls: { url: string; init: RequestInit | undefined }[];
 }
 
@@ -55,10 +58,22 @@ const MY_EMAIL = 'me@example.com';
 const THEIR_EMAIL = 'them@example.com';
 const HTTP_SERVER_ERROR = 500;
 
+const HTTP_PRECONDITION_FAILED = 412;
+const MAKE_ADMIN = '{"user_team":{"role_id":"r-admin"}}';
+const CHANGED = '2026-09-29T11:30:00.000002';
+const theirChangedMembership = { ...member('m2', THEM, 'r-super', THEIR_EMAIL), updated_at: CHANGED };
+
 /** The server's answer to a write; an unexpected one fails loudly. */
-function written(server: Server, url: string, method: string): Response {
+function written(server: Server, url: string, method: string, init: RequestInit | undefined): Response {
   const members = `${SERVER}/v1/team/${TEAM}/user`;
   if (url.startsWith(members) && method === 'PATCH') {
+    // Someone made them a superadmin first: only a change made against that version goes through.
+    if (server.theirRoleChanged && new Headers(init?.headers).get('If-Match') !== `"${CHANGED}"`) {
+      return new Response(
+        JSON.stringify({ detail: 'The record was changed since it was read', current: theirChangedMembership }),
+        { status: HTTP_PRECONDITION_FAILED },
+      );
+    }
     return json({ message: 'Role updated successfully' });
   }
   if (url === `${members}/${THEM}` && method === 'DELETE') {
@@ -100,7 +115,7 @@ const serve = (server: Server): void => {
       const url = String(input);
       server.calls.push({ url, init });
       const method = init?.method ?? 'GET';
-      return Promise.resolve(method === 'GET' ? read(server, url) : written(server, url, method));
+      return Promise.resolve(method === 'GET' ? read(server, url) : written(server, url, method, init));
     }),
   );
 };
@@ -119,6 +134,7 @@ describe('TeamMembers', () => {
     server = {
       myRole: 'r-admin',
       themRemoved: false,
+      theirRoleChanged: false,
       calls: [],
     };
     serve(server);
@@ -144,7 +160,25 @@ describe('TeamMembers', () => {
     });
     const patch = server.calls.find(({ init }) => init?.method === 'PATCH');
     expect(patch?.url).toBe(`${SERVER}/v1/team/${TEAM}/user/${THEM}`);
-    expect(patch?.init?.body).toBe('{"user_team":{"role_id":"r-admin"}}');
+    expect(patch?.init?.body).toBe(MAKE_ADMIN);
+  });
+
+  it('shows a role change made after someone else changed the role, by role name, and saves the choice over it', async () => {
+    server.theirRoleChanged = true;
+    const user = userEvent.setup();
+    const view = renderMembers();
+    await user.selectOptions(await view.findByLabelText('Role for them@example.com'), 'r-admin');
+    expect(await view.findByRole('radio', { name: 'Yours: Admin' })).toBeChecked();
+    expect(view.getByRole('radio', { name: 'Current: Superadmin' })).not.toBeChecked();
+    await user.click(view.getByRole('button', { name: 'Save merged' }));
+    await vi.waitFor(() => {
+      expect(view.queryByRole('button', { name: 'Save merged' })).toBeNull();
+    });
+    const patches = server.calls.filter(({ init }) => init?.method === 'PATCH');
+    expect(patches.map(({ init }) => [init?.body, new Headers(init?.headers).get('If-Match')])).toEqual([
+      [MAKE_ADMIN, '"2026-09-29T11:00:00.000001"'],
+      [MAKE_ADMIN, `"${CHANGED}"`],
+    ]);
   });
 
   it('lets an admin remove a member after confirming', async () => {

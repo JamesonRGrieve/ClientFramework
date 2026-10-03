@@ -7,6 +7,7 @@ import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import {
   ADMIN_ROLE_ID,
+  type Notification as InboxNotification,
   SUPERADMIN_ROLE_ID,
   SYSTEM_TEAM_ID,
   toInbox,
@@ -22,6 +23,7 @@ import { withSession } from '@/testing/session';
 import { TestWrapper, testConfig } from '@/testing/TestWrapper';
 
 const HTTP_OK = 200;
+const HTTP_PRECONDITION_FAILED = 412;
 const BASE = testConfig.server.baseUrl;
 const ME = { id: 'u-me', email: 'me@example.com', first_name: 'Me' };
 
@@ -192,8 +194,8 @@ describe('toInbox', () => {
     expect(
       toInbox(
         [
-          { id: 'd1', notification_id: 'n1', read: true, acknowledged: false },
-          { id: 'd2', notification_id: 'n2', read: false, acknowledged: false },
+          { id: 'd1', notification_id: 'n1', read: true, acknowledged: false, created_at: 'c1', updated_at: 'u1' },
+          { id: 'd2', notification_id: 'n2', read: false, acknowledged: false, created_at: 'c2' },
           { id: 'd3', notification_id: 'gone', read: false, acknowledged: false },
         ],
         [older, newer],
@@ -209,6 +211,7 @@ describe('toInbox', () => {
         createdAt: '2026-09-02T00:00:00Z',
         read: false,
         acknowledged: false,
+        delivery: { created_at: 'c2', updated_at: undefined },
       },
       {
         id: 'd1',
@@ -220,6 +223,7 @@ describe('toInbox', () => {
         createdAt: '2026-09-01T00:00:00Z',
         read: true,
         acknowledged: false,
+        delivery: { created_at: 'c1', updated_at: 'u1' },
       },
     ]);
   });
@@ -245,15 +249,66 @@ describe('useNotifications', () => {
     });
   });
 
-  it('marks a delivery read with PATCH …/{id}/read', async () => {
+  const DELIVERED = '2026-09-02T00:00:01.000001';
+  const CHANGED = '2026-09-02T00:05:00.000002';
+  const unread: InboxNotification = {
+    id: 'd2',
+    notificationId: 'n2',
+    title: 'Invite',
+    content: 'Join',
+    referenceType: null,
+    referenceId: null,
+    createdAt: newer.created_at,
+    read: false,
+    acknowledged: false,
+    delivery: { created_at: DELIVERED },
+  };
+  const READ_PATH = `${BASE}/v1/user-notifications/d2/read`;
+  type Fetch = (url: string, init?: RequestInit) => Promise<Response>;
+  const marks = (fetchMock: Mock<Fetch>): (string | null)[] =>
+    fetchMock.mock.calls
+      .filter(([url, init]) => url === READ_PATH && init?.method === 'PATCH')
+      .map(([, init]) => new Headers(init?.headers).get('If-Match'));
+  const staleThen = (current: object): Mock<Fetch> => {
+    let refused = false;
+    const fetchMock = vi.fn<Fetch>(async (url) => {
+      if (url === READ_PATH && !refused) {
+        refused = true;
+        return Promise.resolve(
+          new Response(JSON.stringify({ detail: 'Precondition failed', current }), { status: HTTP_PRECONDITION_FAILED }),
+        );
+      }
+      return Promise.resolve(new Response(JSON.stringify(inboxRoutes[url.replace(BASE, '')] ?? {}), { status: HTTP_OK }));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    return fetchMock;
+  };
+
+  it('marks a delivery read with PATCH …/{id}/read, guarded by the delivery as loaded', async () => {
     const fetchMock = serve(inboxRoutes);
     const { result } = renderHook(() => useMarkNotificationRead(), { wrapper: TestWrapper });
     await act(async () => {
-      await result.current('d2');
+      await result.current(unread);
     });
-    expect(fetchMock).toHaveBeenCalledWith(
-      `${BASE}/v1/user-notifications/d2/read`,
-      expect.objectContaining({ method: 'PATCH', body: '{}' }),
-    );
+    expect(fetchMock).toHaveBeenCalledWith(READ_PATH, expect.objectContaining({ method: 'PATCH', body: '{}' }));
+    expect(marks(fetchMock)).toEqual([`"${DELIVERED}"`]);
+  });
+
+  it('marks it against the current version when the delivery changed first and is still unread', async () => {
+    const fetchMock = staleThen({ id: 'd2', notification_id: 'n2', read: false, acknowledged: true, updated_at: CHANGED });
+    const { result } = renderHook(() => useMarkNotificationRead(), { wrapper: TestWrapper });
+    await act(async () => {
+      await result.current(unread);
+    });
+    expect(marks(fetchMock)).toEqual([`"${DELIVERED}"`, `"${CHANGED}"`]);
+  });
+
+  it('leaves a delivery that was read elsewhere first', async () => {
+    const fetchMock = staleThen({ id: 'd2', notification_id: 'n2', read: true, acknowledged: false, updated_at: CHANGED });
+    const { result } = renderHook(() => useMarkNotificationRead(), { wrapper: TestWrapper });
+    await act(async () => {
+      await result.current(unread);
+    });
+    expect(marks(fetchMock)).toEqual([`"${DELIVERED}"`]);
   });
 });

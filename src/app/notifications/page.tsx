@@ -32,7 +32,7 @@ export default function NotificationsPage(): ReactNode {
             void (async (): Promise<void> => {
               setMarkFailure(null);
               try {
-                await markRead(notification.id);
+                await markRead(notification);
               } catch (failure) {
                 setMarkFailure(failure instanceof Error ? failure.message : notification.title);
               }

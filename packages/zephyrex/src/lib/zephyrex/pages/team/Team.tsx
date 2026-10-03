@@ -5,7 +5,7 @@ import { Button } from '@jgrieve/forms/components/ui/button';
 import { Input } from '@jgrieve/forms/components/ui/input';
 import { Label } from '@jgrieve/forms/components/ui/label';
 import { useRouter } from 'next/navigation.js';
-import { type ReactElement, type SyntheticEvent, useId, useState } from 'react';
+import { type ReactElement, type ReactNode, type SyntheticEvent, useId, useState } from 'react';
 import { LuPencil, LuPlus } from 'react-icons/lu';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../../../components/ui/dialog';
 import {
@@ -16,12 +16,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '../../../../components/ui/sidebar';
+import { type ConflictField, ConflictPanel } from '../../components/ConflictPanel';
 import { setActiveTeam } from '../../cookies';
 import { type Team as TeamRecord, useSelectedTeam, useTeams } from '../../hooks';
 import { useTeamAccess, useTeamActions } from './useTeamManagement';
 
 /** Team names are short labels; the server's own limit. */
 const MAX_TEAM_NAME_LENGTH = 20;
+
+const RENAME_FIELDS: readonly ConflictField<TeamRecord>[] = [{ key: 'name', label: 'Team name' }];
 
 const sameName = (a: string, b: string): boolean => a.trim().toLowerCase() === b.trim().toLowerCase();
 
@@ -34,6 +37,7 @@ function TeamNameDialog({
   teams,
   parentChoice,
   onSubmit,
+  renderConflict,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -43,7 +47,13 @@ function TeamNameDialog({
   teams: TeamRecord[];
   /** Offer a parent team (creating only). */
   parentChoice: boolean;
-  onSubmit: (name: string, parentId: string | undefined) => Promise<void>;
+  /** True once saved, which closes the dialog; false keeps it open (a conflict to resolve). */
+  onSubmit: (name: string, parentId: string | undefined) => Promise<boolean>;
+  /**
+   * A refused save's conflict, shown in the dialog until it is resolved or discarded; it settles
+   * its resolving write as a submit does.
+   */
+  renderConflict?: (settle: (saving: Promise<boolean>) => void) => ReactNode;
 }): ReactElement {
   const nameId = useId();
   const parentId = useId();
@@ -53,6 +63,22 @@ function TeamNameDialog({
   const [problem, setProblem] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const duplicate = teams.some((team) => sameName(team.name, name) && !sameName(name, initialName));
+
+  // A save closes the dialog once written; a refusal as stale leaves it open on the conflict.
+  const settle = (saving: Promise<boolean>): void => {
+    setPending(true);
+    void (async (): Promise<void> => {
+      try {
+        if (await saving) {
+          onOpenChange(false);
+        }
+      } catch (error) {
+        setProblem(error instanceof Error ? error.message : 'The team could not be saved.');
+      } finally {
+        setPending(false);
+      }
+    })();
+  };
 
   const submit = (event: SyntheticEvent<HTMLFormElement>): void => {
     event.preventDefault();
@@ -64,17 +90,7 @@ function TeamNameDialog({
       setConfirmedDuplicate(true);
       return;
     }
-    setPending(true);
-    void (async (): Promise<void> => {
-      try {
-        await onSubmit(name.trim(), parent === '' ? undefined : parent);
-        onOpenChange(false);
-      } catch (error) {
-        setProblem(error instanceof Error ? error.message : 'The team could not be saved.');
-      } finally {
-        setPending(false);
-      }
-    })();
+    settle(onSubmit(name.trim(), parent === '' ? undefined : parent));
   };
 
   return (
@@ -121,6 +137,7 @@ function TeamNameDialog({
               You already belong to a team with this name. Choose {submitLabel} again to use it anyway.
             </p>
           )}
+          {renderConflict?.(settle)}
           {problem !== null && (
             <p role='alert' className='text-sm text-destructive'>
               {problem}
@@ -152,7 +169,7 @@ export function Team({ teamId }: TeamProps): ReactElement {
   const { data: teams = [], mutate: refreshTeams } = useTeams();
   const selected = useSelectedTeam(teamId);
   const { admin } = useTeamAccess(selected?.id);
-  const { createTeam, renameTeam } = useTeamActions();
+  const { createTeam, rename } = useTeamActions();
   const [dialog, setDialog] = useState<'create' | 'rename' | null>(null);
 
   const open = (teamIdToOpen: string): void => {
@@ -214,16 +231,28 @@ export function Team({ teamId }: TeamProps): ReactElement {
       {dialog === 'rename' && selected !== null && selected !== undefined && (
         <TeamNameDialog
           open
-          onOpenChange={(isOpen) => setDialog(isOpen ? 'rename' : null)}
+          onOpenChange={(isOpen) => {
+            rename.discard();
+            setDialog(isOpen ? 'rename' : null);
+          }}
           title='Rename team'
           submitLabel='Rename'
           initialName={selected.name}
           teams={teams}
           parentChoice={false}
-          onSubmit={async (name) => {
-            await renameTeam(selected.id, name);
-            await refreshTeams();
-          }}
+          onSubmit={async (name) => rename.save(selected, { name })}
+          renderConflict={(settle) =>
+            rename.conflict !== null && (
+              <ConflictPanel
+                conflict={rename.conflict}
+                fields={RENAME_FIELDS}
+                onResolve={(merged) => {
+                  settle(rename.resolve(merged));
+                }}
+                onDiscard={rename.discard}
+              />
+            )
+          }
         />
       )}
       {dialog === 'create' && (
@@ -239,6 +268,7 @@ export function Team({ teamId }: TeamProps): ReactElement {
             const created = await createTeam(name, parentId);
             await refreshTeams();
             open(created);
+            return true;
           }}
         />
       )}

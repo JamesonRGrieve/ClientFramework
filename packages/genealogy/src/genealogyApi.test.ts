@@ -1,13 +1,22 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ZephyrexClient } from 'zephyrex';
+import { StaleWriteError, ZephyrexClient } from 'zephyrex';
 import { TestWrapper, testConfig } from 'zephyrex/testing';
 import { fetchFrom } from 'zephyrex/testing/msw';
-import { familyFixture, genealogyHandlers } from './genealogy.mocks';
-import { genealogyApi, useKinship, useLineage, usePersons, useRelationships } from './genealogyApi';
+import { FIXTURE_VERSION, familyFixture, genealogyHandlers } from './genealogy.mocks';
+import { genealogyApi, type Relationship, useKinship, useLineage, usePersons, useRelationships } from './genealogyApi';
 
 const client = new ZephyrexClient({ baseUrl: testConfig.server.baseUrl });
+
+/** The one relationship a create recorded; a sibling link is stored once. */
+const onlyRow = (rows: readonly Relationship[]): Relationship => {
+  const [row, ...others] = rows;
+  if (row === undefined || others.length > 0) {
+    throw new Error(`Expected one relationship, got ${String(rows.length)}`);
+  }
+  return row;
+};
 
 describe('genealogyApi', () => {
   let store: ReturnType<typeof familyFixture>;
@@ -37,11 +46,29 @@ describe('genealogyApi', () => {
     expect(store.relationships).toHaveLength(before + 3);
   });
 
-  it('creates, updates and deletes a person', async () => {
+  it('creates, updates and deletes a person, each change guarded by the version it was made against', async () => {
     const medora = await genealogyApi.createPerson(client, { name: 'Medora Leigh' });
-    expect((await genealogyApi.updatePerson(client, medora.id, { gender: 'female' })).gender).toBe('female');
-    await genealogyApi.deletePerson(client, medora.id);
+    const updated = await genealogyApi.updatePerson(client, medora, { gender: 'female' });
+    expect(updated.gender).toBe('female');
+    // The version the person was created at is now stale: nothing is overwritten or removed with it.
+    await expect(genealogyApi.updatePerson(client, medora, { gender: 'other' })).rejects.toMatchObject({
+      status: 412,
+      current: updated,
+    });
+    await expect(genealogyApi.deletePerson(client, medora)).rejects.toBeInstanceOf(StaleWriteError);
+    await genealogyApi.deletePerson(client, updated);
     expect(store.persons.some((row) => row.id === medora.id)).toBe(false);
+  });
+
+  it('deletes a relationship only at the version it was loaded at', async () => {
+    const row = onlyRow(
+      await genealogyApi.createRelationship(client, { person_id: 'anne', target_person_id: 'ralph', kind: 'sibling_of' }),
+    );
+    await expect(genealogyApi.deleteRelationship(client, { ...row, created_at: FIXTURE_VERSION })).rejects.toBeInstanceOf(
+      StaleWriteError,
+    );
+    await genealogyApi.deleteRelationship(client, row);
+    expect(store.relationships.some((candidate) => candidate.id === row.id)).toBe(false);
   });
 
   it('imports GEDCOM, and reports a refused file', async () => {

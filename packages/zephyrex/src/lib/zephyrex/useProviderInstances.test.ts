@@ -15,6 +15,7 @@ const HTTP_NO_CONTENT = 204;
 const SETTINGS = '/v1/provider/instance/setting';
 
 const instance = { id: 'i1', name: 'GPT', provider_id: 'p1', created_at: '2026-09-01T00:00:00Z' };
+const SETTING_VERSION = '2026-10-03T12:00:00.000001';
 
 type Handler = (path: string, init: RequestInit) => object | null;
 
@@ -104,30 +105,37 @@ describe('provider instance hooks', () => {
     });
     const { result } = renderHook(() => useProviderInstanceActions(), { wrapper: TestWrapper });
 
+    const temperature = { id: 's1', provider_instance_id: 'i1', key: 'temperature', updated_at: SETTING_VERSION };
+    const secret = { id: 's2', provider_instance_id: 'i1', key: 'aws_secret_key', created_at: SETTING_VERSION };
     await act(async () => {
       await result.current.create({ name: 'GPT', provider_id: 'p1', api_key: 'sk-1' });
-      await result.current.update('i1', { name: 'GPT-5' });
-      await result.current.remove('i1');
-      await result.current.updateSetting({ id: 's1', provider_instance_id: 'i1', key: 'temperature' }, '0.5');
+      await expect(result.current.update.save(instance, { name: 'GPT-5' })).resolves.toBe(true);
+      await expect(result.current.remove.save(instance, {})).resolves.toBe(true);
+      await expect(result.current.updateSetting.save(temperature, { value: '0.5' })).resolves.toBe(true);
       // A secret comes back without its value: only that it is set.
       await expect(result.current.createSetting('i1', 'aws_secret_key', 'shh')).resolves.toMatchObject({
         id: 's2',
         value: null,
         write_only: true,
       });
-      await result.current.removeSetting({ id: 's2', provider_instance_id: 'i1', key: 'aws_secret_key' });
+      await expect(result.current.removeSetting.save(secret, {})).resolves.toBe(true);
     });
 
     const calls = fetchMock.mock.calls
       .filter(([, init]) => init.method !== 'GET')
-      .map(([url, init]) => [init.method, url.replace(BASE, ''), init.body]);
+      .map(([url, init]) => [init.method, url.replace(BASE, ''), init.body, new Headers(init.headers).get('If-Match')]);
     expect(calls).toEqual([
-      ['POST', '/v1/provider/instance', '{"provider_instance":{"name":"GPT","provider_id":"p1","api_key":"sk-1"}}'],
-      ['PUT', '/v1/provider/instance/i1', '{"provider_instance":{"name":"GPT-5"}}'],
-      ['DELETE', '/v1/provider/instance/i1', undefined],
-      ['PUT', `${SETTINGS}/s1`, '{"provider_instance_setting":{"value":"0.5"}}'],
-      ['POST', SETTINGS, '{"provider_instance_setting":{"provider_instance_id":"i1","key":"aws_secret_key","value":"shh"}}'],
-      ['DELETE', `${SETTINGS}/s2`, undefined],
+      ['POST', '/v1/provider/instance', '{"provider_instance":{"name":"GPT","provider_id":"p1","api_key":"sk-1"}}', null],
+      ['PUT', '/v1/provider/instance/i1', '{"provider_instance":{"name":"GPT-5"}}', `"${instance.created_at}"`],
+      ['DELETE', '/v1/provider/instance/i1', undefined, `"${instance.created_at}"`],
+      ['PUT', `${SETTINGS}/s1`, '{"provider_instance_setting":{"value":"0.5"}}', `"${SETTING_VERSION}"`],
+      [
+        'POST',
+        SETTINGS,
+        '{"provider_instance_setting":{"provider_instance_id":"i1","key":"aws_secret_key","value":"shh"}}',
+        null,
+      ],
+      ['DELETE', `${SETTINGS}/s2`, undefined, `"${SETTING_VERSION}"`],
     ]);
   });
 });

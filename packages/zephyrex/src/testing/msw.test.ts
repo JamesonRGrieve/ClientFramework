@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
-import { fetchFrom } from './msw';
+import { fetchFrom, refuseStale, versionStamp } from './msw';
 
 const BASE = 'http://localhost:1996';
 
@@ -26,5 +26,38 @@ describe('fetchFrom', () => {
     const unmatched = await answer(`${BASE}/v1/elsewhere`);
     expect(unmatched.status).toBe(200);
     await expect(unmatched.json()).resolves.toEqual({});
+  });
+});
+
+describe('versionStamp', () => {
+  it('stamps UTC to the microsecond with no zone, as the server does, each later than the last', () => {
+    const stamps = [versionStamp(), versionStamp(), versionStamp()];
+    for (const stamp of stamps) {
+      expect(stamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}$/);
+    }
+    expect(new Set(stamps).size).toBe(stamps.length);
+    expect([...stamps].sort()).toEqual(stamps);
+  });
+});
+
+describe('refuseStale', () => {
+  const row = { id: 't1', updated_at: '2026-10-03T18:04:05.678000' };
+  const change = (ifMatch: string | null): Request =>
+    new Request(`${BASE}/v1/thing/t1`, { method: 'PUT', headers: ifMatch === null ? {} : { 'If-Match': ifMatch } });
+
+  it("lets a change through when it names the row's current version", () => {
+    expect(refuseStale(change('"2026-10-03T18:04:05.678000"'), row)).toBeNull();
+  });
+
+  it('refuses an older version with 412 and the row as it is now', async () => {
+    const refused = refuseStale(change('"2026-10-03T18:00:00.000000"'), row);
+    expect(refused?.status).toBe(412);
+    await expect(refused?.json()).resolves.toMatchObject({ current: row });
+  });
+
+  it('refuses a change that names no version with 428', async () => {
+    const refused = refuseStale(change(null), row);
+    expect(refused?.status).toBe(428);
+    await expect(refused?.json()).resolves.toEqual({ detail: 'If-Match required' });
   });
 });

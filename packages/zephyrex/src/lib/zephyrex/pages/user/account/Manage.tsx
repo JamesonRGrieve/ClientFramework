@@ -54,7 +54,7 @@ export function Manage({ heading, returnPath = '/', sections }: ManageProps): Re
   const { config } = useZephyrexConfig();
   // Email sign-in is by password unless the app turns it off.
   const passwords = config.auth?.authModes?.basic ?? true;
-  const { profile, error, isLoading, update, changePassword } = useProfile();
+  const { profile, error, isLoading, update, conflict, resolve, discard, changePassword } = useProfile();
   const { data: passwordPolicy } = usePasswordPolicy(config.server.baseUrl, passwords);
 
   return (
@@ -77,7 +77,7 @@ export function Manage({ heading, returnPath = '/', sections }: ManageProps): Re
         </p>
       ) : (
         <>
-          <Profile profile={profile} onSave={update} />
+          <Profile profile={profile} onSave={update} conflict={conflict} onResolve={resolve} onDiscard={discard} />
           {passwords && <Account onChangePassword={changePassword} passwordPolicy={passwordPolicy} />}
           {sections}
           <Teams />

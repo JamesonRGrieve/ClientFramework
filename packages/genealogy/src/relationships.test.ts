@@ -18,29 +18,30 @@ const row = (id: string, from: string, to: string, kind: string, discriminator: 
 
 describe('relationshipLines', () => {
   it("describes ancestry from the person's side: their children and their parents", () => {
-    const asSubject = [row('r1', 'ada', 'byron-jr', 'ancestry', 'biological')];
-    const asObject = [row('r2', 'byron', 'ada', 'ancestry', 'biological'), row('r3', 'annabella', 'ada', 'ancestry')];
-    expect(relationshipLines(asSubject, asObject)).toEqual([
-      { relationshipIds: ['r1'], relativeId: 'byron-jr', role: 'Child', detail: 'biological' },
-      { relationshipIds: ['r2'], relativeId: 'byron', role: 'Parent', detail: 'biological' },
-      { relationshipIds: ['r3'], relativeId: 'annabella', role: 'Parent', detail: null },
+    const child = row('r1', 'ada', 'byron-jr', 'ancestry', 'biological');
+    const father = row('r2', 'byron', 'ada', 'ancestry', 'biological');
+    const mother = row('r3', 'annabella', 'ada', 'ancestry');
+    expect(relationshipLines([child], [father, mother])).toEqual([
+      { relationships: [child], relativeId: 'byron-jr', role: 'Child', detail: 'biological' },
+      { relationships: [father], relativeId: 'byron', role: 'Parent', detail: 'biological' },
+      { relationships: [mother], relativeId: 'annabella', role: 'Parent', detail: null },
     ]);
   });
 
   it('shows a partnership recorded both ways once, carrying both rows', () => {
-    const lines = relationshipLines(
-      [row('p1', 'ada', 'william', 'partnership', 'marriage')],
-      [row('p2', 'william', 'ada', 'partnership', 'marriage')],
-    );
-    expect(lines).toEqual([{ relationshipIds: ['p1', 'p2'], relativeId: 'william', role: 'Partner', detail: 'marriage' }]);
+    const forward = row('p1', 'ada', 'william', 'partnership', 'marriage');
+    const back = row('p2', 'william', 'ada', 'partnership', 'marriage');
+    expect(relationshipLines([forward], [back])).toEqual([
+      { relationships: [forward, back], relativeId: 'william', role: 'Partner', detail: 'marriage' },
+    ]);
   });
 
   it("names a sibling from either end, and keeps another extension's kind as it is", () => {
-    expect(
-      relationshipLines([row('s1', 'ada', 'medora', 'sibling_of')], [row('m1', 'guild', 'ada', 'member_of', 'founder')]),
-    ).toEqual([
-      { relationshipIds: ['s1'], relativeId: 'medora', role: 'Sibling', detail: null },
-      { relationshipIds: ['m1'], relativeId: 'guild', role: 'member_of', detail: 'founder' },
+    const sibling = row('s1', 'ada', 'medora', 'sibling_of');
+    const member = row('m1', 'guild', 'ada', 'member_of', 'founder');
+    expect(relationshipLines([sibling], [member])).toEqual([
+      { relationships: [sibling], relativeId: 'medora', role: 'Sibling', detail: null },
+      { relationships: [member], relativeId: 'guild', role: 'member_of', detail: 'founder' },
     ]);
   });
 });

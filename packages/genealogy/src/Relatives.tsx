@@ -4,10 +4,18 @@
 import { Button } from '@jgrieve/forms/components/ui/button';
 import { Label } from '@jgrieve/forms/components/ui/label';
 import Link from 'next/link.js';
-import { type ReactElement, type SyntheticEvent, useId, useState } from 'react';
-import { useClient } from 'zephyrex';
+import { type ReactElement, type SyntheticEvent, useCallback, useId, useState } from 'react';
+import { ConflictPanel, useClient, useGuardedSave, writeProblem } from 'zephyrex';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
-import { ANCESTRY_ROLES, genealogyApi, PARTNERSHIP_KINDS, type Person, useRelationships } from './genealogyApi';
+import {
+  ANCESTRY_ROLES,
+  genealogyApi,
+  PARTNERSHIP_KINDS,
+  type Person,
+  type Relationship,
+  RelationshipSchema,
+  useRelationships,
+} from './genealogyApi';
 import { personName } from './people';
 import { type RelationshipLine, relationshipFor, relationshipLines, type RelativeRole } from './relationships';
 import { personPath } from './routes';
@@ -141,14 +149,40 @@ function AddRelative({
 function RelativeRow({
   line,
   relative,
-  onRemove,
+  onRemoved,
 }: {
   line: RelationshipLine;
   relative: Person | undefined;
-  onRemove: (line: RelationshipLine) => Promise<string | null>;
+  /** Refreshes the relationships once the line's rows are gone. */
+  onRemoved: () => Promise<void>;
 }): ReactElement {
+  const client = useClient();
   const [problem, setProblem] = useState<string | null>(null);
+  // The rows still to delete after the one a conflict stopped on.
+  const [rest, setRest] = useState<Relationship[]>([]);
+  const remove = useGuardedSave(
+    useCallback(async (seen: Relationship) => genealogyApi.deleteRelationship(client, seen), [client]),
+    RelationshipSchema,
+  );
   const name = personName(relative);
+
+  // Deletes each row in turn; a row changed since it was loaded stops there, on its conflict.
+  const removeRows = async (rows: readonly Relationship[]): Promise<void> => {
+    const row = rows.at(0);
+    const later = rows.slice(1);
+    if (row === undefined) {
+      await onRemoved();
+      return;
+    }
+    if (await remove.save(row, {})) {
+      await removeRows(later);
+      return;
+    }
+    setRest(later);
+  };
+  const run = (removing: Promise<void>): void => {
+    void writeProblem(removing, 'The relationship could not be removed.').then(setProblem);
+  };
   return (
     <li className='grid gap-1 px-4 py-3 text-sm'>
       <div className='flex flex-wrap items-center justify-between gap-2'>
@@ -170,14 +204,29 @@ function RelativeRow({
           variant='outline'
           aria-label={`Remove ${name} as ${humanize(line.role).toLowerCase()}`}
           onClick={() => {
-            void (async (): Promise<void> => {
-              setProblem(await onRemove(line));
-            })();
+            run(removeRows(line.relationships));
           }}
         >
           Remove
         </Button>
       </div>
+      {remove.conflict !== null && (
+        <ConflictPanel
+          conflict={remove.conflict}
+          fields={[]}
+          applyLabel='Remove anyway'
+          onResolve={(merged) => {
+            run(
+              (async (): Promise<void> => {
+                if (await remove.resolve(merged)) {
+                  await removeRows(rest);
+                }
+              })(),
+            );
+          }}
+          onDiscard={remove.discard}
+        />
+      )}
       {problem !== null && (
         <p role='alert' className='text-destructive'>
           {problem}
@@ -189,23 +238,12 @@ function RelativeRow({
 
 /** A person's recorded relatives, each removable, with a form to add one. */
 export function Relatives({ person, people }: { person: Person; people: Person[] }): ReactElement {
-  const client = useClient();
   const asSubject = useRelationships(person.id, 'person_id');
   const asObject = useRelationships(person.id, 'target_person_id');
   const lines = relationshipLines(asSubject.data ?? [], asObject.data ?? []);
   const error = asSubject.error ?? asObject.error;
   const refresh = async (): Promise<void> => {
     await Promise.all([asSubject.mutate(), asObject.mutate()]);
-  };
-
-  const onRemove = async (line: RelationshipLine): Promise<string | null> => {
-    try {
-      await Promise.all(line.relationshipIds.map(async (id) => genealogyApi.deleteRelationship(client, id)));
-      await refresh();
-      return null;
-    } catch (failure) {
-      return failure instanceof Error ? failure.message : 'The relationship could not be removed.';
-    }
   };
 
   return (
@@ -229,10 +267,10 @@ export function Relatives({ person, people }: { person: Person; people: Person[]
           <ul aria-label='Relatives' className='divide-y rounded-md border'>
             {lines.map((line) => (
               <RelativeRow
-                key={line.relationshipIds.join()}
+                key={line.relationships.map((row) => row.id).join()}
                 line={line}
                 relative={people.find((candidate) => candidate.id === line.relativeId)}
-                onRemove={onRemove}
+                onRemoved={refresh}
               />
             ))}
           </ul>

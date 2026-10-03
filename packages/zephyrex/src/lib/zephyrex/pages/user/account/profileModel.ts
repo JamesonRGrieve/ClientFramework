@@ -5,7 +5,7 @@ import { brokenRules, type PasswordPolicy } from '@zephyrex/auth/lib/passwordPol
 const optionalText = z.string().nullable().optional();
 
 /** The signed-in user as GET/PUT /v1/user return it (inside `{ user }`). */
-const UserProfileSchema = z.object({
+export const UserProfileSchema = z.object({
   id: z.string(),
   email: z.string(),
   username: optionalText,
@@ -14,6 +14,9 @@ const UserProfileSchema = z.object({
   last_name: optionalText,
   timezone: optionalText,
   language: optionalText,
+  // The row's version, sent back verbatim as If-Match on every change.
+  created_at: optionalText,
+  updated_at: optionalText,
 });
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 

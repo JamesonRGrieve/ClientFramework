@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useTeamAccess, useTeamActions } from './useTeamManagement';
+import { useMembershipActions, useTeamAccess, useTeamActions } from './useTeamManagement';
 import { withSession } from '@/testing/session';
 import { TestWrapper as wrapper, testConfig } from '@/testing/TestWrapper';
 
@@ -86,18 +86,33 @@ describe('useTeamManagement', () => {
     expect(calls.some(({ url }) => url.includes('/v1/team/'))).toBe(false);
   });
 
-  it('sends each write the server’s shape', async () => {
-    const { result } = renderHook(() => useTeamActions(), { wrapper });
-    await expect(result.current.createTeam('Beta', 'parent-1')).resolves.toBe('t-new');
-    await result.current.renameTeam(TEAM, 'Gamma');
-    await result.current.changeRole(TEAM, 'u-2', 'r-admin');
-    await result.current.removeMember(TEAM, 'u-2');
+  it('sends each write the server’s shape, guarding changes by the row as loaded', async () => {
+    const TEAM_VERSION = '2026-10-03T08:00:00.000001';
+    const MEMBER_VERSION = '2026-10-03T08:30:00.000002';
+    const team = { id: TEAM, name: 'Alpha', updated_at: TEAM_VERSION };
+    const member = {
+      id: 'm2',
+      user_id: 'u-2',
+      team_id: TEAM,
+      role_id: 'r-user',
+      user: { id: 'u-2' },
+      role: { id: 'r-user', name: 'user' },
+      created_at: MEMBER_VERSION,
+    };
+    const teamActions = renderHook(() => useTeamActions(), { wrapper }).result;
+    const memberActions = renderHook(() => useMembershipActions(TEAM), { wrapper }).result;
+    await expect(teamActions.current.createTeam('Beta', 'parent-1')).resolves.toBe('t-new');
+    await expect(teamActions.current.rename.save(team, { name: 'Gamma' })).resolves.toBe(true);
+    await expect(memberActions.current.changeRole.save(member, { role_id: 'r-admin' })).resolves.toBe(true);
+    await expect(memberActions.current.remove.save(member, {})).resolves.toBe(true);
     const writes = calls.filter(({ init }) => (init?.method ?? 'GET') !== 'GET');
-    expect(writes.map(({ url, init }) => [init?.method, url, init?.body])).toEqual([
-      ['POST', `${SERVER}/v1/team`, '{"team":{"name":"Beta","parent_id":"parent-1"}}'],
-      ['PUT', `${SERVER}/v1/team/${TEAM}`, '{"team":{"name":"Gamma"}}'],
-      ['PATCH', `${SERVER}/v1/team/${TEAM}/user/u-2`, '{"user_team":{"role_id":"r-admin"}}'],
-      ['DELETE', `${SERVER}/v1/team/${TEAM}/user/u-2`, undefined],
+    expect(
+      writes.map(({ url, init }) => [init?.method, url, init?.body, new Headers(init?.headers).get('If-Match')]),
+    ).toEqual([
+      ['POST', `${SERVER}/v1/team`, '{"team":{"name":"Beta","parent_id":"parent-1"}}', null],
+      ['PUT', `${SERVER}/v1/team/${TEAM}`, '{"team":{"name":"Gamma"}}', `"${TEAM_VERSION}"`],
+      ['PATCH', `${SERVER}/v1/team/${TEAM}/user/u-2`, '{"user_team":{"role_id":"r-admin"}}', `"${MEMBER_VERSION}"`],
+      ['DELETE', `${SERVER}/v1/team/${TEAM}/user/u-2`, undefined, `"${MEMBER_VERSION}"`],
     ]);
   });
 });

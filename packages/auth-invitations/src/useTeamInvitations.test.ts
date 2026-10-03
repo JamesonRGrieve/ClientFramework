@@ -61,16 +61,20 @@ describe('team invitations', () => {
 
   it('invites and revokes with the server’s shapes', async () => {
     const { result } = renderHook(() => useInvitationActions(), { wrapper });
+    const sent = '2026-10-03T10:00:00.000001';
     await result.current.invite(TEAM, 'r-user', ['a@example.com', 'b@example.com']);
-    await result.current.revokeInvitation('inv-1');
+    await expect(result.current.revoke.save({ id: 'inv-1', created_at: sent }, {})).resolves.toBe(true);
     const writes = calls.filter(({ init }) => (init?.method ?? 'GET') !== 'GET');
-    expect(writes.map(({ url, init }) => [init?.method, url, init?.body])).toEqual([
+    expect(
+      writes.map(({ url, init }) => [init?.method, url, init?.body, new Headers(init?.headers).get('If-Match')]),
+    ).toEqual([
       [
         'POST',
         `${SERVER}/v1/team/${TEAM}/invitation`,
         '{"invitation":{"role_id":"r-user","email":["a@example.com","b@example.com"]}}',
+        null,
       ],
-      ['DELETE', `${SERVER}/v1/invitation/inv-1`, undefined],
+      ['DELETE', `${SERVER}/v1/invitation/inv-1`, undefined, `"${sent}"`],
     ]);
   });
 });

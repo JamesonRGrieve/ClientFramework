@@ -79,6 +79,49 @@ export class ApiError extends Error {
   }
 }
 
+const PRECONDITION_FAILED = 412;
+
+const StaleBodySchema = z.object({ current: JsonSchema.optional() });
+
+/**
+ * The row changed on the server since the caller read it (412), so the write was refused.
+ * `current` is the row as it is now, when the server sent it; null when it didn't, so the caller
+ * refetches (and a 404 then means the row is gone).
+ */
+export class StaleWriteError extends ApiError {
+  readonly current: JsonValue | null;
+
+  constructor(body: string) {
+    super(PRECONDITION_FAILED, body);
+    this.name = 'StaleWriteError';
+    let current: JsonValue | null = null;
+    try {
+      current = StaleBodySchema.parse(JSON.parse(body)).current ?? null;
+    } catch {
+      // No usable body: the caller refetches.
+    }
+    this.current = current;
+  }
+}
+
+/** What a row carries to version it: when it last changed, else when it was made. */
+export interface Versioned {
+  readonly updated_at?: string | null | undefined;
+  readonly created_at?: string | null | undefined;
+}
+
+/**
+ * The If-Match value for `row`: its `updated_at` (`created_at` if never updated), quoted, exactly as
+ * the server serialised it. It is opaque, so it is never parsed or reformatted.
+ */
+export function etagOf(row: Versioned): string {
+  const version = row.updated_at ?? row.created_at;
+  if (version === undefined || version === null || version === '') {
+    throw new Error('A row without updated_at or created_at cannot be written: it has no version to guard.');
+  }
+  return `"${version}"`;
+}
+
 /** How many rows `list` asks for per page. */
 export const LIST_PAGE_SIZE = 100;
 
@@ -129,13 +172,20 @@ export class ZephyrexClient {
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
   }
 
-  /** Send a request; a bodiless answer (204) is `null`. */
-  private async request(url: string, init: RequestInit & { method: string }): Promise<JsonValue> {
+  /** Send a request, guarded by `seen`'s version when given; a bodiless answer (204) is `null`. */
+  private async request(url: string, init: RequestInit & { method: string }, seen?: Versioned): Promise<JsonValue> {
     const res = await fetchWithRetry(url, {
       ...init,
       credentials: SESSION_CREDENTIALS,
-      headers: { 'Content-Type': 'application/json', ...csrfHeaders(init.method) },
+      headers: {
+        'Content-Type': 'application/json',
+        ...csrfHeaders(init.method),
+        ...(seen === undefined ? {} : { 'If-Match': etagOf(seen) }),
+      },
     });
+    if (res.status === PRECONDITION_FAILED) {
+      throw new StaleWriteError(await res.text());
+    }
     if (!res.ok) {
       throw new ApiError(res.status, await res.text());
     }
@@ -166,16 +216,19 @@ export class ZephyrexClient {
     return this.request(this.url(path), this.withBody('POST', body));
   }
 
-  async put(path: string, body?: JsonBody): Promise<JsonValue> {
-    return this.request(this.url(path), this.withBody('PUT', body));
+  // Every change to an existing row names the row as the caller last read it (`seen`), and is sent
+  // only if the server's row is still that version: else StaleWriteError, never a silent overwrite.
+
+  async put(path: string, body: JsonBody, seen: Versioned): Promise<JsonValue> {
+    return this.request(this.url(path), this.withBody('PUT', body), seen);
   }
 
-  async patch(path: string, body?: JsonBody): Promise<JsonValue> {
-    return this.request(this.url(path), this.withBody('PATCH', body));
+  async patch(path: string, body: JsonBody, seen: Versioned): Promise<JsonValue> {
+    return this.request(this.url(path), this.withBody('PATCH', body), seen);
   }
 
-  async delete(path: string): Promise<JsonValue> {
-    return this.request(this.url(path), { method: 'DELETE' });
+  async delete(path: string, seen: Versioned): Promise<JsonValue> {
+    return this.request(this.url(path), { method: 'DELETE' }, seen);
   }
 
   /**

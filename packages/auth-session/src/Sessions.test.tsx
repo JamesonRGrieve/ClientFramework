@@ -9,6 +9,8 @@ const ENDPOINT = `${testConfig.server.baseUrl}${SESSIONS_ENDPOINT}`;
 const HTTP_OK = 200;
 const HTTP_NO_CONTENT = 204;
 const HTTP_FORBIDDEN = 403;
+const HTTP_PRECONDITION_FAILED = 412;
+const SAFARI = 'Safari on mobile';
 
 const session = (id: string, overrides: Partial<Session> = {}): Session => ({
   id,
@@ -18,6 +20,7 @@ const session = (id: string, overrides: Partial<Session> = {}): Session => ({
   revoked: false,
   last_activity: '2026-09-29T12:00:00Z',
   expires_at: '2026-10-29T12:00:00Z',
+  created_at: '2026-09-29T11:00:00.000001',
   ...overrides,
 });
 
@@ -52,6 +55,16 @@ describe('Sessions', () => {
               new Response('{"detail":"Cannot revoke another user\'s session"}', { status: revokeStatus }),
             );
           }
+          // Like the server, refuse a sign-out made against an older version of the session.
+          const current = rows.find((row) => input.endsWith(`/${row.id}`));
+          const version = `"${current?.updated_at ?? current?.created_at ?? ''}"`;
+          if (current !== undefined && new Headers(init.headers).get('If-Match') !== version) {
+            return Promise.resolve(
+              new Response(JSON.stringify({ detail: 'The record was changed since it was read', current }), {
+                status: HTTP_PRECONDITION_FAILED,
+              }),
+            );
+          }
           rows = rows.filter((row) => !input.endsWith(`/${row.id}`));
           return Promise.resolve(new Response(null, { status: HTTP_NO_CONTENT }));
         }
@@ -74,15 +87,15 @@ describe('Sessions', () => {
     const view = renderSessions();
     const list = await view.findByRole('list', { name: 'Active sessions' });
     expect(within(list).getAllByRole('listitem')).toHaveLength(2);
-    expect(within(list).getByText('Safari on mobile')).toBeInTheDocument();
+    expect(within(list).getByText(SAFARI)).toBeInTheDocument();
   });
 
   it('signs a session out', async () => {
     const user = userEvent.setup();
     const view = renderSessions();
-    await user.click(await view.findByRole('button', { name: 'Sign out Safari on mobile' }));
+    await user.click(await view.findByRole('button', { name: `Sign out ${SAFARI}` }));
     await vi.waitFor(() => {
-      expect(view.queryByText('Safari on mobile')).toBeNull();
+      expect(view.queryByText(SAFARI)).toBeNull();
     });
   });
 
@@ -92,5 +105,19 @@ describe('Sessions', () => {
     const view = renderSessions();
     await user.click(await view.findByRole('button', { name: 'Sign out Firefox on desktop' }));
     expect(await view.findByRole('alert')).toHaveTextContent("Cannot revoke another user's session");
+  });
+
+  it('asks before signing out a session that changed since the page loaded, then signs it out', async () => {
+    const user = userEvent.setup();
+    const view = renderSessions();
+    const signOut = await view.findByRole('button', { name: `Sign out ${SAFARI}` });
+    rows = rows.map((row) => (row.id === 's2' ? { ...row, updated_at: '2026-09-29T12:30:00.000002' } : row));
+    await user.click(signOut);
+    expect(await view.findByRole('heading', { name: 'Someone changed this after you opened it' })).toBeInTheDocument();
+    expect(view.getByText(SAFARI)).toBeInTheDocument();
+    await user.click(view.getByRole('button', { name: 'Sign out anyway' }));
+    await vi.waitFor(() => {
+      expect(view.queryByText(SAFARI)).toBeNull();
+    });
   });
 });

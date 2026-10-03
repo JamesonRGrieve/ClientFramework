@@ -28,6 +28,9 @@ export const PersonSchema = z.object({
   birth_date: nullableText,
   death_date: nullableText,
   gender: nullableText,
+  // The row's version, sent back verbatim as If-Match on every change.
+  created_at: nullableText.optional(),
+  updated_at: nullableText.optional(),
 });
 export type Person = z.infer<typeof PersonSchema>;
 
@@ -43,6 +46,8 @@ export const RelationshipSchema = z.object({
   valid_from: nullableText,
   valid_to: nullableText,
   notes: nullableText,
+  created_at: nullableText.optional(),
+  updated_at: nullableText.optional(),
 });
 export type Relationship = z.infer<typeof RelationshipSchema>;
 
@@ -76,9 +81,9 @@ export type GedcomImport = z.infer<typeof GedcomImportSchema>;
 const PersonEnvelopeSchema = z.object({ person: PersonSchema });
 const RelationshipEnvelopeSchema = z.object({ relationship: RelationshipSchema });
 
-export type PersonFields = Partial<Omit<Person, 'id'>>;
+export type PersonFields = Partial<Omit<Person, 'id' | 'created_at' | 'updated_at'>>;
 export type RelationshipFields = Pick<Relationship, 'person_id' | 'target_person_id' | 'kind'> &
-  Partial<Omit<Relationship, 'id' | 'person_id' | 'target_person_id' | 'kind'>>;
+  Partial<Omit<Relationship, 'id' | 'person_id' | 'target_person_id' | 'kind' | 'created_at' | 'updated_at'>>;
 
 export type LineageDirection = 'ancestors' | 'descendants';
 
@@ -148,11 +153,14 @@ export const genealogyApi = {
   createPerson: async (client: ZephyrexClient, fields: PersonFields): Promise<Person> =>
     PersonEnvelopeSchema.parse(await client.post(PERSON_ENDPOINT, { person: fields })).person,
 
-  updatePerson: async (client: ZephyrexClient, id: string, fields: PersonFields): Promise<Person> =>
-    PersonEnvelopeSchema.parse(await client.put(`${PERSON_ENDPOINT}/${encodeURIComponent(id)}`, { person: fields })).person,
+  /** Changes `seen`, guarded by it as loaded: StaleWriteError when someone changed it first. */
+  updatePerson: async (client: ZephyrexClient, seen: Person, fields: PersonFields): Promise<Person> =>
+    PersonEnvelopeSchema.parse(
+      await client.put(`${PERSON_ENDPOINT}/${encodeURIComponent(seen.id)}`, { person: fields }, seen),
+    ).person,
 
-  deletePerson: async (client: ZephyrexClient, id: string): Promise<void> => {
-    await client.delete(`${PERSON_ENDPOINT}/${encodeURIComponent(id)}`);
+  deletePerson: async (client: ZephyrexClient, seen: Person): Promise<void> => {
+    await client.delete(`${PERSON_ENDPOINT}/${encodeURIComponent(seen.id)}`, seen);
   },
 
   /**
@@ -169,8 +177,8 @@ export const genealogyApi = {
     return [forward, await create({ ...fields, person_id: fields.target_person_id, target_person_id: fields.person_id })];
   },
 
-  deleteRelationship: async (client: ZephyrexClient, id: string): Promise<void> => {
-    await client.delete(`${RELATIONSHIP_ENDPOINT}/${encodeURIComponent(id)}`);
+  deleteRelationship: async (client: ZephyrexClient, seen: Relationship): Promise<void> => {
+    await client.delete(`${RELATIONSHIP_ENDPOINT}/${encodeURIComponent(seen.id)}`, seen);
   },
 
   importGedcom: async (client: ZephyrexClient, gedcom: string): Promise<GedcomImport> =>

@@ -1,9 +1,9 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { Button } from '@jgrieve/forms/components/ui/button';
-import { type ReactElement, useState } from 'react';
+import { type ReactElement, useCallback, useState } from 'react';
 import useSWR from 'swr';
-import { useClient } from 'zephyrex';
+import { ConflictPanel, useClient, useGuardedSave, writeProblem } from 'zephyrex';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { z } from 'zod';
 
@@ -19,6 +19,9 @@ export const SessionSchema = z.object({
   revoked: z.boolean().optional(),
   last_activity: z.string(),
   expires_at: z.string(),
+  // The row's version, sent back verbatim as If-Match on a sign-out.
+  created_at: z.string().nullable().optional(),
+  updated_at: z.string().nullable().optional(),
 });
 export type Session = z.infer<typeof SessionSchema>;
 
@@ -83,16 +86,23 @@ export function Sessions(): ReactElement {
     client.list(SESSIONS_ENDPOINT, 'sessions', SessionSchema),
   );
   const active = (sessions.data ?? []).filter((session) => session.is_active && session.revoked !== true);
+  const { mutate: refreshSessions } = sessions;
+  const [problem, setProblem] = useState<string | null>(null);
+  const revoke = useGuardedSave(
+    useCallback(
+      async (seen: Session): Promise<void> => {
+        await client.delete(`${SESSIONS_ENDPOINT}/${encodeURIComponent(seen.id)}`, seen);
+        await refreshSessions();
+      },
+      [client, refreshSessions],
+    ),
+    SessionSchema,
+  );
 
-  const onRevoke = async (session: Session): Promise<string | null> => {
-    try {
-      await client.delete(`${SESSIONS_ENDPOINT}/${encodeURIComponent(session.id)}`);
-      await sessions.mutate();
-      return null;
-    } catch (error) {
-      return error instanceof Error ? error.message : 'The session could not be signed out.';
-    }
-  };
+  // A sign-out refused because the session changed first shows its conflict above the list.
+  const settle = async (revoking: Promise<boolean>): Promise<string | null> =>
+    writeProblem(revoking, 'The session could not be signed out.');
+  const onRevoke = async (session: Session): Promise<string | null> => settle(revoke.save(session, {}));
 
   return (
     <Card>
@@ -101,6 +111,22 @@ export function Sessions(): ReactElement {
         <CardDescription>Where your account is signed in. Signing out this browser ends this visit too.</CardDescription>
       </CardHeader>
       <CardContent>
+        {revoke.conflict !== null && (
+          <ConflictPanel
+            conflict={revoke.conflict}
+            fields={[]}
+            applyLabel='Sign out anyway'
+            onResolve={(merged) => {
+              void settle(revoke.resolve(merged)).then(setProblem);
+            }}
+            onDiscard={revoke.discard}
+          />
+        )}
+        {problem !== null && (
+          <p role='alert' className='text-sm text-destructive'>
+            {problem}
+          </p>
+        )}
         {sessions.error !== undefined && (
           <p role='alert' className='text-sm text-destructive'>
             Your sessions could not be loaded: {sessions.error.message}

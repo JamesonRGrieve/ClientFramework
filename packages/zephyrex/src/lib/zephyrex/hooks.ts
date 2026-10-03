@@ -6,7 +6,7 @@ import { createContext, useContext, useMemo, useSyncExternalStore } from 'react'
 import useSWR, { type SWRResponse } from 'swr';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../api/httpStatus';
-import { ApiError, ZephyrexClient } from './client';
+import { ApiError, StaleWriteError, type Versioned, ZephyrexClient } from './client';
 import { activeTeamId, setActiveTeam, teamToActivate } from './cookies';
 import { useZephyrexConfig } from './ZephyrexProvider';
 
@@ -110,10 +110,13 @@ export function useRole(teamId: string | null = activeTeamId()): Role {
 
 // --- Teams ---
 
-const TeamSchema = z.object({
+export const TeamSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: optionalText,
+  // The row's version, sent back verbatim as If-Match on every change.
+  created_at: optionalText,
+  updated_at: optionalText,
 });
 export type Team = z.infer<typeof TeamSchema>;
 
@@ -226,6 +229,8 @@ const UserNotificationSchema = z.object({
   notification_id: z.string(),
   read: z.boolean(),
   acknowledged: z.boolean(),
+  created_at: optionalText,
+  updated_at: optionalText,
 });
 
 /** One notification delivered to the signed-in user, with their read state. `id` is the delivery's id. */
@@ -239,6 +244,8 @@ export interface Notification {
   createdAt: string;
   read: boolean;
   acknowledged: boolean;
+  /** The delivery's version, which guards marking it read. */
+  delivery: Versioned;
 }
 
 /** Join the user's deliveries (read state) to the notifications they deliver, newest first. */
@@ -263,6 +270,7 @@ export function toInbox(
               createdAt: notification.created_at,
               read: delivery.read,
               acknowledged: delivery.acknowledged,
+              delivery: { created_at: delivery.created_at, updated_at: delivery.updated_at },
             },
           ];
     })
@@ -284,12 +292,27 @@ export function useNotifications(): SWRResponse<Notification[], Error> {
   });
 }
 
-/** Mark one delivered notification read (PATCH /v1/user-notifications/{id}/read). */
-export function useMarkNotificationRead(): (deliveryId: string) => Promise<void> {
+/**
+ * Mark one delivered notification read (PATCH /v1/user-notifications/{id}/read), guarded by the
+ * delivery as loaded. Marking read only ever sets the read flag, so when the delivery changed first
+ * it is marked against its current version, unless it is already read there.
+ */
+export function useMarkNotificationRead(): (notification: Notification) => Promise<void> {
   const client = useClient();
   const { mutate } = useNotifications();
-  return async (deliveryId: string): Promise<void> => {
-    await client.patch(`/v1/user-notifications/${encodeURIComponent(deliveryId)}/read`, {});
+  return async (notification: Notification): Promise<void> => {
+    const path = `/v1/user-notifications/${encodeURIComponent(notification.id)}/read`;
+    try {
+      await client.patch(path, {}, notification.delivery);
+    } catch (failure) {
+      if (!(failure instanceof StaleWriteError) || failure.current === null) {
+        throw failure;
+      }
+      const current = UserNotificationSchema.parse(failure.current);
+      if (!current.read) {
+        await client.patch(path, {}, current);
+      }
+    }
     await mutate();
   };
 }

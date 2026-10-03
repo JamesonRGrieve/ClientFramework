@@ -2,9 +2,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { Button } from '@jgrieve/forms/components/ui/button';
 import { type ReactElement, useState } from 'react';
+import { ConflictPanel, writeProblem } from 'zephyrex';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import type { InvitationAnswer, PendingInvitation } from './invitationsModel';
 import { useUserInvitations } from './useUserInvitations';
+
+const ANSWER_FAILURE = 'The invitation could not be answered.';
 
 const formatExpiry = (expiresAt: string | null | undefined): string =>
   expiresAt === null || expiresAt === undefined ? 'Does not expire' : `Expires ${new Date(expiresAt).toLocaleString()}`;
@@ -70,15 +73,12 @@ function InvitationRow({
 /** Team invitations awaiting the signed-in user's answer. */
 export function PendingInvitations(): ReactElement {
   const { invitations, answer } = useUserInvitations();
+  const [problem, setProblem] = useState<string | null>(null);
 
-  const onAnswer = async (invitation: PendingInvitation, action: InvitationAnswer): Promise<string | null> => {
-    try {
-      await answer(invitation, action);
-      return null;
-    } catch (error) {
-      return error instanceof Error ? error.message : 'The invitation could not be answered.';
-    }
-  };
+  // An answer refused because the invitation changed first shows its conflict above the list.
+  const onAnswer = async (invitation: PendingInvitation, action: InvitationAnswer): Promise<string | null> =>
+    writeProblem(answer.save(invitation, { answer: action }), ANSWER_FAILURE);
+  const conflictAnswer = answer.conflict?.mine.answer;
 
   const items = invitations.data ?? [];
   return (
@@ -91,6 +91,22 @@ export function PendingInvitations(): ReactElement {
         {invitations.error !== undefined && (
           <p role='alert' className='text-sm text-destructive'>
             Your invitations could not be loaded: {invitations.error.message}
+          </p>
+        )}
+        {answer.conflict !== null && (
+          <ConflictPanel
+            conflict={answer.conflict}
+            fields={[]}
+            applyLabel={conflictAnswer === 'decline' ? 'Decline anyway' : 'Accept anyway'}
+            onResolve={(merged) => {
+              void writeProblem(answer.resolve(merged), ANSWER_FAILURE).then(setProblem);
+            }}
+            onDiscard={answer.discard}
+          />
+        )}
+        {problem !== null && (
+          <p role='alert' className='text-sm text-destructive'>
+            {problem}
           </p>
         )}
         {invitations.error === undefined && items.length === 0 && (

@@ -15,12 +15,19 @@ export const PendingInvitationSchema = z.object({
   role: NamedSchema.nullable().optional(),
   /** The caller's own row for this invitation; every invitation they can answer has one. */
   invitees: z.array(InviteeSchema).nonempty(),
+  // The row's version, sent back verbatim as If-Match on the answer.
+  updated_at: z.string().nullable().optional(),
 });
 export type PendingInvitation = z.infer<typeof PendingInvitationSchema>;
 
 export const PendingInvitationsResponseSchema = z.object({ invitations: z.array(PendingInvitationSchema) });
 
-export type InvitationAnswer = 'accept' | 'decline';
+const InvitationAnswerSchema = z.enum(['accept', 'decline']);
+export type InvitationAnswer = z.infer<typeof InvitationAnswerSchema>;
+
+/** An invitation as answering it sees it: the invitation, and the answer the caller gives. */
+export const AnswerableInvitationSchema = PendingInvitationSchema.extend({ answer: InvitationAnswerSchema.optional() });
+export type AnswerableInvitation = z.infer<typeof AnswerableInvitationSchema>;
 
 type AnswerBody = { invitation: { invitee_id: string; action: InvitationAnswer } };
 

@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { Button } from '@jgrieve/forms/components/ui/button';
 import { type ReactElement, useState } from 'react';
-import type { TeamSectionProps } from 'zephyrex';
+import { ConflictPanel, type TeamSectionProps, writeProblem } from 'zephyrex';
 import { type Role, roleLabel } from 'zephyrex/pages/team';
 import { Badge } from 'zephyrex/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { InviteForm } from './InviteForm';
-import { inviteeStatus, inviteLink } from './teamInvitationsModel';
+import { inviteeStatus, inviteLink, type TeamInvitation } from './teamInvitationsModel';
 import { type InvitationWithInvitees, useInvitationActions, useTeamInvitations } from './useTeamInvitations';
 
 function InvitationRow({
@@ -20,7 +20,7 @@ function InvitationRow({
   role: Role | undefined;
   /** Named in the copied link, so the invitee's acceptance page says which team. */
   teamName: string;
-  onRevoke: (invitationId: string) => Promise<string | null>;
+  onRevoke: (invitation: TeamInvitation) => Promise<string | null>;
 }): ReactElement {
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<{ text: string; alert: boolean } | null>(null);
@@ -53,11 +53,11 @@ function InvitationRow({
           onClick={() => {
             setPending(true);
             void (async (): Promise<void> => {
-              const problem = await onRevoke(invitation.id);
+              const problem = await onRevoke(invitation);
               if (problem !== null) {
                 setNotice({ text: problem, alert: true });
-                setPending(false);
               }
+              setPending(false);
             })();
           }}
         >
@@ -91,21 +91,22 @@ function InvitationRow({
 
 function AdminInvitations({ teamId, teamName, roles, assignable }: Omit<TeamSectionProps, 'admin'>): ReactElement {
   const invitations = useTeamInvitations(teamId);
-  const { revokeInvitation } = useInvitationActions();
+  const { revoke } = useInvitationActions();
+  const [problem, setProblem] = useState<string | null>(null);
   const rolesById = new Map(roles.map((role) => [role.id, role]));
   const open = (invitations.data ?? []).filter(({ invitees }) =>
     invitees.some((invitee) => inviteeStatus(invitee) === 'pending'),
   );
 
-  const onRevoke = async (invitationId: string): Promise<string | null> => {
-    try {
-      await revokeInvitation(invitationId);
+  // A revoke refused because the invitation changed first shows its conflict above the list.
+  const refreshOnceRevoked = async (revoking: Promise<boolean>): Promise<void> => {
+    if (await revoking) {
       await invitations.mutate();
-      return null;
-    } catch (error) {
-      return error instanceof Error ? error.message : 'The invitation could not be revoked.';
     }
   };
+  const settle = async (revoking: Promise<boolean>): Promise<string | null> =>
+    writeProblem(refreshOnceRevoked(revoking), 'The invitation could not be revoked.');
+  const onRevoke = async (invitation: TeamInvitation): Promise<string | null> => settle(revoke.save(invitation, {}));
 
   return (
     <>
@@ -125,6 +126,22 @@ function AdminInvitations({ teamId, teamName, roles, assignable }: Omit<TeamSect
           {invitations.error !== undefined && (
             <p role='alert' className='text-sm text-destructive'>
               The invitations could not be loaded: {invitations.error.message}
+            </p>
+          )}
+          {revoke.conflict !== null && (
+            <ConflictPanel
+              conflict={revoke.conflict}
+              fields={[]}
+              applyLabel='Revoke anyway'
+              onResolve={(merged) => {
+                void settle(revoke.resolve(merged)).then(setProblem);
+              }}
+              onDiscard={revoke.discard}
+            />
+          )}
+          {problem !== null && (
+            <p role='alert' className='text-sm text-destructive'>
+              {problem}
             </p>
           )}
           {invitations.error === undefined && open.length === 0 && (

@@ -1,14 +1,25 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+import { useCallback } from 'react';
 import useSWR, { type SWRResponse } from 'swr';
 import { z } from 'zod';
-import { useClient, useUser } from '../../hooks';
-import { invitableRoles, isTeamAdmin, type Membership, MembershipsResponseSchema, type Role, RoleSchema } from './teamModel';
+import { type Team, TeamSchema, useClient, useTeams, useUser } from '../../hooks';
+import { type GuardedSave, useGuardedSave } from '../../useGuardedSave';
+import {
+  invitableRoles,
+  isTeamAdmin,
+  type Membership,
+  MembershipSchema,
+  MembershipsResponseSchema,
+  type Role,
+  RoleSchema,
+} from './teamModel';
 
 const segment = encodeURIComponent;
 
 const membersPath = (teamId: string): string => `/v1/team/${segment(teamId)}/user`;
+const memberPath = (member: Membership): string => `${membersPath(member.team_id)}/${segment(member.user_id)}`;
 const ROLES_PATH = '/v1/role';
 
 /** The team's memberships, each with its user and role. */
@@ -56,31 +67,63 @@ export function useTeamAccess(teamId: string | undefined): TeamAccess {
 const CreatedTeamSchema = z.object({ team: z.object({ id: z.string() }) });
 
 export interface TeamActions {
-  /** Create a team; resolves to its id. */
+  /** Create a team; resolves to its id. Callers revalidate what they show. */
   createTeam: (name: string, parentId?: string) => Promise<string>;
-  renameTeam: (teamId: string, name: string) => Promise<void>;
-  changeRole: (teamId: string, userId: string, roleId: string) => Promise<void>;
-  /** Remove a member; given your own id, leave the team. The team's last admin cannot go (409). */
-  removeMember: (teamId: string, userId: string) => Promise<void>;
+  /** Rename a team: `rename.save(team, { name })`, guarded by the team as loaded. */
+  rename: GuardedSave<Team>;
 }
 
-/** The team management writes. Callers revalidate what they show. */
+/** The team writes. A rename refreshes the user's teams. */
 export function useTeamActions(): TeamActions {
   const client = useClient();
-  const memberPath = (teamId: string, userId: string): string => `${membersPath(teamId)}/${segment(userId)}`;
-  return {
-    createTeam: async (name, parentId) =>
+  const { mutate: refreshTeams } = useTeams();
+  const createTeam = useCallback(
+    async (name: string, parentId?: string): Promise<string> =>
       CreatedTeamSchema.parse(
         await client.post('/v1/team', { team: { name, ...(parentId === undefined ? {} : { parent_id: parentId }) } }),
       ).team.id,
-    renameTeam: async (teamId, name): Promise<void> => {
-      await client.put(`/v1/team/${segment(teamId)}`, { team: { name } });
+    [client],
+  );
+  const renameTeam = useCallback(
+    async (seen: Team, changes: Partial<Team>): Promise<void> => {
+      await client.put(`/v1/team/${segment(seen.id)}`, { team: { name: changes.name } }, seen);
+      await refreshTeams();
     },
-    changeRole: async (teamId, userId, roleId): Promise<void> => {
-      await client.patch(memberPath(teamId, userId), { user_team: { role_id: roleId } });
+    [client, refreshTeams],
+  );
+  return { createTeam, rename: useGuardedSave(renameTeam, TeamSchema) };
+}
+
+export interface MembershipActions {
+  /** Give a member another role: `changeRole.save(member, { role_id })`. */
+  changeRole: GuardedSave<Membership>;
+  /**
+   * Remove a member, or leave the team from your own membership: `remove.save(member, {})`. The
+   * team's last admin cannot go (409).
+   */
+  remove: GuardedSave<Membership>;
+}
+
+/** The writes to one of `teamId`'s memberships, each guarded by it as loaded; both refresh the members. */
+export function useMembershipActions(teamId: string): MembershipActions {
+  const client = useClient();
+  const { mutate: refreshMembers } = useTeamMembers(teamId);
+  const changeRole = useCallback(
+    async (seen: Membership, changes: Partial<Membership>): Promise<void> => {
+      await client.patch(memberPath(seen), { user_team: { role_id: changes.role_id } }, seen);
+      await refreshMembers();
     },
-    removeMember: async (teamId, userId): Promise<void> => {
-      await client.delete(memberPath(teamId, userId));
+    [client, refreshMembers],
+  );
+  const remove = useCallback(
+    async (seen: Membership): Promise<void> => {
+      await client.delete(memberPath(seen), seen);
+      await refreshMembers();
     },
+    [client, refreshMembers],
+  );
+  return {
+    changeRole: useGuardedSave(changeRole, MembershipSchema),
+    remove: useGuardedSave(remove, MembershipSchema),
   };
 }

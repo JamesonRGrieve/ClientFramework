@@ -39,12 +39,14 @@ describe('useUserInvitations', () => {
       expect(result.current.data).toHaveLength(1);
     });
     await act(async () => {
-      await result.current.answer(INVITATION, 'accept');
+      await expect(result.current.answer.save(INVITATION, { answer: 'accept' })).resolves.toBe(true);
     });
     expect(fetchMock).toHaveBeenCalledWith(
       `${testConfig.server.baseUrl}/v1/invitation/inv-1`,
       expect.objectContaining({ method: 'PATCH', body: '{"invitation":{"invitee_id":"row-1","action":"accept"}}' }),
     );
+    const answered = fetchMock.mock.calls.find(([, init]) => init?.method === 'PATCH');
+    expect(new Headers(answered?.[1]?.headers).get('If-Match')).toBe(`"${INVITATION.created_at}"`);
     expect(activeTeamId()).toBe('t-alpha');
     await waitFor(() => {
       expect(result.current.data).toEqual([]);

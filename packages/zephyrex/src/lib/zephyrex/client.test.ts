@@ -2,13 +2,27 @@
 import { deleteCookie, setCookie } from 'cookies-next/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { ApiError, LIST_PAGE_SIZE, parseRetryAfter, RateLimitError, ZephyrexClient } from './client';
+import {
+  ApiError,
+  etagOf,
+  LIST_PAGE_SIZE,
+  parseRetryAfter,
+  RateLimitError,
+  StaleWriteError,
+  ZephyrexClient,
+} from './client';
 
 const BASE = 'https://api.example.com';
 const HTTP_OK = 200;
 const HTTP_NO_CONTENT = 204;
 const HTTP_NOT_FOUND = 404;
+const HTTP_PRECONDITION_FAILED = 412;
 const HTTP_UNPROCESSABLE = 422;
+const HTTP_PRECONDITION_REQUIRED = 428;
+const CREATED = '2026-10-02T21:29:39.141754';
+const UPDATED = '2026-10-03T09:14:02.000317';
+const SEEN = { created_at: CREATED, updated_at: UPDATED };
+const TEAM_PATH = '/v1/team/t1';
 const HTTP_TOO_MANY = 429;
 const HTTP_SERVER_ERROR = 500;
 const HTTP_BAD_GATEWAY = 502;
@@ -74,7 +88,51 @@ describe('ZephyrexClient', () => {
 
   it('answers a bodiless 204 with null instead of failing to parse it', async () => {
     reply(new Response(null, { status: HTTP_NO_CONTENT }));
-    await expect(client().delete('/v1/provider/instance/i1')).resolves.toBeNull();
+    await expect(client().delete('/v1/provider/instance/i1', SEEN)).resolves.toBeNull();
+  });
+
+  describe('guarded writes', () => {
+    it("sends the row's version as If-Match on every change to an existing row", async () => {
+      setCookie('zx_csrf', 'csrf-1');
+      const fetchMock = reply(
+        new Response('{}', { status: HTTP_OK }),
+        new Response('{}', { status: HTTP_OK }),
+        new Response(null, { status: HTTP_NO_CONTENT }),
+      );
+      const writeHeaders = { 'Content-Type': 'application/json', 'X-CSRF-Token': 'csrf-1' };
+      await client().put(TEAM_PATH, { team: { name: 'Beta' } }, SEEN);
+      await client().patch(`${TEAM_PATH}/user/u1`, { user_team: { role_id: 'r1' } }, { created_at: CREATED });
+      await client().delete(TEAM_PATH, SEEN);
+      expect(fetchMock.mock.calls.map(([, init]) => [init?.method, init?.headers])).toEqual([
+        ['PUT', { ...writeHeaders, 'If-Match': `"${UPDATED}"` }],
+        ['PATCH', { ...writeHeaders, 'If-Match': `"${CREATED}"` }],
+        ['DELETE', { ...writeHeaders, 'If-Match': `"${UPDATED}"` }],
+      ]);
+    });
+
+    it('raises StaleWriteError with the row as it is now when the row changed first', async () => {
+      const current = { id: 't1', name: 'Gamma', updated_at: '2026-10-03T18:00:00.000002' };
+      reply(new Response(JSON.stringify({ detail: 'Precondition failed', current }), { status: HTTP_PRECONDITION_FAILED }));
+      const failure = client().put(TEAM_PATH, { team: { name: 'Beta' } }, SEEN);
+      await expect(failure).rejects.toBeInstanceOf(StaleWriteError);
+      await expect(failure).rejects.toMatchObject({
+        status: HTTP_PRECONDITION_FAILED,
+        message: 'Precondition failed',
+        current,
+      });
+    });
+
+    it('leaves current null when a 412 does not carry the row', async () => {
+      reply(new Response('', { status: HTTP_PRECONDITION_FAILED }));
+      await expect(client().delete(TEAM_PATH, SEEN)).rejects.toMatchObject({ current: null });
+    });
+
+    it('raises a plain ApiError when the server requires If-Match and none was sent (428)', async () => {
+      reply(new Response('{"detail":"If-Match required"}', { status: HTTP_PRECONDITION_REQUIRED }));
+      const failure = client().post('/v1/team', { team: { name: 'Beta' } });
+      await expect(failure).rejects.toEqual(new ApiError(HTTP_PRECONDITION_REQUIRED, '{"detail":"If-Match required"}'));
+      await expect(failure).rejects.not.toBeInstanceOf(StaleWriteError);
+    });
   });
 
   it('raises ApiError with the status and body on failure', async () => {
@@ -164,6 +222,19 @@ describe('ApiError', () => {
     expect(new ApiError(HTTP_BAD_GATEWAY, 'Bad Gateway')).toMatchObject({ message: 'Bad Gateway', failed: [] });
     expect(new ApiError(HTTP_SERVER_ERROR, '{"error":"boom"}')).toMatchObject({ message: '{"error":"boom"}' });
     expect(new ApiError(HTTP_SERVER_ERROR, '').message).toBe(`HTTP ${HTTP_SERVER_ERROR}`);
+  });
+});
+
+describe('etagOf', () => {
+  it('quotes updated_at verbatim, microseconds and all, else created_at', () => {
+    expect(etagOf(SEEN)).toBe(`"${UPDATED}"`);
+    expect(etagOf({ created_at: CREATED, updated_at: null })).toBe(`"${CREATED}"`);
+    expect(etagOf({ created_at: '2026-01-01T00:00:00' })).toBe('"2026-01-01T00:00:00"');
+  });
+
+  it('refuses a row with no version, which no write could be guarded by', () => {
+    expect(() => etagOf({})).toThrow(/no version/);
+    expect(() => etagOf({ updated_at: '', created_at: null })).toThrow(/no version/);
   });
 });
 

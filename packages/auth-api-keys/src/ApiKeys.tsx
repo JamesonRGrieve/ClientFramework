@@ -3,9 +3,9 @@
 import { Button } from '@jgrieve/forms/components/ui/button';
 import { Input } from '@jgrieve/forms/components/ui/input';
 import { Label } from '@jgrieve/forms/components/ui/label';
-import { type ReactElement, type SyntheticEvent, useId, useState } from 'react';
+import { type ReactElement, type SyntheticEvent, useCallback, useId, useState } from 'react';
 import useSWR from 'swr';
-import { useClient } from 'zephyrex';
+import { ConflictPanel, useClient, useGuardedSave, writeProblem } from 'zephyrex';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { CopyButton } from 'zephyrex/ui/copy-button';
 import { z } from 'zod';
@@ -20,6 +20,8 @@ export const ApiKeySchema = z.object({
   expires_at: z.string().nullable().optional(),
   last_used_at: z.string().nullable().optional(),
   is_revoked: z.boolean().optional(),
+  // The row's version, sent back verbatim as If-Match on a revoke.
+  updated_at: z.string().nullable().optional(),
 });
 export type ApiKey = z.infer<typeof ApiKeySchema>;
 
@@ -126,6 +128,17 @@ export function ApiKeys(): ReactElement {
   const [issued, setIssued] = useState<IssuedKey | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const live = (keys.data ?? []).filter((apiKey) => apiKey.is_revoked !== true);
+  const { mutate: refreshKeys } = keys;
+  const revoke = useGuardedSave(
+    useCallback(
+      async (seen: ApiKey): Promise<void> => {
+        await client.delete(`${API_KEYS_ENDPOINT}/${encodeURIComponent(seen.id)}`, seen);
+        await refreshKeys();
+      },
+      [client, refreshKeys],
+    ),
+    ApiKeySchema,
+  );
 
   const issue = (event: SyntheticEvent<HTMLFormElement>): void => {
     event.preventDefault();
@@ -164,15 +177,10 @@ export function ApiKeys(): ReactElement {
     }
   };
 
-  const onRevoke = async (apiKey: ApiKey): Promise<string | null> => {
-    try {
-      await client.delete(`${API_KEYS_ENDPOINT}/${encodeURIComponent(apiKey.id)}`);
-      await keys.mutate();
-      return null;
-    } catch (error) {
-      return error instanceof Error ? error.message : 'The key could not be revoked.';
-    }
-  };
+  // A revoke refused because the key changed first shows its conflict above the keys.
+  const settleRevoke = async (revoking: Promise<boolean>): Promise<string | null> =>
+    writeProblem(revoking, 'The key could not be revoked.');
+  const onRevoke = async (apiKey: ApiKey): Promise<string | null> => settleRevoke(revoke.save(apiKey, {}));
 
   return (
     <Card>
@@ -199,6 +207,17 @@ export function ApiKeys(): ReactElement {
           <p role='alert' className='text-sm text-destructive'>
             {problem}
           </p>
+        )}
+        {revoke.conflict !== null && (
+          <ConflictPanel
+            conflict={revoke.conflict}
+            fields={[]}
+            applyLabel='Revoke anyway'
+            onResolve={(merged) => {
+              void settleRevoke(revoke.resolve(merged)).then(setProblem);
+            }}
+            onDiscard={revoke.discard}
+          />
         )}
         {keys.error !== undefined && (
           <p role='alert' className='text-sm text-destructive'>

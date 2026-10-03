@@ -3,8 +3,8 @@ import { ANCESTRY, PARTNERSHIP, type Relationship, type RelationshipFields, SIBL
 
 /** One of a person's relationships as their page lists it: who the relative is, and what to them. */
 export interface RelationshipLine {
-  /** The rows behind the line; deleting the line deletes all of them. */
-  relationshipIds: string[];
+  /** The rows behind the line; deleting the line deletes all of them, each guarded by its version. */
+  relationships: Relationship[];
   relativeId: string;
   /** "Parent", "Child", "Partner", "Sibling", or the raw kind for another extension's. */
   role: string;
@@ -38,11 +38,11 @@ export function relationshipLines(asSubject: Relationship[], asObject: Relations
     const key = symmetric ? `${row.kind}|${row.discriminator ?? ''}|${relativeId}` : row.id;
     const existing = lines.get(key);
     if (existing !== undefined) {
-      existing.relationshipIds.push(row.id);
+      existing.relationships.push(row);
       return;
     }
     lines.set(key, {
-      relationshipIds: [row.id],
+      relationships: [row],
       relativeId,
       role: roles.get(row.kind) ?? row.kind,
       detail: row.discriminator,
