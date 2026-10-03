@@ -39,7 +39,6 @@ export const mcpClientExtension = abilities(
   'MCP Client',
   'Tools and resources from Model Context Protocol servers',
 );
-export const socialExtension = abilities('social', 'Social Media', 'Posting to and reading from social media');
 export const websearchExtension = abilities('websearch', 'Web Search', 'Web search through several search engines');
 export const mapsExtension = abilities('maps', 'Maps', 'Geocoding and routes through OpenStreetMap, Google or Apple Maps');
 export const mathExtension = abilities('math', 'Math', 'Symbolic maths with SymPy, and Wolfram Alpha answers');
@@ -76,7 +75,6 @@ export const abilityExtensions: readonly ZephyrexClientExtension[] = [
   mediaExtension,
   messagingExtension,
   smsExtension,
-  socialExtension,
   sourceExtension,
   wearableExtension,
   websearchExtension,

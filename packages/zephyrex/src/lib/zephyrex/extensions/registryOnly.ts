@@ -27,6 +27,12 @@ export const conversationsExtension = entry(
 );
 export const ecommerceExtension = entry('ecommerce', 'E-commerce', 'Marketplaces such as Amazon, Walmart and Shopify');
 export const healthExtension = entry('health', 'Health', 'Health tracking and fitness data');
+// Social: @zephyrex/social extends this with the pages for what was published.
+export const socialExtension = entry(
+  'social',
+  'Social Media',
+  'Posting to X, Facebook, Instagram, Threads, TikTok and Postiz, and the record of what was published',
+);
 
 // Money: payment's pricing table waits for the federated checkout; billing is internal cost
 // accounting with no client surface.
@@ -113,6 +119,7 @@ export const registryOnlyExtensions: readonly ZephyrexClientExtension[] = [
   samlProviderExtension,
   scimConsumerExtension,
   scimProviderExtension,
+  socialExtension,
   webauthnConsumerExtension,
   webauthnProviderExtension,
   x509ConsumerExtension,

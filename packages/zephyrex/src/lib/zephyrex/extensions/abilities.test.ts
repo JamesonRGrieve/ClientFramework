@@ -21,7 +21,6 @@ describe('abilityExtensions', () => {
       'media',
       'messaging',
       'sms',
-      'social',
       'source',
       'wearable',
       'websearch',

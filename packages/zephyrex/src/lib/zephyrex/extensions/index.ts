@@ -91,7 +91,6 @@ export {
   mediaExtension,
   messagingExtension,
   smsExtension,
-  socialExtension,
   sourceExtension,
   wearableExtension,
   websearchExtension,
