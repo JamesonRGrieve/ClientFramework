@@ -10,10 +10,8 @@
  * This test scans all server-side source files for code that reads internal
  * headers and uses them for authorization or routing decisions.
  */
-import { readdirSync, readFileSync } from 'fs';
-import { join } from 'path';
 import { describe, expect, it } from 'vitest';
-import { SOURCE_ROOTS } from '../sourceRoots';
+import { applicationSources, sourceText } from '../sourceFiles';
 
 const INTERNAL_HEADERS = [
   'x-nextjs-data',
@@ -30,36 +28,14 @@ const INTERNAL_HEADERS = [
   'next-resume',
 ];
 
-function scanFiles(dir: string, ext: string[]): string[] {
-  const results: string[] = [];
-  try {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const full = join(dir, entry.name);
-      if (entry.name === 'node_modules' || entry.name === '.next') {
-        continue;
-      }
-      if (entry.isDirectory()) {
-        results.push(...scanFiles(full, ext));
-      } else if (ext.some((e) => entry.name.endsWith(e))) {
-        results.push(full);
-      }
-    }
-  } catch {
-    // skip
-  }
-  return results;
-}
-
 describe('Internal header spoofing protection', () => {
-  const serverFiles = SOURCE_ROOTS.flatMap((root) => scanFiles(root, ['.ts', '.tsx'])).filter(
-    (f) => !f.includes('.test.') && !f.includes('.stories.') && !f.includes('node_modules'),
-  );
+  const serverFiles = applicationSources();
 
   for (const header of INTERNAL_HEADERS) {
     it(`application code must not trust "${header}" from request`, () => {
       const violations: string[] = [];
       for (const file of serverFiles) {
-        const source = readFileSync(file, 'utf8');
+        const source = sourceText(file);
         if (source.includes(header)) {
           // Check if it's being READ from request (not set on response)
           const lines = source.split('\n');

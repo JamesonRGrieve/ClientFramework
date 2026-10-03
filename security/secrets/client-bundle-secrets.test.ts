@@ -9,10 +9,8 @@
  * This is verified as a source-level check — "use client" files must not
  * import from server-only modules.
  */
-import { readdirSync, readFileSync } from 'fs';
-import { join } from 'path';
 import { describe, expect, it } from 'vitest';
-import { SOURCE_ROOTS } from '../sourceRoots';
+import { clientComponents, sourceText } from '../sourceFiles';
 
 const SERVER_ONLY_MODULES = [
   'server-only',
@@ -40,38 +38,8 @@ const SERVER_ONLY_MODULES = [
 
 const SERVER_ONLY_PATHS = ['src/lib/db/', 'src/lib/server/'];
 
-function findClientComponents(dir: string): string[] {
-  const results: string[] = [];
-  try {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const full = join(dir, entry.name);
-      if (entry.name === 'node_modules' || entry.name === '.next') {
-        continue;
-      }
-      if (entry.isDirectory()) {
-        results.push(...findClientComponents(full));
-      } else if (entry.name.endsWith('.tsx') || entry.name.endsWith('.ts')) {
-        if (entry.name.includes('.test.') || entry.name.includes('.stories.')) {
-          continue;
-        }
-        try {
-          const source = readFileSync(full, 'utf8');
-          if (source.includes("'use client'") || source.includes('"use client"')) {
-            results.push(full);
-          }
-        } catch {
-          // skip
-        }
-      }
-    }
-  } catch {
-    // skip
-  }
-  return results;
-}
-
 describe('Client/server boundary — secret leakage prevention', () => {
-  const clientFiles = SOURCE_ROOTS.flatMap((root) => findClientComponents(root));
+  const clientFiles = clientComponents();
 
   it('found client components to test', () => {
     expect(clientFiles.length).toBeGreaterThan(0);
@@ -80,7 +48,7 @@ describe('Client/server boundary — secret leakage prevention', () => {
   it('client components must not import server-only Node.js modules', () => {
     const violations: string[] = [];
     for (const file of clientFiles) {
-      const source = readFileSync(file, 'utf8');
+      const source = sourceText(file);
       for (const mod of SERVER_ONLY_MODULES) {
         const importPattern = new RegExp(`from\\s+['"]${mod}['"]`);
         const requirePattern = new RegExp(`require\\s*\\(\\s*['"]${mod}['"]`);
@@ -104,7 +72,7 @@ describe('Client/server boundary — secret leakage prevention', () => {
   it('client components must not import from server-only paths', () => {
     const violations: string[] = [];
     for (const file of clientFiles) {
-      const source = readFileSync(file, 'utf8');
+      const source = sourceText(file);
       for (const serverPath of SERVER_ONLY_PATHS) {
         if (source.includes(serverPath) || source.includes(serverPath.replace('src/', '@/'))) {
           violations.push(`${file} imports from server-only path "${serverPath}"`);

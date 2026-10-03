@@ -9,44 +9,20 @@
  *
  * This test scans all setCookie calls and verifies the options.
  */
-import { readdirSync, readFileSync } from 'fs';
-import { join } from 'path';
 import { describe, expect, it } from 'vitest';
-import { SOURCE_ROOTS } from '../sourceRoots';
+import { applicationSources, sourceText } from '../sourceFiles';
 
 const AUTH_COOKIE_NAMES = ['jwt', 'auth-team', 'invitation', 'email', 'href'];
 const PREFERENCE_COOKIES = ['theme', 'appearance', 'sidebar', 'client-has-started'];
 
-function scanFiles(dir: string): string[] {
-  const results: string[] = [];
-  try {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const full = join(dir, entry.name);
-      if (entry.name === 'node_modules' || entry.name === '.next') {
-        continue;
-      }
-      if (entry.isDirectory()) {
-        results.push(...scanFiles(full));
-      } else if (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx')) {
-        if (!entry.name.includes('.test.') && !entry.name.includes('.stories.')) {
-          results.push(full);
-        }
-      }
-    }
-  } catch {
-    // skip
-  }
-  return results;
-}
-
 describe('Cookie security attributes', () => {
-  const files = SOURCE_ROOTS.flatMap((root) => scanFiles(root));
+  const files = applicationSources();
 
   it('auth-related setCookie calls must include httpOnly', () => {
     const violations: string[] = [];
 
     for (const file of files) {
-      const source = readFileSync(file, 'utf8');
+      const source = sourceText(file);
       const lines = source.split('\n');
 
       for (let i = 0; i < lines.length; i++) {
@@ -79,7 +55,7 @@ describe('Cookie security attributes', () => {
     const violations: string[] = [];
 
     for (const file of files) {
-      const source = readFileSync(file, 'utf8');
+      const source = sourceText(file);
       const lines = source.split('\n');
 
       for (let i = 0; i < lines.length; i++) {
@@ -111,7 +87,7 @@ describe('Cookie security attributes', () => {
     const violations: string[] = [];
 
     for (const file of files) {
-      const source = readFileSync(file, 'utf8');
+      const source = sourceText(file);
       const lines = source.split('\n');
 
       for (let i = 0; i < lines.length; i++) {

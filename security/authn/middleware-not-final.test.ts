@@ -8,44 +8,18 @@
  *
  * This test scans all client-side API calls and verifies they include auth headers.
  */
-import { readdirSync, readFileSync } from 'fs';
-import { join } from 'path';
 import { describe, expect, it } from 'vitest';
-import { SOURCE_ROOTS } from '../sourceRoots';
-
-function scanFiles(dir: string): string[] {
-  const results: string[] = [];
-  try {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const full = join(dir, entry.name);
-      if (entry.name === 'node_modules' || entry.name === '.next') {
-        continue;
-      }
-      if (entry.isDirectory()) {
-        results.push(...scanFiles(full));
-      } else if (
-        (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx')) &&
-        !entry.name.includes('.test.') &&
-        !entry.name.includes('.stories.')
-      ) {
-        results.push(full);
-      }
-    }
-  } catch {
-    // skip
-  }
-  return results;
-}
+import { applicationSources, sourceText } from '../sourceFiles';
 
 describe('API calls include authorization', () => {
-  const files = SOURCE_ROOTS.flatMap((root) => scanFiles(root));
+  const files = applicationSources();
 
   it('axios mutation calls must include Authorization header', () => {
     const violations: string[] = [];
     const mutationMethods = ['axios.post', 'axios.put', 'axios.patch', 'axios.delete'];
 
     for (const file of files) {
-      const source = readFileSync(file, 'utf8');
+      const source = sourceText(file);
       const lines = source.split('\n');
 
       for (let i = 0; i < lines.length; i++) {

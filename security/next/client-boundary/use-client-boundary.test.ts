@@ -10,9 +10,8 @@
  * This test verifies that Server Components do not pass dangerous props
  * to Client Components.
  */
-import { readdirSync, readFileSync } from 'fs';
-import { join } from 'path';
 import { describe, expect, it } from 'vitest';
+import { applicationSources, isClientComponent, sourceText } from '../../sourceFiles';
 
 const DANGEROUS_PROP_PATTERNS = [
   /apikey/i,
@@ -25,41 +24,14 @@ const DANGEROUS_PROP_PATTERNS = [
   /connectionstring/i,
 ];
 
-function findServerComponents(dir: string): string[] {
-  const results: string[] = [];
-  try {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const full = join(dir, entry.name);
-      if (entry.name === 'node_modules' || entry.name === '.next') {
-        continue;
-      }
-      if (entry.isDirectory()) {
-        results.push(...findServerComponents(full));
-      } else if (entry.name.endsWith('.tsx') || entry.name.endsWith('.ts')) {
-        if (entry.name.includes('.test.') || entry.name.includes('.stories.')) {
-          continue;
-        }
-        try {
-          const source = readFileSync(full, 'utf8');
-          // Server Components are the default (no 'use client' directive)
-          if (!source.includes("'use client'") && !source.includes('"use client"')) {
-            if (source.includes('export default') || source.includes('export function')) {
-              results.push(full);
-            }
-          }
-        } catch {
-          // skip
-        }
-      }
-    }
-  } catch {
-    // skip
-  }
-  return results;
-}
+/** Server Components are the default: no 'use client' directive, and something exported to render. */
+const isServerComponent = (path: string): boolean => {
+  const source = sourceText(path);
+  return !isClientComponent(path) && (source.includes('export default') || source.includes('export function'));
+};
 
 describe('"use client" boundary — no secrets in serialized props', () => {
-  const serverComponents = findServerComponents('src/app');
+  const serverComponents = applicationSources(['src/app']).filter(isServerComponent);
 
   it('found server components to test', () => {
     expect(serverComponents.length).toBeGreaterThan(0);
@@ -69,7 +41,7 @@ describe('"use client" boundary — no secrets in serialized props', () => {
     const violations: string[] = [];
 
     for (const file of serverComponents) {
-      const source = readFileSync(file, 'utf8');
+      const source = sourceText(file);
 
       for (const pattern of DANGEROUS_PROP_PATTERNS) {
         const matches = source.match(new RegExp(`\\b${pattern.source}\\s*[=:]`, 'gi'));

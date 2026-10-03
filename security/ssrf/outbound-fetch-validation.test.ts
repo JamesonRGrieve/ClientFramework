@@ -8,42 +8,17 @@
  *
  * Scans all server-side fetch/axios calls for user-controlled URL construction.
  */
-import { readdirSync, readFileSync } from 'fs';
-import { join } from 'path';
 import { describe, expect, it } from 'vitest';
-
-function scanFiles(dir: string): string[] {
-  const results: string[] = [];
-  try {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const full = join(dir, entry.name);
-      if (entry.name === 'node_modules' || entry.name === '.next') {
-        continue;
-      }
-      if (entry.isDirectory()) {
-        results.push(...scanFiles(full));
-      } else if (
-        (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx')) &&
-        !entry.name.includes('.test.') &&
-        !entry.name.includes('.stories.')
-      ) {
-        results.push(full);
-      }
-    }
-  } catch {
-    // skip
-  }
-  return results;
-}
+import { applicationSources, sourceText } from '../sourceFiles';
 
 describe('SSRF — server-side outbound fetch validation', () => {
-  const serverFiles = scanFiles('src/app/api');
+  const serverFiles = applicationSources(['src/app/api']);
 
   it('route handlers must not fetch user-controlled URLs without validation', () => {
     const violations: string[] = [];
 
     for (const file of serverFiles) {
-      const source = readFileSync(file, 'utf8');
+      const source = sourceText(file);
       const lines = source.split('\n');
 
       for (let i = 0; i < lines.length; i++) {
@@ -84,7 +59,7 @@ describe('SSRF — server-side outbound fetch validation', () => {
 
 describe('SSRF — WebSocket destination validation', () => {
   it('useSubscription must not allow attacker-controlled WebSocket URLs', () => {
-    const source = readFileSync('packages/zephyrex/src/lib/zephyrex/useSubscription.ts', 'utf8');
+    const source = sourceText('packages/zephyrex/src/lib/zephyrex/useSubscription.ts');
 
     // The WebSocket URL is derived from config.server.baseUrl, which is
     // set in zephyrex.config.ts from process.env. This is safe as long as

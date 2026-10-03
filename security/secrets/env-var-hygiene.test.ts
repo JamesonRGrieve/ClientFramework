@@ -6,10 +6,9 @@
  * variables, client bundles, RSC payloads, or static HTML. The NEXT_PUBLIC_
  * prefix makes variables available to client JavaScript.
  */
-import { readdirSync, readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { existsSync, readFileSync } from 'fs';
 import { describe, expect, it } from 'vitest';
-import { SOURCE_ROOTS } from '../sourceRoots';
+import { clientComponents, sourceText } from '../sourceFiles';
 
 const SECRET_PATTERNS = [
   /secret/i,
@@ -75,37 +74,13 @@ describe('Environment variable hygiene', () => {
       'OAUTH_CLIENT_SECRET',
     ];
 
-    function scanDir(dir: string): void {
-      try {
-        for (const entry of readdirSync(dir, { withFileTypes: true })) {
-          const full = join(dir, entry.name);
-          if (entry.name === 'node_modules' || entry.name === '.next') {
-            continue;
-          }
-          if (entry.isDirectory()) {
-            scanDir(full);
-          } else if (entry.name.endsWith('.tsx') || entry.name.endsWith('.ts')) {
-            if (entry.name.includes('.test.') || entry.name.includes('.stories.')) {
-              continue;
-            }
-            const source = readFileSync(full, 'utf8');
-            if (!source.includes("'use client'")) {
-              continue;
-            }
-            for (const envVar of serverOnlyEnvVars) {
-              if (source.includes(envVar)) {
-                violations.push(`${full} — client component references server-only ${envVar}`);
-              }
-            }
-          }
+    for (const file of clientComponents()) {
+      const source = sourceText(file);
+      for (const envVar of serverOnlyEnvVars) {
+        if (source.includes(envVar)) {
+          violations.push(`${file} — client component references server-only ${envVar}`);
         }
-      } catch {
-        // skip
       }
-    }
-
-    for (const root of SOURCE_ROOTS) {
-      scanDir(root);
     }
 
     expect(

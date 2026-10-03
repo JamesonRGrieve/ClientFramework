@@ -7,6 +7,7 @@ export default defineConfig({
     environment: 'node',
     include: ['security/**/*.test.ts'],
     globals: true,
+    setupFiles: ['security/preloadSources.setup.ts'],
   },
   resolve: {
     alias: {

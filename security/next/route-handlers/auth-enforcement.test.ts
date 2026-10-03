@@ -8,30 +8,14 @@
  * A route handler that relies solely on middleware for auth is vulnerable to
  * middleware bypass (path manipulation, internal headers, prefetch routes).
  */
-import { readdirSync, readFileSync } from 'fs';
-import { join, relative } from 'path';
+import { basename, relative } from 'path';
 import { describe, expect, it } from 'vitest';
+import { filesUnder, sourceText } from '../../sourceFiles';
 
-function findRouteHandlers(dir: string): string[] {
-  const results: string[] = [];
-  try {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const full = join(dir, entry.name);
-      if (entry.isDirectory()) {
-        results.push(...findRouteHandlers(full));
-      } else if (entry.name === 'route.ts' || entry.name === 'route.tsx') {
-        results.push(full);
-      }
-    }
-  } catch {
-    // directory doesn't exist
-  }
-  return results;
-}
-
+const ROUTE_HANDLER_FILES: ReadonlySet<string> = new Set(['route.ts', 'route.tsx']);
 const PUBLIC_ROUTES = new Set(['/api/alive']);
 
-const routeHandlers = findRouteHandlers('src/app');
+const routeHandlers = filesUnder('src/app').filter((path) => ROUTE_HANDLER_FILES.has(basename(path)));
 
 describe('Route handler auth enforcement', () => {
   it('found at least one route handler to test', () => {
@@ -46,7 +30,7 @@ describe('Route handler auth enforcement', () => {
     }
 
     describe(routePath, () => {
-      const source = readFileSync(handler, 'utf8');
+      const source = sourceText(handler);
 
       it('must check authentication in the handler itself', () => {
         const hasAuthCheck =
