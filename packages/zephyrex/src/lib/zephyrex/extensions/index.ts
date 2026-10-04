@@ -14,7 +14,6 @@ import { authMarketplaceExtension } from './auth_marketplace';
 import { authMergeExtension } from './auth_merge';
 import { authMfaExtension } from './auth_mfa';
 import { authNotificationsExtension } from './auth_notifications';
-import { authOauth2ClientExtension } from './auth_oauth2_client';
 import { authPrivacyExtension } from './auth_privacy';
 import { authRecoveryQuestionsExtension } from './auth_recovery_questions';
 import { authSessionExtension } from './auth_session';
@@ -32,6 +31,7 @@ import { metaLoggingExtension } from './meta_logging';
 import { metaSdkPyExtension } from './meta_sdk_py';
 import { metaSdkRsExtension } from './meta_sdk_rs';
 import { metaSdkTsExtension } from './meta_sdk_ts';
+import { oauthConsumerExtension } from './oauth_consumer';
 import { observabilityExtension } from './observability';
 import { privacyExtension } from './privacy';
 import { quotaExtension } from './quota';
@@ -51,7 +51,6 @@ export {
   authMergeExtension,
   authMfaExtension,
   authNotificationsExtension,
-  authOauth2ClientExtension,
   authPrivacyExtension,
   authRecoveryQuestionsExtension,
   authSessionExtension,
@@ -68,6 +67,7 @@ export {
   metaSdkPyExtension,
   metaSdkRsExtension,
   metaSdkTsExtension,
+  oauthConsumerExtension,
   observabilityExtension,
   privacyExtension,
   quotaExtension,
@@ -114,7 +114,6 @@ export const allExtensions: ZephyrexClientExtension[] = [
   authMergeExtension,
   authMfaExtension,
   authNotificationsExtension,
-  authOauth2ClientExtension,
   authPrivacyExtension,
   authRecoveryQuestionsExtension,
   authSessionExtension,
@@ -131,6 +130,7 @@ export const allExtensions: ZephyrexClientExtension[] = [
   metaSdkPyExtension,
   metaSdkRsExtension,
   metaSdkTsExtension,
+  oauthConsumerExtension,
   observabilityExtension,
   privacyExtension,
   quotaExtension,

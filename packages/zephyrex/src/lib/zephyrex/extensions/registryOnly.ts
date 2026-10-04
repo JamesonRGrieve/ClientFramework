@@ -17,7 +17,6 @@ export const aiMemoriesExtension = entry(
   'Long-term memory: storage, retrieval and consolidation',
 );
 export const aiPromptsExtension = entry('ai_prompts', 'AI Prompts', 'Prompt templates and their arguments');
-export const aiTasksExtension = entry('ai_tasks', 'AI Tasks', 'Scheduled and automated AI tasks');
 export const aiTuningExtension = entry('ai_tuning', 'AI Tuning', 'Model fine-tuning and training runs');
 export const conversationsExtension = entry(
   'conversations',
@@ -45,11 +44,6 @@ const consumer = (name: string, displayName: string, description: string): Zephy
 const provider = (name: string, displayName: string, description: string): ZephyrexClientExtension =>
   entry(`${name}_provider`, `${displayName} provider`, description);
 
-export const authOauth2ServerExtension = entry(
-  'auth_oauth2_server',
-  'OAuth2 Server',
-  'Third-party OAuth2 clients, the authorization-code flow with PKCE, and revocable tokens',
-);
 export const forwardAuthConsumerExtension = consumer(
   'forward_auth',
   'Forward auth',
@@ -64,10 +58,11 @@ export const kerberosConsumerExtension = consumer(
 export const kerberosProviderExtension = provider('kerberos', 'Kerberos', 'This server as a Kerberos KDC');
 export const ldapConsumerExtension = consumer('ldap', 'LDAP', 'Sign-in against an LDAP or Active Directory server');
 export const ldapProviderExtension = provider('ldap', 'LDAP', 'This server as an LDAP directory');
-export const oauthConsumerExtension = consumer('oauth', 'OAuth', 'Sign-in through OAuth2 identity providers');
-export const oauthProviderExtension = provider('oauth', 'OAuth', 'This server as an OAuth2 issuer');
-export const oidcConsumerExtension = consumer('oidc', 'OpenID Connect', 'Sign-in through an OpenID Connect provider');
-export const oidcProviderExtension = provider('oidc', 'OpenID Connect', 'This server as an OpenID Connect provider');
+export const oauthProviderExtension = provider(
+  'oauth',
+  'OAuth',
+  'This server as an OAuth 2.0 authorization server and OpenID Connect provider',
+);
 export const proxyAuthConsumerExtension = consumer('proxy_auth', 'Proxy auth', 'Sign-in from trusted proxy headers');
 export const proxyAuthProviderExtension = provider(
   'proxy_auth',
@@ -91,9 +86,7 @@ export const registryOnlyExtensions: readonly ZephyrexClientExtension[] = [
   aiChainsExtension,
   aiMemoriesExtension,
   aiPromptsExtension,
-  aiTasksExtension,
   aiTuningExtension,
-  authOauth2ServerExtension,
   billingExtension,
   conversationsExtension,
   ecommerceExtension,
@@ -104,10 +97,7 @@ export const registryOnlyExtensions: readonly ZephyrexClientExtension[] = [
   kerberosProviderExtension,
   ldapConsumerExtension,
   ldapProviderExtension,
-  oauthConsumerExtension,
   oauthProviderExtension,
-  oidcConsumerExtension,
-  oidcProviderExtension,
   paymentExtension,
   proxyAuthConsumerExtension,
   proxyAuthProviderExtension,
