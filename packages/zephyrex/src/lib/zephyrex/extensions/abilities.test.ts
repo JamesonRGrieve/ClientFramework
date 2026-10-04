@@ -7,7 +7,6 @@ describe('abilityExtensions', () => {
     expect(abilityExtensions.map((extension) => extension.name)).toEqual([
       'ai',
       'automotive',
-      'book',
       'cad',
       'calendar',
       'cloud',

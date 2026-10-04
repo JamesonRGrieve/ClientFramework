@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { createElement, lazy } from 'react';
+import { createElement, lazy, type ReactElement } from 'react';
 import { createExtension } from '../createExtension';
 
 const ConnectedServices = lazy(async () =>
@@ -16,7 +16,7 @@ export const oauthConsumerExtension = createExtension('oauth_consumer', {
     {
       id: 'connected-accounts',
       label: 'Connected Accounts',
-      component: () => createElement(ConnectedServices),
+      component: (): ReactElement => createElement(ConnectedServices),
       priority: 30,
     },
   ],

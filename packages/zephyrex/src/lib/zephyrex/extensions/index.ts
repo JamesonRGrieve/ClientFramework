@@ -77,7 +77,6 @@ export {
 export {
   aiExtension,
   automotiveExtension,
-  bookExtension,
   cadExtension,
   calendarExtension,
   cloudExtension,

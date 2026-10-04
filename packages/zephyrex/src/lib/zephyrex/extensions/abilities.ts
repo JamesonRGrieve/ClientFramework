@@ -14,7 +14,6 @@ export const automotiveExtension = abilities(
   'Automotive',
   'Connected vehicles: state, locks, climate, charging and navigation',
 );
-export const bookExtension = abilities('book', 'Books', 'Book creation, editing and publishing');
 export const cadExtension = abilities('cad', 'CAD', '3D model generation with CAD tools');
 export const calendarExtension = abilities('calendar', 'Calendar', 'Scheduling and event management');
 export const cloudExtension = abilities('cloud', 'Cloud Storage', 'Files in S3, Azure Blob, GCS, Dropbox or Nextcloud');
@@ -62,7 +61,6 @@ export const wikiExtension = abilities('wiki', 'Wiki', 'Wikipedia, Fandom and Ka
 export const abilityExtensions: readonly ZephyrexClientExtension[] = [
   aiExtension,
   automotiveExtension,
-  bookExtension,
   cadExtension,
   calendarExtension,
   cloudExtension,

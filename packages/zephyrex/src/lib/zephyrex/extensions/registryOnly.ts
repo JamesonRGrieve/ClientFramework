@@ -18,6 +18,12 @@ export const aiMemoriesExtension = entry(
 );
 export const aiPromptsExtension = entry('ai_prompts', 'AI Prompts', 'Prompt templates and their arguments');
 export const aiTuningExtension = entry('ai_tuning', 'AI Tuning', 'Model fine-tuning and training runs');
+// Books: @zephyrex/book extends this with the pages for writing them.
+export const bookExtension = entry(
+  'book',
+  'Books',
+  'Books and their chapters, written and downloaded as Markdown, HTML or EPUB',
+);
 export const conversationsExtension = entry(
   'conversations',
   'Conversations',
@@ -88,6 +94,7 @@ export const registryOnlyExtensions: readonly ZephyrexClientExtension[] = [
   aiPromptsExtension,
   aiTuningExtension,
   billingExtension,
+  bookExtension,
   conversationsExtension,
   ecommerceExtension,
   forwardAuthConsumerExtension,
