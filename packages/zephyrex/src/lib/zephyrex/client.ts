@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { csrfHeaders, SESSION_CREDENTIALS } from '@zephyrex/auth';
+import { csrfHeaders, etagOf, SESSION_CREDENTIALS, type Versioned } from '@zephyrex/auth';
 import { z } from 'zod';
 
 const MAX_RETRIES = 3;
@@ -104,23 +104,8 @@ export class StaleWriteError extends ApiError {
   }
 }
 
-/** What a row carries to version it: when it last changed, else when it was made. */
-export interface Versioned {
-  readonly updated_at?: string | null | undefined;
-  readonly created_at?: string | null | undefined;
-}
-
-/**
- * The If-Match value for `row`: its `updated_at` (`created_at` if never updated), quoted, exactly as
- * the server serialised it. It is opaque, so it is never parsed or reformatted.
- */
-export function etagOf(row: Versioned): string {
-  const version = row.updated_at ?? row.created_at;
-  if (version === undefined || version === null || version === '') {
-    throw new Error('A row without updated_at or created_at cannot be written: it has no version to guard.');
-  }
-  return `"${version}"`;
-}
+// A row's version and its If-Match value come from @zephyrex/auth, so both clients guard alike.
+export { etagOf, type Versioned };
 
 /** How many rows `list` asks for per page. */
 export const LIST_PAGE_SIZE = 100;

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import { etagOf as authEtagOf } from '@zephyrex/auth';
 import { deleteCookie, setCookie } from 'cookies-next/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
@@ -226,15 +227,9 @@ describe('ApiError', () => {
 });
 
 describe('etagOf', () => {
-  it('quotes updated_at verbatim, microseconds and all, else created_at', () => {
+  it('is @zephyrex/auth’s, so both clients send the same If-Match', () => {
+    expect(etagOf).toBe(authEtagOf);
     expect(etagOf(SEEN)).toBe(`"${UPDATED}"`);
-    expect(etagOf({ created_at: CREATED, updated_at: null })).toBe(`"${CREATED}"`);
-    expect(etagOf({ created_at: '2026-01-01T00:00:00' })).toBe('"2026-01-01T00:00:00"');
-  });
-
-  it('refuses a row with no version, which no write could be guarded by', () => {
-    expect(() => etagOf({})).toThrow(/no version/);
-    expect(() => etagOf({ updated_at: '', created_at: null })).toThrow(/no version/);
   });
 });
 
