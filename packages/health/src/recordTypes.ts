@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { type Draft, fromLocalInput, instant, localInput, minutesLabel, numberOf, shown, textOf } from './fields';
+import { serverInstant } from 'zephyrex';
+import { type Draft, fromLocalInput, localInput, minutesLabel, numberOf, shown, textOf } from './fields';
 import {
   ACTIVITY_KINDS,
   type Activity,
@@ -226,8 +227,8 @@ export const sleepType: RecordType<Sleep> = {
   // The server refuses a night that ends before it starts, or lasts more than a day.
   problemOf: (draft) => {
     const asleep =
-      instant(fromLocalInput(text(draft, 'wake_time'))).getTime() -
-      instant(fromLocalInput(text(draft, 'bedtime'))).getTime();
+      serverInstant(fromLocalInput(text(draft, 'wake_time'))).getTime() -
+      serverInstant(fromLocalInput(text(draft, 'bedtime'))).getTime();
     return asleep > 0 && asleep <= MS_PER_DAY ? null : 'Waking must come after bedtime, within a day.';
   },
 };

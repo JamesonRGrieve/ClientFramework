@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // The overview's figures, worked out from the logs themselves (the server has no summary route).
-import { instant } from './fields';
+import { serverInstant } from 'zephyrex';
 import type { Activity, Meal, Sleep, Weight } from './healthModel';
 
 const DAYS_PER_WEEK = 7;
 
 const newest = <T>(rows: readonly T[], timeOf: (row: T) => string): T | undefined =>
-  [...rows].sort((a, b) => instant(timeOf(b)).getTime() - instant(timeOf(a)).getTime()).at(0);
+  [...rows].sort((a, b) => serverInstant(timeOf(b)).getTime() - serverInstant(timeOf(a)).getTime()).at(0);
 
 /** The most recent weighing. */
 export const latestWeight = (weights: readonly Weight[]): Weight | undefined => newest(weights, ({ measured_at: at }) => at);
@@ -22,7 +22,7 @@ export function weeklyActiveMinutes(activities: readonly Activity[], today: Date
   const since = startOfDay(today);
   since.setDate(since.getDate() - (DAYS_PER_WEEK - 1));
   return activities
-    .filter(({ performed_at: at }) => instant(at) >= since)
+    .filter(({ performed_at: at }) => serverInstant(at) >= since)
     .reduce((total, { duration_minutes: minutes }) => total + minutes, 0);
 }
 
@@ -32,6 +32,6 @@ export function caloriesOn(meals: readonly Meal[], day: Date): number {
   const end = new Date(start);
   end.setDate(end.getDate() + 1);
   return meals
-    .filter(({ eaten_at: at }) => instant(at) >= start && instant(at) < end)
+    .filter(({ eaten_at: at }) => serverInstant(at) >= start && serverInstant(at) < end)
     .reduce((total, { calories }) => total + calories, 0);
 }

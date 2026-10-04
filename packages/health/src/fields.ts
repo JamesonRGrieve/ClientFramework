@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // How a record's fields are entered: each field's input, and the conversions between the server's
 // values and the text a form holds.
+import { serverInstant } from 'zephyrex';
 
 const MINUTES_PER_HOUR = 60;
 const MS_PER_MINUTE = 60_000;
@@ -24,17 +25,9 @@ export type FieldSpec<T> = FieldBase<T> &
     | { readonly input: 'choice'; readonly choices: readonly string[] }
   );
 
-/**
- * The instant a server timestamp names. The server keeps UTC and may leave the zone off, so a
- * timestamp without one is read as UTC.
- */
-export function instant(value: string): Date {
-  return new Date(/(?:[zZ]|[+-]\d{2}:\d{2})$/.test(value) ? value : `${value}Z`);
-}
-
 /** A server timestamp as a datetime-local input's text, in the user's own time zone. */
 export function localInput(value: string): string {
-  const at = instant(value);
+  const at = serverInstant(value);
   return new Date(at.getTime() - at.getTimezoneOffset() * MS_PER_MINUTE).toISOString().slice(0, LOCAL_INPUT_LENGTH);
 }
 
@@ -44,7 +37,7 @@ export function fromLocalInput(text: string): string {
 }
 
 /** Whether two server timestamps name the same instant, however they are written. */
-export const sameInstant = (a: string, b: string): boolean => instant(a).getTime() === instant(b).getTime();
+export const sameInstant = (a: string, b: string): boolean => serverInstant(a).getTime() === serverInstant(b).getTime();
 
 /** A number field's text as its value; blank is none. */
 export const numberOf = (text: string): number | null => (text.trim() === '' ? null : Number(text));

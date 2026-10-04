@@ -3,8 +3,7 @@
 
 import { Button } from '@jgrieve/forms/components/ui/button';
 import { type ReactElement, useState } from 'react';
-import { ConflictPanel, useClient, useDraft, useEditBase, writeProblem } from 'zephyrex';
-import { instant } from './fields';
+import { ConflictPanel, serverInstant, useClient, useDraft, useEditBase, writeProblem } from 'zephyrex';
 import { createRecord, useRecordActions, useRecords } from './healthApi';
 import { RecordForm, draftProblem } from './RecordForm';
 import { changesFrom, conflictFields, type HealthRow, type RecordType } from './records';
@@ -196,7 +195,7 @@ export function RecordsPanel<T extends HealthRow>({ type }: { type: RecordType<T
               >
                 {type.describe(row)}
               </button>
-              <span className='text-muted-foreground'>{instant(type.timeOf(row)).toLocaleString()}</span>
+              <span className='text-muted-foreground'>{serverInstant(type.timeOf(row)).toLocaleString()}</span>
             </li>
           ))}
         </ul>

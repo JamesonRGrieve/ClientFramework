@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // How the mirror's values are shown: amounts exactly as the store wrote them, and only web links.
+import { serverInstant } from 'zephyrex';
 
 const LINKABLE_PROTOCOLS: ReadonlySet<string> = new Set(['http:', 'https:']);
 
@@ -31,6 +32,6 @@ export function shownTime(value: string | null | undefined): string {
   if (value === null || value === undefined || value === '') {
     return '—';
   }
-  const at = new Date(/(?:[zZ]|[+-]\d{2}:\d{2})$/.test(value) ? value : `${value}Z`);
+  const at = serverInstant(value);
   return Number.isNaN(at.getTime()) ? value : at.toLocaleString();
 }

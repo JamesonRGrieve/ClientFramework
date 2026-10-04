@@ -4,7 +4,6 @@ import {
   fieldProblem,
   type FieldSpec,
   fromLocalInput,
-  instant,
   localInput,
   minutesLabel,
   numberOf,
@@ -29,12 +28,6 @@ const SEVEN_UTC = '2026-09-28T07:00:00Z';
 const SEVEN_UTC_ISO = '2026-09-28T07:00:00.000Z';
 
 describe('health fields', () => {
-  it('reads a server timestamp with no zone as UTC', () => {
-    expect(instant('2026-09-28T07:00:00').toISOString()).toBe(SEVEN_UTC_ISO);
-    expect(instant('2026-09-28T07:00:00+02:00').toISOString()).toBe('2026-09-28T05:00:00.000Z');
-    expect(instant(SEVEN_UTC).toISOString()).toBe(SEVEN_UTC_ISO);
-  });
-
   it('turns a timestamp into the local input’s text and back to the same instant', () => {
     const text = localInput(SEVEN_UTC);
     expect(text).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);

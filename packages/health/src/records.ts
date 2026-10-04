@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import type { ConflictField, Versioned } from 'zephyrex';
+import { type ConflictField, serverInstant, type Versioned } from 'zephyrex';
 import type { z } from 'zod';
-import { type Draft, type FieldSpec, instant, sameInstant } from './fields';
+import { type Draft, type FieldSpec, sameInstant } from './fields';
 
 /** A row of the health log: an id and its version. */
 export type HealthRow = { readonly id: string } & Versioned;
@@ -67,7 +67,7 @@ export function conflictFields<T extends HealthRow>(type: RecordType<T>): Confli
           label,
           format: (row: Partial<T>): string => {
             const value = row[key];
-            return typeof value === 'string' ? instant(value).toLocaleString() : '';
+            return typeof value === 'string' ? serverInstant(value).toLocaleString() : '';
           },
         }
       : { key, label },
@@ -78,4 +78,4 @@ export function conflictFields<T extends HealthRow>(type: RecordType<T>): Confli
 export const newestFirst =
   <T extends HealthRow>(type: RecordType<T>) =>
   (a: T, b: T): number =>
-    instant(type.timeOf(b)).getTime() - instant(type.timeOf(a)).getTime();
+    serverInstant(type.timeOf(b)).getTime() - serverInstant(type.timeOf(a)).getTime();
