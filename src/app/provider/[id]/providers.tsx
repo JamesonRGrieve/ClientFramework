@@ -9,12 +9,14 @@ import {
   ConflictPanel,
   type EditableProviderInstance,
   fieldDescription,
+  type GuardedSave,
   type ProviderInstance,
   type ProviderInstanceChanges,
   type ProviderInstanceSetting,
   type ProviderSettingRow,
   type ProviderSettingSpec,
   settingRows,
+  useEditBase,
   useProviderInstanceActions,
   useProviderInstanceDetail,
   useProviderInstances,
@@ -89,6 +91,8 @@ function SettingRow({
   onClear: (setting: ProviderInstanceSetting) => Promise<void>;
 }): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
+  // The row as it was when editing began: the save is guarded by it, not by a newer one re-read since.
+  const [editedFrom, setEditedFrom] = useState(row);
   const inputId = `setting-${row.key}`;
   return (
     <TableRow>
@@ -142,6 +146,7 @@ function SettingRow({
               onClick={() => {
                 // A secret's value never comes back, so editing one starts blank.
                 setDraft(row.writeOnly ? '' : (row.setting?.value ?? ''));
+                setEditedFrom(row);
               }}
             >
               <LuPencil aria-hidden='true' />
@@ -168,7 +173,7 @@ function SettingRow({
             aria-label={`Save ${row.key}`}
             onClick={() => {
               void (async (): Promise<void> => {
-                if (await onSave(row, draft)) {
+                if (await onSave(editedFrom, draft)) {
                   setDraft(null);
                 }
               })();
@@ -179,6 +184,79 @@ function SettingRow({
         )}
       </TableCell>
     </TableRow>
+  );
+}
+
+/**
+ * An instance's details form, saved over the instance it was filled from: a newer one re-read
+ * while the user edits leaves the form, and its guard, on the one they started from.
+ */
+function InstanceForm({
+  instance,
+  apiKeyName,
+  update,
+}: {
+  instance: ProviderInstance;
+  apiKeyName: string;
+  update: GuardedSave<EditableProviderInstance>;
+}): JSX.Element {
+  const { toast } = useToast();
+  const { base, rebaseOnSave } = useEditBase(instance);
+
+  // An instance edit says when it is saved; refused as stale, its conflict shows under the form.
+  const settle = async (saving: Promise<boolean>): Promise<void> => {
+    try {
+      if (await rebaseOnSave(saving)) {
+        toast({ title: 'Instance saved', description: base.name });
+      }
+    } catch (error) {
+      toast({
+        title: 'Could not save the instance',
+        description: error instanceof Error ? error.message : base.name,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const save = async (submitted: Record<string, DynamicFormFieldValueTypes>): Promise<void> => {
+    const changes = instanceChanges(base, submitted);
+    if (Object.keys(changes).length === 0) {
+      toast({ title: 'Nothing to save', description: base.name });
+      return;
+    }
+    await settle(update.save(base, changes));
+  };
+
+  return (
+    <>
+      <DynamicForm
+        fields={{
+          name: {
+            type: 'text',
+            display: 'Name',
+            value: base.name,
+            validation: (value) => typeof value === 'string' && value.trim() !== '',
+          },
+          model_name: { type: 'text', display: 'Model name', value: base.model_name ?? '' },
+          api_key: { type: 'password', display: `New ${apiKeyName} (leave blank to keep the current one)`, value: '' },
+          enabled: { type: 'boolean', display: 'Enabled', value: base.enabled ?? true },
+        }}
+        submitButtonText='Save instance'
+        onConfirm={(submitted) => {
+          void save(submitted);
+        }}
+      />
+      {update.conflict !== null && (
+        <ConflictPanel
+          conflict={update.conflict}
+          fields={INSTANCE_CONFLICT_FIELDS}
+          onResolve={(merged) => {
+            void settle(update.resolve(merged));
+          }}
+          onDiscard={update.discard}
+        />
+      )}
+    </>
   );
 }
 
@@ -202,30 +280,6 @@ function Providers(): JSX.Element {
   if (instance === undefined) {
     return <p className='p-8 text-center text-muted-foreground'>This instance does not exist or is not visible to you.</p>;
   }
-
-  // An instance edit says when it is saved; refused as stale, its conflict shows under the form.
-  const settleInstance = async (saving: Promise<boolean>): Promise<void> => {
-    try {
-      if (await saving) {
-        toast({ title: 'Instance saved', description: instance.name });
-      }
-    } catch (error) {
-      toast({
-        title: 'Could not save the instance',
-        description: error instanceof Error ? error.message : instance.name,
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const save = async (submitted: Record<string, DynamicFormFieldValueTypes>): Promise<void> => {
-    const changes = instanceChanges(instance, submitted);
-    if (Object.keys(changes).length === 0) {
-      toast({ title: 'Nothing to save', description: instance.name });
-      return;
-    }
-    await settleInstance(actions.update.save(instance, changes));
-  };
 
   // A setting write refreshes the settings once written; refused as stale, its conflict shows above them.
   const settleSetting = async (saving: Promise<boolean>, key: string, failure: string): Promise<boolean> => {
@@ -271,33 +325,7 @@ function Providers(): JSX.Element {
           </CardDescription>
         </CardHeader>
         <CardContent className='max-w-xl'>
-          <DynamicForm
-            fields={{
-              name: {
-                type: 'text',
-                display: 'Name',
-                value: instance.name,
-                validation: (value) => typeof value === 'string' && value.trim() !== '',
-              },
-              model_name: { type: 'text', display: 'Model name', value: instance.model_name ?? '' },
-              api_key: { type: 'password', display: `New ${apiKeyName} (leave blank to keep the current one)`, value: '' },
-              enabled: { type: 'boolean', display: 'Enabled', value: instance.enabled ?? true },
-            }}
-            submitButtonText='Save instance'
-            onConfirm={(submitted) => {
-              void save(submitted);
-            }}
-          />
-          {actions.update.conflict !== null && (
-            <ConflictPanel
-              conflict={actions.update.conflict}
-              fields={INSTANCE_CONFLICT_FIELDS}
-              onResolve={(merged) => {
-                void settleInstance(actions.update.resolve(merged));
-              }}
-              onDiscard={actions.update.discard}
-            />
-          )}
+          <InstanceForm key={instance.id} instance={instance} apiKeyName={apiKeyName} update={actions.update} />
         </CardContent>
       </Card>
 

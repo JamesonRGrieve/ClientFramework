@@ -35,8 +35,20 @@ describe('Profile', () => {
     await user.type(lastName, 'Byron');
     await user.click(view.getByRole('button', { name: SAVE }));
 
-    expect(onSave).toHaveBeenCalledWith({ last_name: 'Byron' });
+    expect(onSave).toHaveBeenCalledWith(profile, { last_name: 'Byron' });
     expect(await view.findByRole('status')).toHaveTextContent(SAVED);
+  });
+
+  it('saves over the profile the form was filled from, even after a newer one arrives', async () => {
+    const onSave = vi.fn(saved);
+    const user = userEvent.setup();
+    const view = renderProfile({ onSave });
+    const newer: UserProfile = { ...profile, first_name: 'Augusta', updated_at: '2026-10-03T09:05:00.000002' };
+    view.rerender(<Profile profile={newer} onSave={onSave} conflict={null} onResolve={vi.fn(saved)} onDiscard={vi.fn()} />);
+    expect(view.getByLabelText('First name')).toHaveValue('Ada');
+    await user.type(view.getByLabelText('Username'), 'ada');
+    await user.click(view.getByRole('button', { name: SAVE }));
+    expect(onSave).toHaveBeenCalledWith(profile, { username: 'ada' });
   });
 
   it('does not call the server when nothing changed', async () => {
@@ -55,7 +67,7 @@ describe('Profile', () => {
     expect(view.getByLabelText('Timezone')).toHaveTextContent(detectTimezone());
     expect(onSave).not.toHaveBeenCalled();
     await user.click(view.getByRole('button', { name: SAVE }));
-    expect(onSave).toHaveBeenCalledWith({ timezone: detectTimezone() });
+    expect(onSave).toHaveBeenCalledWith({ ...profile, timezone: null }, { timezone: detectTimezone() });
   });
 
   it('reports the server’s reason when saving fails', async () => {

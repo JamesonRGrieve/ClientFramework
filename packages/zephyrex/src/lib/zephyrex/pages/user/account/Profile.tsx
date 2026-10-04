@@ -5,7 +5,7 @@ import DynamicForm, { type DynamicFormFieldValueTypes } from '@jgrieve/forms/Dyn
 import { type ReactElement, useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../../components/ui/card';
 import { type ConflictField, ConflictPanel } from '../../../components/ConflictPanel';
-import type { Conflict } from '../../../useGuardedSave';
+import { type Conflict, useEditBase } from '../../../useGuardedSave';
 import {
   detectTimezone,
   PROFILE_FIELDS,
@@ -33,7 +33,7 @@ const CONFLICT_FIELDS: readonly ConflictField<UserProfile>[] = PROFILE_FIELDS.ma
 
 /**
  * The signed-in user's editable profile. Only changed fields are saved, and only over the profile
- * as it was loaded: if it changed first, the conflict shows the user's edits beside it.
+ * the form was filled from: if it changed first, the conflict shows the user's edits beside it.
  */
 export function Profile({
   profile,
@@ -43,24 +43,26 @@ export function Profile({
   onDiscard,
 }: {
   profile: UserProfile;
-  /** True once saved; false when the save was refused as stale. */
-  onSave: (changes: ProfileChanges) => Promise<boolean>;
+  /** Saves `changes` over `seen`: true once saved; false when refused as stale. */
+  onSave: (seen: UserProfile, changes: ProfileChanges) => Promise<boolean>;
   conflict: Conflict<UserProfile> | null;
   onResolve: (merged: Partial<UserProfile>) => Promise<boolean>;
   onDiscard: () => void;
 }): ReactElement {
   const [status, setStatus] = useState<SaveStatus>(null);
+  // The form shows, and saves over, the profile it was filled from until the user's save lands.
+  const { base, rebaseOnSave } = useEditBase(profile);
 
   const settle = async (saving: Promise<boolean>): Promise<void> => {
     try {
-      setStatus((await saving) ? { kind: 'saved', message: 'Profile saved.' } : null);
+      setStatus((await rebaseOnSave(saving)) ? { kind: 'saved', message: 'Profile saved.' } : null);
     } catch (error) {
       setStatus({ kind: 'failed', message: error instanceof Error ? error.message : 'Your profile could not be saved.' });
     }
   };
 
   const fields = useMemo(() => {
-    const saved = new Map<string, string | null | undefined>(Object.entries(profile));
+    const saved = new Map<string, string | null | undefined>(Object.entries(base));
     return Object.fromEntries(
       PROFILE_FIELDS.map((field) => [
         field,
@@ -71,15 +73,15 @@ export function Profile({
         },
       ]),
     );
-  }, [profile]);
+  }, [base]);
 
   const save = async (submitted: Record<string, DynamicFormFieldValueTypes>): Promise<void> => {
-    const changes = profileChanges(profile, submitted);
+    const changes = profileChanges(base, submitted);
     if (Object.keys(changes).length === 0) {
       setStatus({ kind: 'unchanged', message: 'Nothing to save.' });
       return;
     }
-    await settle(onSave(changes));
+    await settle(onSave(base, changes));
   };
 
   return (

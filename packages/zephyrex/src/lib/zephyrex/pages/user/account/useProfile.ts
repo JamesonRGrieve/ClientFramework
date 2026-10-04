@@ -19,10 +19,10 @@ export interface ProfileState {
   isLoading: boolean;
   mutate: KeyedMutator<UserProfile>;
   /**
-   * PUT only the changed fields, guarded by the profile as loaded: true once saved, false when
-   * someone changed it first (see `conflict`).
+   * PUT only the changed fields, guarded by `seen`, the profile the form was filled from: true
+   * once saved, false when someone changed it first (see `conflict`).
    */
-  update: (changes: ProfileChanges) => Promise<boolean>;
+  update: (seen: UserProfile, changes: ProfileChanges) => Promise<boolean>;
   /** An update refused because the profile changed first, until resolved or discarded. */
   conflict: Conflict<UserProfile> | null;
   resolve: (merged: Partial<UserProfile>) => Promise<boolean>;
@@ -46,17 +46,7 @@ export function useProfile(): ProfileState {
     },
     [client, mutate],
   );
-  const { save, conflict, resolve, discard } = useGuardedSave(write, UserProfileSchema);
-
-  const update = useCallback(
-    async (changes: ProfileChanges): Promise<boolean> => {
-      if (data === undefined) {
-        throw new Error('The profile has not loaded yet.');
-      }
-      return save(data, changes);
-    },
-    [data, save],
-  );
+  const { save: update, conflict, resolve, discard } = useGuardedSave(write, UserProfileSchema);
 
   const changePassword = useCallback(
     async (currentPassword: string, newPassword: string): Promise<string> => {

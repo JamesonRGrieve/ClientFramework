@@ -44,7 +44,7 @@ describe('useProfile', () => {
     });
 
     await act(async () => {
-      await expect(result.current.update({ first_name: 'Augusta' })).resolves.toBe(true);
+      await expect(result.current.update(user, { first_name: 'Augusta' })).resolves.toBe(true);
     });
     expect(fetchMock).toHaveBeenCalledWith(
       PROFILE_URL,
@@ -73,7 +73,7 @@ describe('useProfile', () => {
     });
 
     await act(async () => {
-      await expect(result.current.update({ last_name: 'King' })).resolves.toBe(false);
+      await expect(result.current.update(user, { last_name: 'King' })).resolves.toBe(false);
     });
     expect(result.current.conflict).toEqual({ mine: { last_name: 'King' }, theirs: current });
 

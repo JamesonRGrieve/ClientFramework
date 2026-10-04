@@ -3,7 +3,7 @@
 
 import { useCallback, useState } from 'react';
 import type { z } from 'zod';
-import { StaleWriteError, type Versioned } from './client';
+import { etagOf, StaleWriteError, type Versioned } from './client';
 
 /** A write the server refused because the row changed after the user read it. */
 export interface Conflict<T> {
@@ -22,6 +22,37 @@ export interface GuardedSave<T> {
   resolve: (merged: Partial<T>) => Promise<boolean>;
   /** Drops the user's refused changes. Only ever by their explicit choice. */
   discard: () => void;
+}
+
+export interface EditBase<T> {
+  /** The row as it was when the user began editing: what an edit is diffed against and guarded by. */
+  base: T;
+  /** Passes a save's outcome through, moving the base to the live row once the save has landed. */
+  rebaseOnSave: (saving: Promise<boolean>) => Promise<boolean>;
+}
+
+/**
+ * The row an edit is based on. Pages re-read rows on their own (SWR revalidates on focus), so the
+ * live row can move while a form is open; guarding the save by the live version would let a stale
+ * edit overwrite what someone else changed. The base stays the row the user started from, so a
+ * save made over a newer row is refused (and shown as a conflict), and moves to the live row only
+ * once a save made through `rebaseOnSave` has landed.
+ */
+export function useEditBase<T extends Versioned>(live: T): EditBase<T> {
+  const [base, setBase] = useState(live);
+  const [following, setFollowing] = useState(false);
+  if (following && etagOf(live) !== etagOf(base)) {
+    setBase(live);
+    setFollowing(false);
+  }
+  const rebaseOnSave = useCallback(async (saving: Promise<boolean>): Promise<boolean> => {
+    const saved = await saving;
+    if (saved) {
+      setFollowing(true);
+    }
+    return saved;
+  }, []);
+  return { base, rebaseOnSave };
 }
 
 /**

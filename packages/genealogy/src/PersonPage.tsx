@@ -5,7 +5,7 @@ import { Button } from '@jgrieve/forms/components/ui/button';
 import Link from 'next/link.js';
 import { useRouter } from 'next/navigation.js';
 import { type ReactElement, useCallback, useState } from 'react';
-import { type ConflictField, ConflictPanel, useClient, useGuardedSave, writeProblem } from 'zephyrex';
+import { type ConflictField, ConflictPanel, useClient, useEditBase, useGuardedSave, writeProblem } from 'zephyrex';
 import { Card, CardContent, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { genealogyApi, type Person, PersonSchema, usePersons } from './genealogyApi';
 import { KinshipLookup } from './KinshipLookup';
@@ -25,16 +25,20 @@ const PERSON_CONFLICT_FIELDS: readonly ConflictField<Person>[] = [
   { key: 'description', label: 'Description' },
 ];
 
-/** One person: their details, their relatives, and their ancestors and descendants. */
-export function PersonPage({ params }: { params: Record<string, string> }): ReactElement {
-  const { personId } = params;
+/**
+ * A person's details form, saved over the person it was filled from: a newer person arriving
+ * while the user edits leaves the form, and its guard, on the one they started from.
+ */
+function PersonDetails({
+  person,
+  onProblem,
+}: {
+  person: Person;
+  onProblem: (problem: string | null) => void;
+}): ReactElement {
   const client = useClient();
-  const router = useRouter();
-  const persons = usePersons();
-  const { mutate: refreshPersons } = persons;
-  const people = persons.data ?? [];
-  const person = people.find((candidate) => candidate.id === personId);
-  const [problem, setProblem] = useState<string | null>(null);
+  const { mutate: refreshPersons } = usePersons();
+  const { base, rebaseOnSave } = useEditBase(person);
   const update = useGuardedSave(
     useCallback(
       async (seen: Person, changes: Partial<Person>): Promise<void> => {
@@ -45,6 +49,38 @@ export function PersonPage({ params }: { params: Record<string, string> }): Reac
     ),
     PersonSchema,
   );
+  return (
+    <>
+      <PersonForm
+        key={person.id}
+        person={base}
+        submitLabel='Save'
+        onSave={async (fields) => writeProblem(rebaseOnSave(update.save(base, fields)), SAVE_FAILURE)}
+      />
+      {update.conflict !== null && (
+        <ConflictPanel
+          conflict={update.conflict}
+          fields={PERSON_CONFLICT_FIELDS}
+          onResolve={(merged) => {
+            void writeProblem(rebaseOnSave(update.resolve(merged)), SAVE_FAILURE).then(onProblem);
+          }}
+          onDiscard={update.discard}
+        />
+      )}
+    </>
+  );
+}
+
+/** One person: their details, their relatives, and their ancestors and descendants. */
+export function PersonPage({ params }: { params: Record<string, string> }): ReactElement {
+  const { personId } = params;
+  const client = useClient();
+  const router = useRouter();
+  const persons = usePersons();
+  const { mutate: refreshPersons } = persons;
+  const people = persons.data ?? [];
+  const person = people.find((candidate) => candidate.id === personId);
+  const [problem, setProblem] = useState<string | null>(null);
   const remove = useGuardedSave(
     useCallback(
       async (seen: Person): Promise<void> => {
@@ -92,22 +128,7 @@ export function PersonPage({ params }: { params: Record<string, string> }): Reac
           <CardTitle>Details</CardTitle>
         </CardHeader>
         <CardContent className='grid gap-4'>
-          <PersonForm
-            key={person.id}
-            person={person}
-            submitLabel='Save'
-            onSave={async (fields) => writeProblem(update.save(person, fields), SAVE_FAILURE)}
-          />
-          {update.conflict !== null && (
-            <ConflictPanel
-              conflict={update.conflict}
-              fields={PERSON_CONFLICT_FIELDS}
-              onResolve={(merged) => {
-                void writeProblem(update.resolve(merged), SAVE_FAILURE).then(setProblem);
-              }}
-              onDiscard={update.discard}
-            />
-          )}
+          <PersonDetails key={person.id} person={person} onProblem={setProblem} />
           <div className='grid gap-2 border-t pt-4'>
             <div>
               <Button

@@ -19,6 +19,7 @@ import {
 import { type ConflictField, ConflictPanel } from '../../components/ConflictPanel';
 import { setActiveTeam } from '../../cookies';
 import { type Team as TeamRecord, useSelectedTeam, useTeams } from '../../hooks';
+import { type GuardedSave, useEditBase } from '../../useGuardedSave';
 import { useTeamAccess, useTeamActions } from './useTeamManagement';
 
 /** Team names are short labels; the server's own limit. */
@@ -157,6 +158,45 @@ function TeamNameDialog({
   );
 }
 
+/** Rename a team, guarded by the team as it was when the dialog opened. */
+function RenameTeamDialog({
+  team,
+  teams,
+  rename,
+  onOpenChange,
+}: {
+  team: TeamRecord;
+  teams: TeamRecord[];
+  rename: GuardedSave<TeamRecord>;
+  onOpenChange: (open: boolean) => void;
+}): ReactElement {
+  const { base } = useEditBase(team);
+  return (
+    <TeamNameDialog
+      open
+      onOpenChange={onOpenChange}
+      title='Rename team'
+      submitLabel='Rename'
+      initialName={base.name}
+      teams={teams}
+      parentChoice={false}
+      onSubmit={async (name) => rename.save(base, { name })}
+      renderConflict={(settle) =>
+        rename.conflict !== null && (
+          <ConflictPanel
+            conflict={rename.conflict}
+            fields={RENAME_FIELDS}
+            onResolve={(merged) => {
+              settle(rename.resolve(merged));
+            }}
+            onDiscard={rename.discard}
+          />
+        )
+      }
+    />
+  );
+}
+
 export type TeamProps = {
   /** The team shown; the active team when omitted. */
   teamId?: string;
@@ -229,30 +269,14 @@ export function Team({ teamId }: TeamProps): ReactElement {
         </SidebarMenu>
       </SidebarGroup>
       {dialog === 'rename' && selected !== null && selected !== undefined && (
-        <TeamNameDialog
-          open
+        <RenameTeamDialog
+          team={selected}
+          teams={teams}
+          rename={rename}
           onOpenChange={(isOpen) => {
             rename.discard();
             setDialog(isOpen ? 'rename' : null);
           }}
-          title='Rename team'
-          submitLabel='Rename'
-          initialName={selected.name}
-          teams={teams}
-          parentChoice={false}
-          onSubmit={async (name) => rename.save(selected, { name })}
-          renderConflict={(settle) =>
-            rename.conflict !== null && (
-              <ConflictPanel
-                conflict={rename.conflict}
-                fields={RENAME_FIELDS}
-                onResolve={(merged) => {
-                  settle(rename.resolve(merged));
-                }}
-                onDiscard={rename.discard}
-              />
-            )
-          }
         />
       )}
       {dialog === 'create' && (

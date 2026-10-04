@@ -3,7 +3,7 @@ import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { ApiError, StaleWriteError } from './client';
-import { type GuardedSave, useGuardedSave, writeProblem } from './useGuardedSave';
+import { type GuardedSave, useEditBase, useGuardedSave, writeProblem } from './useGuardedSave';
 
 const HTTP_FORBIDDEN = 403;
 
@@ -76,6 +76,33 @@ describe('useGuardedSave', () => {
       result.current.discard();
     });
     expect(result.current.conflict).toBeNull();
+  });
+
+  it('keeps an edit on the row it started from when a newer one is re-read, until the user’s save lands', async () => {
+    const saved: Team = { id: 't1', name: 'Beta', updated_at: '2026-10-03T09:10:00.000003' };
+    const { result, rerender } = renderHook(({ live }: { live: Team }) => useEditBase(live), {
+      initialProps: { live: seen },
+    });
+    rerender({ live: current });
+    expect(result.current.base).toBe(seen);
+
+    let landed = true;
+    await act(async () => {
+      landed = await result.current.rebaseOnSave(Promise.resolve(false));
+    });
+    expect(landed).toBe(false);
+    rerender({ live: current });
+    expect(result.current.base).toBe(seen);
+
+    // A save refreshes the row before it resolves, so the saved row is live by the time it lands.
+    rerender({ live: saved });
+    await act(async () => {
+      landed = await result.current.rebaseOnSave(Promise.resolve(true));
+    });
+    expect(landed).toBe(true);
+    expect(result.current.base).toBe(saved);
+    rerender({ live: current });
+    expect(result.current.base).toBe(saved);
   });
 
   it('tells the user nothing once a write is done, else why it failed', async () => {
