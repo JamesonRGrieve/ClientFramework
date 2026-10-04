@@ -6,7 +6,7 @@ import { Input } from '@jgrieve/forms/components/ui/input';
 import { Label } from '@jgrieve/forms/components/ui/label';
 import { useRouter } from 'next/navigation.js';
 import { type ReactElement, type SyntheticEvent, useId, useState } from 'react';
-import { type ConflictField, ConflictPanel, useClient, useEditBase } from 'zephyrex';
+import { type ConflictField, ConflictPanel, useClient, useDraft, useEditBase } from 'zephyrex';
 import { Textarea } from 'zephyrex/ui/textarea';
 import {
   BOOK_STATUSES,
@@ -19,7 +19,6 @@ import {
 } from './bookApi';
 import { BOOK_PATH } from './routes';
 import { formatLabel, statusLabel } from './statuses';
-import { useDraft } from './useDraft';
 
 const SAVE_FAILURE = 'The book could not be saved.';
 const REMOVE_FAILURE = 'The book could not be deleted.';

@@ -5,10 +5,9 @@ import { Button } from '@jgrieve/forms/components/ui/button';
 import { Input } from '@jgrieve/forms/components/ui/input';
 import { Label } from '@jgrieve/forms/components/ui/label';
 import { type ReactElement, type SyntheticEvent, useId, useState } from 'react';
-import { type ConflictField, ConflictPanel, useClient, useEditBase, writeProblem } from 'zephyrex';
+import { type ConflictField, ConflictPanel, useClient, useDraft, useEditBase, writeProblem } from 'zephyrex';
 import { Textarea } from 'zephyrex/ui/textarea';
 import { type Chapter, createChapter, MAX_TITLE_LENGTH, useChapterActions, useChapters } from './bookApi';
-import { useDraft } from './useDraft';
 
 const SAVE_FAILURE = 'The chapter could not be saved.';
 const REMOVE_FAILURE = 'The chapter could not be deleted.';

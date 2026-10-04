@@ -41,7 +41,7 @@ export type { UploadResult, UploadProgress } from './useFileUpload';
 export { useSubscription } from './useSubscription';
 export type { SubscriptionOptions } from './useSubscription';
 export { useOnline } from './useOnline';
-export { useEditBase, useGuardedSave, writeProblem } from './useGuardedSave';
+export { useDraft, useEditBase, useGuardedSave, writeProblem } from './useGuardedSave';
 export type { Conflict, EditBase, GuardedSave } from './useGuardedSave';
 export { useRateLimit } from './useRateLimit';
 export { rootProviderStatusQuery, useRootProviderStatus } from './useRootProviderStatus';

@@ -30,7 +30,8 @@ export const conversationsExtension = entry(
   'Direct and group conversations, threaded messages, feedback and artifacts',
 );
 export const ecommerceExtension = entry('ecommerce', 'E-commerce', 'Marketplaces such as Amazon, Walmart and Shopify');
-export const healthExtension = entry('health', 'Health', 'Health tracking and fitness data');
+// Health: @zephyrex/health extends this with the pages for the user's log.
+export const healthExtension = entry('health', 'Health', 'A log of activities, meals, weights and sleep');
 // Social: @zephyrex/social extends this with the pages for what was published.
 export const socialExtension = entry(
   'social',

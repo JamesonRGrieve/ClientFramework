@@ -3,7 +3,7 @@ import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { ApiError, StaleWriteError } from './client';
-import { type GuardedSave, useEditBase, useGuardedSave, writeProblem } from './useGuardedSave';
+import { type GuardedSave, useDraft, useEditBase, useGuardedSave, writeProblem } from './useGuardedSave';
 
 const HTTP_FORBIDDEN = 403;
 
@@ -103,6 +103,21 @@ describe('useGuardedSave', () => {
     expect(result.current.base).toBe(saved);
     rerender({ live: current });
     expect(result.current.base).toBe(saved);
+  });
+
+  it('keeps a form’s edits while its base holds, and refills it from a new base', () => {
+    const titleOf = ({ name }: Team): string => name;
+    const { result, rerender } = renderHook(({ base }: { base: Team }) => useDraft(base, titleOf), {
+      initialProps: { base: seen },
+    });
+    expect(result.current[0]).toBe('Alpha');
+    act(() => {
+      result.current[1]('Alpha, revised');
+    });
+    rerender({ base: seen });
+    expect(result.current[0]).toBe('Alpha, revised');
+    rerender({ base: current });
+    expect(result.current[0]).toBe('Gamma');
   });
 
   it('tells the user nothing once a write is done, else why it failed', async () => {

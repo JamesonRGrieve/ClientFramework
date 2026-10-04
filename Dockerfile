@@ -21,6 +21,7 @@ COPY packages/auth-mfa/package.json ./packages/auth-mfa/
 COPY packages/auth-session/package.json ./packages/auth-session/
 COPY packages/book/package.json ./packages/book/
 COPY packages/genealogy/package.json ./packages/genealogy/
+COPY packages/health/package.json ./packages/health/
 COPY packages/payment/package.json ./packages/payment/
 COPY packages/social/package.json ./packages/social/
 RUN pnpm install --frozen-lockfile
