@@ -20,6 +20,7 @@ COPY packages/auth-magic-link/package.json ./packages/auth-magic-link/
 COPY packages/auth-mfa/package.json ./packages/auth-mfa/
 COPY packages/auth-session/package.json ./packages/auth-session/
 COPY packages/book/package.json ./packages/book/
+COPY packages/ecommerce/package.json ./packages/ecommerce/
 COPY packages/genealogy/package.json ./packages/genealogy/
 COPY packages/health/package.json ./packages/health/
 COPY packages/payment/package.json ./packages/payment/

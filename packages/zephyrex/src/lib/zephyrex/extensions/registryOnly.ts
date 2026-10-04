@@ -29,7 +29,12 @@ export const conversationsExtension = entry(
   'Conversations',
   'Direct and group conversations, threaded messages, feedback and artifacts',
 );
-export const ecommerceExtension = entry('ecommerce', 'E-commerce', 'Marketplaces such as Amazon, Walmart and Shopify');
+// E-commerce: @zephyrex/ecommerce extends this with the pages for the stores' orders, products and returns.
+export const ecommerceExtension = entry(
+  'ecommerce',
+  'E-commerce',
+  'Orders, products and returns from Shopify, WooCommerce, Etsy, eBay, Amazon, Walmart and AliExpress',
+);
 // Health: @zephyrex/health extends this with the pages for the user's log.
 export const healthExtension = entry('health', 'Health', 'A log of activities, meals, weights and sleep');
 // Social: @zephyrex/social extends this with the pages for what was published.
