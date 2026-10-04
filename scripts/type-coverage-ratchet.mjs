@@ -15,14 +15,19 @@ import { resolve } from 'node:path';
 const BASELINE = resolve(process.cwd(), '.type-coverage-baseline');
 const args = new Set(process.argv.slice(2));
 const updateMode = args.has('--update');
+// One program spans the app and every package; at 2026-10 its peak is ~9.4 GB.
+const HEAP_MB = 16384;
 
 let stdout = '';
 try {
-  stdout = execSync('NODE_OPTIONS="--max-old-space-size=8192" ./node_modules/.bin/type-coverage --strict --no-detail', {
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-    maxBuffer: 16 * 1024 * 1024,
-  });
+  stdout = execSync(
+    `NODE_OPTIONS="--max-old-space-size=${HEAP_MB}" ./node_modules/.bin/type-coverage --strict --no-detail`,
+    {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      maxBuffer: 16 * 1024 * 1024,
+    },
+  );
 } catch (err) {
   stdout = err.stdout?.toString() ?? '';
 }
