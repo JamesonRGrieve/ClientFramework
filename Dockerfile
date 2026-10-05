@@ -13,6 +13,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # Every workspace package's manifest, so the frozen install sees the whole workspace.
 COPY packages/zephyrex/package.json ./packages/zephyrex/
 COPY packages/observability/package.json ./packages/observability/
+COPY packages/ai-prompts/package.json ./packages/ai-prompts/
 COPY packages/auth-api-keys/package.json ./packages/auth-api-keys/
 COPY packages/auth-device-pairing/package.json ./packages/auth-device-pairing/
 COPY packages/auth-invitations/package.json ./packages/auth-invitations/

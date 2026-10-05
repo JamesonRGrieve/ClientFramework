@@ -16,6 +16,7 @@ export const aiMemoriesExtension = entry(
   'AI Memories',
   'Long-term memory: storage, retrieval and consolidation',
 );
+// AI prompts: @zephyrex/ai-prompts extends this with the pages for stored prompts and their arguments.
 export const aiPromptsExtension = entry('ai_prompts', 'AI Prompts', 'Prompt templates and their arguments');
 export const aiTuningExtension = entry('ai_tuning', 'AI Tuning', 'Model fine-tuning and training runs');
 // Books: @zephyrex/book extends this with the pages for writing them.
