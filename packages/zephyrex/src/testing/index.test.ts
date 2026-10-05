@@ -9,6 +9,7 @@ describe('zephyrex/testing', () => {
         'STORY_CONFIG',
         'TestWrapper',
         'ZephyrexStoryRoot',
+        'nth',
         'testConfig',
         'withSession',
         'withSignedIn',

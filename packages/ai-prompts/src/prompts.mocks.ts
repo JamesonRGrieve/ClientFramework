@@ -3,14 +3,13 @@
 // user's prompts and their arguments, each change held to its version, and building a prompt as
 // the server does (values given, then the arguments' defaults; the rest reported missing).
 import { http, HttpResponse, type RequestHandler } from 'msw';
-import { refuseStale, versionStamp } from 'zephyrex/testing/msw';
+import { notFound, refuseStale, versionStamp } from 'zephyrex/testing/msw';
 import { z } from 'zod';
 import { argumentNameProblem, VARIABLE, variablesIn } from './promptModel';
 import { type Argument, ARGUMENT_ENDPOINT, ArgumentSchema, type Prompt, PROMPT_ENDPOINT, PromptSchema } from './promptsApi';
 
 const HTTP_CREATED = 201;
 const HTTP_NO_CONTENT = 204;
-const HTTP_NOT_FOUND = 404;
 const HTTP_UNPROCESSABLE = 422;
 
 /** When the fixture's rows were recorded: their version until a test or story changes one. */
@@ -61,15 +60,6 @@ export function promptsFixture(): PromptStore {
 /** A store with nothing in it. */
 export const emptyPromptStore = (): PromptStore => ({ prompts: [], args: [] });
 
-/** The row `id` of `rows`; a test or story naming one that isn't there is a mistake in it. */
-export function rowOf<T extends { id: string }>(rows: readonly T[], id: string): T {
-  const found = rows.find((row) => row.id === id);
-  if (found === undefined) {
-    throw new Error(`No row ${id} in the fixture`);
-  }
-  return found;
-}
-
 const PromptBodySchema = z.object({ prompt: PromptSchema.omit({ id: true }).partial() });
 const ArgumentBodySchema = z.object({ prompt_argument: ArgumentSchema.omit({ id: true }).partial() });
 const BuildBodySchema = z.object({ variables: z.record(z.string(), z.string()).default({}) });
@@ -77,8 +67,6 @@ const BuildBodySchema = z.object({ variables: z.record(z.string(), z.string()).d
 /** The fields a partial body actually sets, without the ones it leaves undefined. */
 const defined = (fields: object): Record<string, unknown> =>
   Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== undefined));
-
-const notFound = (): Response => HttpResponse.json({ detail: 'Not found' }, { status: HTTP_NOT_FOUND });
 
 /** The prompt routes over `store`. */
 export function promptHandlers(store: PromptStore = promptsFixture()): RequestHandler[] {

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import { withZephyrexApi } from 'zephyrex/testing';
+import { rowOf } from 'zephyrex/testing/msw';
 import { PromptArguments } from './PromptArguments';
-import { GREETING_ID, promptHandlers, promptsFixture, rowOf, SUMMARY_ID } from './prompts.mocks';
+import { GREETING_ID, promptHandlers, promptsFixture, SUMMARY_ID } from './prompts.mocks';
 
 const { prompts } = promptsFixture();
 

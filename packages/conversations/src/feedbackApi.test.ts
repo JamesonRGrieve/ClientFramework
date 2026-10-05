@@ -3,8 +3,8 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZephyrexClient } from 'zephyrex';
 import { TestWrapper, testConfig, withSession } from 'zephyrex/testing';
-import { fetchFrom } from 'zephyrex/testing/msw';
-import { conversationHandlers, conversationsFixture, FIXTURE_VERSION, ME, rowOf } from './conversations.mocks';
+import { type Call, recordingFetch, rowOf, writesOf } from 'zephyrex/testing/msw';
+import { conversationHandlers, conversationsFixture, FIXTURE_VERSION, ME } from './conversations.mocks';
 import { rateMessage, useFeedbackActions, useMyFeedback } from './feedbackApi';
 
 const client = new ZephyrexClient({ baseUrl: testConfig.server.baseUrl });
@@ -12,20 +12,14 @@ const client = new ZephyrexClient({ baseUrl: testConfig.server.baseUrl });
 describe('the feedback API', () => {
   let signOut: () => void = () => undefined;
   let store = conversationsFixture();
-  let calls: { url: string; init: RequestInit | undefined }[] = [];
+  let calls: Call[] = [];
 
   beforeEach(() => {
     signOut = withSession();
     store = conversationsFixture();
-    calls = [];
-    const answer = fetchFrom(conversationHandlers(store));
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async (input: URL | string, init?: RequestInit) => {
-        calls.push({ url: String(input), init });
-        return answer(input, init);
-      }),
-    );
+    const recorded = recordingFetch(conversationHandlers(store));
+    calls = recorded.calls;
+    vi.stubGlobal('fetch', vi.fn(recorded.fetch));
   });
 
   afterEach(() => {
@@ -50,10 +44,7 @@ describe('the feedback API', () => {
     await expect(result.current.update.save(given, { positive: false })).resolves.toBe(true);
     const changed = rowOf(store.feedbacks, 'f1');
     await expect(result.current.remove.save(changed, {})).resolves.toBe(true);
-    const writes = calls
-      .filter(({ init }) => (init?.method ?? 'GET') !== 'GET')
-      .map(({ url, init }) => [init?.method, new URL(url).pathname, new Headers(init?.headers).get('If-Match')]);
-    expect(writes).toEqual([
+    expect(writesOf(calls).map(([method, path, , ifMatch]) => [method, path, ifMatch])).toEqual([
       ['POST', '/v1/feedback', null],
       ['PUT', '/v1/feedback/f1', `"${FIXTURE_VERSION}"`],
       ['DELETE', '/v1/feedback/f1', `"${changed.updated_at ?? ''}"`],

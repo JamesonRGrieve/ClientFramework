@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import { withSignedIn, withZephyrexApi } from 'zephyrex/testing';
-import { conversationHandlers, conversationsFixture, ME, rowOf } from './conversations.mocks';
+import { rowOf } from 'zephyrex/testing/msw';
+import { conversationHandlers, conversationsFixture, ME } from './conversations.mocks';
 import { Participants } from './Participants';
 
 const { conversations } = conversationsFixture();

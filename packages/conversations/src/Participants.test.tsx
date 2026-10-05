@@ -3,7 +3,8 @@ import { within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useRouter } from 'next/navigation.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ADA, CHARLES, conversationsFixture, ME, rowOf } from './conversations.mocks';
+import { rowOf } from 'zephyrex/testing/msw';
+import { ADA, CHARLES, conversationsFixture, ME } from './conversations.mocks';
 import { Participants } from './Participants';
 import { renderConversations } from './testing.mocks';
 

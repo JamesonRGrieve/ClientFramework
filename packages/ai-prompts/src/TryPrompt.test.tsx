@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { promptsFixture, rowOf, SUMMARY_ID } from './prompts.mocks';
+import { rowOf } from 'zephyrex/testing/msw';
+import { promptsFixture, SUMMARY_ID } from './prompts.mocks';
 import { renderPrompts } from './testing.mocks';
 import { givenValues, TryPrompt } from './TryPrompt';
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest';
-import { fetchFrom } from 'zephyrex/testing/msw';
+import { fetchFrom, rowOf } from 'zephyrex/testing/msw';
 import { z } from 'zod';
 import {
   ADA,
@@ -12,7 +12,6 @@ import {
   FIXTURE_VERSION,
   ME,
   PLANS_ID,
-  rowOf,
   STRANGER_ID,
 } from './conversations.mocks';
 import { ArtifactSchema } from './artifactsApi';

@@ -3,7 +3,7 @@
 // user's subscriptions (checked as the server checks them, each change held to its version, the
 // secret never returned) and the deliveries the server queued and sent for them.
 import { http, HttpResponse, type RequestHandler } from 'msw';
-import { refuseStale, versionStamp } from 'zephyrex/testing/msw';
+import { notFound, refuseStale, versionStamp } from 'zephyrex/testing/msw';
 import { z } from 'zod';
 import { draftProblem, normalisedEventTypes } from './webhookModel';
 import {
@@ -16,7 +16,6 @@ import {
 
 const HTTP_CREATED = 201;
 const HTTP_NO_CONTENT = 204;
-const HTTP_NOT_FOUND = 404;
 const HTTP_UNPROCESSABLE = 422;
 
 /** When the fixture's rows were recorded: their version until a test or story changes one. */
@@ -126,7 +125,6 @@ const NewSubscriptionBodySchema = z.object({
 });
 
 const refuse = (detail: string): Response => HttpResponse.json({ detail }, { status: HTTP_UNPROCESSABLE });
-const notFound = (): Response => HttpResponse.json({ detail: 'Not found' }, { status: HTTP_NOT_FOUND });
 
 /** The webhook routes over `store`, as the signed-in user sees them. */
 export function webhookHandlers(store: WebhookStore = webhooksFixture()): RequestHandler[] {

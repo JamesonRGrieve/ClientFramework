@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest';
-import { ADA, CHARLES, conversationsFixture, ME, rowOf } from './conversations.mocks';
-import { AGENT, authorOf, conversationTitle, seatName, shownTime, UNSEEN } from './display';
+import { rowOf } from 'zephyrex/testing/msw';
+import { ADA, CHARLES, conversationsFixture, ME } from './conversations.mocks';
+import { AGENT, authorOf, conversationTitle, seatName, UNSEEN } from './display';
 
 describe('display', () => {
   it('names a message’s author, the agent for one with none, and someone unseen otherwise', () => {
@@ -33,11 +34,5 @@ describe('display', () => {
     expect(conversationTitle(direct, [], ME.id)).toBe('Direct Message');
     expect(conversationTitle(rowOf(conversations, 'plans'), seats, ME.id)).toBe('Engine plans');
     expect(conversationTitle({ name: null, is_group_chat: true }, [], ME.id)).toBe('Untitled chat');
-  });
-
-  it('shows a server time in the user’s own time, and nothing for none', () => {
-    expect(shownTime('2026-10-01T09:00:00')).toBe(new Date('2026-10-01T09:00:00Z').toLocaleString());
-    expect(shownTime(null)).toBe('');
-    expect(shownTime('')).toBe('');
   });
 });

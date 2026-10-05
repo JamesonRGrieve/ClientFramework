@@ -4,7 +4,7 @@
 // their own and leaves), each change held to the row's version, and the user's teammates.
 import { http, HttpResponse, type RequestHandler } from 'msw';
 import type { Person } from 'zephyrex/pages/team';
-import { refuseStale, versionStamp } from 'zephyrex/testing/msw';
+import { notFound, refuseStale, versionStamp } from 'zephyrex/testing/msw';
 import { z } from 'zod';
 import {
   type Conversation,
@@ -177,15 +177,6 @@ export function conversationsFixture(): ConversationStore {
   };
 }
 
-/** The row `id` of `rows`; a test or story naming one that isn't there is a mistake in it. */
-export function rowOf<T extends { id: string }>(rows: readonly T[], id: string): T {
-  const found = rows.find((row) => row.id === id);
-  if (found === undefined) {
-    throw new Error(`No row ${id} in the fixture`);
-  }
-  return found;
-}
-
 /** The user `userId`, when the signed-in user can see them (they share a team); a stranger is null. */
 const visible = (userId: string): Person | null => [ME, ADA, CHARLES].find(({ id }) => id === userId) ?? null;
 
@@ -209,7 +200,6 @@ const defined = (fields: object): Record<string, unknown> =>
   Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== undefined));
 
 const refuse = (status: number, detail: string): Response => HttpResponse.json({ detail }, { status });
-const notFound = (): Response => refuse(HTTP_NOT_FOUND, 'Not found');
 
 /**
  * The conversation routes over `store`, as the signed-in user sees them, each change held to the

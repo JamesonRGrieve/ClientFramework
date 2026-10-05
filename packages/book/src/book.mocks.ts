@@ -2,13 +2,12 @@
 // An in-memory book server for the package's tests and stories (never compiled into dist): the
 // routes and shapes of the server's book extension, holding every change to its version.
 import { http, HttpResponse, type RequestHandler } from 'msw';
-import { refuseStale, versionStamp } from 'zephyrex/testing/msw';
+import { notFound, refuseStale, versionStamp } from 'zephyrex/testing/msw';
 import { z } from 'zod';
 import { BOOK_ENDPOINT, type Book, BookSchema, CHAPTER_ENDPOINT, type Chapter, ChapterSchema } from './bookApi';
 
 const HTTP_CREATED = 201;
 const HTTP_NO_CONTENT = 204;
-const HTTP_NOT_FOUND = 404;
 
 /** When the fixture's rows were recorded: their version until a test or story changes one. */
 export const FIXTURE_VERSION = '2026-10-01T09:00:00.000001';
@@ -75,8 +74,6 @@ const ChapterBodySchema = z.object({ book_chapter: ChapterSchema.omit({ id: true
 /** The fields a partial body actually sets, without the ones it leaves undefined. */
 const defined = (fields: object): Record<string, unknown> =>
   Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== undefined));
-
-const notFound = (): Response => HttpResponse.json({ detail: 'Not found' }, { status: HTTP_NOT_FOUND });
 
 /** The book routes over `store`, each change held to the row's version as the server does. */
 export function bookHandlers(store: BookStore = bookFixture()): RequestHandler[] {

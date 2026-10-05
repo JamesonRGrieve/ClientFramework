@@ -2,8 +2,9 @@
 import userEvent from '@testing-library/user-event';
 import { useRouter } from 'next/navigation.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { rowOf } from 'zephyrex/testing/msw';
 import { PromptEditor, promptChanges } from './PromptEditor';
-import { promptsFixture, rowOf, SUMMARY_ID } from './prompts.mocks';
+import { promptsFixture, SUMMARY_ID } from './prompts.mocks';
 import { renderPrompts } from './testing.mocks';
 
 const SAVE = 'Save prompt';

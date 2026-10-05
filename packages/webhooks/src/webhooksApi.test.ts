@@ -3,7 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZephyrexClient } from 'zephyrex';
 import { TestWrapper, testConfig } from 'zephyrex/testing';
-import { fetchFrom } from 'zephyrex/testing/msw';
+import { type Call, recordingFetch, writesOf } from 'zephyrex/testing/msw';
 import {
   FIXTURE_VERSION,
   ORDERS_HOOK_ID,
@@ -18,19 +18,13 @@ const client = new ZephyrexClient({ baseUrl: testConfig.server.baseUrl });
 
 describe('the webhooks API', () => {
   let store = webhooksFixture();
-  let calls: { url: string; init: RequestInit | undefined }[] = [];
+  let calls: Call[] = [];
 
   beforeEach(() => {
     store = webhooksFixture();
-    calls = [];
-    const answer = fetchFrom(webhookHandlers(store));
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async (input: URL | string, init?: RequestInit) => {
-        calls.push({ url: String(input), init });
-        return answer(input, init);
-      }),
-    );
+    const recorded = recordingFetch(webhookHandlers(store));
+    calls = recorded.calls;
+    vi.stubGlobal('fetch', vi.fn(recorded.fetch));
   });
 
   afterEach(() => {
@@ -64,10 +58,7 @@ describe('the webhooks API', () => {
     await expect(result.current.update.save(loaded, { active: false, secret: 'a-brand-new-secret' })).resolves.toBe(true);
     const changed = subscriptionOf(store, ORDERS_HOOK_ID);
     await expect(result.current.remove.save(changed, {})).resolves.toBe(true);
-    const writes = calls
-      .filter(({ init }) => (init?.method ?? 'GET') !== 'GET')
-      .map(({ url, init }) => [init?.method, new URL(url).pathname, init?.body, new Headers(init?.headers).get('If-Match')]);
-    expect(writes).toEqual([
+    expect(writesOf(calls)).toEqual([
       [
         'POST',
         '/v1/webhook-subscription',

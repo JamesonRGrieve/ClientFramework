@@ -2,7 +2,7 @@
 // An in-memory health server for the package's tests and stories (never compiled into dist): the
 // four record routes of the server's health extension, holding every change to its version.
 import { http, HttpResponse, type RequestHandler } from 'msw';
-import { refuseStale, versionStamp } from 'zephyrex/testing/msw';
+import { notFound, refuseStale, versionStamp } from 'zephyrex/testing/msw';
 import { z } from 'zod';
 import type { Activity, Meal, Sleep, Weight } from './healthModel';
 import type { HealthRow, RecordType } from './records';
@@ -10,7 +10,6 @@ import { activityType, mealType, sleepType, weightType } from './recordTypes';
 
 const HTTP_CREATED = 201;
 const HTTP_NO_CONTENT = 204;
-const HTTP_NOT_FOUND = 404;
 const HTTP_UNPROCESSABLE = 422;
 const MS_PER_MINUTE = 60_000;
 const MINUTES_PER_DAY = 1440;
@@ -84,7 +83,6 @@ function recordHandlers<T extends HealthRow>(
   { rows, setRows, defaults, prepare }: RecordRoutes<T>,
 ): RequestHandler[] {
   let created = 0;
-  const notFound = (): Response => HttpResponse.json({ detail: 'Not found' }, { status: HTTP_NOT_FOUND });
   const refusedNight = (): Response =>
     HttpResponse.json({ detail: 'wake_time must come after bedtime, within 24 hours' }, { status: HTTP_UNPROCESSABLE });
   return [

@@ -2,8 +2,9 @@
 import { within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { rowOf } from 'zephyrex/testing/msw';
 import { PromptArguments, storedDefault } from './PromptArguments';
-import { GREETING_ID, promptsFixture, rowOf, SUMMARY_ID } from './prompts.mocks';
+import { GREETING_ID, promptsFixture, SUMMARY_ID } from './prompts.mocks';
 import { renderPrompts } from './testing.mocks';
 
 const AUDIENCE_DEFAULT = 'AUDIENCE default';

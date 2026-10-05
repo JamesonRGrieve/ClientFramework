@@ -2,8 +2,9 @@
 import userEvent from '@testing-library/user-event';
 import { useRouter } from 'next/navigation.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { rowOf } from 'zephyrex/testing/msw';
 import { ConversationDetails, detailsChanges } from './ConversationDetails';
-import { conversationsFixture, rowOf } from './conversations.mocks';
+import { conversationsFixture } from './conversations.mocks';
 import { renderConversations } from './testing.mocks';
 
 const SAVE = 'Save details';

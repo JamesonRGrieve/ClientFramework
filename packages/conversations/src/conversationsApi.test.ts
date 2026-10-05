@@ -3,8 +3,8 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZephyrexClient } from 'zephyrex';
 import { TestWrapper, testConfig, withSession } from 'zephyrex/testing';
-import { fetchFrom } from 'zephyrex/testing/msw';
-import { ADA, CHARLES, conversationHandlers, conversationsFixture, FIXTURE_VERSION, ME, rowOf } from './conversations.mocks';
+import { type Call, recordingFetch, rowOf, writesOf } from 'zephyrex/testing/msw';
+import { ADA, CHARLES, conversationHandlers, conversationsFixture, FIXTURE_VERSION, ME } from './conversations.mocks';
 import {
   addParticipant,
   createGroupChat,
@@ -24,36 +24,20 @@ const client = new ZephyrexClient({ baseUrl: testConfig.server.baseUrl });
 describe('the conversations API', () => {
   let signOut: () => void = () => undefined;
   let store = conversationsFixture();
-  let calls: { url: string; init: RequestInit | undefined }[] = [];
+  let calls: Call[] = [];
 
   beforeEach(() => {
     signOut = withSession();
     store = conversationsFixture();
-    calls = [];
-    const answer = fetchFrom(conversationHandlers(store));
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async (input: URL | string, init?: RequestInit) => {
-        calls.push({ url: String(input), init });
-        return answer(input, init);
-      }),
-    );
+    const recorded = recordingFetch(conversationHandlers(store));
+    calls = recorded.calls;
+    vi.stubGlobal('fetch', vi.fn(recorded.fetch));
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
     signOut();
   });
-
-  const writes = (): (string | null | undefined)[][] =>
-    calls
-      .filter(({ init }) => (init?.method ?? 'GET') !== 'GET')
-      .map(({ url, init }) => [
-        init?.method,
-        url.replace(testConfig.server.baseUrl, ''),
-        typeof init?.body === 'string' ? init.body : undefined,
-        new Headers(init?.headers).get('If-Match'),
-      ]);
 
   it('reads the conversations most recently changed first, and one conversation or null', async () => {
     const all = renderHook(() => useConversations(), { wrapper: TestWrapper }).result;
@@ -96,7 +80,7 @@ describe('the conversations API', () => {
     await sendMessage(client, chat.id, 'First', null);
     await sendMessage(client, 'plans', 'Agreed', 'm1');
     await addParticipant(client, chat.id, CHARLES.id);
-    expect(writes()).toEqual([
+    expect(writesOf(calls)).toEqual([
       ['POST', '/v1/conversation', '{"conversation":{"name":"Lab","description":null,"is_group_chat":true}}', null],
       ['POST', '/v1/conversation/direct', '{"other_user_id":"u-ada","initial_message":"Hi Ada"}', null],
       ['POST', '/v1/message', `{"message":{"conversation_id":"${chat.id}","content":"First"}}`, null],
@@ -116,7 +100,7 @@ describe('the conversations API', () => {
     await expect(messages.current.update.save(mine, { content: 'Then we run it!' })).resolves.toBe(true);
     await expect(seats.current.remove.save(adaSeat, {})).resolves.toBe(true);
     await expect(messages.current.remove.save(rowOf(store.messages, 'm3'), {})).resolves.toBe(true);
-    expect(writes()).toEqual([
+    expect(writesOf(calls)).toEqual([
       ['PUT', '/v1/conversation/plans', '{"conversation":{"name":"Engine"}}', `"${plans.created_at ?? ''}"`],
       ['PUT', '/v1/message/m2', '{"message":{"content":"Then we run it!"}}', `"${mine.created_at ?? ''}"`],
       ['DELETE', `/v1/conversation/plans/participants/${ADA.id}`, undefined, `"${FIXTURE_VERSION}"`],

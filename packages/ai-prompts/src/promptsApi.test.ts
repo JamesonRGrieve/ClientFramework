@@ -3,8 +3,8 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZephyrexClient } from 'zephyrex';
 import { TestWrapper, testConfig } from 'zephyrex/testing';
-import { fetchFrom } from 'zephyrex/testing/msw';
-import { FIXTURE_VERSION, GREETING_ID, promptHandlers, promptsFixture, rowOf, SUMMARY_ID } from './prompts.mocks';
+import { type Call, recordingFetch, rowOf, writesOf } from 'zephyrex/testing/msw';
+import { FIXTURE_VERSION, GREETING_ID, promptHandlers, promptsFixture, SUMMARY_ID } from './prompts.mocks';
 import {
   buildPrompt,
   createArgument,
@@ -20,19 +20,13 @@ const client = new ZephyrexClient({ baseUrl: testConfig.server.baseUrl });
 
 describe('the prompts API', () => {
   let store = promptsFixture();
-  let calls: { url: string; init: RequestInit | undefined }[] = [];
+  let calls: Call[] = [];
 
   beforeEach(() => {
     store = promptsFixture();
-    calls = [];
-    const answer = fetchFrom(promptHandlers(store));
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async (input: URL | string, init?: RequestInit) => {
-        calls.push({ url: String(input), init });
-        return answer(input, init);
-      }),
-    );
+    const recorded = recordingFetch(promptHandlers(store));
+    calls = recorded.calls;
+    vi.stubGlobal('fetch', vi.fn(recorded.fetch));
   });
 
   afterEach(() => {
@@ -66,10 +60,7 @@ describe('the prompts API', () => {
     await expect(prompts.current.update.save(rowOf(store.prompts, SUMMARY_ID), { favourite: false })).resolves.toBe(true);
     await expect(args.current.update.save(rowOf(store.args, 'arg-length'), { default_value: '100' })).resolves.toBe(true);
     await expect(args.current.remove.save(rowOf(store.args, 'arg-audience'), {})).resolves.toBe(true);
-    const writes = calls
-      .filter(({ init }) => (init?.method ?? 'GET') !== 'GET')
-      .map(({ url, init }) => [init?.method, new URL(url).pathname, init?.body, new Headers(init?.headers).get('If-Match')]);
-    expect(writes).toEqual([
+    expect(writesOf(calls)).toEqual([
       ['POST', '/v1/prompt', '{"prompt":{"name":"New","description":null,"content":"{X}"}}', null],
       [
         'POST',
