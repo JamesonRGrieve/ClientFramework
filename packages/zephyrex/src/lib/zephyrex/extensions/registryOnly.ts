@@ -11,6 +11,8 @@ const entry = (name: string, displayName: string, description: string): Zephyrex
 // AI, ported from AGInfrastructure: these have routes, and their pages come with the port.
 export const aiAgentsExtension = entry('ai_agents', 'AI Agents', 'Agents, their abilities, memories, projects and activity');
 export const aiChainsExtension = entry('ai_chains', 'AI Chains', 'Chains of AI steps for automating multi-step tasks');
+// AI memories: an agent's, so no pages of their own; @zephyrex/ai-memories provides the panel an
+// agent's page shows.
 export const aiMemoriesExtension = entry(
   'ai_memories',
   'AI Memories',
