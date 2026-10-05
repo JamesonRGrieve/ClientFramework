@@ -26,6 +26,7 @@ COPY packages/genealogy/package.json ./packages/genealogy/
 COPY packages/health/package.json ./packages/health/
 COPY packages/payment/package.json ./packages/payment/
 COPY packages/social/package.json ./packages/social/
+COPY packages/webhooks/package.json ./packages/webhooks/
 RUN pnpm install --frozen-lockfile
 COPY . .
 # Read by next.config.js and zephyrex.config.ts at build time; nothing is written to disk or logged.
