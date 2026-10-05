@@ -1,6 +1,6 @@
 {
   "name": "@zephyrex/genealogy",
-  "version": "1.0.0-alpha.1",
+  "version": "0.0.1-alpha.1",
   "description": "Zephyrex genealogy client: family trees, relatives, kinship and GEDCOM import and export.",
   "author": "Jameson R Grieve",
   "license": "AGPL-3.0-or-later",

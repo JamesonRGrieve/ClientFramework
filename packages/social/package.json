@@ -1,6 +1,6 @@
 {
   "name": "@zephyrex/social",
-  "version": "1.0.0-alpha.1",
+  "version": "0.0.1-alpha.1",
   "description": "Zephyrex social client: the record of what the server published to the user's social accounts.",
   "author": "Jameson R Grieve",
   "license": "AGPL-3.0-or-later",

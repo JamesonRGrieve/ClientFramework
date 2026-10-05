@@ -1,6 +1,6 @@
 {
   "name": "@zephyrex/auth-api-keys",
-  "version": "1.0.0-alpha.1",
+  "version": "0.0.1-alpha.1",
   "description": "Zephyrex API keys client: the signed-in user's keys, issued, rotated and revoked from the account page.",
   "author": "Jameson R Grieve",
   "license": "AGPL-3.0-or-later",

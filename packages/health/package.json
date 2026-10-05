@@ -1,6 +1,6 @@
 {
   "name": "@zephyrex/health",
-  "version": "1.0.0-alpha.1",
+  "version": "0.0.1-alpha.1",
   "description": "Zephyrex health client: the user's log of activities, meals, weights and sleep.",
   "author": "Jameson R Grieve",
   "license": "AGPL-3.0-or-later",

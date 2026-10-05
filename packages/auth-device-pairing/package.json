@@ -1,6 +1,6 @@
 {
   "name": "@zephyrex/auth-device-pairing",
-  "version": "1.0.0-alpha.1",
+  "version": "0.0.1-alpha.1",
   "description": "Zephyrex device pairing client: sign in on a new device by scanning its code with one already signed in.",
   "author": "Jameson R Grieve",
   "license": "AGPL-3.0-or-later",

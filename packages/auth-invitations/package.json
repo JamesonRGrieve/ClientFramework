@@ -1,6 +1,6 @@
 {
   "name": "@zephyrex/auth-invitations",
-  "version": "1.0.0-alpha.1",
+  "version": "0.0.1-alpha.1",
   "description": "Zephyrex team invitations client: answering invitations from the account page, and inviting people from the team page.",
   "author": "Jameson R Grieve",
   "license": "AGPL-3.0-or-later",

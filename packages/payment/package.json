@@ -1,6 +1,6 @@
 {
   "name": "@zephyrex/payment",
-  "version": "1.0.0-alpha.1",
+  "version": "0.0.1-alpha.1",
   "description": "Zephyrex payment client: the subscribe page, with the payment provider's hosted pricing table.",
   "author": "Jameson R Grieve",
   "license": "AGPL-3.0-or-later",

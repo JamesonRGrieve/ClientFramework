@@ -1,6 +1,6 @@
 {
   "name": "@zephyrex/auth-mfa",
-  "version": "1.0.0-alpha.1",
+  "version": "0.0.1-alpha.1",
   "description": "Zephyrex two-factor client: the signed-in user's authenticator app, recovery codes and second factors.",
   "author": "Jameson R Grieve",
   "license": "AGPL-3.0-or-later",
