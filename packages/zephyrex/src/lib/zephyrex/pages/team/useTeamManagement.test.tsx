@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useMembershipActions, useTeamAccess, useTeamActions } from './useTeamManagement';
+import { SYSTEM_TEAM_ID } from '../../hooks';
+import { useMembershipActions, useTeamAccess, useTeamActions, useTeammates } from './useTeamManagement';
 import { withSession } from '@/testing/session';
 import { TestWrapper as wrapper, testConfig } from '@/testing/TestWrapper';
 
@@ -16,6 +17,7 @@ afterEach(() => {
 const SERVER = testConfig.server.baseUrl;
 const TEAM = 't1';
 const ME = '22222222-2222-2222-2222-222222222222';
+const MY_EMAIL = 'me@example.com';
 const HTTP_OK = 200;
 const HTTP_CREATED = 201;
 
@@ -38,7 +40,7 @@ describe('useTeamManagement', () => {
         const url = String(input);
         calls.push({ url, init });
         if (url === `${SERVER}/v1/user`) {
-          return Promise.resolve(json({ user: { id: ME, email: 'me@example.com' } }));
+          return Promise.resolve(json({ user: { id: ME, email: MY_EMAIL } }));
         }
         if (url === `${SERVER}/v1/team/${TEAM}/user`) {
           return Promise.resolve(
@@ -49,7 +51,7 @@ describe('useTeamManagement', () => {
                   user_id: ME,
                   team_id: TEAM,
                   role_id: 'r-admin',
-                  user: { id: ME, email: 'me@example.com' },
+                  user: { id: ME, email: MY_EMAIL },
                   role: { id: 'r-admin', name: 'admin', parent_id: 'r-user' },
                 },
               ],
@@ -114,5 +116,60 @@ describe('useTeamManagement', () => {
       ['PATCH', `${SERVER}/v1/team/${TEAM}/user/u-2`, '{"user_team":{"role_id":"r-admin"}}', `"${MEMBER_VERSION}"`],
       ['DELETE', `${SERVER}/v1/team/${TEAM}/user/u-2`, undefined, `"${MEMBER_VERSION}"`],
     ]);
+  });
+});
+
+describe('useTeammates', () => {
+  const OTHER_TEAM = 't2';
+  const seat = (teamId: string, user: Record<string, string>): object => ({
+    id: `${teamId}-${user['id'] ?? ''}`,
+    user_id: user['id'],
+    team_id: teamId,
+    role_id: 'r-user',
+    user,
+    role: { id: 'r-user', name: 'user' },
+  });
+  const MEMBERS: Record<string, object[]> = {
+    [TEAM]: [seat(TEAM, { id: ME, email: MY_EMAIL }), seat(TEAM, { id: 'u-b', display_name: 'Babbage' })],
+    [OTHER_TEAM]: [
+      seat(OTHER_TEAM, { id: 'u-b', display_name: 'Babbage' }),
+      seat(OTHER_TEAM, { id: 'u-a', first_name: 'Ada' }),
+    ],
+  };
+
+  beforeEach(() => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: URL | string) => {
+        const url = String(input);
+        if (url === `${SERVER}/v1/user`) {
+          return Promise.resolve(json({ user: { id: ME, email: MY_EMAIL } }));
+        }
+        if (url === `${SERVER}/v1/team`) {
+          return Promise.resolve(
+            json({
+              teams: [
+                { id: TEAM, name: 'Alpha' },
+                { id: OTHER_TEAM, name: 'Beta' },
+                { id: SYSTEM_TEAM_ID, name: 'System' },
+              ],
+            }),
+          );
+        }
+        const teamId = /\/v1\/team\/([^/]+)\/user$/.exec(url)?.[1] ?? '';
+        return Promise.resolve(json({ user_teams: MEMBERS[teamId] ?? [] }));
+      }),
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('lists everyone the user shares a team with, once each, by name, without the user', async () => {
+    const { result } = renderHook(() => useTeammates(), { wrapper });
+    await waitFor(() => {
+      expect(result.current.data?.map(({ id }) => id)).toEqual(['u-a', 'u-b']);
+    });
   });
 });

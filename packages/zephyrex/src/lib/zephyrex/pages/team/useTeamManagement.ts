@@ -12,6 +12,8 @@ import {
   type Membership,
   MembershipSchema,
   MembershipsResponseSchema,
+  type Person,
+  personName,
   type Role,
   RoleSchema,
 } from './teamModel';
@@ -28,6 +30,32 @@ export function useTeamMembers(teamId: string | undefined): SWRResponse<Membersh
   return useSWR<Membership[], Error>(
     teamId === undefined || teamId === '' ? null : client.url(membersPath(teamId)),
     async () => MembershipsResponseSchema.parse(await client.get(membersPath(teamId ?? ''))).user_teams,
+  );
+}
+
+/**
+ * The people the signed-in user shares a team with, once each, by name and without the user: the
+ * users the server lets them see, so the ones they can message or add to a conversation.
+ */
+export function useTeammates(): SWRResponse<Person[], Error> {
+  const client = useClient();
+  const { data: user } = useUser();
+  const { data: teams } = useTeams();
+  const teamIds = (teams ?? []).map(({ id }) => id);
+  return useSWR<Person[], Error>(
+    user === undefined || teams === undefined ? null : ['teammates', user.id, ...teamIds],
+    async () => {
+      const memberships = await Promise.all(
+        teamIds.map(async (teamId) => MembershipsResponseSchema.parse(await client.get(membersPath(teamId))).user_teams),
+      );
+      const people = new Map<string, Person>();
+      for (const { user: person } of memberships.flat()) {
+        if (person.id !== user?.id) {
+          people.set(person.id, person);
+        }
+      }
+      return [...people.values()].sort((a, b) => personName(a).localeCompare(personName(b)));
+    },
   );
 }
 

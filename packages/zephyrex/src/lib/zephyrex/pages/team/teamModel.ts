@@ -11,13 +11,25 @@ export const RoleSchema = z.object({
 });
 export type Role = z.infer<typeof RoleSchema>;
 
-const MemberUserSchema = z.object({
+/** Another user, as the server shows them to someone who can see them (a member, an included `user`). */
+export const PersonSchema = z.object({
   id: z.string(),
   email: z.string().nullable().optional(),
   display_name: z.string().nullable().optional(),
   first_name: z.string().nullable().optional(),
   last_name: z.string().nullable().optional(),
 });
+export type Person = z.infer<typeof PersonSchema>;
+
+/** What to call a person: their display name, else their full name, else their email. */
+export function personName(person: Person): string {
+  const fullName = [person.first_name, person.last_name].filter((part) => (part ?? '') !== '').join(' ');
+  return (person.display_name ?? '') !== ''
+    ? (person.display_name ?? '')
+    : fullName !== ''
+      ? fullName
+      : (person.email ?? '');
+}
 
 /** One membership of a team, with its user and role (GET /v1/team/{id}/user). */
 export const MembershipSchema = z.object({
@@ -25,7 +37,7 @@ export const MembershipSchema = z.object({
   user_id: z.string(),
   team_id: z.string(),
   role_id: z.string(),
-  user: MemberUserSchema,
+  user: PersonSchema,
   role: RoleSchema,
   // The row's version, sent back verbatim as If-Match on every change.
   created_at: z.string().nullable().optional(),
@@ -87,7 +99,4 @@ export function invitableRoles(roles: readonly Role[], roleId: string | undefine
 
 export const roleLabel = (role: Role | null | undefined): string => role?.friendly_name ?? role?.name ?? 'Unknown role';
 
-export const memberName = ({ user }: Membership): string => {
-  const fullName = [user.first_name, user.last_name].filter((part) => (part ?? '') !== '').join(' ');
-  return (user.display_name ?? '') !== '' ? (user.display_name ?? '') : fullName !== '' ? fullName : (user.email ?? '');
-};
+export const memberName = ({ user }: Membership): string => personName(user);

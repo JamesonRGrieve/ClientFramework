@@ -1,6 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest';
-import { invitableRoles, isTeamAdmin, type Membership, memberName, type Role, roleLabel, roleRanks } from './teamModel';
+import {
+  invitableRoles,
+  isTeamAdmin,
+  type Membership,
+  memberName,
+  personName,
+  type Role,
+  roleLabel,
+  roleRanks,
+} from './teamModel';
 
 const USER: Role = { id: 'r-user', name: 'user', friendly_name: 'User', parent_id: null, team_id: null };
 const ADMIN: Role = { id: 'r-admin', name: 'admin', friendly_name: 'Admin', parent_id: 'r-user', team_id: null };
@@ -82,6 +91,11 @@ describe('labels', () => {
     expect(memberName(member({ id: 'u', first_name: 'Ada', last_name: 'Lovelace', email: 'a@x.io' }))).toBe('Ada Lovelace');
     expect(memberName(member({ id: 'u', email: 'a@x.io' }))).toBe('a@x.io');
     expect(memberName(member({ id: 'u' }))).toBe('');
+  });
+
+  it('names any person the same way, skipping blank names', () => {
+    expect(personName({ id: 'u', display_name: '', first_name: 'Ada', last_name: null, email: 'a@x.io' })).toBe('Ada');
+    expect(personName({ id: 'u', display_name: null, first_name: '', last_name: '', email: 'a@x.io' })).toBe('a@x.io');
   });
 
   it('labels a role by its friendly name', () => {

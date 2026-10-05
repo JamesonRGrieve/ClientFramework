@@ -24,6 +24,7 @@ export const bookExtension = entry(
   'Books',
   'Books and their chapters, written and downloaded as Markdown, HTML or EPUB',
 );
+// Conversations: @zephyrex/conversations extends this with the pages for direct messages and group chats.
 export const conversationsExtension = entry(
   'conversations',
   'Conversations',

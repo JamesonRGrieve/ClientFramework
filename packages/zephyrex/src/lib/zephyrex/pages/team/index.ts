@@ -6,7 +6,7 @@ export { TeamPage, type TeamPageProps } from './TeamPage';
 // The page's parts, for an app composing its own team page.
 export { Team, type TeamProps } from './Team';
 export { TeamMembers, type TeamMembersProps } from './TeamMembers';
-export { useTeamAccess, useTeamActions, useTeamMembers, useRoles } from './useTeamManagement';
+export { useTeamAccess, useTeamActions, useTeammates, useTeamMembers, useRoles } from './useTeamManagement';
 export type { TeamAccess, TeamActions } from './useTeamManagement';
-// The team model, for extensions' team sections.
-export { roleLabel, type Role } from './teamModel';
+// The team model, for extensions' team sections and anything that names other users.
+export { PersonSchema, personName, roleLabel, type Person, type Role } from './teamModel';
