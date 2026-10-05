@@ -29,6 +29,7 @@ describe('@zephyrex/conversations', () => {
         'createGroupChat',
         'openDirectMessage',
         'sendMessage',
+        'sendVoiceMessage',
         'useConversation',
         'useConversationActions',
         'useConversations',

@@ -11,6 +11,7 @@ export const CONVERSATION_ENDPOINT = '/v1/conversation';
 export const PARTICIPANT_ENDPOINT = '/v1/conversation/user';
 export const MESSAGE_ENDPOINT = '/v1/message';
 export const DIRECT_ENDPOINT = `${CONVERSATION_ENDPOINT}/direct`;
+export const VOICE_ENDPOINT = `${MESSAGE_ENDPOINT}/voice`;
 
 const HTTP_NOT_FOUND = 404;
 /** How often an open conversation asks for new messages (the server pushes none). */
@@ -166,6 +167,28 @@ export async function sendMessage(
       message: { conversation_id: conversationId, content, ...(parentId === null ? {} : { parent_id: parentId }) },
     }),
   ).message;
+}
+
+/**
+ * Posts a recording (base64) as the user's message, replying to `parentId` when given. The server
+ * transcribes it through the AI extension and stores the text; it answers 503 without a
+ * transcribing model and 422 when no speech was heard. Like the participants route, this route
+ * answers with the message itself, not in an envelope.
+ */
+export async function sendVoiceMessage(
+  client: ZephyrexClient,
+  conversationId: string,
+  recording: { audioBase64: string; filename: string },
+  parentId: string | null,
+): Promise<Message> {
+  return MessageSchema.parse(
+    await client.post(VOICE_ENDPOINT, {
+      conversation_id: conversationId,
+      audio_base64: recording.audioBase64,
+      filename: recording.filename,
+      ...(parentId === null ? {} : { parent_id: parentId }),
+    }),
+  );
 }
 
 /** Seats `userId` in a conversation (a no-op when they already are); they must be a user the requester can see. */

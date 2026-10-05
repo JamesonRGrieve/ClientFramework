@@ -16,15 +16,17 @@ import {
   MessageSchema,
   type Participant,
   PARTICIPANT_ENDPOINT,
+  VOICE_ENDPOINT,
 } from './conversationsApi';
-import { type Feedback, FEEDBACK_ENDPOINT, FeedbackSchema } from './feedbackApi';
 import { ARTIFACT_ENDPOINT, type Artifact } from './artifactsApi';
+import { type Feedback, FEEDBACK_ENDPOINT, FeedbackSchema } from './feedbackApi';
 
 const HTTP_CREATED = 201;
 const HTTP_NO_CONTENT = 204;
 const HTTP_BAD_REQUEST = 400;
 const HTTP_FORBIDDEN = 403;
 const HTTP_NOT_FOUND = 404;
+const HTTP_UNPROCESSABLE = 422;
 
 /** When the fixture's rows were recorded: their version until a test or story changes one. */
 export const FIXTURE_VERSION = '2026-10-01T09:00:00.000001';
@@ -190,6 +192,15 @@ const visible = (userId: string): Person | null => [ME, ADA, CHARLES].find(({ id
 const ConversationBodySchema = z.object({ conversation: ConversationSchema.omit({ id: true }).partial() });
 const MessageBodySchema = z.object({ message: MessageSchema.omit({ id: true }).partial() });
 const FeedbackBodySchema = z.object({ feedback: FeedbackSchema.omit({ id: true }).partial() });
+const VoiceBodySchema = z.object({
+  conversation_id: z.string(),
+  audio_base64: z.string(),
+  filename: z.string().default('audio.webm'),
+  parent_id: z.string().nullable().optional(),
+});
+
+/** What the mock "transcribes" a recording to: its file name, so a test can see which one was sent. */
+export const transcriptOf = (filename: string): string => `(spoken words from ${filename})`;
 const ParticipantBodySchema = z.object({ user_id: z.string() });
 const DirectBodySchema = z.object({ other_user_id: z.string(), initial_message: z.string().nullable().optional() });
 
@@ -385,6 +396,18 @@ export function conversationHandlers(store: ConversationStore = conversationsFix
       }
       const row = post(fields.conversation_id ?? '', fields.content ?? '', fields.parent_id ?? null);
       return HttpResponse.json({ message: row }, { status: HTTP_CREATED });
+    }),
+    http.post(`*${VOICE_ENDPOINT}`, async ({ request }) => {
+      const recording = VoiceBodySchema.parse(await request.json());
+      if (mine(recording.conversation_id) === undefined) {
+        return notFound();
+      }
+      if (atob(recording.audio_base64) === '') {
+        return refuse(HTTP_UNPROCESSABLE, 'No speech was heard');
+      }
+      return HttpResponse.json(
+        post(recording.conversation_id, transcriptOf(recording.filename), recording.parent_id ?? null),
+      );
     }),
     http.put(`*${MESSAGE_ENDPOINT}/:id`, async ({ params: { id }, request }) => {
       const current = store.messages.find((row) => row.id === id && seated(row.conversation_id));

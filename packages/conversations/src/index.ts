@@ -17,6 +17,7 @@ export {
   PARTICIPANT_ENDPOINT,
   ParticipantSchema,
   sendMessage,
+  sendVoiceMessage,
   useConversation,
   useConversationActions,
   useConversations,

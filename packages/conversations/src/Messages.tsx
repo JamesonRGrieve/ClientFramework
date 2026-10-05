@@ -10,6 +10,7 @@ import { type Message, sendMessage, useMessageActions, useMessages } from './con
 import { authorOf, shownTime } from './display';
 import { MessageFeedback } from './MessageFeedback';
 import { Problem } from './Problem';
+import { VoiceRecorder } from './VoiceRecorder';
 
 const EDIT_FAILURE = 'The message could not be saved.';
 const REMOVE_FAILURE = 'The message could not be deleted.';
@@ -244,10 +245,18 @@ function Compose({
           setProblem(null);
         }}
       />
-      <div>
+      <div className='flex flex-wrap items-start gap-2'>
         <Button type='submit' disabled={pending || text.trim() === ''}>
           Send
         </Button>
+        <VoiceRecorder
+          conversationId={conversationId}
+          parentId={replyTo?.id ?? null}
+          onSent={async () => {
+            await refreshMessages();
+            onSent();
+          }}
+        />
       </div>
       <Problem text={problem} />
     </form>
