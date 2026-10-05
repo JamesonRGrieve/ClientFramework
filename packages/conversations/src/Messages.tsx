@@ -8,6 +8,7 @@ import { type ConflictField, ConflictPanel, useClient, useDraft, useEditBase, wr
 import { Textarea } from 'zephyrex/ui/textarea';
 import { type Message, sendMessage, useMessageActions, useMessages } from './conversationsApi';
 import { authorOf, shownTime } from './display';
+import { MessageFeedback } from './MessageFeedback';
 import { Problem } from './Problem';
 
 const EDIT_FAILURE = 'The message could not be saved.';
@@ -112,7 +113,8 @@ function MessageItem({
   const { remove } = useMessageActions(message.conversation_id);
   const [editing, setEditing] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
-  const mine = message.user_id !== null && message.user_id !== undefined && message.user_id === viewerId;
+  const fromAgent = message.user_id === null || message.user_id === undefined;
+  const mine = !fromAgent && message.user_id === viewerId;
 
   const settleRemove = async (removing: Promise<boolean>): Promise<void> => {
     try {
@@ -168,6 +170,7 @@ function MessageItem({
           )}
         </div>
       )}
+      {!editing && fromAgent && <MessageFeedback messageId={message.id} />}
       {remove.conflict !== null && (
         <ConflictPanel
           conflict={remove.conflict}

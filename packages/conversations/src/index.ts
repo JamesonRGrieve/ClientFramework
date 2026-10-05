@@ -26,3 +26,7 @@ export {
   useParticipants,
 } from './conversationsApi';
 export type { Conversation, ConversationActions, Message, MessageActions, Participant } from './conversationsApi';
+export { FEEDBACK_ENDPOINT, FeedbackSchema, rateMessage, useFeedbackActions, useMyFeedback } from './feedbackApi';
+export type { Feedback, FeedbackActions } from './feedbackApi';
+export { ARTIFACT_ENDPOINT, ArtifactSchema, useArtifacts } from './artifactsApi';
+export type { Artifact } from './artifactsApi';

@@ -15,7 +15,9 @@ import {
   rowOf,
   STRANGER_ID,
 } from './conversations.mocks';
+import { ArtifactSchema } from './artifactsApi';
 import { ConversationSchema, MessageSchema, ParticipantSchema } from './conversationsApi';
+import { FeedbackSchema } from './feedbackApi';
 
 const BASE = 'http://localhost:1996';
 const HTTP_OK = 200;
@@ -26,7 +28,7 @@ const HTTP_FORBIDDEN = 403;
 const HTTP_NOT_FOUND = 404;
 const HTTP_PRECONDITION_FAILED = 412;
 const HTTP_PRECONDITION_REQUIRED = 428;
-const SEAT_VERSION = `"${FIXTURE_VERSION}"`;
+const FIXTURE_ETAG = `"${FIXTURE_VERSION}"`;
 
 const conversationUrl = (id: string): string => `${BASE}/v1/conversation/${id}`;
 const seatUrl = (conversationId: string, userId: string): string =>
@@ -47,6 +49,8 @@ const SeatsBodySchema = z.object({ conversation_users: z.array(ParticipantSchema
 const MessagesBodySchema = z.object({ messages: z.array(MessageSchema) });
 const MessageBodySchema = z.object({ message: MessageSchema });
 const DirectBodySchema = z.object({ conversation: ConversationSchema, message: MessageSchema.nullable() });
+const FeedbacksBodySchema = z.object({ feedbacks: z.array(FeedbackSchema) });
+const ArtifactsBodySchema = z.object({ artifacts: z.array(ArtifactSchema) });
 
 describe('the mock conversations server', () => {
   it('shows the user only the conversations they are in, with their seats’ and messages’ users as the user may see them', async () => {
@@ -127,16 +131,32 @@ describe('the mock conversations server', () => {
     expect((await add(CHARLES.id)).status).toBe(HTTP_OK);
     expect((await add('u-nobody')).status).toBe(HTTP_NOT_FOUND);
     expect((await serve(seatUrl(PLANS_ID, ADA.id), request('DELETE'))).status).toBe(HTTP_PRECONDITION_REQUIRED);
-    expect((await serve(seatUrl(PLANS_ID, ADA.id), request('DELETE', undefined, SEAT_VERSION))).status).toBe(HTTP_OK);
+    expect((await serve(seatUrl(PLANS_ID, ADA.id), request('DELETE', undefined, FIXTURE_ETAG))).status).toBe(HTTP_OK);
     expect(store.participants.some(({ conversation_id: id, user_id: who }) => id === PLANS_ID && who === ADA.id)).toBe(
       false,
     );
-    expect((await serve(seatUrl(PLANS_ID, ME.id), request('DELETE', undefined, SEAT_VERSION))).status).toBe(
+    expect((await serve(seatUrl(PLANS_ID, ME.id), request('DELETE', undefined, FIXTURE_ETAG))).status).toBe(
       HTTP_BAD_REQUEST,
     );
-    expect((await serve(seatUrl(DIRECT_ID, CHARLES.id), request('DELETE', undefined, SEAT_VERSION))).status).toBe(
+    expect((await serve(seatUrl(DIRECT_ID, CHARLES.id), request('DELETE', undefined, FIXTURE_ETAG))).status).toBe(
       HTTP_FORBIDDEN,
     );
+  });
+
+  it('keeps feedback its author’s, held to its version, and shows only the files of the user’s conversations', async () => {
+    const store = conversationsFixture();
+    const serve = fetchFrom(conversationHandlers(store));
+    const mine = FeedbacksBodySchema.parse(await (await serve(`${BASE}/v1/feedback?user_id=${ME.id}`)).json());
+    expect(mine.feedbacks.map(({ id }) => id)).toEqual(['f1']);
+    const rate = { feedback: { positive: false } };
+    expect((await serve(`${BASE}/v1/feedback/f1`, request('PUT', rate))).status).toBe(HTTP_PRECONDITION_REQUIRED);
+    expect((await serve(`${BASE}/v1/feedback/f1`, request('PUT', rate, FIXTURE_ETAG))).status).toBe(HTTP_OK);
+    expect(
+      (await serve(`${BASE}/v1/feedback`, request('POST', { feedback: { message_id: 'gone', positive: true } }))).status,
+    ).toBe(HTTP_NOT_FOUND);
+    store.participants = store.participants.filter(({ conversation_id: id }) => id !== DIRECT_ID);
+    const files = ArtifactsBodySchema.parse(await (await serve(`${BASE}/v1/artifact`)).json());
+    expect(files.artifacts.map(({ id }) => id)).toEqual(['a1', 'a2']);
   });
 
   it('lets only the owner delete a conversation', async () => {

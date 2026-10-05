@@ -17,6 +17,8 @@ import {
   type Participant,
   PARTICIPANT_ENDPOINT,
 } from './conversationsApi';
+import { type Feedback, FEEDBACK_ENDPOINT, FeedbackSchema } from './feedbackApi';
+import { ARTIFACT_ENDPOINT, type Artifact } from './artifactsApi';
 
 const HTTP_CREATED = 201;
 const HTTP_NO_CONTENT = 204;
@@ -88,11 +90,46 @@ const message = (id: string, conversationId: string, userId: string | null, cont
   updated_at: null,
 });
 
+export interface ConversationStore {
+  conversations: Conversation[];
+  participants: Participant[];
+  messages: Message[];
+  feedbacks: Feedback[];
+  artifacts: Artifact[];
+}
+
+/** A store with nothing in it. */
+export const emptyStore = (): ConversationStore => ({
+  conversations: [],
+  participants: [],
+  messages: [],
+  feedbacks: [],
+  artifacts: [],
+});
+
+const artifact = (id: string, name: string, extra: Partial<Artifact>): Artifact => ({
+  id,
+  name,
+  conversation_id: PLANS_ID,
+  message_id: null,
+  user_id: null,
+  relative_path: `files/${name}`,
+  hosted_path: `/files/${name}`,
+  content: null,
+  encrypted: false,
+  file_size: null,
+  mime_type: null,
+  created_at: FIXTURE_VERSION,
+  updated_at: null,
+  ...extra,
+});
+
 /**
- * The user's group chat with Ada and someone they can't see (with a reply and an agent's message),
- * a direct conversation Charles opened with them, and a chat of Charles's they aren't in.
+ * The user's group chat with Ada and someone they can't see (with a reply, an agent's message the
+ * user rated helpful, and two files), a direct conversation Charles opened with them, and a chat of
+ * Charles's they aren't in.
  */
-export function conversationsFixture(): { conversations: Conversation[]; participants: Participant[]; messages: Message[] } {
+export function conversationsFixture(): ConversationStore {
   return {
     conversations: inOrder([
       conversation(PLANS_ID, 'Engine plans', ME.id, true),
@@ -114,10 +151,29 @@ export function conversationsFixture(): { conversations: Conversation[]; partici
       message('m4', PLANS_ID, STRANGER_ID, 'Count me in.'),
       message('m5', DIRECT_ID, CHARLES.id, 'Lunch?'),
     ]),
+    feedbacks: [
+      {
+        id: 'f1',
+        message_id: 'm3',
+        user_id: ME.id,
+        content: '',
+        positive: true,
+        created_at: FIXTURE_VERSION,
+        updated_at: null,
+      },
+    ],
+    artifacts: [
+      artifact('a1', 'schedule.md', {
+        message_id: 'm3',
+        content: '# Tomorrow\nRun the engine at nine.',
+        file_size: 34,
+        mime_type: 'text/markdown',
+      }),
+      artifact('a2', 'keys.bin', { encrypted: true, file_size: 2048, mime_type: 'application/octet-stream' }),
+      artifact('a3', 'menu.txt', { conversation_id: DIRECT_ID, content: 'Soup.', mime_type: 'text/plain' }),
+    ],
   };
 }
-
-export type ConversationStore = ReturnType<typeof conversationsFixture>;
 
 /** The row `id` of `rows`; a test or story naming one that isn't there is a mistake in it. */
 export function rowOf<T extends { id: string }>(rows: readonly T[], id: string): T {
@@ -133,6 +189,7 @@ const visible = (userId: string): Person | null => [ME, ADA, CHARLES].find(({ id
 
 const ConversationBodySchema = z.object({ conversation: ConversationSchema.omit({ id: true }).partial() });
 const MessageBodySchema = z.object({ message: MessageSchema.omit({ id: true }).partial() });
+const FeedbackBodySchema = z.object({ feedback: FeedbackSchema.omit({ id: true }).partial() });
 const ParticipantBodySchema = z.object({ user_id: z.string() });
 const DirectBodySchema = z.object({ other_user_id: z.string(), initial_message: z.string().nullable().optional() });
 
@@ -167,6 +224,12 @@ export function conversationHandlers(store: ConversationStore = conversationsFix
     store.participants.push(added);
     return added;
   };
+  /** Whether the user may see message `id` (they are in its conversation): feedback follows the message. */
+  const readableMessage = (id: string): boolean =>
+    store.messages.some((row) => row.id === id && seated(row.conversation_id));
+  /** Feedback `id`, when it is the user's: only its author changes or withdraws it. */
+  const ownFeedback = (id: string | readonly string[] | undefined): Feedback | undefined =>
+    store.feedbacks.find((row) => row.id === id && row.user_id === ME.id);
   const post = (conversationId: string, content: string, parentId: string | null): Message => {
     const row = {
       ...message(nextId('message'), conversationId, ME.id, content),
@@ -355,6 +418,69 @@ export function conversationHandlers(store: ConversationStore = conversationsFix
       }
       store.messages = store.messages.filter((row) => row.id !== current.id);
       return new HttpResponse(null, { status: HTTP_NO_CONTENT });
+    }),
+
+    http.get(`*${FEEDBACK_ENDPOINT}`, ({ request }) => {
+      const author = new URL(request.url).searchParams.get('user_id');
+      return HttpResponse.json({
+        feedbacks: store.feedbacks.filter(
+          (row) => readableMessage(row.message_id) && (author === null || row.user_id === author),
+        ),
+      });
+    }),
+    http.post(`*${FEEDBACK_ENDPOINT}`, async ({ request }) => {
+      const { feedback: fields } = FeedbackBodySchema.parse(await request.json());
+      if (!readableMessage(fields.message_id ?? '')) {
+        return notFound();
+      }
+      const row = FeedbackSchema.parse({
+        content: '',
+        ...defined(fields),
+        id: nextId('feedback'),
+        user_id: ME.id,
+        created_at: versionStamp(),
+      });
+      store.feedbacks.push(row);
+      return HttpResponse.json({ feedback: row }, { status: HTTP_CREATED });
+    }),
+    http.put(`*${FEEDBACK_ENDPOINT}/:id`, async ({ params: { id }, request }) => {
+      const current = ownFeedback(id);
+      if (current === undefined) {
+        return notFound();
+      }
+      const refused = refuseStale(request, current);
+      if (refused !== null) {
+        return refused;
+      }
+      const { feedback: fields } = FeedbackBodySchema.parse(await request.json());
+      const updated = FeedbackSchema.parse({ ...current, ...defined(fields), updated_at: versionStamp() });
+      store.feedbacks = store.feedbacks.map((row) => (row.id === current.id ? updated : row));
+      return HttpResponse.json({ feedback: updated });
+    }),
+    http.delete(`*${FEEDBACK_ENDPOINT}/:id`, ({ params: { id }, request }) => {
+      const current = ownFeedback(id);
+      if (current === undefined) {
+        return notFound();
+      }
+      const refused = refuseStale(request, current);
+      if (refused !== null) {
+        return refused;
+      }
+      store.feedbacks = store.feedbacks.filter((row) => row.id !== current.id);
+      return new HttpResponse(null, { status: HTTP_NO_CONTENT });
+    }),
+
+    http.get(`*${ARTIFACT_ENDPOINT}`, ({ request }) => {
+      const conversationId = new URL(request.url).searchParams.get('conversation_id');
+      return HttpResponse.json({
+        artifacts: store.artifacts.filter(
+          (row) =>
+            row.conversation_id !== null &&
+            row.conversation_id !== undefined &&
+            seated(row.conversation_id) &&
+            (conversationId === null || row.conversation_id === conversationId),
+        ),
+      });
     }),
   ];
 }

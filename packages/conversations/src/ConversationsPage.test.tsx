@@ -3,7 +3,7 @@ import { within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useRouter } from 'next/navigation.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ADA, conversationsFixture, ME } from './conversations.mocks';
+import { ADA, conversationsFixture, emptyStore, ME } from './conversations.mocks';
 import { ConversationsPage } from './ConversationsPage';
 import { renderConversations } from './testing.mocks';
 
@@ -77,7 +77,7 @@ describe('ConversationsPage', () => {
   });
 
   it('says so when there are no conversations', async () => {
-    const view = renderConversations(<ConversationsPage />, { conversations: [], participants: [], messages: [] });
+    const view = renderConversations(<ConversationsPage />, emptyStore());
     expect(await view.findByText('You have no conversations yet.')).toBeInTheDocument();
   });
 });

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useUser } from 'zephyrex';
+import { emptyStore } from './conversations.mocks';
 import { useConversations } from './conversationsApi';
 import { renderConversations } from './testing.mocks';
 
@@ -20,7 +21,7 @@ describe('renderConversations', () => {
   });
 
   it('serves no conversations from an empty store', async () => {
-    const view = renderConversations(<Summary />, { conversations: [], participants: [], messages: [] });
+    const view = renderConversations(<Summary />, emptyStore());
     expect(await view.findByText('u-me: 0 conversations')).toBeInTheDocument();
   });
 });

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import { withSignedIn, withZephyrexApi } from 'zephyrex/testing';
-import { conversationHandlers } from './conversations.mocks';
+import { conversationHandlers, emptyStore } from './conversations.mocks';
 import { ConversationsPage } from './ConversationsPage';
 
 const meta: Meta<typeof ConversationsPage> = {
@@ -17,5 +17,5 @@ type Story = StoryObj<typeof ConversationsPage>;
 export const TwoConversations: Story = {};
 
 export const NoConversations: Story = {
-  parameters: { msw: { handlers: conversationHandlers({ conversations: [], participants: [], messages: [] }) } },
+  parameters: { msw: { handlers: conversationHandlers(emptyStore()) } },
 };

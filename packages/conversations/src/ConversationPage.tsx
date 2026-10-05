@@ -5,6 +5,7 @@ import Link from 'next/link.js';
 import type { ReactElement } from 'react';
 import { useUser } from 'zephyrex';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
+import { Artifacts } from './Artifacts';
 import { ConversationDetails } from './ConversationDetails';
 import { useConversation, useParticipants } from './conversationsApi';
 import { conversationTitle } from './display';
@@ -54,6 +55,15 @@ export function ConversationPage({ params }: { params: Record<string, string> })
         </CardHeader>
         <CardContent>
           <Messages conversationId={conversation.id} viewerId={user?.id} ownerView={viewerOwns} />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Files</CardTitle>
+          <CardDescription>What has been kept with this conversation.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Artifacts conversationId={conversation.id} />
         </CardContent>
       </Card>
       <Card>
