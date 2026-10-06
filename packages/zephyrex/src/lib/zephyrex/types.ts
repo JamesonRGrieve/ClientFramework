@@ -91,8 +91,8 @@ export interface ZephyrexClientExtension {
   // the extension is what turns them on.
   authPages?: AuthPageDefinition[];
   signInAlternatives?: SignInAlternative[];
-  /** Email sign-in modes this extension turns on, e.g. `{ magical: true }` for magic links. */
-  authModes?: { magical?: boolean };
+  /** Sign-in modes this extension turns on: `{ magical: true }` for magic links, `{ passkey: true }` for passkeys. */
+  authModes?: { magical?: boolean; passkey?: boolean };
 }
 
 export interface ZephyrexConfig {

@@ -15,6 +15,7 @@ export function authPagesConfig({
     authModes: {
       basic: auth?.authModes?.basic ?? true,
       magical: extensions.some((extension) => extension.authModes?.magical === true),
+      passkey: extensions.some((extension) => extension.authModes?.passkey === true),
     },
     oauthProviders: auth?.oauthProviders ?? [],
     signInAlternatives: extensions.flatMap((extension) => extension.signInAlternatives ?? []),

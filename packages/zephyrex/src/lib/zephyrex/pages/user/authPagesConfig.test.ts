@@ -9,7 +9,7 @@ describe('authPagesConfig', () => {
     expect(authPagesConfig({ app: APP })).toEqual({
       appName: 'Zephyreader',
       authPath: '/user',
-      authModes: { basic: true, magical: false },
+      authModes: { basic: true, magical: false, passkey: false },
       oauthProviders: [],
       signInAlternatives: [],
     });
@@ -29,23 +29,24 @@ describe('authPagesConfig', () => {
     ).toEqual({
       appName: 'Zephyreader',
       authPath: '/account',
-      authModes: { basic: false, magical: false },
+      authModes: { basic: false, magical: false, passkey: false },
       oauthProviders: ['google'],
       signInAlternatives: [],
       recaptchaSiteKey: 'site-key',
     });
   });
 
-  it('turns magic-link sign-in on only when a registered extension does', () => {
+  it('turns magic-link and passkey sign-in on only when a registered extension does', () => {
     expect(authPagesConfig({ app: APP, extensions: [{ name: 'other' }] }).authModes).toEqual({
       basic: true,
       magical: false,
+      passkey: false,
     });
     const magicLink = { name: 'auth_magic_link', authModes: { magical: true } };
-    expect(authPagesConfig({ app: APP, auth: { authModes: { basic: false } }, extensions: [magicLink] }).authModes).toEqual({
-      basic: false,
-      magical: true,
-    });
+    const passkeys = { name: 'webauthn_consumer', authModes: { passkey: true } };
+    expect(
+      authPagesConfig({ app: APP, auth: { authModes: { basic: false } }, extensions: [magicLink, passkeys] }).authModes,
+    ).toEqual({ basic: false, magical: true, passkey: true });
   });
 
   it('links the registered extensions’ other ways to sign in', () => {
