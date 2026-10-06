@@ -10,7 +10,7 @@ const entry = (name: string, displayName: string, description: string): Zephyrex
 
 // AI agents: @zephyrex/ai-agents extends this with the pages for agents and projects.
 export const aiAgentsExtension = entry('ai_agents', 'AI Agents', 'Agents, their abilities, memories, projects and activity');
-// AI chains, ported from AGInfrastructure: it has routes, and its pages come with the port.
+// AI chains: @zephyrex/ai-chains extends this with the pages for chains, their steps and runs.
 export const aiChainsExtension = entry('ai_chains', 'AI Chains', 'Chains of AI steps for automating multi-step tasks');
 // AI memories: an agent's, so no pages of their own; @zephyrex/ai-memories provides the panel an
 // agent's page shows.
@@ -40,6 +40,8 @@ export const ecommerceExtension = entry(
   'E-commerce',
   'Orders, products and returns from Shopify, WooCommerce, Etsy, eBay, Amazon, Walmart and AliExpress',
 );
+// ERP: @zephyrex/erp extends this with the pages for the operator's ERPNext sites' documents.
+export const erpExtension = entry('erp', 'ERP', 'ERPNext DocTypes and documents, read and saved live on the site');
 // Health: @zephyrex/health extends this with the pages for the user's log.
 export const healthExtension = entry('health', 'Health', 'A log of activities, meals, weights and sleep');
 // Social: @zephyrex/social extends this with the pages for what was published.
@@ -92,6 +94,7 @@ export const samlConsumerExtension = consumer('saml', 'SAML', 'Sign-in through a
 export const samlProviderExtension = provider('saml', 'SAML', 'This server as a SAML 2.0 identity provider');
 export const scimConsumerExtension = consumer('scim', 'SCIM', 'Users and groups provisioned from a SCIM 2.0 provider');
 export const scimProviderExtension = provider('scim', 'SCIM', 'Users and groups provisioned to SCIM 2.0 services');
+// Passkeys: @zephyrex/webauthn-consumer extends this with passkey sign-in and the account page's passkeys.
 export const webauthnConsumerExtension = consumer('webauthn', 'Passkey', 'Sign-in with WebAuthn passkeys');
 export const webauthnProviderExtension = provider('webauthn', 'WebAuthn', 'This server as a WebAuthn relying party');
 export const x509ConsumerExtension = consumer('x509', 'Certificate', 'Sign-in with X.509 client certificates');
@@ -108,6 +111,7 @@ export const registryOnlyExtensions: readonly ZephyrexClientExtension[] = [
   bookExtension,
   conversationsExtension,
   ecommerceExtension,
+  erpExtension,
   forwardAuthConsumerExtension,
   forwardAuthProviderExtension,
   healthExtension,

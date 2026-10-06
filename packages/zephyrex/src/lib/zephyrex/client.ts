@@ -212,6 +212,14 @@ export class ZephyrexClient {
     return this.request(this.url(path), this.withBody('PATCH', body), seen);
   }
 
+  /**
+   * An action sent as a POST that changes an existing row (a typed model's update or delete, a
+   * document's submit): guarded by `seen`'s version like any other change.
+   */
+  async postGuarded(path: string, body: JsonBody, seen: Versioned): Promise<JsonValue> {
+    return this.request(this.url(path), this.withBody('POST', body), seen);
+  }
+
   async delete(path: string, seen: Versioned): Promise<JsonValue> {
     return this.request(this.url(path), { method: 'DELETE' }, seen);
   }

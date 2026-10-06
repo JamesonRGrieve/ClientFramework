@@ -10,6 +10,10 @@ describe('serverInstant', () => {
     expect(serverInstant('2026-09-28T07:00:00Z').toISOString()).toBe(SEVEN_UTC_ISO);
     expect(serverInstant('2026-09-28T07:00:00+02:00').toISOString()).toBe('2026-09-28T05:00:00.000Z');
   });
+
+  it('reads an ERPNext version, its date and time joined by a space, as UTC', () => {
+    expect(serverInstant('2026-09-28 07:00:00.000001').toISOString()).toBe(SEVEN_UTC_ISO);
+  });
 });
 
 describe('shownTime', () => {

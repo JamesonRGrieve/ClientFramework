@@ -39,6 +39,7 @@ const SERVER_EXTENSIONS = [
   'database_memory',
   'ecommerce',
   'email',
+  'erp',
   'fdm_sla_printing',
   'federation',
   'fileio',

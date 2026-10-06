@@ -14,6 +14,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/zephyrex/package.json ./packages/zephyrex/
 COPY packages/observability/package.json ./packages/observability/
 COPY packages/ai-agents/package.json ./packages/ai-agents/
+COPY packages/ai-chains/package.json ./packages/ai-chains/
 COPY packages/ai-memories/package.json ./packages/ai-memories/
 COPY packages/ai-prompts/package.json ./packages/ai-prompts/
 COPY packages/auth-api-keys/package.json ./packages/auth-api-keys/
@@ -25,10 +26,12 @@ COPY packages/auth-session/package.json ./packages/auth-session/
 COPY packages/book/package.json ./packages/book/
 COPY packages/conversations/package.json ./packages/conversations/
 COPY packages/ecommerce/package.json ./packages/ecommerce/
+COPY packages/erp/package.json ./packages/erp/
 COPY packages/genealogy/package.json ./packages/genealogy/
 COPY packages/health/package.json ./packages/health/
 COPY packages/payment/package.json ./packages/payment/
 COPY packages/social/package.json ./packages/social/
+COPY packages/webauthn-consumer/package.json ./packages/webauthn-consumer/
 COPY packages/webhooks/package.json ./packages/webhooks/
 RUN pnpm install --frozen-lockfile
 COPY . .

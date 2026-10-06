@@ -98,15 +98,18 @@ describe('ZephyrexClient', () => {
       const fetchMock = reply(
         new Response('{}', { status: HTTP_OK }),
         new Response('{}', { status: HTTP_OK }),
+        new Response('{}', { status: HTTP_OK }),
         new Response(null, { status: HTTP_NO_CONTENT }),
       );
       const writeHeaders = { 'Content-Type': 'application/json', 'X-CSRF-Token': 'csrf-1' };
       await client().put(TEAM_PATH, { team: { name: 'Beta' } }, SEEN);
       await client().patch(`${TEAM_PATH}/user/u1`, { user_team: { role_id: 'r1' } }, { created_at: CREATED });
+      await client().postGuarded(`${TEAM_PATH}/archive`, { reason: 'done' }, SEEN);
       await client().delete(TEAM_PATH, SEEN);
       expect(fetchMock.mock.calls.map(([, init]) => [init?.method, init?.headers])).toEqual([
         ['PUT', { ...writeHeaders, 'If-Match': `"${UPDATED}"` }],
         ['PATCH', { ...writeHeaders, 'If-Match': `"${CREATED}"` }],
+        ['POST', { ...writeHeaders, 'If-Match': `"${UPDATED}"` }],
         ['DELETE', { ...writeHeaders, 'If-Match': `"${UPDATED}"` }],
       ]);
     });
