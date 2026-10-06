@@ -15,8 +15,9 @@ import { resolve } from 'node:path';
 const BASELINE = resolve(process.cwd(), '.type-coverage-baseline');
 const args = new Set(process.argv.slice(2));
 const updateMode = args.has('--update');
-// One program spans the app and every package; at 2026-10 its peak is ~9.4 GB.
-const HEAP_MB = 16384;
+// One program spans the app and every package. Its peak, measured (resident): 9.4 GB in 2026-09;
+// 14.4 GB at ai-agents; 18.1 GB with ai-chains, erp and webauthn-consumer (2026-10-06).
+const HEAP_MB = 24576;
 
 let stdout = '';
 try {
