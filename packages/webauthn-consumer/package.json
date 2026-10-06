@@ -1,0 +1,70 @@
+{
+  "name": "@zephyrex/webauthn-consumer",
+  "version": "0.0.1-alpha.1",
+  "description": "Zephyrex passkeys client: sign in with a passkey, and register, rename and remove the user's passkeys and security keys.",
+  "author": "Jameson R Grieve",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JamesonRGrieve/ClientFramework.git",
+    "directory": "packages/webauthn-consumer"
+  },
+  "bugs": {
+    "url": "https://github.com/JamesonRGrieve/ClientFramework/issues"
+  },
+  "keywords": [
+    "zephyrex",
+    "webauthn",
+    "passkeys",
+    "react",
+    "nextjs"
+  ],
+  "scripts": {
+    "compile": "node ../../scripts/compile-package.mjs",
+    "verify:dist": "node ../../scripts/verify-dist.mjs",
+    "prepack": "pnpm compile && pnpm verify:dist"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "@jgrieve/forms": "^0.0.1-alpha.1",
+    "@zephyrex/auth": "^0.0.1-alpha.1",
+    "react": "^19.2.8",
+    "swr": "^2.5.1",
+    "zephyrex": "workspace:^",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@jgrieve/forms": "^0.0.1-alpha.1",
+    "@storybook/nextjs": "^10.6.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@zephyrex/auth": "^0.0.1-alpha.1",
+    "msw": "^3.0.1",
+    "react": "^19.3.0",
+    "swr": "^2.5.1",
+    "vitest": "^5.0.2",
+    "zephyrex": "workspace:^",
+    "zod": "^4.6.5"
+  },
+  "dependenciesMeta": {
+    "@jgrieve/forms": {
+      "injected": true
+    },
+    "@zephyrex/auth": {
+      "injected": true
+    }
+  }
+}
