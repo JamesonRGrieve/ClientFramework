@@ -2,8 +2,8 @@
 'use client';
 
 import type { ReactElement } from 'react';
+import { shownTime } from 'zephyrex';
 import { type Artifact, useArtifacts } from './artifactsApi';
-import { shownTime } from './display';
 import { Problem } from './Problem';
 
 const BYTES_PER_KIB = 1024;

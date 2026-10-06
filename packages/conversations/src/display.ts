@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // How conversations name the people in them: by the user the server shows, an agent when a message
 // has no author, and someone unnamed when the server won't show the viewer who they are.
-import { serverInstant } from 'zephyrex';
 import { type Person, personName } from 'zephyrex/pages/team';
 import type { Conversation, Message, Participant } from './conversationsApi';
 
@@ -34,7 +33,3 @@ export function conversationTitle(
   }
   return (conversation.name ?? '') === '' ? UNTITLED : (conversation.name ?? UNTITLED);
 }
-
-/** A server timestamp in the user's own time; empty when there is none. */
-export const shownTime = (value: string | null | undefined): string =>
-  value === null || value === undefined || value === '' ? '' : serverInstant(value).toLocaleString();

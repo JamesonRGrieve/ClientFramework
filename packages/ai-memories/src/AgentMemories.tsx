@@ -5,7 +5,7 @@ import { Button } from '@jgrieve/forms/components/ui/button';
 import { Input } from '@jgrieve/forms/components/ui/input';
 import { Label } from '@jgrieve/forms/components/ui/label';
 import { type ReactElement, type SyntheticEvent, useId, useState } from 'react';
-import { ConflictPanel, serverInstant, useClient, writeProblem } from 'zephyrex';
+import { ConflictPanel, shownTime, useClient, writeProblem } from 'zephyrex';
 import { Textarea } from 'zephyrex/ui/textarea';
 import { MAX_MEMORY_CHARACTERS, type Memory, recall, remember, useMemories, useMemoryActions } from './memoriesApi';
 
@@ -13,9 +13,6 @@ const CONTENT_ROWS = 3;
 /** How many memories a recall asks for. */
 const RECALL_LIMIT = 5;
 const REMOVE_FAILURE = 'The memory could not be deleted.';
-
-const shownTime = (value: string | null | undefined): string =>
-  value === null || value === undefined || value === '' ? '' : serverInstant(value).toLocaleString();
 
 /** How a memory was kept, in words: its source, when, and whether it is recalled by meaning. */
 export const memoryDetails = ({ source, created_at: created, embedding_model: embeddingModel }: Memory): string =>

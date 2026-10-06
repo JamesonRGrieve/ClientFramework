@@ -9,3 +9,7 @@ const ZONED = /(?:[zZ]|[+-]\d{2}:\d{2})$/;
 export function serverInstant(value: string): Date {
   return new Date(ZONED.test(value) ? value : `${value}Z`);
 }
+
+/** A server timestamp in the user's own time; empty when there is none. */
+export const shownTime = (value: string | null | undefined): string =>
+  value === null || value === undefined || value === '' ? '' : serverInstant(value).toLocaleString();

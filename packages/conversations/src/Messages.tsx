@@ -4,10 +4,10 @@
 import { Button } from '@jgrieve/forms/components/ui/button';
 import { Label } from '@jgrieve/forms/components/ui/label';
 import { type ReactElement, type SyntheticEvent, useId, useState } from 'react';
-import { type ConflictField, ConflictPanel, useClient, useDraft, useEditBase, writeProblem } from 'zephyrex';
+import { type ConflictField, ConflictPanel, shownTime, useClient, useDraft, useEditBase, writeProblem } from 'zephyrex';
 import { Textarea } from 'zephyrex/ui/textarea';
 import { type Message, sendMessage, useMessageActions, useMessages } from './conversationsApi';
-import { authorOf, shownTime } from './display';
+import { authorOf } from './display';
 import { MessageFeedback } from './MessageFeedback';
 import { Problem } from './Problem';
 import { VoiceRecorder } from './VoiceRecorder';

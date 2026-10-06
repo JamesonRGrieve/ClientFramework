@@ -2,7 +2,7 @@
 'use client';
 
 import type { ReactElement } from 'react';
-import { serverInstant } from 'zephyrex';
+import { shownTime } from 'zephyrex';
 import { type Delivery, useDeliveries } from './webhooksApi';
 
 const STATUS_LABELS: Readonly<Record<Delivery['status'], string>> = {
@@ -10,9 +10,6 @@ const STATUS_LABELS: Readonly<Record<Delivery['status'], string>> = {
   delivered: 'Delivered',
   dead: 'Gave up',
 };
-
-const shownTime = (value: string | null | undefined): string =>
-  value === null || value === undefined || value === '' ? '' : serverInstant(value).toLocaleString();
 
 /** Where a delivery stands, in words: when it was accepted, when it is next tried, or that it was given up on. */
 export function deliveryProgress(delivery: Delivery): string {
