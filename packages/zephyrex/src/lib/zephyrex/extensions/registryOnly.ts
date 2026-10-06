@@ -8,8 +8,9 @@ import { createExtension } from './createExtension';
 const entry = (name: string, displayName: string, description: string): ZephyrexClientExtension =>
   createExtension(name, { displayName, description });
 
-// AI, ported from AGInfrastructure: these have routes, and their pages come with the port.
+// AI agents: @zephyrex/ai-agents extends this with the pages for agents and projects.
 export const aiAgentsExtension = entry('ai_agents', 'AI Agents', 'Agents, their abilities, memories, projects and activity');
+// AI chains, ported from AGInfrastructure: it has routes, and its pages come with the port.
 export const aiChainsExtension = entry('ai_chains', 'AI Chains', 'Chains of AI steps for automating multi-step tasks');
 // AI memories: an agent's, so no pages of their own; @zephyrex/ai-memories provides the panel an
 // agent's page shows.
