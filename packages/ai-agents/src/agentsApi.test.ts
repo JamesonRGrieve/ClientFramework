@@ -2,7 +2,7 @@
 import { renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZephyrexClient } from 'zephyrex';
-import { nth, TestWrapper, testConfig } from 'zephyrex/testing';
+import { loaded, nth, TestWrapper, testConfig } from 'zephyrex/testing';
 import { type Call, rowOf, writesOf } from 'zephyrex/testing/msw';
 import { AGENT_ID, agentsFixture, FIXTURE_VERSION } from './agents.mocks';
 import {
@@ -25,7 +25,7 @@ import {
   useShortTermMemories,
   useShortTermMemoryActions,
 } from './agentsApi';
-import { loaded, recordCalls } from './testing.mocks';
+import { recordCalls } from './testing.mocks';
 
 const client = new ZephyrexClient({ baseUrl: testConfig.server.baseUrl });
 const LOADED = `"${FIXTURE_VERSION}"`;

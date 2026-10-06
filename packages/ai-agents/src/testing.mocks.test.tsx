@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { agentsFixture } from './agents.mocks';
 import { useAgents } from './agentsApi';
-import { loaded, recordCalls, renderAgents } from './testing.mocks';
+import { recordCalls, renderAgents } from './testing.mocks';
 
 const BASE = 'http://localhost:1996';
 
@@ -23,12 +23,6 @@ describe('the test helpers', () => {
     expect(
       await renderAgents(<AgentCount />, { ...agentsFixture(), agents: [] }).findByText('0 agents'),
     ).toBeInTheDocument();
-  });
-
-  it('read what a hook loads, once it has loaded', async () => {
-    recordCalls(agentsFixture());
-    await expect(loaded(() => useAgents())).resolves.toHaveLength(2);
-    await expect(loaded(() => ({ data: undefined }))).rejects.toThrow();
   });
 
   it('record each call answered from the store', async () => {

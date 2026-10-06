@@ -2,10 +2,10 @@
 import { renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZephyrexClient } from 'zephyrex';
-import { TestWrapper, testConfig } from 'zephyrex/testing';
+import { loaded, TestWrapper, testConfig } from 'zephyrex/testing';
 import { type Call, rowOf, writesOf } from 'zephyrex/testing/msw';
 import { AGENT_ID, agentsFixture, FIXTURE_VERSION, TURN_ID } from './agents.mocks';
-import { loaded, recordCalls } from './testing.mocks';
+import { recordCalls } from './testing.mocks';
 import { NEW_TRIGGER, triggerFields } from './triggerModel';
 import {
   type Activity,
