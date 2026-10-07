@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Release
+
+# A `v*` tag publishes every package in packages/ (zephyrex and the @zephyrex/* extensions, all
+# at the tag's version) to npm through the shared gated workflow (JamesonRGrieve/Workflows
+# publish-ts-npm-gated.yml): pack, audit and a clean-install smoke test of all of them together,
+# then the publish waits for the `npm` environment's required reviewer. It publishes with npm
+# trusted publishing (OIDC), whose trusted publisher on each package names this file and that
+# environment; no token is stored. The root template app is private and never published.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    uses: JamesonRGrieve/Workflows/.github/workflows/publish-ts-npm-gated.yml@d91b690a63a761d4c1a5d40138766a228302d531
+    with:
+      tools-ref: d91b690a63a761d4c1a5d40138766a228302d531
+      # package.json names no packageManager; this is the pnpm the commit gate runs.
+      pnpm-version: '11.1.1'
+    permissions:
+      contents: write
+      id-token: write
