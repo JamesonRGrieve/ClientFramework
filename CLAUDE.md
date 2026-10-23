@@ -6,8 +6,8 @@ Installable Next.js framework package (`npm install zephyrex`). Downstream proje
 
 Read **before your first edit** in this repo:
 
-- `/home/jameson/Source/ai-prompts/typescript.md` — TypeScript, casting, ratchets, Biome, ESLint, tsconfig, test structure, pre-commit
-- `/home/jameson/Source/ai-prompts/react-next.md` — React/Next.js component layering, hooks, a11y, security, state/data-fetching, CSS/theme
+- SOP _Stack Standards → TypeScript and JavaScript_ — TypeScript, casting, ratchets, Biome, ESLint, tsconfig, test structure, pre-commit
+- SOP _Stack Standards → React and Next.js_ — React/Next.js component layering, hooks, a11y, security, state/data-fetching, CSS/theme
 
 ---
 
