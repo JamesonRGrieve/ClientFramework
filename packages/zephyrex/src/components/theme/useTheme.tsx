@@ -14,11 +14,16 @@ const normalizeTheme = (value: string): string => {
 
 const shouldAddThemeClass = (value: string): boolean => value !== 'light';
 
+/** The device's own light or dark setting, for someone who has not chosen a theme here. */
+const systemTheme = (): string | undefined =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : undefined;
+
 export const useTheme = (customThemes?: string[], initialTheme?: string) => {
+  const fallback = initialTheme ?? systemTheme();
   const { options, current, setCurrent } = useCookiePreference({
     cookieName: 'theme',
     defaults: [...THEME_DEFAULTS, ...(customThemes ?? [])],
-    ...(initialTheme !== undefined ? { initialValue: initialTheme } : {}),
+    ...(fallback !== undefined ? { initialValue: fallback } : {}),
     target: 'html',
     normalize: normalizeTheme,
     shouldAddClass: shouldAddThemeClass,

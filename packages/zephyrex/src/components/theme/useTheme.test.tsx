@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { renderHook, act } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useTheme } from './useTheme';
 
 describe('useTheme', () => {
@@ -16,7 +16,32 @@ describe('useTheme', () => {
     expect(result.current.themes).toContain('colorblind');
   });
 
-  it('defaults to light theme', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("follows the device's dark setting until a theme is chosen", () => {
+    vi.spyOn(window, 'matchMedia').mockImplementation(
+      (query: string) => ({ matches: query === '(prefers-color-scheme: dark)', media: query }) as MediaQueryList,
+    );
+    const { result } = renderHook(() => useTheme());
+    expect(result.current.currentTheme).toBe('dark');
+    expect(document.documentElement).toHaveClass('dark');
+  });
+
+  it('keeps a chosen theme over the device setting', () => {
+    document.cookie = 'theme=light; path=/';
+    vi.spyOn(window, 'matchMedia').mockImplementation(
+      (query: string) => ({ matches: query === '(prefers-color-scheme: dark)', media: query }) as MediaQueryList,
+    );
+    const { result } = renderHook(() => useTheme());
+    expect(result.current.currentTheme).toBe('light');
+  });
+
+  it('defaults to light theme on a light device', () => {
+    vi.spyOn(window, 'matchMedia').mockImplementation(
+      (query: string) => ({ matches: false, media: query }) as MediaQueryList,
+    );
     const { result } = renderHook(() => useTheme());
     expect(result.current.currentTheme).toBe('light');
   });
