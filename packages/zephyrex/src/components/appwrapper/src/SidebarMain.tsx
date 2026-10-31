@@ -40,15 +40,23 @@ export function SidebarMain({ children, ...props }: React.ComponentProps<typeof 
   );
 }
 
-// Temporary sidebar Logo until agent selector is implemented
+/** The app's mark (`config.app.logo`, a placeholder when it has none) and name, the name hidden when collapsed. */
 export function SidebarLogo() {
+  const { config } = useZephyrexConfig();
+  const Logo = config.app.logo;
   return (
-    <div className='flex items-center justify-center gap-2 w-full px-4 md:px-6'>
-      <div className='flex items-center justify-center rounded-lg aspect-square size-8 bg-sidebar-primary text-sidebar-primary-foreground flex-shrink-0'>
-        <FaRobot className='size-4' />
-      </div>
-      <div className='text-sm leading-tight text-center w-full hidden md:block group-data-[collapsible=icon]:hidden'>
-        <span className='font-semibold text-lg truncate block'>{process.env.NEXT_PUBLIC_APP_NAME ?? 'App Name'}</span>
+    <div className='flex items-center gap-2 w-full px-2'>
+      {Logo === undefined ? (
+        <div className='flex items-center justify-center rounded-lg aspect-square size-8 bg-sidebar-primary text-sidebar-primary-foreground flex-shrink-0'>
+          <FaRobot className='size-4' />
+        </div>
+      ) : (
+        <div className='flex items-center justify-center aspect-square size-8 flex-shrink-0'>
+          <Logo />
+        </div>
+      )}
+      <div className='text-sm leading-tight text-left w-full hidden md:block group-data-[collapsible=icon]:hidden'>
+        <span className='font-semibold text-lg truncate block'>{config.app.name}</span>
       </div>
     </div>
   );

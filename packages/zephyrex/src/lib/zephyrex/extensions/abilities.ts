@@ -16,6 +16,11 @@ export const automotiveExtension = abilities(
 );
 export const cadExtension = abilities('cad', 'CAD', '3D model generation with CAD tools');
 export const calendarExtension = abilities('calendar', 'Calendar', 'Scheduling and event management');
+export const contactsExtension = abilities(
+  'contacts',
+  'Contacts',
+  'Contacts on Google Contacts, Microsoft 365 and any CardDAV address book',
+);
 export const cloudExtension = abilities('cloud', 'Cloud Storage', 'Files in S3, Azure Blob, GCS, Dropbox or Nextcloud');
 export const cryptoExtension = abilities('crypto', 'Crypto', 'Cryptocurrency and blockchain interactions');
 export const fdmSlaPrintingExtension = abilities(
@@ -64,6 +69,7 @@ export const abilityExtensions: readonly ZephyrexClientExtension[] = [
   cadExtension,
   calendarExtension,
   cloudExtension,
+  contactsExtension,
   cryptoExtension,
   fdmSlaPrintingExtension,
   localAiExtension,

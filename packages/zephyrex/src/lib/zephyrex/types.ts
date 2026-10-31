@@ -112,6 +112,16 @@ export interface ZephyrexConfig {
     defaultTheme?: 'dark' | 'light';
     logo?: ComponentType;
     landingPage?: ComponentType;
+    /**
+     * Ask Gravatar for the signed-in user's picture (on by default). `false` keeps the user's email
+     * hash from reaching a third party, for an app whose users shouldn't be known to be using it.
+     */
+    gravatar?: boolean;
+    /**
+     * The app's own page of plans, where an upgrade prompt sends the user. The payment extension's
+     * subscribe page under the auth path when omitted.
+     */
+    plans?: string;
   };
   auth?: {
     /**
@@ -123,6 +133,8 @@ export interface ZephyrexConfig {
     privateRoutes?: string[];
     /** Where the auth pages are mounted; `/user` by default. */
     authPath?: string;
+    /** Where signing in lands when it interrupted no page, e.g. `/polycule`; the account page by default. */
+    home?: string;
     /**
      * Password sign-in (`basic`), on by default. Magic-link sign-in is the auth_magic_link
      * extension's: register @zephyrex/auth-magic-link to turn it on.

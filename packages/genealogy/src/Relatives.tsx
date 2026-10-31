@@ -5,39 +5,109 @@ import { Button } from '@jgrieve/forms/components/ui/button';
 import { Label } from '@jgrieve/forms/components/ui/label';
 import Link from 'next/link.js';
 import { type ReactElement, type SyntheticEvent, useCallback, useId, useState } from 'react';
+import { useSWRConfig } from 'swr';
 import { ConflictPanel, useClient, useGuardedSave, writeProblem } from 'zephyrex';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import {
+  ACQUAINTANCE_KINDS,
   ANCESTRY_ROLES,
+  FRIENDSHIP_KINDS,
   genealogyApi,
+  PERSON_ENDPOINT,
+  MENTORSHIP_ROLES,
   PARTNERSHIP_KINDS,
   type Person,
   type Relationship,
+  type RelationshipFields,
   RelationshipSchema,
+  SIBLING_KINDS,
   useRelationships,
 } from './genealogyApi';
 import { personName } from './people';
-import { type RelationshipLine, relationshipFor, relationshipLines, type RelativeRole } from './relationships';
+import type { AppTie } from './options';
+import {
+  appTieFor,
+  hasEnded,
+  type RelationshipLine,
+  relationshipFor,
+  relationshipLines,
+  type RelativeRole,
+} from './relationships';
 import { personPath } from './routes';
+import { useGenealogyOptions } from './OptionsProvider';
 
 const ROLE_CHOICES: { value: RelativeRole; label: string }[] = [
   { value: 'parent', label: 'Parent' },
   { value: 'child', label: 'Child' },
   { value: 'partner', label: 'Partner' },
   { value: 'sibling', label: 'Sibling' },
+  { value: 'friend', label: 'Friend' },
+  { value: 'acquaintance', label: 'Acquaintance' },
+  { value: 'mentor', label: 'Mentor' },
+  { value: 'student', label: 'Student' },
 ];
 
-/** The details a role can carry: a parent's role for ancestry, or the kind of partnership. */
+/** The details a role can carry: a parent's role for ancestry, or the subkind of a symmetric tie. */
 const DETAILS: Record<RelativeRole, readonly string[]> = {
   parent: ANCESTRY_ROLES,
   child: ANCESTRY_ROLES,
   partner: PARTNERSHIP_KINDS,
-  sibling: [],
+  sibling: SIBLING_KINDS,
+  friend: FRIENDSHIP_KINDS,
+  acquaintance: ACQUAINTANCE_KINDS,
+  mentor: MENTORSHIP_ROLES,
+  student: MENTORSHIP_ROLES,
 };
 
 const humanize = (value: string): string => value.replaceAll('_', ' ');
 
+/** The family-history roles, which an app without lineage does not offer. */
+const LINEAGE_ROLES = new Set<RelativeRole>(['parent', 'child']);
+
+/** One choice of what the relative is: its subkinds, and the row it stores. */
+interface RoleChoice {
+  value: string;
+  label: string;
+  details: readonly string[];
+  detailLabel: string;
+  fields: (personId: string, relativeId: string, detail: string | null) => RelationshipFields;
+}
+
+/** The framework's roles (without parent and child when `lineage` is off), then each app tie from both ends. */
+function roleChoices(lineage: boolean, ties: readonly AppTie[]): RoleChoice[] {
+  const builtIn = ROLE_CHOICES.filter((choice) => lineage || !LINEAGE_ROLES.has(choice.value)).map((choice): RoleChoice => ({
+    value: choice.value,
+    label: choice.label,
+    details: DETAILS[choice.value],
+    detailLabel: LINEAGE_ROLES.has(choice.value) ? 'Parent’s role' : 'Kind',
+    fields: (personId, relativeId, detail) => relationshipFor(personId, relativeId, choice.value, detail),
+  }));
+  const added = ties.flatMap((tie): RoleChoice[] => [
+    {
+      value: `${tie.kind}:object`,
+      label: tie.objectRelative,
+      details: tie.details,
+      detailLabel: tie.detailLabel,
+      fields: (personId, relativeId, detail) => appTieFor(personId, relativeId, tie, true, detail),
+    },
+    {
+      value: `${tie.kind}:subject`,
+      label: tie.subjectRelative,
+      details: tie.details,
+      detailLabel: tie.detailLabel,
+      fields: (personId, relativeId, detail) => appTieFor(personId, relativeId, tie, false, detail),
+    },
+  ]);
+  return [...builtIn, ...added];
+}
+
 const SELECT_CLASS = 'h-9 rounded-md border bg-background px-3 text-sm';
+
+/** " (dating)", " (dating, ended)", " (ended)" or nothing, after a line's role. */
+function lineDetail(line: RelationshipLine): string {
+  const parts = [...(line.detail === null ? [] : [humanize(line.detail)]), ...(hasEnded(line, new Date()) ? ['ended'] : [])];
+  return parts.length === 0 ? '' : ` (${parts.join(', ')})`;
+}
 
 function AddRelative({
   person,
@@ -50,25 +120,26 @@ function AddRelative({
 }): ReactElement {
   const ids = { role: useId(), relative: useId(), detail: useId() };
   const client = useClient();
-  const [role, setRole] = useState<RelativeRole>('parent');
+  // A family tree starts from parents; an app without lineage, from partners.
+  const { lineage, ties = [] } = useGenealogyOptions();
+  const choices = roleChoices(lineage, ties);
+  const [role, setRole] = useState<string>(lineage ? 'parent' : 'partner');
   const [relativeId, setRelativeId] = useState('');
   const [detail, setDetail] = useState('');
   const [problem, setProblem] = useState<string | null>(null);
   const others = people.filter((candidate) => candidate.id !== person.id);
-  const details = DETAILS[role];
+  const chosen = choices.find((choice) => choice.value === role) ?? choices.at(0);
+  const details = chosen?.details ?? [];
 
   const submit = (event: SyntheticEvent<HTMLFormElement>): void => {
     event.preventDefault();
-    if (relativeId === '') {
+    if (relativeId === '' || chosen === undefined) {
       setProblem('Choose who the relative is.');
       return;
     }
     void (async (): Promise<void> => {
       try {
-        await genealogyApi.createRelationship(
-          client,
-          relationshipFor(person.id, relativeId, role, detail === '' ? null : detail),
-        );
+        await genealogyApi.createRelationship(client, chosen.fields(person.id, relativeId, detail === '' ? null : detail));
         setRelativeId('');
         setProblem(null);
         await onAdded();
@@ -82,7 +153,7 @@ function AddRelative({
     <form className='grid gap-3' onSubmit={submit}>
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
         <div className='grid gap-1'>
-          <Label htmlFor={ids.relative}>Relative</Label>
+          <Label htmlFor={ids.relative}>{lineage ? 'Relative' : 'Who'}</Label>
           <select
             id={ids.relative}
             value={relativeId}
@@ -103,12 +174,12 @@ function AddRelative({
             id={ids.role}
             value={role}
             onChange={(event) => {
-              setRole(ROLE_CHOICES.find((choice) => choice.value === event.target.value)?.value ?? 'parent');
+              setRole(event.target.value);
               setDetail('');
             }}
             className={SELECT_CLASS}
           >
-            {ROLE_CHOICES.map((choice) => (
+            {choices.map((choice) => (
               <option key={choice.value} value={choice.value}>
                 {choice.label}
               </option>
@@ -117,7 +188,7 @@ function AddRelative({
         </div>
         {details.length > 0 && (
           <div className='grid gap-1'>
-            <Label htmlFor={ids.detail}>{role === 'partner' ? 'Kind' : 'Parent’s role'}</Label>
+            <Label htmlFor={ids.detail}>{chosen?.detailLabel}</Label>
             <select
               id={ids.detail}
               value={detail}
@@ -140,7 +211,7 @@ function AddRelative({
         </p>
       )}
       <div>
-        <Button type='submit'>Add relative</Button>
+        <Button type='submit'>{lineage ? 'Add relative' : 'Add connection'}</Button>
       </div>
     </form>
   );
@@ -189,7 +260,7 @@ function RelativeRow({
         <span>
           <span className='text-muted-foreground'>
             {humanize(line.role)}
-            {line.detail === null ? '' : ` (${humanize(line.detail)})`}:{' '}
+            {lineDetail(line)}:{' '}
           </span>
           {relative === undefined ? (
             name
@@ -238,19 +309,30 @@ function RelativeRow({
 
 /** A person's recorded relatives, each removable, with a form to add one. */
 export function Relatives({ person, people }: { person: Person; people: Person[] }): ReactElement {
+  const { lineage, ties = [] } = useGenealogyOptions();
   const asSubject = useRelationships(person.id, 'person_id');
   const asObject = useRelationships(person.id, 'target_person_id');
-  const lines = relationshipLines(asSubject.data ?? [], asObject.data ?? []);
+  const lines = relationshipLines(asSubject.data ?? [], asObject.data ?? [], ties);
   const error = asSubject.error ?? asObject.error;
+  const { mutate } = useSWRConfig();
   const refresh = async (): Promise<void> => {
-    await Promise.all([asSubject.mutate(), asObject.mutate()]);
+    await Promise.all([
+      asSubject.mutate(),
+      asObject.mutate(),
+      // Every walk over the ties (circles, metamours, lineage, kinship, the merged map) is now stale.
+      mutate((key) => typeof key === 'string' && key.includes(`${PERSON_ENDPOINT}/`)),
+    ]);
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Relatives</CardTitle>
-        <CardDescription>Parents, children, partners and siblings recorded for {personName(person)}.</CardDescription>
+        <CardTitle>{lineage ? 'Relatives' : 'Connections'}</CardTitle>
+        <CardDescription>
+          {lineage
+            ? `Parents, children, partners, siblings, friends and acquaintances recorded for ${personName(person)}.`
+            : `Partners, friends and everyone else recorded for ${personName(person)}.`}
+        </CardDescription>
       </CardHeader>
       <CardContent className='grid gap-4'>
         {error !== undefined && (
@@ -264,7 +346,7 @@ export function Relatives({ person, people }: { person: Person; people: Person[]
           </p>
         )}
         {lines.length > 0 && (
-          <ul aria-label='Relatives' className='divide-y rounded-md border'>
+          <ul aria-label={lineage ? 'Relatives' : 'Connections'} className='divide-y rounded-md border'>
             {lines.map((line) => (
               <RelativeRow
                 key={line.relationships.map((row) => row.id).join()}

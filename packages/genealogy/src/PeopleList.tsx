@@ -9,9 +9,11 @@ import { genealogyApi, usePersons } from './genealogyApi';
 import { lifeSpan, personName } from './people';
 import { PersonForm } from './PersonForm';
 import { personPath } from './routes';
+import { useGenealogyOptions } from './OptionsProvider';
 
 /** Everyone the user has recorded, sorted by name, with a form to add someone. */
 export function PeopleList(): ReactElement {
+  const options = useGenealogyOptions();
   const client = useClient();
   const persons = usePersons();
   const sorted = [...(persons.data ?? [])].sort((a, b) => personName(a).localeCompare(personName(b)));
@@ -19,13 +21,17 @@ export function PeopleList(): ReactElement {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>People</CardTitle>
-        <CardDescription>Everyone in your family tree. Open someone to record their relatives.</CardDescription>
+        <CardTitle>{options.lineage ? 'People' : 'Everyone'}</CardTitle>
+        <CardDescription>
+          {options.lineage
+            ? 'Everyone in your family tree. Open someone to record their relatives.'
+            : 'Everyone you have recorded. Open someone to record how you know them.'}
+        </CardDescription>
       </CardHeader>
       <CardContent className='grid gap-4'>
         {persons.error !== undefined && (
           <p role='alert' className='text-sm text-destructive'>
-            Your family tree could not be loaded: {persons.error.message}
+            Your tree could not be loaded: {persons.error.message}
           </p>
         )}
         {persons.error === undefined && sorted.length === 0 && (

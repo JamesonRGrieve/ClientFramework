@@ -36,6 +36,11 @@ describe('authPagesConfig', () => {
     });
   });
 
+  it("lands a sign-in on the app's home when it names one", () => {
+    expect(authPagesConfig({ app: APP, auth: { home: '/polycule' } }).home).toBe('/polycule');
+    expect(authPagesConfig({ app: APP })).not.toHaveProperty('home');
+  });
+
   it('turns magic-link and passkey sign-in on only when a registered extension does', () => {
     expect(authPagesConfig({ app: APP, extensions: [{ name: 'other' }] }).authModes).toEqual({
       basic: true,

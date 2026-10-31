@@ -10,6 +10,7 @@ describe('abilityExtensions', () => {
       'cad',
       'calendar',
       'cloud',
+      'contacts',
       'crypto',
       'fdm_sla_printing',
       'local_ai',

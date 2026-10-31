@@ -21,6 +21,7 @@ import { backupRestoreExtension } from './backup_restore';
 import { databaseExtension } from './database';
 import { databaseMemoryExtension } from './database_memory';
 import { emailExtension } from './email';
+import { entitlementsExtension } from './entitlements';
 import { federationExtension } from './federation';
 import { fileioExtension } from './fileio';
 import { abilityExtensions } from './abilities';
@@ -58,6 +59,7 @@ export {
   databaseExtension,
   databaseMemoryExtension,
   emailExtension,
+  entitlementsExtension,
   federationExtension,
   fileioExtension,
   genealogyExtension,
@@ -80,6 +82,7 @@ export {
   cadExtension,
   calendarExtension,
   cloudExtension,
+  contactsExtension,
   cryptoExtension,
   fdmSlaPrintingExtension,
   localAiExtension,
@@ -120,6 +123,7 @@ export const allExtensions: ZephyrexClientExtension[] = [
   databaseExtension,
   databaseMemoryExtension,
   emailExtension,
+  entitlementsExtension,
   federationExtension,
   fileioExtension,
   genealogyExtension,

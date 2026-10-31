@@ -25,12 +25,15 @@ import { useZephyrexConfig } from '@/lib/zephyrex/ZephyrexProvider';
 
 type SignedInUser = Pick<User, 'email' | 'first_name' | 'last_name'>;
 
-/** The user's Gravatar, falling back to their initials. */
-function UserAvatar({ user }: { user: SignedInUser | undefined }) {
+/** The user's Gravatar, unless the app turns Gravatar off (`app.gravatar`), falling back to their initials. */
+export function UserAvatar({ user }: { user: SignedInUser | undefined }) {
+  const { config } = useZephyrexConfig();
   const firstName = user?.first_name ?? '';
   return (
     <Avatar className='w-8 h-8 rounded-lg'>
-      <AvatarImage src={getGravatarUrl(user?.email ?? '')} {...(firstName === '' ? {} : { alt: firstName })} />
+      {config.app.gravatar !== false && (
+        <AvatarImage src={getGravatarUrl(user?.email ?? '')} {...(firstName === '' ? {} : { alt: firstName })} />
+      )}
       <AvatarFallback className='rounded-lg'>{user === undefined ? null : userInitials(user)}</AvatarFallback>
     </Avatar>
   );

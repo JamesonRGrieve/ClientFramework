@@ -15,6 +15,7 @@ import { useZephyrexConfig } from '../../ZephyrexProvider';
 export function UserLayout({ children }: { children: ReactNode }): ReactNode {
   const pathname = usePathname();
   const { config } = useZephyrexConfig();
+  const Logo = config.app.logo;
 
   if (pathname === `${config.auth?.authPath ?? DEFAULT_AUTH_PATH}${MANAGE_PAGE}`) {
     return (
@@ -34,6 +35,11 @@ export function UserLayout({ children }: { children: ReactNode }): ReactNode {
         style={{ paddingTop: 'env(safe-area-inset-top)', height: 'calc(3.5rem + env(safe-area-inset-top))' }}
       >
         <Link href='/' className='flex items-center gap-2 text-lg font-semibold text-foreground'>
+          {Logo !== undefined && (
+            <span className='size-8' aria-hidden='true'>
+              <Logo />
+            </span>
+          )}
           {config.app.name}
         </Link>
       </header>

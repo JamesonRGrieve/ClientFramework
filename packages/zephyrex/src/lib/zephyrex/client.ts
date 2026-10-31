@@ -104,6 +104,54 @@ export class StaleWriteError extends ApiError {
   }
 }
 
+const PAYMENT_REQUIRED = 402;
+
+const PaymentRequiredBodySchema = z.object({
+  detail: z.object({
+    feature: z.string().optional(),
+    limit: z.string().optional(),
+    allowed: z.number().int().nullable().optional(),
+    upgrade_to: z.array(z.string()),
+  }),
+});
+
+/**
+ * The user's plan does not cover what was asked (402): `feature` it lacks, or `limit` it would
+ * pass (`allowed` being the plan's count), and `upgradeTo`, the plans that would, cheapest first.
+ * A 402 without that body (e.g. a lapsed subscription refused at sign-in) has none of them.
+ */
+export class PaymentRequiredError extends ApiError {
+  readonly feature: string | null;
+  readonly limit: string | null;
+  readonly allowed: number | null;
+  readonly upgradeTo: readonly string[];
+
+  constructor(body: string) {
+    let parsed: z.infer<typeof PaymentRequiredBodySchema>['detail'] | null = null;
+    try {
+      const result = PaymentRequiredBodySchema.safeParse(JSON.parse(body));
+      parsed = result.success ? result.data.detail : null;
+    } catch {
+      // Not JSON: a plain refusal.
+    }
+    super(PAYMENT_REQUIRED, parsed === null ? body : JSON.stringify({ detail: describeRefusal(parsed) }));
+    this.name = 'PaymentRequiredError';
+    this.feature = parsed?.feature ?? null;
+    this.limit = parsed?.limit ?? null;
+    this.allowed = parsed?.allowed ?? null;
+    this.upgradeTo = parsed?.upgrade_to ?? [];
+  }
+}
+
+/** A 402's message for the user: what is not covered, and what would cover it. */
+function describeRefusal(detail: z.infer<typeof PaymentRequiredBodySchema>['detail']): string {
+  const what =
+    detail.feature === undefined
+      ? `Your plan allows ${String(detail.allowed ?? 0)} ${(detail.limit ?? 'of these').replaceAll('_', ' ')}`
+      : `Your plan does not include ${detail.feature.replaceAll('_', ' ')}`;
+  return detail.upgrade_to.length === 0 ? `${what}.` : `${what}; upgrade to ${detail.upgrade_to.join(' or ')}.`;
+}
+
 // A row's version and its If-Match value come from @zephyrex/auth, so both clients guard alike.
 export { etagOf, type Versioned };
 
@@ -170,6 +218,9 @@ export class ZephyrexClient {
     });
     if (res.status === PRECONDITION_FAILED) {
       throw new StaleWriteError(await res.text());
+    }
+    if (res.status === PAYMENT_REQUIRED) {
+      throw new PaymentRequiredError(await res.text());
     }
     if (!res.ok) {
       throw new ApiError(res.status, await res.text());

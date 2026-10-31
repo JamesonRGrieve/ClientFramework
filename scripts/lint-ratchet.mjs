@@ -26,8 +26,9 @@ let lintOutput;
 let runError;
 const lintOutputPath = resolve(tmpdir(), `client-framework-eslint-${process.pid}.json`);
 try {
-  // `--concurrency auto` lints across worker threads (the type-aware rules dominate the run).
-  execSync(`./node_modules/.bin/eslint --concurrency auto . --format json --output-file "${lintOutputPath}"`, {
+  // Four worker threads (the type-aware rules dominate the run). Not `auto`: each worker holds its
+  // own TypeScript program, and `auto` (half the cores) ran out of memory on a shared machine.
+  execSync(`./node_modules/.bin/eslint --concurrency 4 . --format json --output-file "${lintOutputPath}"`, {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
     maxBuffer: 64 * 1024 * 1024,

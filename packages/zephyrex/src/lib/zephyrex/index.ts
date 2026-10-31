@@ -9,7 +9,7 @@ export { accountsEnabled, DEFAULT_AUTH_PATH, MANAGE_PAGE } from './authPath';
 export type { CspAdditions, CspDirective } from './contentSecurityPolicy';
 
 // API Client
-export { ZephyrexClient, ApiError, RateLimitError, StaleWriteError, etagOf } from './client';
+export { ZephyrexClient, ApiError, PaymentRequiredError, RateLimitError, StaleWriteError, etagOf } from './client';
 export type { ZephyrexClientConfig, JsonValue, JsonBody, Versioned } from './client';
 
 // Data Hooks
@@ -39,6 +39,8 @@ export type { SearchOptions, SearchState } from './useSearch';
 export { useFileUpload } from './useFileUpload';
 export type { UploadResult, UploadProgress } from './useFileUpload';
 export { useSubscription } from './useSubscription';
+export { ENTITLEMENT_PATH, EntitlementSchema, hasFeature, limitOf, useEntitlement, withinLimit } from './useEntitlement';
+export type { Entitlement } from './useEntitlement';
 export type { SubscriptionOptions } from './useSubscription';
 export { useOnline } from './useOnline';
 export { useDraft, useEditBase, useGuardedSave, writeProblem } from './useGuardedSave';
@@ -84,6 +86,7 @@ export type {
 
 // Components
 export { RequireRole } from './components/RequireRole';
+export { RequireFeature, UpgradePrompt } from './components/RequireFeature';
 export { ErrorBoundary } from './components/ErrorBoundary';
 export { NotificationBell } from './components/NotificationBell';
 export { SearchInput } from './components/SearchInput';

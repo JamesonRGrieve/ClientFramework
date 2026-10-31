@@ -7,6 +7,7 @@ import { Label } from '@jgrieve/forms/components/ui/label';
 import { type ReactElement, type SyntheticEvent, useId, useState } from 'react';
 import type { Person, PersonFields } from './genealogyApi';
 import { dateField, dateInput } from './people';
+import { useGenealogyOptions } from './OptionsProvider';
 
 const EMPTY: Pick<Person, 'name' | 'birth_date' | 'death_date' | 'gender' | 'description'> = {
   name: null,
@@ -31,6 +32,7 @@ export function PersonForm({
   submitLabel: string;
   onSave: (fields: PersonFields) => Promise<string | null>;
 }): ReactElement {
+  const options = useGenealogyOptions();
   const ids = { name: useId(), birth: useId(), death: useId(), gender: useId(), description: useId() };
   const [name, setName] = useState(person.name ?? '');
   const [birth, setBirth] = useState(dateInput(person.birth_date));
@@ -66,15 +68,17 @@ export function PersonForm({
         <Label htmlFor={ids.name}>Name</Label>
         <Input id={ids.name} value={name} onChange={(event) => setName(event.target.value)} />
       </div>
-      <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+      <div className={options.lineage ? 'grid grid-cols-1 gap-3 sm:grid-cols-3' : 'grid grid-cols-1 gap-3 sm:grid-cols-2'}>
         <div className='grid gap-1'>
-          <Label htmlFor={ids.birth}>Born</Label>
+          <Label htmlFor={ids.birth}>{options.lineage ? 'Born' : 'Birthday'}</Label>
           <Input id={ids.birth} type='date' value={birth} onChange={(event) => setBirth(event.target.value)} />
         </div>
-        <div className='grid gap-1'>
-          <Label htmlFor={ids.death}>Died</Label>
-          <Input id={ids.death} type='date' value={death} onChange={(event) => setDeath(event.target.value)} />
-        </div>
+        {options.lineage && (
+          <div className='grid gap-1'>
+            <Label htmlFor={ids.death}>Died</Label>
+            <Input id={ids.death} type='date' value={death} onChange={(event) => setDeath(event.target.value)} />
+          </div>
+        )}
         <div className='grid gap-1'>
           <Label htmlFor={ids.gender}>Gender</Label>
           <Input id={ids.gender} value={gender} onChange={(event) => setGender(event.target.value)} />

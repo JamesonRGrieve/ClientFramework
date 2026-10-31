@@ -9,6 +9,7 @@ import {
   LIST_PAGE_SIZE,
   parseRetryAfter,
   RateLimitError,
+  PaymentRequiredError,
   StaleWriteError,
   ZephyrexClient,
 } from './client';
@@ -17,6 +18,7 @@ const BASE = 'https://api.example.com';
 const HTTP_OK = 200;
 const HTTP_NO_CONTENT = 204;
 const HTTP_NOT_FOUND = 404;
+const HTTP_PAYMENT_REQUIRED = 402;
 const HTTP_PRECONDITION_FAILED = 412;
 const HTTP_UNPROCESSABLE = 422;
 const HTTP_PRECONDITION_REQUIRED = 428;
@@ -136,6 +138,45 @@ describe('ZephyrexClient', () => {
       const failure = client().post('/v1/team', { team: { name: 'Beta' } });
       await expect(failure).rejects.toEqual(new ApiError(HTTP_PRECONDITION_REQUIRED, '{"detail":"If-Match required"}'));
       await expect(failure).rejects.not.toBeInstanceOf(StaleWriteError);
+    });
+
+    it('raises PaymentRequiredError naming what the plan lacks and what to upgrade to (402)', async () => {
+      reply(
+        new Response(JSON.stringify({ detail: { feature: 'calendar_sync', upgrade_to: ['plus', 'pro'] } }), {
+          status: HTTP_PAYMENT_REQUIRED,
+        }),
+      );
+      const failure = client().get('/v1/calendar/sync');
+      await expect(failure).rejects.toBeInstanceOf(PaymentRequiredError);
+      await expect(failure).rejects.toMatchObject({
+        status: HTTP_PAYMENT_REQUIRED,
+        feature: 'calendar_sync',
+        limit: null,
+        upgradeTo: ['plus', 'pro'],
+        message: 'Your plan does not include calendar sync; upgrade to plus or pro.',
+      });
+    });
+
+    it('describes a limit the plan would pass', async () => {
+      reply(
+        new Response(JSON.stringify({ detail: { limit: 'people', allowed: 10, upgrade_to: ['plus'] } }), {
+          status: HTTP_PAYMENT_REQUIRED,
+        }),
+      );
+      await expect(client().post('/v1/person', { person: { name: 'Eleventh' } })).rejects.toMatchObject({
+        limit: 'people',
+        allowed: 10,
+        message: 'Your plan allows 10 people; upgrade to plus.',
+      });
+    });
+
+    it('keeps a plain 402 (a lapsed subscription at sign-in) as its message', async () => {
+      reply(new Response('{"detail":"Subscription required"}', { status: HTTP_PAYMENT_REQUIRED }));
+      await expect(client().get('/v1/user')).rejects.toMatchObject({
+        message: 'Subscription required',
+        feature: null,
+        upgradeTo: [],
+      });
     });
   });
 

@@ -46,7 +46,8 @@ describe('PairRequest', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(PAIRING_POLL_MS * 2);
     });
-    expect(window.location.href).toBe('/user');
+    // No return address and no app home: the account page.
+    expect(window.location.href).toBe('/user/manage');
     expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith('/p1/status'))).toHaveLength(2);
   });
 

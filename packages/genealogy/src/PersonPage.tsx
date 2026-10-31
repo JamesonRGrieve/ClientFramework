@@ -10,9 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { genealogyApi, type Person, PersonSchema, usePersons } from './genealogyApi';
 import { KinshipLookup } from './KinshipLookup';
 import { Lineage } from './Lineage';
+import { useGenealogyOptions } from './OptionsProvider';
 import { lifeSpan, personName } from './people';
 import { PersonForm } from './PersonForm';
 import { Relatives } from './Relatives';
+import { SocialCircle } from './SocialCircle';
 import { GENEALOGY_PATH } from './routes';
 
 const SAVE_FAILURE = 'The details could not be saved.';
@@ -74,6 +76,7 @@ function PersonDetails({
 /** One person: their details, their relatives, and their ancestors and descendants. */
 export function PersonPage({ params }: { params: Record<string, string> }): ReactElement {
   const { personId } = params;
+  const options = useGenealogyOptions();
   const client = useClient();
   const router = useRouter();
   const persons = usePersons();
@@ -99,16 +102,16 @@ export function PersonPage({ params }: { params: Record<string, string> }): Reac
   if (persons.error !== undefined) {
     return (
       <p role='alert' className='text-sm text-destructive'>
-        The family tree could not be loaded: {persons.error.message}
+        The tree could not be loaded: {persons.error.message}
       </p>
     );
   }
   if (person === undefined) {
     return (
       <p className='text-sm text-muted-foreground'>
-        {persons.isLoading ? 'Loading…' : 'This person is not in your family tree.'}{' '}
+        {persons.isLoading ? 'Loading…' : 'This person is not in your tree.'}{' '}
         <Link href={GENEALOGY_PATH} className='underline'>
-          Back to the family tree
+          {options.tree}
         </Link>
       </p>
     );
@@ -118,7 +121,7 @@ export function PersonPage({ params }: { params: Record<string, string> }): Reac
     <main className='mx-auto flex w-full max-w-4xl flex-col gap-6'>
       <div className='grid gap-1'>
         <Link href={GENEALOGY_PATH} className='text-sm text-muted-foreground underline'>
-          Family tree
+          {options.tree}
         </Link>
         <h1 className='text-3xl font-semibold'>{personName(person)}</h1>
         {lifeSpan(person) !== '' && <p className='text-muted-foreground'>{lifeSpan(person)}</p>}
@@ -159,9 +162,13 @@ export function PersonPage({ params }: { params: Record<string, string> }): Reac
           </div>
         </CardContent>
       </Card>
+      {(options.panels ?? []).map(({ name, component: Panel }) => (
+        <Panel key={name} person={person} />
+      ))}
       <Relatives person={person} people={people} />
-      <Lineage person={person} people={people} />
-      <KinshipLookup initialPersonId={person.id} />
+      <SocialCircle person={person} people={people} />
+      {options.lineage && <Lineage person={person} people={people} />}
+      {options.lineage && <KinshipLookup initialPersonId={person.id} />}
     </main>
   );
 }

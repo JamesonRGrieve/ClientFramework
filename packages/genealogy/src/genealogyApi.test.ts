@@ -4,15 +4,25 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StaleWriteError, ZephyrexClient } from 'zephyrex';
 import { TestWrapper, testConfig } from 'zephyrex/testing';
 import { fetchFrom } from 'zephyrex/testing/msw';
-import { FIXTURE_VERSION, familyFixture, genealogyHandlers } from './genealogy.mocks';
-import { genealogyApi, type Relationship, useKinship, useLineage, usePersons, useRelationships } from './genealogyApi';
+import { FIXTURE_VERSION, familyFixture, genealogyHandlers, polyculeFixture } from './genealogy.mocks';
+import {
+  genealogyApi,
+  type Relationship,
+  useConnections,
+  useKinship,
+  useLineage,
+  useMetamours,
+  useNetwork,
+  usePersons,
+  useRelationships,
+} from './genealogyApi';
 
 const client = new ZephyrexClient({ baseUrl: testConfig.server.baseUrl });
 
-/** The one relationship a create recorded; a sibling link is stored once. */
+/** The one relationship a create recorded; ancestry, being directed, is stored once. */
 const onlyRow = (rows: readonly Relationship[]): Relationship => {
-  const [row, ...others] = rows;
-  if (row === undefined || others.length > 0) {
+  const row = rows.at(0);
+  if (row === undefined || rows.length > 1) {
     throw new Error(`Expected one relationship, got ${String(rows.length)}`);
   }
   return row;
@@ -30,7 +40,7 @@ describe('genealogyApi', () => {
     vi.unstubAllGlobals();
   });
 
-  it('records a partnership both ways, and anything else once', async () => {
+  it('records a symmetric kind both ways, and ancestry once', async () => {
     const before = store.relationships.length;
     const partners = await genealogyApi.createRelationship(client, {
       person_id: 'byron',
@@ -42,8 +52,15 @@ describe('genealogyApi', () => {
       ['byron', 'annabella'],
       ['annabella', 'byron'],
     ]);
-    await genealogyApi.createRelationship(client, { person_id: 'anne', target_person_id: 'ralph', kind: 'sibling_of' });
-    expect(store.relationships).toHaveLength(before + 3);
+    const friends = await genealogyApi.createRelationship(client, {
+      person_id: 'anne',
+      target_person_id: 'ralph',
+      kind: 'friendship',
+      discriminator: 'close_friend',
+    });
+    expect(friends).toHaveLength(2);
+    await genealogyApi.createRelationship(client, { person_id: 'william', target_person_id: 'ralph', kind: 'ancestry' });
+    expect(store.relationships).toHaveLength(before + 5);
   });
 
   it('creates, updates and deletes a person, each change guarded by the version it was made against', async () => {
@@ -62,7 +79,7 @@ describe('genealogyApi', () => {
 
   it('deletes a relationship only at the version it was loaded at', async () => {
     const row = onlyRow(
-      await genealogyApi.createRelationship(client, { person_id: 'anne', target_person_id: 'ralph', kind: 'sibling_of' }),
+      await genealogyApi.createRelationship(client, { person_id: 'william', target_person_id: 'ralph', kind: 'ancestry' }),
     );
     await expect(genealogyApi.deleteRelationship(client, { ...row, created_at: FIXTURE_VERSION })).rejects.toBeInstanceOf(
       StaleWriteError,
@@ -107,5 +124,41 @@ describe('genealogy hooks', () => {
       expect(result.current.ancestors?.relatives.map((row) => row.person_id)).toEqual(['byron', 'annabella']);
     });
     expect(result.current.pending).toBeUndefined();
+  });
+});
+
+describe('social-tie hooks', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn(fetchFrom(genealogyHandlers(polyculeFixture()))));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('read connections, metamours and the polycule, leaving ended ties out unless asked', async () => {
+    const { result } = renderHook(
+      () => ({
+        friends: useConnections('ben', { kinds: ['friendship'] }).data,
+        everAna: useConnections('ana', { includeEnded: true }).data,
+        metamours: useMetamours('ana').data,
+        polycule: useNetwork('ana', { kinds: ['partnership'] }).data,
+        near: useNetwork('ana', { kinds: ['partnership'], depth: 1 }).data,
+      }),
+      { wrapper: TestWrapper },
+    );
+    await waitFor(() => {
+      expect(result.current.friends?.connections).toEqual([
+        { person_id: 'fay', kind: 'friendship', discriminator: 'best_friend' },
+      ]);
+      expect(result.current.everAna?.connections.map((tie) => tie.person_id)).toEqual(['ben', 'eli']);
+      expect(result.current.metamours?.metamours).toEqual([{ person_id: 'cleo', via: ['ben'] }]);
+      expect(result.current.polycule?.members).toEqual([
+        { person_id: 'ben', distance: 1 },
+        { person_id: 'cleo', distance: 2 },
+        { person_id: 'dev', distance: 3 },
+      ]);
+      expect(result.current.near?.members).toEqual([{ person_id: 'ben', distance: 1 }]);
+    });
   });
 });

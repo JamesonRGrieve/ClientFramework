@@ -12,6 +12,7 @@ export function authPagesConfig({
   return {
     appName: app.name,
     authPath: auth?.authPath ?? DEFAULT_AUTH_PATH,
+    ...(auth?.home === undefined ? {} : { home: auth.home }),
     authModes: {
       basic: auth?.authModes?.basic ?? true,
       magical: extensions.some((extension) => extension.authModes?.magical === true),

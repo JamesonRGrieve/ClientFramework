@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { render } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { UserLayout } from './UserLayout';
 import { TestWrapper } from '@/testing/TestWrapper';
 
-const renderAt = (pathname: string): ReturnType<typeof render> => {
+const renderAt = (pathname: string, logo?: () => ReactNode): ReturnType<typeof render> => {
   vi.mocked(usePathname).mockReturnValue(pathname);
   return render(
-    <TestWrapper>
+    <TestWrapper {...(logo === undefined ? {} : { config: { app: { name: 'Test App', logo } } })}>
       <UserLayout>
         <p>step</p>
       </UserLayout>
@@ -25,6 +26,11 @@ describe('UserLayout', () => {
     const view = renderAt('/user/login');
     expect(view.getByRole('link', { name: 'Test App' })).toHaveAttribute('href', '/');
     expect(view.getByText('step')).toBeInTheDocument();
+  });
+
+  it("puts the app's logo beside its name", () => {
+    const view = renderAt('/user/login', () => <svg data-testid='logo' />);
+    expect(view.getByRole('link', { name: 'Test App' })).toContainElement(view.getByTestId('logo'));
   });
 
   it('gives the account page the app shell instead', () => {

@@ -70,7 +70,7 @@ A consumer app is ~6 files:
 
 ### Extension System
 
-34 client extensions match 1:1 with the extensions bundled with the server (pinned by `extensions/index.test.ts`). Identity-provider extensions live in zephyrex-auth and campaign extensions in zephyrex-rpg, each with its client counterpart. Each extension can provide:
+Client extensions match 1:1 with the extensions bundled with the server (pinned by `extensions/index.test.ts`). Identity-provider extensions live in zephyrex-auth and campaign extensions in zephyrex-rpg, each with its client counterpart. Each extension can provide:
 
 - `pages` — routes to register
 - `navItems` — sidebar entries

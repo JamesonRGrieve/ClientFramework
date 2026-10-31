@@ -61,6 +61,20 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 });
 
+// ResizeObserver: jsdom has no layout, so nothing ever resizes; React Flow observes its container.
+class NoLayoutResizeObserver {
+  observe(): void {
+    // Nothing to watch without layout.
+  }
+  unobserve(): void {
+    // Nothing was watched.
+  }
+  disconnect(): void {
+    // Nothing was watched.
+  }
+}
+Object.defineProperty(globalThis, 'ResizeObserver', { writable: true, value: NoLayoutResizeObserver });
+
 // Global fetch stub
 globalThis.fetch = vi.fn(async () =>
   Promise.resolve(

@@ -1,0 +1,146 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+
+/* The genealogy package's styles: React Flow's base styles and the social-network graph, drawn
+   in the app's theme tokens so it follows light and dark. Import after zephyrex/styles.css. */
+@import '@xyflow/react/dist/base.css';
+
+/* The graph's tokens, from the app's theme variables so they follow light and dark. Static, so they
+   exist even though no utility class names them. */
+@theme static {
+  --color-genealogy-border: hsl(var(--border));
+  --color-genealogy-canvas: hsl(var(--muted) / 35%);
+  --color-genealogy-card: hsl(var(--card));
+  --color-genealogy-card-foreground: hsl(var(--card-foreground));
+  --color-genealogy-muted-foreground: hsl(var(--muted-foreground));
+  --color-genealogy-ring: hsl(var(--ring));
+  --color-genealogy-primary: hsl(var(--primary));
+  --color-genealogy-primary-foreground: hsl(var(--primary-foreground));
+  --color-genealogy-shadow: hsl(var(--foreground) / 8%);
+  --color-genealogy-partnership: hsl(var(--chart-5));
+  --color-genealogy-friendship: hsl(var(--chart-2));
+  --color-genealogy-sibling: hsl(var(--chart-3));
+  --spacing-genealogy-canvas-max: 36rem;
+  --spacing-genealogy-portrait-min: 28rem;
+  --spacing-genealogy-portrait-max: 48rem;
+  --spacing-genealogy-node-inline: 0.5rem;
+  --spacing-genealogy-legend-width: 1rem;
+  --spacing-genealogy-legend-height: 0.1875rem;
+  --spacing-genealogy-shadow-blur: 2px;
+  --text-genealogy-node: 0.9375rem;
+  --text-genealogy-label: 0.8125rem;
+  --radius-genealogy-pill: 9999px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.genealogy-network__canvas {
+  border: 1px solid var(--color-genealogy-border);
+  border-radius: var(--radius);
+  background: var(--color-genealogy-canvas);
+  overflow: hidden;
+}
+
+/* Wide: as tall as the layout's shape needs (set inline), up to a screenful. */
+.genealogy-network__canvas--landscape {
+  max-height: var(--spacing-genealogy-canvas-max);
+  width: 100%;
+}
+
+/* A phone: the graph runs top to bottom, given most of the screen's height. */
+.genealogy-network__canvas--portrait {
+  height: clamp(var(--spacing-genealogy-portrait-min), 75vh, var(--spacing-genealogy-portrait-max));
+}
+
+.genealogy-network .react-flow {
+  --xy-background-pattern-dots-color-default: var(--color-genealogy-border);
+  --xy-edge-stroke-default: var(--color-genealogy-muted-foreground);
+  --xy-edge-label-background-color-default: var(--color-genealogy-card);
+  --xy-edge-label-color-default: var(--color-genealogy-muted-foreground);
+}
+
+.genealogy-node {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--spacing-genealogy-node-inline);
+  border: 1px solid var(--color-genealogy-border);
+  border-radius: var(--radius-genealogy-pill);
+  background: var(--color-genealogy-card);
+  color: var(--color-genealogy-card-foreground);
+  font-size: var(--text-genealogy-node);
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px var(--spacing-genealogy-shadow-blur) var(--color-genealogy-shadow);
+}
+
+.genealogy-node:hover {
+  border-color: var(--color-genealogy-ring);
+}
+
+.genealogy-node--focus {
+  border-color: var(--color-genealogy-primary);
+  background: var(--color-genealogy-primary);
+  color: var(--color-genealogy-primary-foreground);
+}
+
+.genealogy-node__label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.genealogy-tie .react-flow__edge-path {
+  stroke-width: 2;
+}
+
+.genealogy-tie .react-flow__edge-textbg {
+  fill: var(--color-genealogy-card);
+}
+
+.genealogy-tie .react-flow__edge-text {
+  fill: var(--color-genealogy-muted-foreground);
+  font-size: var(--text-genealogy-label);
+}
+
+.genealogy-tie--partnership .react-flow__edge-path,
+.genealogy-legend--partnership {
+  stroke: var(--color-genealogy-partnership);
+  background: var(--color-genealogy-partnership);
+}
+
+.genealogy-tie--friendship .react-flow__edge-path,
+.genealogy-legend--friendship {
+  stroke: var(--color-genealogy-friendship);
+  background: var(--color-genealogy-friendship);
+}
+
+.genealogy-tie--friendship .react-flow__edge-path {
+  stroke-dasharray: 6 4;
+}
+
+.genealogy-tie--sibling_of .react-flow__edge-path,
+.genealogy-legend--sibling_of {
+  stroke: var(--color-genealogy-sibling);
+  background: var(--color-genealogy-sibling);
+}
+
+.genealogy-tie--acquaintance .react-flow__edge-path,
+.genealogy-legend--acquaintance {
+  stroke: var(--color-genealogy-muted-foreground);
+  background: var(--color-genealogy-muted-foreground);
+}
+
+.genealogy-tie--acquaintance .react-flow__edge-path {
+  stroke-dasharray: 2 4;
+}
+
+.genealogy-legend {
+  display: inline-block;
+  width: var(--spacing-genealogy-legend-width);
+  height: var(--spacing-genealogy-legend-height);
+  border-radius: var(--radius-genealogy-pill);
+}
