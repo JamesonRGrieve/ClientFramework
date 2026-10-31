@@ -64,14 +64,14 @@ describe('PersonCard', () => {
     expect(await within(allergies).findByText('penicillin')).toBeInTheDocument();
     expect(store.attributes?.at(-1)).toMatchObject({ person_id: 'ben', category: 'allergies', label: 'medical' });
 
-    await user.click(within(allergies).getByRole('button', { name: 'Edit dietary' }));
-    const value = within(allergies).getByLabelText('dietary');
+    await user.click(within(allergies).getByRole('button', { name: 'Edit Dietary' }));
+    const value = within(allergies).getByLabelText('Dietary');
     await user.clear(value);
     await user.type(value, 'tree nuts');
     await user.click(within(allergies).getByRole('button', { name: 'Save' }));
     expect(await within(allergies).findByText('tree nuts')).toBeInTheDocument();
 
-    await user.click(within(allergies).getByRole('button', { name: 'Remove dietary' }));
+    await user.click(within(allergies).getByRole('button', { name: 'Remove Dietary' }));
     await vi.waitFor(() => {
       expect(store.attributes?.some((row) => row.value === 'tree nuts')).toBe(false);
     });

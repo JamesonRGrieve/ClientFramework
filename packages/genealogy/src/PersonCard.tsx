@@ -32,7 +32,11 @@ const OTHER: CardSection = { name: 'other', title: 'Other', fields: [] };
 
 const SELECT_CLASS = 'h-9 rounded-md border bg-background px-3 text-sm';
 
-const humanize = (value: string): string => value.replaceAll('_', ' ');
+/** A field's name as a heading: "dietary" → "Dietary", "best_friend" → "Best friend". */
+const humanize = (value: string): string => {
+  const words = value.replaceAll('_', ' ');
+  return words.charAt(0).toUpperCase() + words.slice(1);
+};
 const shownValue = (fact: Attribute): string =>
   fact.unit === null || fact.unit === undefined || fact.unit === '' ? fact.value : `${fact.value} ${fact.unit}`;
 
@@ -285,7 +289,7 @@ export function PersonCard({
                 </ul>
               )}
               {section.locked === true ? (
-                <UpgradePrompt feature={section.feature ?? section.name} title={section.title} />
+                <UpgradePrompt feature={section.feature ?? section.name} title={section.title} compact />
               ) : (
                 section !== OTHER && <AddFact personId={personId} section={section} onAdded={refresh} />
               )}

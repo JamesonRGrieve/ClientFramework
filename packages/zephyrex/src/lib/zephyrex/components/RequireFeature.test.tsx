@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { type Entitlement, ENTITLEMENT_PATH } from '../useEntitlement';
-import { RequireFeature } from './RequireFeature';
+import { RequireFeature, UpgradePrompt } from './RequireFeature';
 import { fetchFrom } from '@/testing/msw';
 import { TestWrapper } from '@/testing/TestWrapper';
 
@@ -53,6 +53,18 @@ describe('RequireFeature', () => {
       </TestWrapper>,
     );
     expect(await view.findByRole('link', { name: 'See plans' })).toHaveAttribute('href', '/plan');
+  });
+
+  it('fits the prompt on one line where it repeats', async () => {
+    serve([]);
+    const view = render(
+      <TestWrapper>
+        <UpgradePrompt feature='calendar_sync' compact />
+      </TestWrapper>,
+    );
+    const prompt = await view.findByRole('note', { name: 'Upgrade' });
+    expect(prompt.tagName).toBe('P');
+    expect(view.getByRole('link', { name: 'See plans' })).toHaveAttribute('href', '/user/subscribe');
   });
 
   it('shows the given fallback instead of the prompt', async () => {

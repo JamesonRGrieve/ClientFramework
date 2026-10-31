@@ -14,9 +14,28 @@ const SUBSCRIBE_PAGE = '/subscribe';
 const humanize = (value: string): string => value.replaceAll('_', ' ');
 
 /** What a user sees in place of a feature their plan lacks: what it is, and where to upgrade. */
-export function UpgradePrompt({ feature, title }: { feature: string; title?: string | undefined }): ReactNode {
+export function UpgradePrompt({
+  feature,
+  title,
+  compact = false,
+}: {
+  feature: string;
+  title?: string | undefined;
+  /** One line with a link, for a place that repeats it (each locked section of a form). */
+  compact?: boolean;
+}): ReactNode {
   const { config } = useZephyrexConfig();
   const subscribe = config.app.plans ?? `${config.auth?.authPath ?? DEFAULT_AUTH_PATH}${SUBSCRIBE_PAGE}`;
+  if (compact) {
+    return (
+      <p role='note' aria-label='Upgrade' className='text-sm text-muted-foreground'>
+        Part of a paid plan.{' '}
+        <Link href={subscribe} className='font-medium text-primary hover:underline'>
+          See plans
+        </Link>
+      </p>
+    );
+  }
   return (
     <div role='note' aria-label='Upgrade' className='grid gap-3 rounded-md border border-dashed p-4 text-sm'>
       <p>
