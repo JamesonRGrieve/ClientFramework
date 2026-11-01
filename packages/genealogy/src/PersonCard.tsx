@@ -250,7 +250,14 @@ function FactRow({
           </form>
         ) : (
           <span className='flex flex-1 items-center gap-2 font-medium'>
-            {shown ? shownValue(fact) : <span aria-label='Hidden'>••••••</span>}
+            {shown ? (
+              shownValue(fact)
+            ) : (
+              <span>
+                <span aria-hidden='true'>••••••</span>
+                <span className='sr-only'>Hidden</span>
+              </span>
+            )}
             {hidden && (
               <Button
                 size='sm'
