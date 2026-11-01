@@ -75,7 +75,12 @@ function Schedule({
       <Problem problem={problem} />
       <ul className='grid gap-2 sm:grid-cols-2'>
         {(schedule.data ?? []).map((night) => (
-          <li key={night.night} className='flex items-center justify-between gap-2 rounded-md border px-3 py-2'>
+          <li
+            key={night.night}
+            className={`flex items-center justify-between gap-2 rounded-md border px-3 py-2 ${
+              night.user_id !== null && night.user_id === me ? 'border-primary/40 bg-primary/5' : ''
+            }`}
+          >
             <span className='grid'>
               <span className='text-sm font-medium'>{nightLabel(night.night)}</span>
               <span className='text-sm text-muted-foreground'>
