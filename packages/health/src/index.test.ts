@@ -15,6 +15,8 @@ describe('@zephyrex/health', () => {
         'RECORD_TYPES',
         'RecordsPage',
         'SleepSchema',
+        'CheckInSchema',
+        'checkInType',
         'WeightSchema',
         'activityType',
         'createRecord',

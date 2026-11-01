@@ -5,6 +5,8 @@ import {
   ACTIVITY_KINDS,
   type Activity,
   ActivitySchema,
+  type CheckIn,
+  CheckInSchema,
   MEAL_KINDS,
   type Meal,
   MealSchema,
@@ -31,6 +33,9 @@ const MAX_DISTANCE_KM = 1000;
 const DECIMAL = 0.1;
 const MIN_WEIGHT_KG = 0.1;
 const MS_PER_DAY = 86_400_000;
+const MOOD_LOW = 1;
+const MOOD_HIGH = 5;
+const MAX_ABOUT = 200;
 
 /** A new record starts now, in the user's time. */
 const now = (): string => localInput(new Date().toISOString());
@@ -233,5 +238,36 @@ export const sleepType: RecordType<Sleep> = {
   },
 };
 
+export const checkInType: RecordType<CheckIn> = {
+  name: 'check_in',
+  title: 'Check-in',
+  plural: 'Check-ins',
+  endpoint: '/v1/health_check_in',
+  single: 'health_check_in',
+  envelope: 'health_check_ins',
+  schema: CheckInSchema,
+  fields: [
+    { key: 'checked_at', label: 'When', input: 'datetime', required: true },
+    { key: 'mood', label: 'Mood (1–5)', input: 'number', min: MOOD_LOW, max: MOOD_HIGH, required: true },
+    { key: 'about', label: 'About', input: 'text', maxLength: MAX_ABOUT },
+    { key: 'notes', label: 'Notes', input: 'text', maxLength: MAX_NOTES, multiline: true },
+  ],
+  timeOf: ({ checked_at: at }) => at,
+  describe: ({ mood, about }) =>
+    `Mood ${String(mood)} of ${String(MOOD_HIGH)}${about === null || about === undefined || about === '' ? '' : `, about ${about}`}`,
+  draftOf: (row) => ({
+    checked_at: row === null ? now() : localInput(row.checked_at),
+    mood: shown(row?.mood),
+    about: shown(row?.about),
+    notes: shown(row?.notes),
+  }),
+  valuesOf: (draft) => ({
+    checked_at: requiredTime(draft, 'checked_at'),
+    mood: requiredNumber(draft, 'mood'),
+    about: textOf(text(draft, 'about')),
+    notes: textOf(text(draft, 'notes')),
+  }),
+};
+
 /** Every kind of record in the health log, in the order the pages show them. */
-export const RECORD_TYPES = [activityType, mealType, weightType, sleepType] as const;
+export const RECORD_TYPES = [activityType, mealType, weightType, sleepType, checkInType] as const;

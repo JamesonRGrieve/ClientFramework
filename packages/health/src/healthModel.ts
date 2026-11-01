@@ -69,3 +69,14 @@ export const SleepSchema = z.object({
   ...version,
 });
 export type Sleep = z.infer<typeof SleepSchema>;
+
+/** How the user felt at a moment, 1 (low) to 5 (great), about themselves or someone. */
+export const CheckInSchema = z.object({
+  id: z.string(),
+  checked_at: z.string(),
+  mood: z.number().int(),
+  about: optionalText,
+  notes: optionalText,
+  ...version,
+});
+export type CheckIn = z.infer<typeof CheckInSchema>;

@@ -2,8 +2,8 @@
 import { describe, expect, it } from 'vitest';
 import { localInput } from './fields';
 import { healthFixture } from './health.mocks';
-import type { Activity } from './healthModel';
-import { activityType, mealType, RECORD_TYPES, sleepType, weightType } from './recordTypes';
+import type { Activity, CheckIn } from './healthModel';
+import { activityType, checkInType, mealType, RECORD_TYPES, sleepType, weightType } from './recordTypes';
 
 const fixture = healthFixture();
 
@@ -22,6 +22,7 @@ describe('the health record types', () => {
       ['meal', '/v1/health_meal', 'health_meal', 'health_meals'],
       ['weight', '/v1/health_weight', 'health_weight', 'health_weights'],
       ['sleep', '/v1/health_sleep', 'health_sleep', 'health_sleeps'],
+      ['check_in', '/v1/health_check_in', 'health_check_in', 'health_check_ins'],
     ]);
   });
 
@@ -33,6 +34,11 @@ describe('the health record types', () => {
     ]);
     expect(fixture.weights.map(weightType.describe)).toEqual(['70.4 kg', '70.1 kg, 21.5% body fat']);
     expect(fixture.sleeps.map(sleepType.describe)).toEqual(['7 h 30 min, quality 80']);
+    const checkIns: CheckIn[] = [
+      { id: 'c1', checked_at: '2026-01-01T21:00:00', mood: 4, about: 'Alex', notes: null },
+      { id: 'c2', checked_at: '2026-01-02T21:00:00', mood: 2, about: null, notes: null },
+    ];
+    expect(checkIns.map(checkInType.describe)).toEqual(['Mood 4 of 5, about Alex', 'Mood 2 of 5']);
   });
 
   it('gives every field a place in its form', () => {

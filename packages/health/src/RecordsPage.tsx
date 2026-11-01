@@ -6,7 +6,7 @@ import type { ReactElement } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import type { HealthRow, RecordType } from './records';
 import { RecordsPanel } from './RecordsPanel';
-import { activityType, mealType, sleepType, weightType } from './recordTypes';
+import { activityType, checkInType, mealType, sleepType, weightType } from './recordTypes';
 import { HEALTH_PATH } from './routes';
 
 function Log<T extends HealthRow>({ type }: { type: RecordType<T> }): ReactElement {
@@ -41,6 +41,8 @@ export function RecordsPage({ params }: { params: Record<string, string> }): Rea
       return <Log type={weightType} />;
     case sleepType.name:
       return <Log type={sleepType} />;
+    case checkInType.name:
+      return <Log type={checkInType} />;
     default:
       return (
         <p className='p-4 text-sm text-muted-foreground'>

@@ -7,7 +7,15 @@ export { RecordsPage } from './RecordsPage';
 export { HEALTH_PATH, recordsPath } from './routes';
 export { createRecord, useRecordActions, useRecords } from './healthApi';
 export type { RecordActions } from './healthApi';
-export { ACTIVITY_KINDS, ActivitySchema, MEAL_KINDS, MealSchema, SleepSchema, WeightSchema } from './healthModel';
-export type { Activity, Meal, Sleep, Weight } from './healthModel';
-export { activityType, mealType, RECORD_TYPES, sleepType, weightType } from './recordTypes';
+export {
+  ACTIVITY_KINDS,
+  ActivitySchema,
+  CheckInSchema,
+  MEAL_KINDS,
+  MealSchema,
+  SleepSchema,
+  WeightSchema,
+} from './healthModel';
+export type { Activity, CheckIn, Meal, Sleep, Weight } from './healthModel';
+export { activityType, checkInType, mealType, RECORD_TYPES, sleepType, weightType } from './recordTypes';
 export type { HealthRow, RecordType } from './records';
