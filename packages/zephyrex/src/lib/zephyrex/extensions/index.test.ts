@@ -77,6 +77,7 @@ const SERVER_EXTENSIONS = [
   'quota',
   'radius_consumer',
   'radius_provider',
+  'rota',
   'saml_consumer',
   'saml_provider',
   'scim_consumer',
