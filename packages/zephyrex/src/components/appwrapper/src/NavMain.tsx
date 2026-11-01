@@ -26,6 +26,24 @@ import { useZephyrexConfig } from '@/lib/zephyrex/ZephyrexProvider';
 type Item = NavItem;
 type SubItem = NonNullable<Item['items']>[number];
 
+/**
+ * A top-level entry with no children: a link, so it can be opened in a new tab, middle-clicked or
+ * copied like any other.
+ */
+function NavLink({ item, active }: { item: Item; active: boolean }): React.JSX.Element {
+  const ItemIcon = item.icon;
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild side='left' tooltip={item.title} className={cn(active && 'bg-muted')}>
+        <Link href={item.url ?? '/'} aria-current={active ? 'page' : undefined}>
+          {ItemIcon !== undefined && <ItemIcon />}
+          <span>{item.title}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
+
 export function NavMain(): React.JSX.Element {
   const router = useRouter();
   const pathname = usePathname();
@@ -68,6 +86,9 @@ export function NavMain(): React.JSX.Element {
             }
             const ItemIcon = item.icon;
             const hasChildren = item.items !== undefined && item.items.length > 0;
+            if (!hasChildren && item.url !== undefined && item.url !== '') {
+              return <NavLink key={item.title} item={item} active={item.isActive} />;
+            }
             return (
               <Collapsible key={item.title} asChild defaultOpen={item.isActive} className='group/collapsible'>
                 <SidebarMenuItem>
@@ -137,6 +158,9 @@ export function NavMain(): React.JSX.Element {
           {bottomItems.map((item) => {
             const ItemIcon = item.icon;
             const hasChildren = item.items !== undefined && item.items.length > 0;
+            if (!hasChildren && item.url !== undefined && item.url !== '') {
+              return <NavLink key={item.title} item={item} active={item.isActive} />;
+            }
             return (
               <Collapsible key={item.title} asChild defaultOpen={item.isActive} className='group/collapsible'>
                 <SidebarMenuItem>

@@ -33,4 +33,17 @@ describe('NavMain', () => {
       expect(screen.queryByText(absent)).not.toBeInTheDocument();
     }
   });
+
+  it('makes an entry without children a link, and one with children a button that opens them', () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Promise.resolve(new Response('{}', { status: HTTP_UNAUTHORIZED }))),
+    );
+    renderNav([
+      { title: 'Reports', url: '/reports' },
+      { title: 'Settings', url: '/settings', children: [{ title: 'Billing', url: '/settings/billing' }] },
+    ]);
+    expect(screen.getByRole('link', { name: 'Reports' })).toHaveAttribute('href', '/reports');
+    expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
+  });
 });
