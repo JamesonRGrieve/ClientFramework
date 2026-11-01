@@ -118,7 +118,7 @@ function AddRelative({
   people: Person[];
   onAdded: () => Promise<void>;
 }): ReactElement {
-  const ids = { role: useId(), relative: useId(), detail: useId() };
+  const ids = { role: useId(), relative: useId(), detail: useId(), since: useId() };
   const client = useClient();
   // A family tree starts from parents; an app without lineage, from partners.
   const { lineage, ties = [] } = useGenealogyOptions();
@@ -126,6 +126,8 @@ function AddRelative({
   const [role, setRole] = useState<string>(lineage ? 'parent' : 'partner');
   const [relativeId, setRelativeId] = useState('');
   const [detail, setDetail] = useState('');
+  // When the tie began (YYYY-MM-DD), for anniversaries; optional.
+  const [since, setSince] = useState('');
   const [problem, setProblem] = useState<string | null>(null);
   const others = people.filter((candidate) => candidate.id !== person.id);
   const chosen = choices.find((choice) => choice.value === role) ?? choices.at(0);
@@ -139,8 +141,12 @@ function AddRelative({
     }
     void (async (): Promise<void> => {
       try {
-        await genealogyApi.createRelationship(client, chosen.fields(person.id, relativeId, detail === '' ? null : detail));
+        await genealogyApi.createRelationship(client, {
+          ...chosen.fields(person.id, relativeId, detail === '' ? null : detail),
+          ...(since === '' || LINEAGE_ROLES.has(role as RelativeRole) ? {} : { valid_from: `${since}T00:00:00` }),
+        });
         setRelativeId('');
+        setSince('');
         setProblem(null);
         await onAdded();
       } catch (error) {
@@ -151,7 +157,7 @@ function AddRelative({
 
   return (
     <form className='grid gap-3' onSubmit={submit}>
-      <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+      <div className='grid grid-cols-1 gap-3 sm:grid-cols-4'>
         <div className='grid gap-1'>
           <Label htmlFor={ids.relative}>{lineage ? 'Relative' : 'Who'}</Label>
           <select
@@ -202,6 +208,18 @@ function AddRelative({
                 </option>
               ))}
             </select>
+          </div>
+        )}
+        {!LINEAGE_ROLES.has(role as RelativeRole) && (
+          <div className='grid gap-1'>
+            <Label htmlFor={ids.since}>Since</Label>
+            <input
+              id={ids.since}
+              type='date'
+              value={since}
+              onChange={(event) => setSince(event.target.value)}
+              className={SELECT_CLASS}
+            />
           </div>
         )}
       </div>

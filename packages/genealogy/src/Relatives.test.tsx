@@ -97,6 +97,28 @@ describe('Relatives', () => {
     });
   });
 
+  it('records when a tie began, both ways, for anniversaries', async () => {
+    const store = polyculeFixture();
+    const user = userEvent.setup();
+    const ana = personOf(store, 'ana');
+    const view = renderGenealogy(
+      <GenealogyOptionsProvider options={{ ...FAMILY_TREE, lineage: false, gedcom: false }}>
+        <Relatives person={ana} people={store.persons} />
+      </GenealogyOptionsProvider>,
+      store,
+    );
+    await view.findByRole('list', { name: 'Connections' });
+    await user.selectOptions(view.getByLabelText('Who'), 'Fay');
+    await user.type(view.getByLabelText('Since'), '2020-06-07');
+    await user.click(view.getByRole('button', { name: 'Add connection' }));
+    await vi.waitFor(() => {
+      expect(store.relationships.slice(-2).map((row) => row.valid_from)).toEqual([
+        '2020-06-07T00:00:00',
+        '2020-06-07T00:00:00',
+      ]);
+    });
+  });
+
   it('records a new relative, with the role the parent has', async () => {
     const store = familyFixture();
     const user = userEvent.setup();
