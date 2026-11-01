@@ -101,6 +101,26 @@ describe('PersonCard', () => {
     });
   });
 
+  it('hides a sensitive section’s values until asked', async () => {
+    const store = withCard();
+    store.attributes = [
+      ...(store.attributes ?? []),
+      { id: 'c1', person_id: 'ben', category: 'codes', label: 'locker', value: '4321', created_at: VERSION },
+    ];
+    const user = userEvent.setup();
+    const sections: readonly CardSection[] = [
+      ...SECTIONS,
+      { name: 'codes', title: 'Codes', fields: [{ label: 'locker', units: [] }], sensitive: true },
+    ];
+    const view = renderGenealogy(<PersonCard personId='ben' sections={sections} />, store);
+    const codes = await view.findByRole('region', { name: 'Codes' });
+    expect(codes).not.toHaveTextContent('4321');
+    await user.click(within(codes).getByRole('button', { name: 'Show Locker' }));
+    expect(codes).toHaveTextContent('4321');
+    await user.click(within(codes).getByRole('button', { name: 'Hide Locker' }));
+    expect(codes).not.toHaveTextContent('4321');
+  });
+
   it('puts the app’s own controls beside each fact', async () => {
     const view = renderGenealogy(
       <PersonCard

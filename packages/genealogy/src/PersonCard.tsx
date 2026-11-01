@@ -29,6 +29,8 @@ export interface CardSection {
   fields: readonly CardField[];
   locked?: boolean;
   feature?: string;
+  /** Values hidden until asked for (codes and the like). */
+  sensitive?: boolean;
 }
 
 /** Where a fact the catalogue does not name is kept. */
@@ -187,6 +189,7 @@ function AddFact({
 function FactRow({
   fact,
   choices,
+  hidden,
   editable,
   actions,
   onChanged,
@@ -194,6 +197,8 @@ function FactRow({
   fact: Attribute;
   /** The values the fact's field may take; free text when empty. */
   choices: readonly string[];
+  /** Whether the value starts hidden, shown only on asking. */
+  hidden: boolean;
   editable: boolean;
   actions: ReactNode;
   onChanged: () => Promise<unknown>;
@@ -201,6 +206,7 @@ function FactRow({
   const client = useClient();
   const valueId = useId();
   const [editing, setEditing] = useState(false);
+  const [shown, setShown] = useState(!hidden);
   const [value, setValue] = useState(fact.value);
   const [problem, setProblem] = useState<string | null>(null);
   // A write that fails (a stale one included) says why and reloads the card as it is now.
@@ -243,7 +249,19 @@ function FactRow({
             </Button>
           </form>
         ) : (
-          <span className='flex-1 font-medium'>{shownValue(fact)}</span>
+          <span className='flex flex-1 items-center gap-2 font-medium'>
+            {shown ? shownValue(fact) : <span aria-label='Hidden'>••••••</span>}
+            {hidden && (
+              <Button
+                size='sm'
+                variant='ghost'
+                onClick={() => setShown(!shown)}
+                aria-label={`${shown ? 'Hide' : 'Show'} ${name}`}
+              >
+                {shown ? 'Hide' : 'Show'}
+              </Button>
+            )}
+          </span>
         )}
         {editable && !editing && (
           <span className='flex flex-wrap items-center gap-1'>
@@ -322,6 +340,7 @@ export function PersonCard({
                       key={fact.id}
                       fact={fact}
                       choices={section.fields.find((field) => field.label === fact.label)?.choices ?? NO_CHOICES}
+                      hidden={section.sensitive === true}
                       editable={section.locked !== true}
                       actions={actions?.(fact)}
                       onChanged={refresh}
