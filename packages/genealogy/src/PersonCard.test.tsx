@@ -77,6 +77,30 @@ describe('PersonCard', () => {
     });
   });
 
+  it('offers a field with choices as a list, when adding and when editing', async () => {
+    const store = withCard();
+    const user = userEvent.setup();
+    const sections: readonly CardSection[] = [
+      ...SECTIONS,
+      { name: 'personality', title: 'Personality', fields: [{ label: 'MBTI', units: [], choices: ['INFJ', 'ENFP'] }] },
+    ];
+    const view = renderGenealogy(<PersonCard personId='ben' sections={sections} />, store);
+    const personality = await view.findByRole('region', { name: 'Personality' });
+    const value = within(personality).getByLabelText('Value');
+    expect(value.tagName).toBe('SELECT');
+    await user.selectOptions(value, 'INFJ');
+    await user.click(within(personality).getByRole('button', { name: 'Add' }));
+    expect(await within(personality).findByRole('listitem')).toHaveTextContent('INFJ');
+    await user.click(within(personality).getByRole('button', { name: 'Edit MBTI' }));
+    const editing = within(personality).getByLabelText('MBTI');
+    expect(editing.tagName).toBe('SELECT');
+    await user.selectOptions(editing, 'ENFP');
+    await user.click(within(personality).getByRole('button', { name: 'Save' }));
+    await vi.waitFor(() => {
+      expect(within(personality).getByRole('listitem')).toHaveTextContent('ENFP');
+    });
+  });
+
   it('puts the app’s own controls beside each fact', async () => {
     const view = renderGenealogy(
       <PersonCard

@@ -9,10 +9,14 @@ import { UpgradePrompt, useClient, writeProblem } from 'zephyrex';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { type Attribute, genealogyApi, personCardPath, usePersonCard } from './genealogyApi';
 
-/** A field a card section offers, with the units or size systems its value can be in. */
+/**
+ * A field a card section offers, with the units or size systems its value can be in, and the values
+ * it may take when it is a type rather than free text (an MBTI type, say).
+ */
 export interface CardField {
   label: string;
   units: readonly string[];
+  choices?: readonly string[];
 }
 
 /**
@@ -39,6 +43,37 @@ const humanize = (value: string): string => {
 };
 const shownValue = (fact: Attribute): string =>
   fact.unit === null || fact.unit === undefined || fact.unit === '' ? fact.value : `${fact.value} ${fact.unit}`;
+
+const NO_CHOICES: readonly string[] = [];
+
+/** The value of a field: one of its `choices` when it has them, otherwise free text. */
+function ValueInput({
+  id,
+  value,
+  choices,
+  onChange,
+  className,
+}: {
+  id: string;
+  value: string;
+  choices: readonly string[];
+  onChange: (value: string) => void;
+  className?: string;
+}): ReactElement {
+  if (choices.length === 0) {
+    return <Input id={id} value={value} onChange={(event) => onChange(event.target.value)} className={className} />;
+  }
+  return (
+    <select id={id} value={value} onChange={(event) => onChange(event.target.value)} className={SELECT_CLASS}>
+      <option value=''>Choose…</option>
+      {choices.map((choice) => (
+        <option key={choice} value={choice}>
+          {choice}
+        </option>
+      ))}
+    </select>
+  );
+}
 
 /** `facts` in each of `sections`, then any the catalogue does not name under "Other". */
 function bySection(sections: readonly CardSection[], facts: readonly Attribute[]): [CardSection, Attribute[]][] {
@@ -67,7 +102,8 @@ function AddFact({
   const [value, setValue] = useState('');
   const [unit, setUnit] = useState(first?.units.at(0) ?? '');
   const [problem, setProblem] = useState<string | null>(null);
-  const units = section.fields.find((field) => field.label === label)?.units ?? [];
+  const field = section.fields.find((candidate) => candidate.label === label);
+  const units = field?.units ?? [];
 
   const submit = (event: SyntheticEvent<HTMLFormElement>): void => {
     event.preventDefault();
@@ -106,13 +142,14 @@ function AddFact({
               value={label}
               onChange={(event) => {
                 setLabel(event.target.value);
-                setUnit(section.fields.find((field) => field.label === event.target.value)?.units.at(0) ?? '');
+                setValue('');
+                setUnit(section.fields.find((candidate) => candidate.label === event.target.value)?.units.at(0) ?? '');
               }}
               className={SELECT_CLASS}
             >
-              {section.fields.map((field) => (
-                <option key={field.label} value={field.label}>
-                  {humanize(field.label)}
+              {section.fields.map((option) => (
+                <option key={option.label} value={option.label}>
+                  {humanize(option.label)}
                 </option>
               ))}
             </select>
@@ -120,7 +157,7 @@ function AddFact({
         </div>
         <div className='grid gap-1'>
           <Label htmlFor={ids.value}>Value</Label>
-          <Input id={ids.value} value={value} onChange={(event) => setValue(event.target.value)} />
+          <ValueInput id={ids.value} value={value} choices={field?.choices ?? NO_CHOICES} onChange={setValue} />
         </div>
         {units.length > 0 && (
           <div className='grid gap-1'>
@@ -149,11 +186,14 @@ function AddFact({
 
 function FactRow({
   fact,
+  choices,
   editable,
   actions,
   onChanged,
 }: {
   fact: Attribute;
+  /** The values the fact's field may take; free text when empty. */
+  choices: readonly string[];
   editable: boolean;
   actions: ReactNode;
   onChanged: () => Promise<unknown>;
@@ -194,7 +234,7 @@ function FactRow({
             <Label htmlFor={valueId} className='sr-only'>
               {name}
             </Label>
-            <Input id={valueId} value={value} onChange={(event) => setValue(event.target.value)} className='max-w-xs' />
+            <ValueInput id={valueId} value={value} choices={choices} onChange={setValue} className='max-w-xs' />
             <Button type='submit' size='sm'>
               Save
             </Button>
@@ -281,6 +321,7 @@ export function PersonCard({
                     <FactRow
                       key={fact.id}
                       fact={fact}
+                      choices={section.fields.find((field) => field.label === fact.label)?.choices ?? NO_CHOICES}
                       editable={section.locked !== true}
                       actions={actions?.(fact)}
                       onChanged={refresh}
