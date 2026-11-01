@@ -58,6 +58,31 @@ describe('Manage', () => {
     expect(view.getByText('Two-factor authentication')).toBeInTheDocument();
   });
 
+  it('deletes the account over the version it loaded, then signs out', async () => {
+    const VERSION = '2026-01-01T00:00:00';
+    const fetchMock = serve({ ...ACCOUNT, '/v1/user': { body: { user: { ...PROFILE, created_at: VERSION } } } });
+    const { default: userEvent } = await import('@testing-library/user-event');
+    const user = userEvent.setup();
+    const { useRouter } = await import('next/navigation.js');
+    // The setup's router, with a push of this test's own to watch.
+    const push = vi.fn();
+    vi.mocked(useRouter).mockReturnValue({ ...vi.mocked(useRouter)(), push });
+    const Wrapper = wrapperWith({ auth: { deletionNote: 'Your tree goes; the notes others keep stay theirs.' } });
+    const view = render(
+      <Wrapper>
+        <Manage />
+      </Wrapper>,
+    );
+    expect(await view.findByText('Your tree goes; the notes others keep stay theirs.')).toBeInTheDocument();
+    await user.type(view.getByLabelText('Type “delete” to confirm'), 'delete');
+    await user.click(view.getByRole('button', { name: 'Delete my account' }));
+    await vi.waitFor(() => {
+      expect(push).toHaveBeenCalledWith('/user/logout');
+    });
+    const deletion = fetchMock.mock.calls.find(([, init]) => init?.method === 'DELETE');
+    expect(new Headers(deletion?.[1]?.headers).get('If-Match')).toBe(`"${VERSION}"`);
+  });
+
   it('leaves out the password section when the app signs in without passwords', async () => {
     const fetchMock = serve(ACCOUNT);
     const Wrapper = wrapperWith({ auth: { authModes: { basic: false } } });

@@ -135,6 +135,8 @@ export interface ZephyrexConfig {
     authPath?: string;
     /** Where signing in lands when it interrupted no page, e.g. `/polycule`; the account page by default. */
     home?: string;
+    /** What deleting an account erases, shown on the account page; a general warning when omitted. */
+    deletionNote?: string;
     /**
      * Password sign-in (`basic`), on by default. Magic-link sign-in is the auth_magic_link
      * extension's: register @zephyrex/auth-magic-link to turn it on.

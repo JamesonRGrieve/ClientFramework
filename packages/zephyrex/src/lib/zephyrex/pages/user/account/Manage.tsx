@@ -7,8 +7,10 @@ import { useRouter } from 'next/navigation.js';
 import type { ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../../components/ui/card';
 import { useTeams } from '../../../hooks';
+import { DEFAULT_AUTH_PATH } from '../../../authPath';
 import { useZephyrexConfig } from '../../../ZephyrexProvider';
 import { Account } from './Account';
+import { DeleteAccount } from './DeleteAccount';
 import { Profile } from './Profile';
 import { useProfile } from './useProfile';
 
@@ -48,13 +50,14 @@ function Teams(): ReactNode {
   );
 }
 
-/** The signed-in user's account page: profile, password, the extensions' sections and teams. */
+/** The signed-in user's account page: profile, password, the extensions' sections, teams, and deleting the account. */
 export function Manage({ heading, returnPath = '/', sections }: ManageProps): ReactNode {
   const router = useRouter();
   const { config } = useZephyrexConfig();
   // Email sign-in is by password unless the app turns it off.
   const passwords = config.auth?.authModes?.basic ?? true;
-  const { profile, error, isLoading, update, conflict, resolve, discard, changePassword } = useProfile();
+  const { profile, error, isLoading, update, conflict, resolve, discard, changePassword, deleteAccount } = useProfile();
+  const authPath = config.auth?.authPath ?? DEFAULT_AUTH_PATH;
   const { data: passwordPolicy } = usePasswordPolicy(config.server.baseUrl, passwords);
 
   return (
@@ -81,6 +84,14 @@ export function Manage({ heading, returnPath = '/', sections }: ManageProps): Re
           {passwords && <Account onChangePassword={changePassword} passwordPolicy={passwordPolicy} />}
           {sections}
           <Teams />
+          <DeleteAccount
+            note={config.auth?.deletionNote}
+            onDelete={async () => {
+              await deleteAccount();
+              // The session belongs to an account that is gone: sign out, which ends at the start.
+              router.push(`${authPath}/logout`);
+            }}
+          />
         </>
       )}
     </main>

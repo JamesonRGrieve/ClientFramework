@@ -29,6 +29,8 @@ export interface ProfileState {
   discard: () => void;
   /** PATCH the password; resolves with the server's confirmation. */
   changePassword: (currentPassword: string, newPassword: string) => Promise<string>;
+  /** DELETE the account, guarded by the profile as loaded; the server erases what it holds first. */
+  deleteAccount: () => Promise<void>;
 }
 
 /** The signed-in user's own profile, with the self-service writes the server allows. */
@@ -73,5 +75,12 @@ export function useProfile(): ProfileState {
     [client, data, mutate],
   );
 
-  return { profile: data, error, isLoading, mutate, update, conflict, resolve, discard, changePassword };
+  const deleteAccount = useCallback(async (): Promise<void> => {
+    if (data === undefined) {
+      throw new Error('The profile has not loaded yet.');
+    }
+    await client.delete(PROFILE_ENDPOINT, data);
+  }, [client, data]);
+
+  return { profile: data, error, isLoading, mutate, update, conflict, resolve, discard, changePassword, deleteAccount };
 }
