@@ -91,6 +91,12 @@ describe('RotaPage', () => {
     expect(view.queryByText('The cycle')).not.toBeInTheDocument();
   });
 
+  it('lets the app put the start form behind something of its own', async () => {
+    const view = renderRota(<RotaPage wrapStart={() => <p>Upgrade to start one</p>} />, emptyRotaStore());
+    expect(await view.findByText('Upgrade to start one')).toBeInTheDocument();
+    expect(view.queryByRole('button', { name: 'Start the rota' })).not.toBeInTheDocument();
+  });
+
   it('starts a first rota', async () => {
     const store = emptyRotaStore();
     const view = renderRota(<RotaPage />, store);

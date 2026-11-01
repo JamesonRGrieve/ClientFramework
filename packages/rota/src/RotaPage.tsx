@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { type SyntheticEvent, type ReactElement, useId, useState } from 'react';
+import { type ReactElement, type ReactNode, type SyntheticEvent, useId, useState } from 'react';
 import { useUser, writeProblem } from 'zephyrex';
 import { Badge } from 'zephyrex/ui/badge';
 import { Button } from 'zephyrex/ui/button';
@@ -257,9 +257,16 @@ function NewRota({ open }: { open: boolean }): ReactElement {
 /**
  * The nights rota: every rota you keep or have a night in, the next two weeks of each, the swaps
  * between you and someone else, and (for your own) the cycle. `people` names the accounts the app
- * knows, and offers them as nights' people.
+ * knows, and offers them as nights' people. `wrapStart` wraps the form that starts a rota, for an
+ * app that only lets some plans start one.
  */
-export function RotaPage({ people = [] }: { people?: readonly RotaPerson[] }): ReactElement {
+export function RotaPage({
+  people = [],
+  wrapStart = (form) => form,
+}: {
+  people?: readonly RotaPerson[];
+  wrapStart?: (form: ReactElement) => ReactNode;
+}): ReactElement {
   const rotas = useMyRotas();
   const { me, nameOf } = useNames(people);
   return (
@@ -288,7 +295,7 @@ export function RotaPage({ people = [] }: { people?: readonly RotaPerson[] }): R
           </CardContent>
         </Card>
       ))}
-      {rotas.data !== undefined && <NewRota open={rotas.data.length === 0} />}
+      {rotas.data !== undefined && wrapStart(<NewRota open={rotas.data.length === 0} />)}
     </main>
   );
 }
