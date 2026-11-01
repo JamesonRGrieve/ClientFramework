@@ -5,7 +5,7 @@ import { Button } from '@jgrieve/forms/components/ui/button';
 import Link from 'next/link.js';
 import { useRouter } from 'next/navigation.js';
 import { type ReactElement, useCallback, useState } from 'react';
-import { type ConflictField, ConflictPanel, useClient, useEditBase, useGuardedSave, writeProblem } from 'zephyrex';
+import { type ConflictField, ConflictPanel, useClient, useEditBase, useGuardedSave, useUser, writeProblem } from 'zephyrex';
 import { Card, CardContent, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { genealogyApi, type Person, PersonSchema, usePersons } from './genealogyApi';
 import { KinshipLookup } from './KinshipLookup';
@@ -83,6 +83,9 @@ export function PersonPage({ params }: { params: Record<string, string> }): Reac
   const { mutate: refreshPersons } = persons;
   const people = persons.data ?? [];
   const person = people.find((candidate) => candidate.id === personId);
+  const { data: user } = useUser();
+  // Your own record: you leave by deleting your account, not by removing yourself from your tree.
+  const isYou = user !== undefined && person?.linked_user_id === user.id;
   const [problem, setProblem] = useState<string | null>(null);
   const remove = useGuardedSave(
     useCallback(
@@ -124,6 +127,7 @@ export function PersonPage({ params }: { params: Record<string, string> }): Reac
           {options.tree}
         </Link>
         <h1 className='text-3xl font-semibold'>{personName(person)}</h1>
+        {isYou && <p className='text-muted-foreground'>This is you</p>}
         {lifeSpan(person) !== '' && <p className='text-muted-foreground'>{lifeSpan(person)}</p>}
       </div>
       <Card>
@@ -132,17 +136,19 @@ export function PersonPage({ params }: { params: Record<string, string> }): Reac
         </CardHeader>
         <CardContent className='grid gap-4'>
           <PersonDetails key={person.id} person={person} onProblem={setProblem} />
-          <div className='grid gap-2 border-t pt-4'>
-            <div>
-              <Button
-                variant='destructive'
-                onClick={() => {
-                  removeFailure(remove.save(person, {}));
-                }}
-              >
-                Remove {personName(person)} from the tree
-              </Button>
-            </div>
+          <div className={isYou ? 'grid gap-2' : 'grid gap-2 border-t pt-4'}>
+            {!isYou && (
+              <div>
+                <Button
+                  variant='destructive'
+                  onClick={() => {
+                    removeFailure(remove.save(person, {}));
+                  }}
+                >
+                  Remove {personName(person)} from the tree
+                </Button>
+              </div>
+            )}
             {remove.conflict !== null && (
               <ConflictPanel
                 conflict={remove.conflict}

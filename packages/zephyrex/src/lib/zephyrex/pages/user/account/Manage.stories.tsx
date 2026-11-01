@@ -26,7 +26,7 @@ const meta: Meta<typeof Manage> = {
   tags: ['autodocs'],
   parameters: { nextjs: { appDirectory: true }, layout: 'fullscreen' },
   decorators: [withSignedIn, withZephyrexApi],
-  args: { heading: 'Account Management' },
+  args: { heading: 'Your account' },
 };
 export default meta;
 

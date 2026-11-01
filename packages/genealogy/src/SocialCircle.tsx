@@ -11,15 +11,15 @@ import { fromNetwork } from './socialLayout';
 import { personName } from './people';
 import { personPath } from './routes';
 
-/** "Direct ties", "Ties of ties", "3 ties away", … for a network distance. */
+/** "Directly connected", "Two steps away", "3 steps away", … for a network distance. */
 export function distanceTitle(distance: number): string {
   if (distance === 1) {
-    return 'Direct ties';
+    return 'Directly connected';
   }
   if (distance === 2) {
-    return 'Ties of ties';
+    return 'Two steps away';
   }
-  return `${distance} ties away`;
+  return `${String(distance)} steps away`;
 }
 
 /** Network members grouped by distance, nearest first, each group in the server's order. */
@@ -59,7 +59,12 @@ export function SocialCircle({ person, people }: { person: Person; people: Perso
     () => (network.data === undefined ? undefined : fromNetwork(network.data, lookup)),
     [network.data, lookup],
   );
-  const groups = network.data === undefined ? [] : byDistance(network.data.members);
+  // Metamours have their own list, naming who they come through; the distances list everyone else.
+  const metamourIds = new Set(metamours.data?.metamours.map((metamour) => metamour.person_id) ?? []);
+  const groups =
+    network.data === undefined
+      ? []
+      : byDistance(network.data.members.filter((member) => !metamourIds.has(member.person_id)));
   const name = personName(person);
   const error = network.error ?? metamours.error;
 

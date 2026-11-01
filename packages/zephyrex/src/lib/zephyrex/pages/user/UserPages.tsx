@@ -28,12 +28,12 @@ export function UserPages({ slug, sections }: UserPagesProps): ReactNode {
       params={{ slug }}
       corePagesConfig={{
         ...authPagesConfig(config),
-        register: { path: '/register', heading: 'Welcome, Please Register' },
-        manage: { path: MANAGE_PATH, heading: 'Account Management' },
+        register: { path: '/register', heading: 'Create your account' },
+        manage: { path: MANAGE_PATH, heading: 'Your account' },
       }}
       additionalPages={{
         ...extensionPages,
-        [MANAGE_PATH]: <Manage heading='Account Management' sections={sections} />,
+        [MANAGE_PATH]: <Manage heading='Your account' sections={sections} />,
       }}
     />
   );

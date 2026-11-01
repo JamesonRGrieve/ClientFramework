@@ -45,11 +45,12 @@ describe('PersonCard', () => {
     expect(within(shared).queryByRole('button')).toBeNull();
   });
 
-  it('offers an upgrade, not new fields, in a locked section', async () => {
+  it('names the empty locked sections together in one upgrade, with no fields to add', async () => {
     const view = renderGenealogy(<PersonCard personId='ben' sections={SECTIONS} />, withCard());
-    const sizes = await view.findByRole('region', { name: 'Sizes' });
-    expect(within(sizes).getByRole('note', { name: 'Upgrade' })).toBeInTheDocument();
-    expect(within(sizes).queryByRole('form')).toBeNull();
+    const locked = await view.findByRole('region', { name: 'Locked sections' });
+    expect(within(locked).getByRole('note', { name: 'Upgrade' })).toHaveTextContent('A paid plan unlocks sizes.');
+    expect(view.queryByRole('region', { name: 'Sizes' })).toBeNull();
+    expect(within(locked).queryByRole('form')).toBeNull();
   });
 
   it('adds, edits and removes a fact, each write guarded by the version it was read at', async () => {
@@ -57,7 +58,11 @@ describe('PersonCard', () => {
     const user = userEvent.setup();
     const view = renderGenealogy(<PersonCard personId='ben' sections={SECTIONS} />, store);
     const allergies = await view.findByRole('region', { name: 'Allergies' });
+    // A section with facts keeps its form behind a button, which opens on a field not yet filled.
+    expect(within(allergies).queryByRole('form')).toBeNull();
+    await user.click(within(allergies).getByRole('button', { name: '+ Add to allergies' }));
     const form = within(allergies).getByRole('form', { name: 'Add to Allergies' });
+    expect(within(form).getByLabelText('Field')).toHaveValue('medical');
     await user.selectOptions(within(form).getByLabelText('Field'), 'medical');
     await user.type(within(form).getByLabelText('Value'), 'penicillin');
     await user.click(within(form).getByRole('button', { name: 'Add' }));

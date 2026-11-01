@@ -47,11 +47,11 @@ describe('Manage', () => {
     serve(ACCOUNT);
     const view = render(
       <TestWrapper>
-        <Manage heading='Account Management' sections={<p>Two-factor authentication</p>} />
+        <Manage heading='Your account' sections={<p>Two-factor authentication</p>} />
       </TestWrapper>,
     );
-    expect(view.getByRole('heading', { name: 'Account Management' })).toBeInTheDocument();
-    expect(view.getByRole('button', { name: `Go to ${testConfig.app.name}` })).toBeInTheDocument();
+    expect(view.getByRole('heading', { name: 'Your account' })).toBeInTheDocument();
+    expect(view.getByRole('button', { name: `Back to ${testConfig.app.name}` })).toBeInTheDocument();
     const teams = await view.findByRole('list', { name: YOUR_TEAMS });
     expect(within(teams).getByRole('link', { name: 'Analytical Engines' })).toHaveAttribute('href', '/team/t1');
     expect(view.getByRole('form', { name: 'Change password' })).toBeInTheDocument();

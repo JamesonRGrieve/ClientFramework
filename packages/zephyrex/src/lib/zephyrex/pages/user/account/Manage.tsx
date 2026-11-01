@@ -23,8 +23,12 @@ export type ManageProps = {
   sections?: ReactNode;
 };
 
+/** The teams the user belongs to; nothing for someone in none (most apps have no teams to join). */
 function Teams(): ReactNode {
   const { data: teams = [] } = useTeams();
+  if (teams.length === 0) {
+    return null;
+  }
   return (
     <Card>
       <CardHeader>
@@ -32,19 +36,15 @@ function Teams(): ReactNode {
         <CardDescription>The teams you belong to.</CardDescription>
       </CardHeader>
       <CardContent>
-        {teams.length === 0 ? (
-          <p className='text-sm text-muted-foreground'>You are not a member of any team yet.</p>
-        ) : (
-          <ul aria-label='Your teams' className='divide-y rounded-md border'>
-            {teams.map((team) => (
-              <li key={team.id}>
-                <Link href={`/team/${team.id}`} className='block px-4 py-3 text-sm font-medium hover:bg-muted'>
-                  {team.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+        <ul aria-label='Your teams' className='divide-y rounded-md border'>
+          {teams.map((team) => (
+            <li key={team.id}>
+              <Link href={`/team/${team.id}`} className='block px-4 py-3 text-sm font-medium hover:bg-muted'>
+                {team.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </CardContent>
     </Card>
   );
@@ -65,11 +65,12 @@ export function Manage({ heading, returnPath = '/', sections }: ManageProps): Re
       <div className='flex items-center justify-between gap-2'>
         {heading !== undefined && heading !== '' && <h2 className='text-3xl font-semibold'>{heading}</h2>}
         <Button
+          variant='outline'
           onClick={() => {
             router.push(returnPath);
           }}
         >
-          Go to {config.app.name}
+          Back to {config.app.name}
         </Button>
       </div>
       {isLoading ? (

@@ -21,7 +21,7 @@ export function UserLayout({ children }: { children: ReactNode }): ReactNode {
     return (
       <SidebarInset>
         <SidebarPage title=''>
-          <h2 className='sr-only'>Account Management</h2>
+          <h2 className='sr-only'>Your account</h2>
           {children}
         </SidebarPage>
       </SidebarInset>

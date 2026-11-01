@@ -25,7 +25,7 @@ export const ThroughFriendships: Story = {
   args: { person: personOf(polycule, 'ana') },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await canvas.findByRole('region', { name: 'Direct ties' });
+    await canvas.findByRole('region', { name: 'Directly connected' });
     await userEvent.click(canvas.getByRole('checkbox', { name: 'Through friendships too' }));
     await expect(await canvas.findByRole('link', { name: 'Fay' })).toBeInTheDocument();
   },

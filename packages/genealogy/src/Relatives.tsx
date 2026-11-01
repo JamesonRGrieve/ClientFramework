@@ -6,7 +6,7 @@ import { Label } from '@jgrieve/forms/components/ui/label';
 import Link from 'next/link.js';
 import { type ReactElement, type SyntheticEvent, useCallback, useId, useState } from 'react';
 import { useSWRConfig } from 'swr';
-import { ConflictPanel, useClient, useGuardedSave, writeProblem } from 'zephyrex';
+import { ConflictPanel, useClient, useGuardedSave, useUser, writeProblem } from 'zephyrex';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import {
   ACQUAINTANCE_KINDS,
@@ -120,6 +120,8 @@ function AddRelative({
 }): ReactElement {
   const ids = { role: useId(), relative: useId(), detail: useId(), since: useId() };
   const client = useClient();
+  const { data: user } = useUser();
+  const yours = user !== undefined && person.linked_user_id === user.id;
   // A family tree starts from parents; an app without lineage, from partners.
   const { lineage, ties = [] } = useGenealogyOptions();
   const choices = roleChoices(lineage, ties);
@@ -175,7 +177,7 @@ function AddRelative({
           </select>
         </div>
         <div className='grid gap-1'>
-          <Label htmlFor={ids.role}>Is {personName(person)}’s</Label>
+          <Label htmlFor={ids.role}>{yours ? 'Is your' : `Is ${personName(person)}’s`}</Label>
           <select
             id={ids.role}
             value={role}
@@ -328,6 +330,8 @@ function RelativeRow({
 /** A person's recorded relatives, each removable, with a form to add one. */
 export function Relatives({ person, people }: { person: Person; people: Person[] }): ReactElement {
   const { lineage, ties = [] } = useGenealogyOptions();
+  const { data: user } = useUser();
+  const forWhom = user !== undefined && person.linked_user_id === user.id ? 'you' : personName(person);
   const asSubject = useRelationships(person.id, 'person_id');
   const asObject = useRelationships(person.id, 'target_person_id');
   const lines = relationshipLines(asSubject.data ?? [], asObject.data ?? [], ties);
@@ -348,8 +352,8 @@ export function Relatives({ person, people }: { person: Person; people: Person[]
         <CardTitle>{lineage ? 'Relatives' : 'Connections'}</CardTitle>
         <CardDescription>
           {lineage
-            ? `Parents, children, partners, siblings, friends and acquaintances recorded for ${personName(person)}.`
-            : `Partners, friends and everyone else recorded for ${personName(person)}.`}
+            ? `Parents, children, partners, siblings, friends and acquaintances recorded for ${forWhom}.`
+            : `Partners, friends and everyone else recorded for ${forWhom}.`}
         </CardDescription>
       </CardHeader>
       <CardContent className='grid gap-4'>

@@ -151,7 +151,7 @@ describe('Relatives', () => {
     await user.selectOptions(view.getByLabelText('Relative'), 'Fay');
     await user.selectOptions(view.getByLabelText('Is Eli’s'), 'Partner');
     await user.click(view.getByRole('button', { name: ADD_RELATIVE }));
-    expect(await view.findByRole('region', { name: 'Direct ties' })).toHaveTextContent('Fay');
+    expect(await view.findByRole('region', { name: 'Directly connected' })).toHaveTextContent('Fay');
   });
 
   it('asks who the relative is before recording one', async () => {

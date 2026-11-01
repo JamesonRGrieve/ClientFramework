@@ -79,7 +79,7 @@ function StartWithYou({ onStarted }: { onStarted: () => Promise<unknown> }): Rea
   return (
     <div className='grid justify-items-start gap-2'>
       <p className='text-sm text-muted-foreground'>
-        You are the centre of your network. Add yourself, then the people you are connected to.
+        Start your map with yourself, then add the people you are connected to, whether they are on here or not.
       </p>
       <Button
         disabled={user === undefined || busy}
@@ -87,7 +87,7 @@ function StartWithYou({ onStarted }: { onStarted: () => Promise<unknown> }): Rea
           void start();
         }}
       >
-        Add me
+        Add myself
       </Button>
       {problem !== null && (
         <p role='alert' className='text-sm text-destructive'>
@@ -110,10 +110,14 @@ export function LinkedNetworkMap({
   legend = TIE_LEGEND,
   kinds = DEFAULT_KINDS,
 }: {
+  /** The card's heading; null for none, when the page already has one. */
   title?: ReactNode;
   description?: ReactNode;
-  /** What to call each group, e.g. "Polycule 1". */
-  groupLabel?: (index: number) => string;
+  /**
+   * What to call each group, from its place and its names, nearest first (the first is the person
+   * the group branches off through), e.g. "With Jordan Blake".
+   */
+  groupLabel?: (index: number, names: readonly string[]) => string;
   legend?: readonly LegendEntry[];
   /** The kinds of tie walked (friendships are added when asked); partnerships when omitted. */
   kinds?: readonly string[];
@@ -130,31 +134,36 @@ export function LinkedNetworkMap({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent className='grid gap-4'>
-        <div className='flex flex-wrap gap-4 text-sm'>
-          <label htmlFor={ids.friends} className='flex items-center gap-1'>
-            <input
-              id={ids.friends}
-              type='checkbox'
-              checked={throughFriends}
-              onChange={(event) => setThroughFriends(event.target.checked)}
-            />
-            Through friendships too
-          </label>
-          <label htmlFor={ids.ended} className='flex items-center gap-1'>
-            <input
-              id={ids.ended}
-              type='checkbox'
-              checked={includeEnded}
-              onChange={(event) => setIncludeEnded(event.target.checked)}
-            />
-            Include ended relationships
-          </label>
-        </div>
+      {title !== null && (
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </CardHeader>
+      )}
+      <CardContent className={title === null ? 'grid gap-4 pt-6' : 'grid gap-4'}>
+        {/* The filters, once there is a map to filter (and while one is on, even if it empties it). */}
+        {linked.data !== undefined && (groups.length > 0 || throughFriends || includeEnded) && (
+          <div className='flex flex-wrap gap-4 text-sm'>
+            <label htmlFor={ids.friends} className='flex items-center gap-1'>
+              <input
+                id={ids.friends}
+                type='checkbox'
+                checked={throughFriends}
+                onChange={(event) => setThroughFriends(event.target.checked)}
+              />
+              Through friendships too
+            </label>
+            <label htmlFor={ids.ended} className='flex items-center gap-1'>
+              <input
+                id={ids.ended}
+                type='checkbox'
+                checked={includeEnded}
+                onChange={(event) => setIncludeEnded(event.target.checked)}
+              />
+              Include ended relationships
+            </label>
+          </div>
+        )}
         {linked.error instanceof ApiError && linked.error.status === NOT_FOUND && (
           <StartWithYou onStarted={async () => linked.mutate()} />
         )}
@@ -169,18 +178,24 @@ export function LinkedNetworkMap({
           </p>
         )}
         {graph !== undefined && groups.length > 0 && <NetworkGraph graph={graph} legend={legend} />}
-        {groups.map((members, index) => (
-          <section key={members[0]?.key ?? index} aria-label={groupLabel(index)} className='grid gap-2'>
-            <h3 className='text-sm font-medium'>{groupLabel(index)}</h3>
-            <ul className='flex flex-wrap gap-2'>
-              {members.map((node) => (
-                <li key={node.key}>
-                  <Member node={node} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
+        {groups.map((members, index) => {
+          const label = groupLabel(
+            index,
+            members.map((node) => node.name ?? SOMEONE),
+          );
+          return (
+            <section key={members[0]?.key ?? index} aria-label={label} className='grid gap-2'>
+              <h3 className='text-sm font-medium'>{label}</h3>
+              <ul className='flex flex-wrap gap-2'>
+                {members.map((node) => (
+                  <li key={node.key}>
+                    <Member node={node} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
       </CardContent>
     </Card>
   );

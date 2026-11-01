@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 const SUBSCRIBE_PAGE = '/subscribe';
 
 const humanize = (value: string): string => value.replaceAll('_', ' ');
+/** "Kink matching" as it reads mid-sentence: "kink matching". */
+const midSentence = (value: string): string => value.charAt(0).toLowerCase() + value.slice(1);
 
 /** What a user sees in place of a feature their plan lacks: what it is, and where to upgrade. */
 export function UpgradePrompt({
@@ -39,7 +41,7 @@ export function UpgradePrompt({
   return (
     <div role='note' aria-label='Upgrade' className='grid gap-3 rounded-md border border-dashed p-4 text-sm'>
       <p>
-        <span className='font-medium'>{title ?? humanize(feature)}</span> is part of a paid plan.
+        A paid plan unlocks <span className='font-medium'>{midSentence(title ?? humanize(feature))}</span>.
       </p>
       <div>
         <Button asChild size='sm'>

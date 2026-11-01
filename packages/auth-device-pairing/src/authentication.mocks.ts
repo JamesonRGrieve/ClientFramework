@@ -10,9 +10,9 @@ export const TEST_AUTH_SERVER = 'https://api.example.com';
 /** A complete auth configuration against TEST_AUTH_SERVER, with the pages under `/user`. */
 const testAuthConfig: AuthenticationConfig = {
   identify: { path: '/', heading: 'Welcome' },
-  login: { path: '/login', heading: 'Please Authenticate' },
+  login: { path: '/login', heading: 'Sign in' },
   manage: { path: '/manage', heading: 'Account Management' },
-  register: { path: '/register', heading: 'Welcome, Please Register' },
+  register: { path: '/register', heading: 'Create your account' },
   close: { path: '/close', heading: '' },
   magic: { path: '/magic', heading: '' },
   logout: { path: '/logout', heading: '' },

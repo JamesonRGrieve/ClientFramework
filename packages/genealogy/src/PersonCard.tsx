@@ -91,15 +91,20 @@ function bySection(sections: readonly CardSection[], facts: readonly Attribute[]
 function AddFact({
   personId,
   section,
+  used,
   onAdded,
 }: {
   personId: string;
   section: CardSection;
+  /** The fields already filled: the form starts on the first that is not. */
+  used: readonly string[];
   onAdded: () => Promise<unknown>;
 }): ReactElement {
   const ids = { label: useId(), value: useId(), unit: useId() };
   const client = useClient();
-  const first = section.fields.at(0);
+  // A section with nothing in it yet opens on its form; one with facts keeps it behind a button.
+  const [open, setOpen] = useState(used.length === 0);
+  const first = section.fields.find((candidate) => !used.includes(candidate.label)) ?? section.fields.at(0);
   const [label, setLabel] = useState(first?.label ?? '');
   const [value, setValue] = useState('');
   const [unit, setUnit] = useState(first?.units.at(0) ?? '');
@@ -131,6 +136,15 @@ function AddFact({
     })();
   };
 
+  if (!open) {
+    return (
+      <div>
+        <Button type='button' variant='ghost' size='sm' onClick={() => setOpen(true)}>
+          + Add to {section.title.toLowerCase()}
+        </Button>
+      </div>
+    );
+  }
   return (
     <form onSubmit={submit} aria-label={`Add to ${section.title}`} className='grid gap-2 border-t pt-3'>
       <div className='grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-end'>
@@ -298,6 +312,28 @@ function FactRow({
   );
 }
 
+/** The sections a plan locks that hold nothing: named together once, not one prompt each. */
+function lockedAndEmpty(sections: readonly CardSection[], notes: readonly Attribute[]): CardSection[] {
+  return bySection(sections, notes)
+    .filter(([section, facts]) => section.locked === true && facts.length === 0)
+    .map(([section]) => section);
+}
+
+/** "A paid plan unlocks measurements, sizes, favourites and codes", with where to see the plans. */
+function LockedSections({ sections }: { sections: readonly CardSection[] }): ReactElement | null {
+  const first = sections.at(0);
+  if (first === undefined) {
+    return null;
+  }
+  const titles = sections.map((section) => section.title.toLowerCase());
+  const named = titles.length === 1 ? titles.join('') : `${titles.slice(0, -1).join(', ')} and ${titles.at(-1) ?? ''}`;
+  return (
+    <section aria-label='Locked sections' className='rounded-md border border-dashed px-4 py-3'>
+      <UpgradePrompt feature={first.feature ?? first.name} title={named} />
+    </section>
+  );
+}
+
 /**
  * A person's card, section by section from `sections`: what the user keeps about them (on their
  * own record, their profile) to add to, edit and remove, then what the person published to the
@@ -337,31 +373,41 @@ export function PersonCard({
         )}
         {card.data === undefined && card.error === undefined && <p className='text-sm text-muted-foreground'>Loading…</p>}
         {card.data !== undefined &&
-          bySection(sections, card.data.notes).map(([section, facts]) => (
-            <section key={section.name} aria-label={section.title} className='grid gap-1 rounded-md border px-4 py-3'>
-              <h3 className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>{section.title}</h3>
-              {facts.length > 0 && (
-                <ul className='divide-y'>
-                  {facts.map((fact) => (
-                    <FactRow
-                      key={fact.id}
-                      fact={fact}
-                      choices={section.fields.find((field) => field.label === fact.label)?.choices ?? NO_CHOICES}
-                      hidden={section.sensitive === true}
-                      editable={section.locked !== true}
-                      actions={actions?.(fact)}
-                      onChanged={refresh}
+          bySection(sections, card.data.notes)
+            .filter(([section, facts]) => section.locked !== true || facts.length > 0)
+            .map(([section, facts]) => (
+              <section key={section.name} aria-label={section.title} className='grid gap-1 rounded-md border px-4 py-3'>
+                <h3 className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>{section.title}</h3>
+                {facts.length > 0 && (
+                  <ul className='divide-y'>
+                    {facts.map((fact) => (
+                      <FactRow
+                        key={fact.id}
+                        fact={fact}
+                        choices={section.fields.find((field) => field.label === fact.label)?.choices ?? NO_CHOICES}
+                        hidden={section.sensitive === true}
+                        editable={section.locked !== true}
+                        actions={actions?.(fact)}
+                        onChanged={refresh}
+                      />
+                    ))}
+                  </ul>
+                )}
+                {section.locked === true ? (
+                  <UpgradePrompt feature={section.feature ?? section.name} title={section.title} compact />
+                ) : (
+                  section !== OTHER && (
+                    <AddFact
+                      personId={personId}
+                      section={section}
+                      used={facts.map((fact) => fact.label)}
+                      onAdded={refresh}
                     />
-                  ))}
-                </ul>
-              )}
-              {section.locked === true ? (
-                <UpgradePrompt feature={section.feature ?? section.name} title={section.title} compact />
-              ) : (
-                section !== OTHER && <AddFact personId={personId} section={section} onAdded={refresh} />
-              )}
-            </section>
-          ))}
+                  )
+                )}
+              </section>
+            ))}
+        {card.data !== undefined && <LockedSections sections={lockedAndEmpty(sections, card.data.notes)} />}
         {published.length > 0 && (
           <section aria-label='Shared with you' className='grid gap-2'>
             <h3 className='text-sm font-semibold'>Shared with you</h3>

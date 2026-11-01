@@ -38,7 +38,7 @@ describe('RequireFeature', () => {
     serve(['map']);
     const view = renderGate();
     const prompt = await view.findByRole('note', { name: 'Upgrade' });
-    expect(prompt).toHaveTextContent('Calendar sync is part of a paid plan.');
+    expect(prompt).toHaveTextContent('A paid plan unlocks calendar sync.');
     expect(view.getByRole('link', { name: 'See plans' })).toHaveAttribute('href', '/user/subscribe');
     expect(view.queryByText(CONTENT)).toBeNull();
   });

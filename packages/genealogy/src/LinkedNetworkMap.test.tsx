@@ -44,7 +44,7 @@ describe('LinkedNetworkMap', () => {
         <LinkedNetworkMap />
       </TestWrapper>,
     );
-    await userEvent.setup().click(await view.findByRole('button', { name: 'Add me' }));
+    await userEvent.setup().click(await view.findByRole('button', { name: 'Add myself' }));
     expect(await view.findByText('Nobody is connected to you yet.')).toBeInTheDocument();
     expect(store.persons).toMatchObject([{ name: 'Sam Rivera', linked_user_id: 'user-1' }]);
     expect(view.queryByRole('alert')).toBeNull();

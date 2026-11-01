@@ -8,7 +8,7 @@ import { GenealogyOptionsProvider } from './OptionsProvider';
 import { byDistance, distanceTitle, SocialCircle } from './SocialCircle';
 import { renderGenealogy } from './testing.mocks';
 
-const DIRECT = 'Direct ties';
+const DIRECT = 'Directly connected';
 
 describe('SocialCircle', () => {
   afterEach(() => {
@@ -20,11 +20,12 @@ describe('SocialCircle', () => {
     const view = renderGenealogy(<SocialCircle person={personOf(store, 'ana')} people={store.persons} />, store);
     const direct = await view.findByRole('region', { name: DIRECT });
     expect(within(direct).getByRole('link', { name: 'Ben' })).toHaveAttribute('href', '/genealogy/ben');
-    expect(view.getByRole('region', { name: 'Ties of ties' })).toHaveTextContent('Cleo');
-    expect(view.getByRole('region', { name: '3 ties away' })).toHaveTextContent('Dev');
+    expect(view.getByRole('region', { name: '3 steps away' })).toHaveTextContent('Dev');
+    // Cleo is a metamour: listed once, with who she comes through, not again by distance.
     const metamours = await view.findByRole('region', { name: 'Metamours' });
     expect(metamours).toHaveTextContent('Cleo');
     expect(metamours).toHaveTextContent('through Ben');
+    expect(view.queryByRole('region', { name: 'Two steps away' })).toBeNull();
   });
 
   it('reaches friends of the polycule, and ended partners, only when asked', async () => {
@@ -77,8 +78,8 @@ describe('byDistance', () => {
 describe('distanceTitle', () => {
   it.each([
     [1, DIRECT],
-    [2, 'Ties of ties'],
-    [4, '4 ties away'],
+    [2, 'Two steps away'],
+    [4, '4 steps away'],
   ])('titles distance %i as %s', (distance, title) => {
     expect(distanceTitle(distance)).toBe(title);
   });
