@@ -84,6 +84,15 @@ describe('useEntitlement', () => {
     expect(result.current.error).toBeUndefined();
   });
 
+  it('never asks when the app says plans do not apply (enabled: false)', async () => {
+    signOut = withSession();
+    const calls = serve('entitlements');
+    const { result } = renderHook(() => useEntitlement({ enabled: false }), { wrapper: TestWrapper });
+    await settle();
+    expect(askedForThePlan(calls)).toBe(false);
+    expect(result.current.data).toBeUndefined();
+  });
+
   it('still asks while signed out, as it always did', async () => {
     serve();
     const { result } = renderHook(() => useEntitlement(), { wrapper: TestWrapper });
