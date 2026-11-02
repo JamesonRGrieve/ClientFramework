@@ -16,7 +16,6 @@ describe('abilityExtensions', () => {
       'local_ai',
       'local_ai_gguf',
       'local_ai_torch',
-      'maps',
       'math',
       'mcp_client',
       'media',

@@ -44,6 +44,12 @@ export const ecommerceExtension = entry(
 export const erpExtension = entry('erp', 'ERP', 'ERPNext DocTypes and documents, read and saved live on the site');
 // Health: @zephyrex/health extends this with the pages for the user's log.
 export const healthExtension = entry('health', 'Health', 'A log of activities, meals, weights and sleep');
+// Maps: @zephyrex/maps extends this with the page for meeting in the middle.
+export const mapsExtension = entry(
+  'maps',
+  'Maps',
+  'Places, routes and the point halfway between people, through OpenStreetMap, Google or Apple Maps',
+);
 // Rota: @zephyrex/rota extends this with the page for the nights rota and its swaps.
 export const rotaExtension = entry('rota', 'Nights rota', 'A repeating rota of nights, and swaps both people agree to');
 // Social: @zephyrex/social extends this with the pages for what was published.
@@ -127,6 +133,7 @@ export const registryOnlyExtensions: readonly ZephyrexClientExtension[] = [
   proxyAuthProviderExtension,
   radiusConsumerExtension,
   radiusProviderExtension,
+  mapsExtension,
   rotaExtension,
   samlConsumerExtension,
   samlProviderExtension,

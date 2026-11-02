@@ -88,7 +88,6 @@ export {
   localAiExtension,
   localAiGgufExtension,
   localAiTorchExtension,
-  mapsExtension,
   mathExtension,
   mcpClientExtension,
   mediaExtension,
