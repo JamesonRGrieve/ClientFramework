@@ -382,10 +382,12 @@ export function bookedMessage(booked: Booked, me: string | undefined, nameOf: Na
   const calendars = (ids: readonly string[]): string =>
     `${listed(ids.map(whose))} ${ids.length === 1 ? 'calendar' : 'calendars'}`;
   const parts = [booked.booked.length > 0 ? `Booked into ${calendars(booked.booked)}.` : 'Not booked into any calendar.'];
-  if (booked.not_booked.length > 0) {
-    parts.push(
-      `Tell ${listed(booked.not_booked.map(nameOf))} yourself: they don’t let you book them, or have no calendar connected.`,
-    );
+  if (me !== undefined && booked.not_booked.includes(me)) {
+    parts.push('Connect a calendar of your own to have it booked there too.');
+  }
+  const others = booked.not_booked.filter((userId) => userId !== me);
+  if (others.length > 0) {
+    parts.push(`Tell ${listed(others.map(nameOf))} yourself: they don’t let you book them, or have no calendar connected.`);
   }
   if (booked.failed.length > 0) {
     const refused = calendars(booked.failed);

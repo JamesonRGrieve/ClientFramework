@@ -114,6 +114,12 @@ describe('bookedMessage', () => {
     );
   });
 
+  it('asks you to connect a calendar when you have none, rather than to tell yourself', () => {
+    expect(bookedMessage({ booked: [ALEX], not_booked: [ME], failed: [] }, ME, nameOf)).toBe(
+      'Booked into Alex’s calendar. Connect a calendar of your own to have it booked there too.',
+    );
+  });
+
   it('says when it went nowhere, and whose calendar refused it', () => {
     expect(bookedMessage({ booked: [], not_booked: [], failed: [ME] }, ME, nameOf)).toBe(
       'Not booked into any calendar. Your calendar refused it.',
