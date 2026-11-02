@@ -48,6 +48,7 @@ const SERVER_EXTENSIONS = [
   'forward_auth_consumer',
   'forward_auth_provider',
   'genealogy',
+  'gifts',
   'health',
   'kerberos_consumer',
   'kerberos_provider',
