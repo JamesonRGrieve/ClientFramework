@@ -80,7 +80,6 @@ export {
   aiExtension,
   automotiveExtension,
   cadExtension,
-  calendarExtension,
   cloudExtension,
   contactsExtension,
   cryptoExtension,

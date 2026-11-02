@@ -44,6 +44,12 @@ export const ecommerceExtension = entry(
 export const erpExtension = entry('erp', 'ERP', 'ERPNext DocTypes and documents, read and saved live on the site');
 // Health: @zephyrex/health extends this with the pages for the user's log.
 export const healthExtension = entry('health', 'Health', 'A log of activities, meals, weights and sleep');
+// Calendar: @zephyrex/calendar extends this with the page for shared availability.
+export const calendarExtension = entry(
+  'calendar',
+  'Calendar',
+  'Your own calendars on Google, Microsoft 365 and CalDAV, shared availability, and booking a time together',
+);
 // Gifts: @zephyrex/gifts extends this with the page for someone's gift list.
 export const giftsExtension = entry(
   'gifts',
@@ -141,6 +147,7 @@ export const registryOnlyExtensions: readonly ZephyrexClientExtension[] = [
   proxyAuthProviderExtension,
   radiusConsumerExtension,
   radiusProviderExtension,
+  calendarExtension,
   giftsExtension,
   mapsExtension,
   mediaExtension,

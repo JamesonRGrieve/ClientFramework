@@ -8,7 +8,6 @@ describe('abilityExtensions', () => {
       'ai',
       'automotive',
       'cad',
-      'calendar',
       'cloud',
       'contacts',
       'crypto',

@@ -15,7 +15,6 @@ export const automotiveExtension = abilities(
   'Connected vehicles: state, locks, climate, charging and navigation',
 );
 export const cadExtension = abilities('cad', 'CAD', '3D model generation with CAD tools');
-export const calendarExtension = abilities('calendar', 'Calendar', 'Scheduling and event management');
 export const contactsExtension = abilities(
   'contacts',
   'Contacts',
@@ -65,7 +64,6 @@ export const abilityExtensions: readonly ZephyrexClientExtension[] = [
   aiExtension,
   automotiveExtension,
   cadExtension,
-  calendarExtension,
   cloudExtension,
   contactsExtension,
   cryptoExtension,
