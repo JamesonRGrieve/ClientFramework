@@ -53,7 +53,9 @@ function ShopSearch({ query }: { query: string }): ReactNode {
 function AddGift({ people, onAdded }: { people: readonly GiftPerson[]; onAdded: () => Promise<unknown> }): ReactNode {
   const client = useClient();
   const ids = { who: useId(), name: useId(), title: useId(), url: useId(), note: useId() };
-  const [who, setWho] = useState(people.at(0)?.ref ?? SOMEONE_ELSE);
+  // Until someone is chosen, the first person the app knows (they may arrive after the first render).
+  const [chosen, setChosen] = useState<string | null>(null);
+  const who = chosen ?? people.at(0)?.ref ?? SOMEONE_ELSE;
   const [name, setName] = useState('');
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
@@ -87,7 +89,7 @@ function AddGift({ people, onAdded }: { people: readonly GiftPerson[]; onAdded: 
     <form onSubmit={save} aria-label='Add a gift' className='grid gap-3 sm:grid-cols-2'>
       <label htmlFor={ids.who} className='grid gap-1 text-sm font-medium'>
         For
-        <select id={ids.who} value={who} onChange={(event) => setWho(event.target.value)} className={SELECT}>
+        <select id={ids.who} value={who} onChange={(event) => setChosen(event.target.value)} className={SELECT}>
           {people.map((candidate) => (
             <option key={candidate.ref} value={candidate.ref}>
               {candidate.name}

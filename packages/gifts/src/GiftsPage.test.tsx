@@ -2,6 +2,7 @@
 import { within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { TestWrapper } from 'zephyrex/testing';
 import { emptyGiftsStore, giftsFixture, TAG } from './gifts.mocks';
 import { GiftsPage } from './GiftsPage';
 import { renderGifts } from './testing.mocks';
@@ -25,6 +26,18 @@ describe('GiftsPage', () => {
     expect(
       within(view.getByRole('region', { name: 'For Sam' })).getByRole('link', { name: 'Where to buy it' }),
     ).toHaveAttribute('href', `https://www.amazon.ca/dp/B01?tag=${TAG}`);
+  });
+
+  it('starts on the first person the app knows, even when they arrive late', () => {
+    const view = renderGifts(<GiftsPage people={[]} />, emptyGiftsStore());
+    expect(view.getByLabelText('For')).toHaveValue('');
+    view.rerender(
+      <TestWrapper>
+        <GiftsPage people={PEOPLE} />
+      </TestWrapper>,
+    );
+    expect(view.getByLabelText('For')).toHaveValue('p-alex');
+    expect(view.queryByLabelText('Their name')).toBeNull();
   });
 
   it('adds a gift for someone the app knows, or someone typed', async () => {
