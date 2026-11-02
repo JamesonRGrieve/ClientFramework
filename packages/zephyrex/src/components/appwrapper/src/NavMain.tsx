@@ -78,7 +78,8 @@ export function NavMain(): React.JSX.Element {
   return (
     <SidebarGroup className='flex flex-col h-full'>
       <div className='flex-1 overflow-y-auto overflow-x-hidden'>
-        <SidebarGroupLabel>Pages</SidebarGroupLabel>
+        {/* Names the menu for screen readers; on screen the entries speak for themselves. */}
+        <SidebarGroupLabel className='sr-only'>Pages</SidebarGroupLabel>
         <SidebarMenu>
           {topItems.map((item) => {
             if (item.visible === false) {

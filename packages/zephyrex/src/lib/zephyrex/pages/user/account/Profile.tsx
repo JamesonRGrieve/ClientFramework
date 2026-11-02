@@ -24,6 +24,17 @@ const FIELD_LABELS: ReadonlyMap<ProfileField, string> = new Map([
   ['language', 'Language'],
 ]);
 
+/** The languages offered, by their own names. */
+const LANGUAGES: readonly { value: string; label: string }[] = [
+  { value: 'en', label: 'English' },
+  { value: 'fr', label: 'Français' },
+  { value: 'es', label: 'Español' },
+  { value: 'de', label: 'Deutsch' },
+  { value: 'pt', label: 'Português' },
+  { value: 'it', label: 'Italiano' },
+  { value: 'nl', label: 'Nederlands' },
+];
+
 type SaveStatus = { kind: 'saved' | 'unchanged' | 'failed'; message: string } | null;
 
 const CONFLICT_FIELDS: readonly ConflictField<UserProfile>[] = PROFILE_FIELDS.map((key) => ({
@@ -70,6 +81,7 @@ export function Profile({
           type: 'text' as const,
           display: FIELD_LABELS.get(field) ?? field,
           value: saved.get(field) ?? (field === 'timezone' ? detectTimezone() : ''),
+          ...(field === 'language' ? { choices: LANGUAGES } : {}),
         },
       ]),
     );

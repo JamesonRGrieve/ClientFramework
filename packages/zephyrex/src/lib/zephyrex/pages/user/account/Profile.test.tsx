@@ -70,6 +70,11 @@ describe('Profile', () => {
     expect(onSave).toHaveBeenCalledWith({ ...profile, timezone: null }, { timezone: detectTimezone() });
   });
 
+  it('offers languages by their own names, not a free-text box', () => {
+    const view = renderProfile({ profile: { ...profile, language: 'fr' }, onSave: vi.fn(saved) });
+    expect(view.getByLabelText('Language')).toHaveTextContent('Français');
+  });
+
   it('reports the server’s reason when saving fails', async () => {
     const onSave = vi.fn(async () => Promise.reject(new Error('username: already taken')));
     const user = userEvent.setup();
