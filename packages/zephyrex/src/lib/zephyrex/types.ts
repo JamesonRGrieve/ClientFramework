@@ -144,6 +144,8 @@ export interface ZephyrexConfig {
     authModes?: { basic: boolean };
     /** Identity providers offered for sign-in (the server's oauth_consumer names, e.g. `google`). */
     oauthProviders?: string[];
+    /** What each provider's sign-in button calls it, by name, e.g. `{ authentik: 'Boden Research' }`. */
+    oauthLabels?: Record<string, string>;
     recaptchaSiteKey?: string;
     /** Serve only the landing page (pre-launch). */
     landingOnly?: boolean;

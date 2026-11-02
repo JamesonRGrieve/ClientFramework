@@ -19,6 +19,7 @@ export function authPagesConfig({
       passkey: extensions.some((extension) => extension.authModes?.passkey === true),
     },
     oauthProviders: auth?.oauthProviders ?? [],
+    ...(auth?.oauthLabels === undefined ? {} : { oauthLabels: auth.oauthLabels }),
     signInAlternatives: extensions.flatMap((extension) => extension.signInAlternatives ?? []),
     ...(auth?.recaptchaSiteKey === undefined ? {} : { recaptchaSiteKey: auth.recaptchaSiteKey }),
   };

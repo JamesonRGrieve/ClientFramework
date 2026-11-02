@@ -36,6 +36,12 @@ describe('authPagesConfig', () => {
     });
   });
 
+  it('carries the names the sign-in buttons show, only when the app gives them', () => {
+    const labels = { authentik: 'Boden Research' };
+    expect(authPagesConfig({ app: APP, auth: { oauthLabels: labels } }).oauthLabels).toEqual(labels);
+    expect(authPagesConfig({ app: APP })).not.toHaveProperty('oauthLabels');
+  });
+
   it("lands a sign-in on the app's home when it names one", () => {
     expect(authPagesConfig({ app: APP, auth: { home: '/polycule' } }).home).toBe('/polycule');
     expect(authPagesConfig({ app: APP })).not.toHaveProperty('home');
