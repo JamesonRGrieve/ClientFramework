@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { type ReactNode, type SyntheticEvent, useId, useState } from 'react';
+import { type ReactElement, type ReactNode, type SyntheticEvent, useId, useState } from 'react';
 import { useClient, useUser, writeProblem } from 'zephyrex';
 import { Button } from 'zephyrex/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
@@ -570,10 +570,16 @@ export interface AvailabilityPageProps {
   people?: readonly CalendarPerson[];
   /** Where the user links Google or Microsoft. */
   accountPage?: string;
+  /** Wraps finding and booking a time, for an app that only lets some plans do it. */
+  wrapFind?: (finder: ReactElement) => ReactNode;
 }
 
 /** Your calendars, who sees when you are busy, and finding and booking a time together. */
-export function AvailabilityPage({ people = [], accountPage = DEFAULT_ACCOUNT_PAGE }: AvailabilityPageProps): ReactNode {
+export function AvailabilityPage({
+  people = [],
+  accountPage = DEFAULT_ACCOUNT_PAGE,
+  wrapFind = (finder) => finder,
+}: AvailabilityPageProps): ReactNode {
   const nameOf: NameOf = (userId) => people.find((person) => person.userId === userId)?.name ?? 'Someone';
   return (
     <div className='grid gap-6'>
@@ -588,9 +594,7 @@ export function AvailabilityPage({ people = [], accountPage = DEFAULT_ACCOUNT_PA
           <CardTitle>Find a time together</CardTitle>
           <CardDescription>The times you and the people you choose are all free.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <FindATime nameOf={nameOf} />
-        </CardContent>
+        <CardContent>{wrapFind(<FindATime nameOf={nameOf} />)}</CardContent>
       </Card>
       <Card>
         <CardHeader>

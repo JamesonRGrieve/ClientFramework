@@ -41,6 +41,13 @@ describe('AvailabilityPage', () => {
     expect(store.booked).toEqual([{ title: 'Dinner', user_ids: [ALEX, JO] }]);
   });
 
+  it('wraps finding a time, for an app that holds it to a plan', () => {
+    const view = renderCalendar(<AvailabilityPage wrapFind={() => <p>Upgrade to find a time</p>} />);
+    expect(view.getByText('Upgrade to find a time')).toBeInTheDocument();
+    expect(view.queryByRole('form', { name: 'Find a time' })).toBeNull();
+    expect(view.getByRole('form', CONNECT)).toBeInTheDocument();
+  });
+
   it('says whose calendars were not counted', async () => {
     const store = { ...calendarFixture(), unconnected: [ALEX] };
     const user = userEvent.setup();

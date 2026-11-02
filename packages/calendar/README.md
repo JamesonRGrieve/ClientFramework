@@ -23,7 +23,8 @@ const config: ZephyrexConfig = { extensions: [calendarExtension] };
 
 It adds a **Shared availability** menu entry and the page `/availability`. `AvailabilityPage` takes
 `people` (`{ userId, name }[]`), the accounts the app knows, to share with and find time with, and
-`accountPage`, where the user links Google or Microsoft (`/user/manage` by default).
+`accountPage`, where the user links Google or Microsoft (`/user/manage` by default). `wrapFind` wraps
+finding and booking a time, for an app that only lets some plans do it.
 
 ## Exports
 
