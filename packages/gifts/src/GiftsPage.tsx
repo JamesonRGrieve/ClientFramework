@@ -31,6 +31,7 @@ function ShopSearch({ query }: { query: string }): ReactNode {
         type='button'
         size='sm'
         variant='ghost'
+        className='justify-self-start'
         onClick={() => setAsked(true)}
         aria-label={`Find ${query} at the shop`}
       >
