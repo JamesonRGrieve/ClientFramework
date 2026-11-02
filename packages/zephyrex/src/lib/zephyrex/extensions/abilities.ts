@@ -46,7 +46,6 @@ export const mcpClientExtension = abilities(
 );
 export const websearchExtension = abilities('websearch', 'Web Search', 'Web search through several search engines');
 export const mathExtension = abilities('math', 'Math', 'Symbolic maths with SymPy, and Wolfram Alpha answers');
-export const mediaExtension = abilities('media', 'Media', 'Film, television and video lookups through YouTube and TMDB');
 export const messagingExtension = abilities(
   'messaging',
   'Messaging',
@@ -76,7 +75,6 @@ export const abilityExtensions: readonly ZephyrexClientExtension[] = [
   localAiTorchExtension,
   mathExtension,
   mcpClientExtension,
-  mediaExtension,
   messagingExtension,
   smsExtension,
   sourceExtension,

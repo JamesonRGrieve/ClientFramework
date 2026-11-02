@@ -18,7 +18,6 @@ describe('abilityExtensions', () => {
       'local_ai_torch',
       'math',
       'mcp_client',
-      'media',
       'messaging',
       'sms',
       'source',

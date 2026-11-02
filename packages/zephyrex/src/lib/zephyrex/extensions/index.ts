@@ -90,7 +90,6 @@ export {
   localAiTorchExtension,
   mathExtension,
   mcpClientExtension,
-  mediaExtension,
   messagingExtension,
   smsExtension,
   sourceExtension,

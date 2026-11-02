@@ -50,6 +50,8 @@ export const mapsExtension = entry(
   'Maps',
   'Places, routes and the point halfway between people, through OpenStreetMap, Google or Apple Maps',
 );
+// Media: @zephyrex/media extends this with the page for shared watch-lists.
+export const mediaExtension = entry('media', 'Media', 'Films and videos from TMDb and YouTube, and shared watch-lists');
 // Rota: @zephyrex/rota extends this with the page for the nights rota and its swaps.
 export const rotaExtension = entry('rota', 'Nights rota', 'A repeating rota of nights, and swaps both people agree to');
 // Social: @zephyrex/social extends this with the pages for what was published.
@@ -134,6 +136,7 @@ export const registryOnlyExtensions: readonly ZephyrexClientExtension[] = [
   radiusConsumerExtension,
   radiusProviderExtension,
   mapsExtension,
+  mediaExtension,
   rotaExtension,
   samlConsumerExtension,
   samlProviderExtension,
