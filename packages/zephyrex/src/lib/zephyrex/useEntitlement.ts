@@ -3,7 +3,7 @@
 
 import useSWR, { type SWRResponse } from 'swr';
 import { z } from 'zod';
-import { useClient } from './hooks';
+import { useClient, useHasSession, useServerExtensions } from './hooks';
 
 /** The server's entitlements extension: the signed-in user's plan. */
 export const ENTITLEMENT_PATH = '/v1/entitlement';
@@ -36,10 +36,25 @@ export function withinLimit(entitlement: Entitlement, limit: string, count: numb
   return allowed === null || count <= allowed;
 }
 
-/** The signed-in user's plan, its features, limits and seats. */
+/** The server extension that sells plans; a server without it has no plan to ask for. */
+const ENTITLEMENTS_EXTENSION = 'entitlements';
+
+/**
+ * The signed-in user's plan, its features, limits and seats. Not asked of a server that, asked
+ * while signed in, lists its extensions without entitlements: it sells no plans, and would only
+ * answer 404 (`data` stays undefined). Signed out, or where the list is empty or unanswered, it is
+ * asked as it always was.
+ */
 export function useEntitlement(): SWRResponse<Entitlement, Error> {
   const client = useClient();
-  return useSWR<Entitlement, Error>(client.url(ENTITLEMENT_PATH), async () =>
+  const signedIn = useHasSession();
+  const extensions = useServerExtensions();
+  const listed = extensions.data;
+  const sellsNoPlans =
+    listed !== undefined && listed.length > 0 && !listed.some((extension) => extension.name === ENTITLEMENTS_EXTENSION);
+  // Signed in, the list is coming: wait for it rather than ask a server that may sell no plans.
+  const waiting = signedIn && listed === undefined && extensions.error === undefined;
+  return useSWR<Entitlement, Error>(waiting || sellsNoPlans ? null : client.url(ENTITLEMENT_PATH), async () =>
     EntitlementSchema.parse(await client.get(ENTITLEMENT_PATH)),
   );
 }

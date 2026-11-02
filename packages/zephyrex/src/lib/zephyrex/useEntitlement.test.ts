@@ -3,8 +3,17 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { type Entitlement, ENTITLEMENT_PATH, hasFeature, limitOf, useEntitlement, withinLimit } from './useEntitlement';
-import { fetchFrom } from '@/testing/msw';
+import { type Call, recordingFetch, serverExtensions } from '@/testing/msw';
+import { withSession } from '@/testing/session';
 import { TestWrapper } from '@/testing/TestWrapper';
+
+const SETTLE_MS = 50;
+
+/** Waits long enough for a request the hook should not make to have been made. */
+const settle = async (): Promise<void> =>
+  new Promise((resolve) => {
+    setTimeout(resolve, SETTLE_MS);
+  });
 
 const FREE: Entitlement = {
   plan: 'basic',
@@ -33,12 +42,59 @@ describe('entitlement helpers', () => {
 });
 
 describe('useEntitlement', () => {
+  let signOut: (() => void) | undefined;
+
   afterEach(() => {
+    signOut?.();
+    signOut = undefined;
     vi.unstubAllGlobals();
   });
 
-  it("reads the signed-in user's plan", async () => {
-    vi.stubGlobal('fetch', vi.fn(fetchFrom([http.get(`*${ENTITLEMENT_PATH}`, () => HttpResponse.json(FREE))])));
+  /** Serves `FREE` as the plan, from a server running `extensions`; returns what was asked. */
+  function serve(...extensions: string[]): Call[] {
+    const recording = recordingFetch([
+      serverExtensions(...extensions),
+      http.get(`*${ENTITLEMENT_PATH}`, () => HttpResponse.json(FREE)),
+    ]);
+    vi.stubGlobal('fetch', vi.fn(recording.fetch));
+    return recording.calls;
+  }
+
+  const askedForThePlan = (calls: readonly Call[]): boolean => calls.some((call) => call.url.includes(ENTITLEMENT_PATH));
+
+  it("reads the signed-in user's plan from a server that sells plans", async () => {
+    signOut = withSession();
+    serve('entitlements');
+    const { result } = renderHook(() => useEntitlement(), { wrapper: TestWrapper });
+    await waitFor(() => {
+      expect(result.current.data).toEqual(FREE);
+    });
+  });
+
+  it('never asks a server whose extensions do not include entitlements', async () => {
+    signOut = withSession();
+    const calls = serve('live_sync');
+    const { result } = renderHook(() => useEntitlement(), { wrapper: TestWrapper });
+    await waitFor(() => {
+      expect(calls.some((call) => call.url.includes('/v1/extension'))).toBe(true);
+    });
+    await settle();
+    expect(askedForThePlan(calls)).toBe(false);
+    expect(result.current.data).toBeUndefined();
+    expect(result.current.error).toBeUndefined();
+  });
+
+  it('still asks while signed out, as it always did', async () => {
+    serve();
+    const { result } = renderHook(() => useEntitlement(), { wrapper: TestWrapper });
+    await waitFor(() => {
+      expect(result.current.data).toEqual(FREE);
+    });
+  });
+
+  it('still asks a server (or a mock) that lists no extensions', async () => {
+    signOut = withSession();
+    serve();
     const { result } = renderHook(() => useEntitlement(), { wrapper: TestWrapper });
     await waitFor(() => {
       expect(result.current.data).toEqual(FREE);

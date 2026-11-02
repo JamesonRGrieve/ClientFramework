@@ -58,6 +58,12 @@ export function fetchFrom(handlers: RequestHandler[]): typeof fetch {
   };
 }
 
+/** The server's `/v1/extension` list, naming the server extensions it runs (as a signed-in user sees it). */
+export const serverExtensions = (...names: string[]): RequestHandler =>
+  http.get('*/v1/extension', () =>
+    HttpResponse.json({ extensions: names.map((name) => ({ id: `extension-${name}`, name })) }),
+  );
+
 /** A request a recording `fetch` answered. */
 export interface Call {
   url: string;
