@@ -582,7 +582,9 @@ export function AvailabilityPage({
   accountPage = DEFAULT_ACCOUNT_PAGE,
   wrapFind = (finder) => finder,
 }: AvailabilityPageProps): ReactNode {
-  const nameOf: NameOf = (userId) => people.find((person) => person.userId === userId)?.name ?? 'Someone';
+  const me = useUser().data?.id;
+  const nameOf: NameOf = (userId) =>
+    userId === me ? 'You' : (people.find((person) => person.userId === userId)?.name ?? 'Someone');
   return (
     <div className='grid gap-6'>
       <div className='grid gap-1'>

@@ -49,12 +49,12 @@ describe('AvailabilityPage', () => {
   });
 
   it('says whose calendars were not counted', async () => {
-    const store = { ...calendarFixture(), unconnected: [ALEX] };
+    const store = { ...calendarFixture(), unconnected: [ME, ALEX] };
     const user = userEvent.setup();
     const view = renderCalendar(<AvailabilityPage people={PEOPLE} />, store);
     await user.click(await view.findByRole('checkbox', { name: 'Alex' }));
     await user.click(view.getByRole('button', FIND));
-    expect(await view.findByText(/Not counted: Alex/)).toBeInTheDocument();
+    expect(await view.findByText(/Not counted: You, Alex/)).toBeInTheDocument();
   });
 
   it('connects a CalDAV calendar, and says when it refuses', async () => {
