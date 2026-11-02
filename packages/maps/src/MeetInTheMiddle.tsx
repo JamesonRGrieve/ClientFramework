@@ -5,7 +5,7 @@ import { type ReactNode, type SyntheticEvent, useId, useState } from 'react';
 import { useClient, writeProblem } from 'zephyrex';
 import { Button } from 'zephyrex/ui/button';
 import { Input } from 'zephyrex/ui/input';
-import { findMidpoint, usePlaceCategories } from './mapsApi';
+import { findMidpoint, useNearby, usePlaceCategories } from './mapsApi';
 import {
   distanceLabel,
   durationLabel,
@@ -81,7 +81,45 @@ function spread(legs: readonly Leg[]): number | null {
   return Math.max(...known) - Math.min(...known);
 }
 
-function Result({ midpoint, labels, mode }: { midpoint: Midpoint; labels: readonly string[]; mode: Mode }): ReactNode {
+function NearbyPlaces({ midpoint, category }: { midpoint: Midpoint; category: string }): ReactNode {
+  const places = useNearby(midpoint, category);
+  if (places.error !== undefined) {
+    return (
+      <p role='alert' className='text-sm text-destructive'>
+        {places.error.message}
+      </p>
+    );
+  }
+  if (places.data === undefined) {
+    return (
+      <p role='status' className='text-sm text-muted-foreground'>
+        Looking for places to meet…
+      </p>
+    );
+  }
+  if (places.data.length === 0) {
+    return <p className='text-sm text-muted-foreground'>Nothing of that kind is on the map near the middle.</p>;
+  }
+  return (
+    <ul aria-label='Places to meet' className='divide-y'>
+      {places.data.map((place) => (
+        <PlaceRow key={place.id} place={place} />
+      ))}
+    </ul>
+  );
+}
+
+function Result({
+  midpoint,
+  labels,
+  mode,
+  category,
+}: {
+  midpoint: Midpoint;
+  labels: readonly string[];
+  mode: Mode;
+  category: string | null;
+}): ReactNode {
   const gap = spread(midpoint.legs);
   return (
     <section aria-label='The middle' className='grid gap-4'>
@@ -101,13 +139,7 @@ function Result({ midpoint, labels, mode }: { midpoint: Midpoint; labels: readon
           The longest journey is {durationLabel(gap)} longer than the shortest.
         </p>
       )}
-      {midpoint.places.length > 0 && (
-        <ul aria-label='Places to meet' className='divide-y'>
-          {midpoint.places.map((place) => (
-            <PlaceRow key={place.id} place={place} />
-          ))}
-        </ul>
-      )}
+      {category !== null && <NearbyPlaces midpoint={midpoint} category={category} />}
     </section>
   );
 }
@@ -126,7 +158,12 @@ export function MeetInTheMiddle({ known = [] }: MeetInTheMiddleProps): ReactNode
   const [typed, setTyped] = useState('');
   const [mode, setMode] = useState<Mode>('driving');
   const [category, setCategory] = useState('restaurant');
-  const [found, setFound] = useState<{ midpoint: Midpoint; labels: string[]; mode: Mode } | null>(null);
+  const [found, setFound] = useState<{
+    midpoint: Midpoint;
+    labels: string[];
+    mode: Mode;
+    category: string | null;
+  } | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [finding, setFinding] = useState(false);
   const full = chosen.length >= MAX_LOCATIONS;
@@ -146,17 +183,15 @@ export function MeetInTheMiddle({ known = [] }: MeetInTheMiddleProps): ReactNode
   const search = (event: SyntheticEvent): void => {
     event.preventDefault();
     setFinding(true);
-    const asked = {
-      locations: chosen.map((place) => place.location),
-      mode,
-      category: category === NOTHING ? null : category,
-    };
+    const kind = category === NOTHING ? null : category;
+    // The middle alone, quickly; the places around it load after it (useNearby).
+    const asked = { locations: chosen.map((place) => place.location), mode, category: null };
     const labels = chosen.map((place) => place.label);
     void (async (): Promise<void> => {
       const asking = findMidpoint(client, asked);
       const failed = await writeProblem(asking, 'The middle could not be found.');
       setProblem(failed);
-      setFound(failed === null ? { midpoint: await asking, labels, mode } : null);
+      setFound(failed === null ? { midpoint: await asking, labels, mode, category: kind } : null);
       setFinding(false);
     })();
   };
@@ -280,7 +315,9 @@ export function MeetInTheMiddle({ known = [] }: MeetInTheMiddleProps): ReactNode
           </p>
         )}
       </form>
-      {found !== null && <Result midpoint={found.midpoint} labels={found.labels} mode={found.mode} />}
+      {found !== null && (
+        <Result midpoint={found.midpoint} labels={found.labels} mode={found.mode} category={found.category} />
+      )}
       <p className='text-xs text-muted-foreground'>
         Places and routes from{' '}
         <a className={LINK} href={OSM_COPYRIGHT} target='_blank' rel='noopener noreferrer'>

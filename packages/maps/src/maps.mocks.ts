@@ -44,16 +44,23 @@ export interface MapsStore {
   places: Place[];
   routed: boolean;
   asked: { locations: string[]; mode: string; category: string | null }[];
+  /** The kinds of place searched for nearby. */
+  nearby: string[];
 }
 
 export function mapsFixture(): MapsStore {
-  return { places: PLACES.map((place) => ({ ...place })), routed: true, asked: [] };
+  return { places: PLACES.map((place) => ({ ...place })), routed: true, asked: [], nearby: [] };
 }
 
 const Asked = z.object({ locations: z.array(z.string()), mode: z.string(), category: z.string().nullable() });
 
 export function mapsHandlers(store: MapsStore = mapsFixture()): RequestHandler[] {
   return [
+    http.get('*/v1/maps/nearby', ({ request }) => {
+      const category = new URL(request.url).searchParams.get('category');
+      store.nearby.push(category ?? '');
+      return HttpResponse.json({ places: store.places.filter((place) => place.category === category) });
+    }),
     http.get('*/v1/maps/categories', () => HttpResponse.json({ categories: CATEGORIES })),
     http.post('*/v1/maps/midpoint', async ({ request }) => {
       const asked = Asked.parse(await request.json());

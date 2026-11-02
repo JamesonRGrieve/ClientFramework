@@ -38,10 +38,11 @@ describe('MeetInTheMiddle', () => {
     expect(legs[0]).toHaveTextContent('20 min by car (30.0 km)');
     expect(legs[1]).toHaveTextContent('40 min by car');
     expect(view.getByText('The longest journey is 20 min longer than the shortest.')).toBeInTheDocument();
-    expect(view.getByRole('list', PLACES)).toHaveTextContent('The Halfway House');
+    expect(await view.findByRole('list', PLACES)).toHaveTextContent('The Halfway House');
     expect(store.asked).toEqual([
-      { locations: ['53.5461,-113.4938', '51.0447,-114.0719'], mode: 'driving', category: 'restaurant' },
+      { locations: ['53.5461,-113.4938', '51.0447,-114.0719'], mode: 'driving', category: null },
     ]);
+    expect(store.nearby).toEqual(['restaurant']);
   });
 
   it('takes typed addresses, a way of travelling and just the middle', async () => {
@@ -59,6 +60,7 @@ describe('MeetInTheMiddle', () => {
     expect(await view.findByRole('list', THERE)).toHaveTextContent('20 min on foot');
     expect(view.queryByRole('list', PLACES)).toBeNull();
     expect(store.asked).toEqual([{ locations: ['Edmonton', 'Calgary'], mode: 'walking', category: null }]);
+    expect(store.nearby).toEqual([]);
   });
 
   it('removes a place', async () => {
@@ -67,6 +69,15 @@ describe('MeetInTheMiddle', () => {
     await user.selectOptions(view.getByLabelText(PICK), ALEX);
     await user.click(view.getByRole('button', { name: 'Remove Alex’s place' }));
     expect(view.getByText('Add at least two places.')).toBeInTheDocument();
+  });
+
+  it('says when nothing of that kind is near the middle', async () => {
+    const user = userEvent.setup();
+    const view = renderMaps(<MeetInTheMiddle known={KNOWN} />, { ...mapsFixture(), places: [] });
+    await user.selectOptions(view.getByLabelText(PICK), ALEX);
+    await user.selectOptions(view.getByLabelText(PICK), SAM);
+    await user.click(view.getByRole('button', FIND));
+    expect(await view.findByText('Nothing of that kind is on the map near the middle.')).toBeInTheDocument();
   });
 
   it('says when no route reaches the middle', async () => {

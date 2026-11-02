@@ -17,6 +17,7 @@ describe('@zephyrex/maps', () => {
         'findMidpoint',
         'mapLink',
         'mapsExtension',
+        'useNearby',
         'usePlaceCategories',
       ].sort(),
     );
