@@ -427,9 +427,7 @@ function AgreementCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
-          <h2>{agreement.title}</h2>
-        </CardTitle>
+        <h2 className='text-2xl font-semibold leading-none tracking-tight'>{agreement.title}</h2>
         <CardDescription>{others.length === 0 ? 'Just you, so far.' : `With ${listed(others)}.`}</CardDescription>
       </CardHeader>
       <CardContent className='grid gap-4'>
