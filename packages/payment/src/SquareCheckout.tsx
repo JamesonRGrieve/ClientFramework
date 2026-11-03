@@ -4,47 +4,9 @@
 import { type ReactElement, type SyntheticEvent, useEffect, useRef, useState } from 'react';
 import { ApiError, type JsonValue, useClient } from 'zephyrex';
 import { Button } from 'zephyrex/ui/button';
+import { type SquareAccount, type SquareEnvironment, squareScript } from './square';
 
-export type SquareEnvironment = 'sandbox' | 'production';
-
-/** The app's Square account for card payments; nothing here reads the environment. */
-export interface SquareAccount {
-  /** The application id (`sq0idp-…`, or `sandbox-sq0idb-…`); none means card payments are off here. */
-  applicationId?: string | undefined;
-  /** The location the payment is taken at. */
-  locationId?: string | undefined;
-  environment?: SquareEnvironment;
-}
-
-const HOSTS: Record<SquareEnvironment, { cdn: string; pci: string }> = {
-  sandbox: { cdn: 'https://sandbox.web.squarecdn.com', pci: 'https://pci-connect.squareupsandbox.com' },
-  production: { cdn: 'https://web.squarecdn.com', pci: 'https://pci-connect.squareup.com' },
-};
-
-/** Square's diagnostics endpoint and font hosts, from its published Web Payments CSP. */
-const SQUARE_TELEMETRY = 'https://o160250.ingest.sentry.io';
-const SQUARE_FONTS = ['https://square-fonts-production-f.squarecdn.com', 'https://d1g145x70srn7h.cloudfront.net'];
 const LOAD_FAILED = 'Square’s payment form could not load';
-
-/** Square's Web Payments SDK. Square serves it unversioned, so it cannot carry an integrity hash. */
-export function squareScript(environment: SquareEnvironment): string {
-  return `${HOSTS[environment].cdn}/v1/square.js`;
-}
-
-/**
- * What the app adds to the framework's Content-Security-Policy (`csp` in its config) for the card
- * form, from Square's published policy. The script itself arrives under 'strict-dynamic'.
- */
-export function squareCspAdditions(environment: SquareEnvironment): Record<string, readonly string[]> {
-  const { cdn, pci } = HOSTS[environment];
-  return {
-    'script-src': [cdn],
-    'style-src': [cdn],
-    'frame-src': [cdn],
-    'connect-src': [cdn, pci, SQUARE_TELEMETRY],
-    'font-src': SQUARE_FONTS,
-  };
-}
 
 /** The slice of Square's SDK the card form uses. */
 export interface SquareCard {
@@ -99,11 +61,17 @@ export async function loadSquareSdk(environment: SquareEnvironment): Promise<Squ
 // A type alias (not an interface) so it narrows from the client's JsonValue.
 export type Product = {
   id: string;
-  plan: string;
+  /** The plan it grants; null for a product that sells units (seats, credits). */
+  plan: string | null;
+  /** The price of one unit. */
   amount: string;
   currency: string;
   description: string;
   features: string[];
+  /** How many units one purchase may buy. */
+  max_quantity?: number;
+  /** Whether a purchase names what the units are for (`subjectId`). */
+  needs_subject?: boolean;
 };
 
 /** What `POST /v1/entitlement/purchase` answers. */
@@ -122,7 +90,11 @@ function isRecord(value: JsonValue | undefined): value is JsonRecord {
 const textIn = (value: JsonRecord, key: string): boolean => typeof value[key] === 'string';
 
 function isProduct(value: JsonValue): value is Product {
-  return isRecord(value) && ['id', 'plan', 'amount', 'currency', 'description'].every((key) => textIn(value, key));
+  return (
+    isRecord(value) &&
+    ['id', 'amount', 'currency', 'description'].every((key) => textIn(value, key)) &&
+    (value['plan'] === null || textIn(value, 'plan'))
+  );
 }
 
 function isPurchase(value: JsonValue): value is Purchase {
@@ -135,9 +107,11 @@ function productsIn(listed: JsonValue): Product[] {
   return Array.isArray(products) ? products.filter(isProduct) : [];
 }
 
-/** A price for display, e.g. "$19.00" for 19.00 USD. */
-export function formatPrice(product: Pick<Product, 'amount' | 'currency'>, locale = 'en-US'): string {
-  return new Intl.NumberFormat(locale, { style: 'currency', currency: product.currency }).format(Number(product.amount));
+/** A price for display, e.g. "$19.00" for 19.00 USD; `quantity` units cost that many times the amount. */
+export function formatPrice(product: Pick<Product, 'amount' | 'currency'>, locale = 'en-US', quantity = 1): string {
+  return new Intl.NumberFormat(locale, { style: 'currency', currency: product.currency }).format(
+    Number(product.amount) * quantity,
+  );
 }
 
 /** Why a payment step failed, in words for the payer. */
@@ -151,6 +125,10 @@ function failure(caught: Error | null, fallback: string): string {
 export interface SquareCheckoutProps extends SquareAccount {
   /** The product to buy, by its id on the server (`register_product`). */
   productId: string;
+  /** How many units to buy, for a product that sells units; the server charges its unit price times this. */
+  quantity?: number;
+  /** What the units are for (a group, a project), for a product that needs one. */
+  subjectId?: string;
   /** Called once the payment has succeeded and the plan is unlocked. */
   onPurchased?: (purchase: Purchase) => void;
   /** Loads Square's SDK; replaceable so stories and tests need no network. */
@@ -174,6 +152,8 @@ export function SquareCheckout({
   locationId = '',
   environment = 'production',
   productId,
+  quantity = 1,
+  subjectId,
   onPurchased,
   loadSdk = loadSquareSdk,
 }: SquareCheckoutProps): ReactElement {
@@ -239,6 +219,8 @@ export function SquareCheckout({
       const answer = await client.post('/v1/entitlement/purchase', {
         product_id: buying.id,
         payment_method_id: token.token,
+        quantity,
+        ...(subjectId === undefined ? {} : { subject_id: subjectId }),
       });
       if (!isPurchase(answer)) {
         throw new Error('The payment could not be confirmed');
@@ -271,7 +253,9 @@ export function SquareCheckout({
   if (state.phase === 'done') {
     return (
       <p role='status' className='font-medium'>
-        Payment received. {state.product.description} is unlocked.
+        {state.product.plan === null
+          ? `Payment received for ${quantity} × ${state.product.description}.`
+          : `Payment received. ${state.product.description} is unlocked.`}
       </p>
     );
   }
@@ -280,7 +264,9 @@ export function SquareCheckout({
     <form onSubmit={(event) => void pay(event)} className='space-y-4' aria-busy={state.phase !== 'ready'}>
       {product !== null && (
         <p>
-          {product.description}: <span className='font-semibold'>{formatPrice(product)}</span>
+          {product.description}
+          {quantity > 1 && ` × ${quantity}`}:{' '}
+          <span className='font-semibold'>{formatPrice(product, 'en-US', quantity)}</span>
         </p>
       )}
       <fieldset className='min-h-24'>
@@ -294,7 +280,11 @@ export function SquareCheckout({
         </p>
       )}
       <Button type='submit' disabled={state.phase !== 'ready'}>
-        {product === null ? 'Loading…' : state.phase === 'paying' ? 'Paying…' : `Pay ${formatPrice(product)}`}
+        {product === null
+          ? 'Loading…'
+          : state.phase === 'paying'
+            ? 'Paying…'
+            : `Pay ${formatPrice(product, 'en-US', quantity)}`}
       </Button>
     </form>
   );

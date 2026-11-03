@@ -4,17 +4,14 @@
 // for products sold once (the server's entitlements products).
 export { paymentExtension } from './extension';
 export { STRIPE_PRICING_TABLE_SCRIPT, Subscribe, type StripePricingTable } from './Subscribe';
+export { type SquareAccount, squareCspAdditions, type SquareEnvironment, squareScript } from './square';
 export {
   formatPrice,
   loadSquareSdk,
   type Product,
   type Purchase,
-  type SquareAccount,
   type SquareCard,
   SquareCheckout,
   type SquareCheckoutProps,
-  squareCspAdditions,
-  type SquareEnvironment,
-  squareScript,
   type SquareSdk,
 } from './SquareCheckout';

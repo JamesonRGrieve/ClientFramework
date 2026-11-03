@@ -49,9 +49,18 @@ import { SquareCheckout, squareCspAdditions } from '@zephyrex/payment';
 />;
 ```
 
+A product that sells units (seats in a group, credits: a `Product` with no plan) is bought in a
+`quantity`, and for the `subjectId` it names when the server checks one; the form shows and the
+server charges the unit price times the quantity:
+
+```tsx
+<SquareCheckout {...account} productId='group_seat' quantity={12} subjectId={group.id} />
+```
+
 Add Square's hosts to the app's Content-Security-Policy with `squareCspAdditions(environment)`
-(from Square's published Web Payments policy). With no application or location id, the form says
-card payments are not available.
+(from Square's published Web Payments policy). It lives in a plain module, so a config the server
+reads can call it. With no application or location id, the form says card payments are not
+available.
 
 ## Exports
 

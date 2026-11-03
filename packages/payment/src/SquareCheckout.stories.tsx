@@ -11,6 +11,16 @@ const PRODUCTS = http.get('*/v1/entitlement/products', () =>
   HttpResponse.json({
     products: [
       { id: 'full_report', plan: 'report', amount: '19.00', currency: 'USD', description: 'The full report', features: [] },
+      {
+        id: 'group_seat',
+        plan: null,
+        amount: '2.00',
+        currency: 'USD',
+        description: 'A group seat',
+        features: [],
+        max_quantity: 1000,
+        needs_subject: true,
+      },
     ],
   }),
 );
@@ -87,3 +97,11 @@ export const CardDeclined: Story = {
 };
 
 export const NotConfigured: Story = { args: { applicationId: undefined, locationId: undefined } };
+
+/** Units of a product (seats in a group), at the unit price times the quantity. */
+export const Units: Story = {
+  args: { productId: 'group_seat', quantity: 12, subjectId: 'g1' },
+  play: async ({ canvasElement }) => {
+    await expect(await within(canvasElement).findByRole('button', { name: 'Pay $24.00' })).toBeEnabled();
+  },
+};
