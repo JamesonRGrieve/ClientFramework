@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest';
-import { dueForRevisit, KINDS, kindChoice, kindLabel } from './agreementsModel';
+import { DEFAULT_KINDS, dueForRevisit, shownKind } from './agreementsModel';
 
 describe('the agreements model', () => {
-  it('names every kind of term, as a heading and as a choice', () => {
-    expect(KINDS.map(kindLabel)).toEqual(['What we agreed', 'Likes', 'Limits']);
-    expect(KINDS.map(kindChoice)).toEqual(['Agreed', 'Like', 'Limit']);
+  it('shows a term under its own kind when the app names it, else the default', () => {
+    const kinds = [...DEFAULT_KINDS, { value: 'rule', heading: 'House rules', choice: 'Rule' }];
+    expect(shownKind('rule', kinds)).toBe('rule');
+    expect(shownKind('clause', kinds)).toBe('term');
+    expect(shownKind('clause', [])).toBe('clause');
   });
 
   it('is due for a revisit on the day and after, never without a date', () => {

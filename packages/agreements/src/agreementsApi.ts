@@ -3,7 +3,7 @@
 
 import useSWR, { type SWRResponse } from 'swr';
 import { useClient, type ZephyrexClient } from 'zephyrex';
-import { type Agreement, AgreementListSchema, AgreementSchema, type TermKind } from './agreementsModel';
+import { type Agreement, AgreementListSchema, AgreementSchema } from './agreementsModel';
 
 export const AGREEMENTS_ENDPOINT = '/v1/agreements';
 const MINE = `${AGREEMENTS_ENDPOINT}/mine`;
@@ -35,13 +35,10 @@ export const agreementsApi = {
     one(client.post(at(id, 'parties'), { user_id: userId })),
   removeParty: async (client: ZephyrexClient, id: string, userId: string): Promise<Agreement[]> =>
     many(client.post(at(id, 'parties', 'remove'), { user_id: userId })),
-  addTerm: async (client: ZephyrexClient, id: string, kind: TermKind, text: string): Promise<Agreement> =>
+  addTerm: async (client: ZephyrexClient, id: string, kind: string, text: string): Promise<Agreement> =>
     one(client.post(at(id, 'terms'), { kind, text })),
-  changeTerm: async (
-    client: ZephyrexClient,
-    termId: string,
-    change: { kind?: TermKind; text?: string },
-  ): Promise<Agreement> => one(client.post(at('terms', termId), change)),
+  changeTerm: async (client: ZephyrexClient, termId: string, change: { kind?: string; text?: string }): Promise<Agreement> =>
+    one(client.post(at('terms', termId), change)),
   removeTerm: async (client: ZephyrexClient, termId: string): Promise<Agreement> =>
     one(client.post(at('terms', termId, 'remove'), {})),
   confirm: async (client: ZephyrexClient, id: string): Promise<Agreement> => one(client.post(at(id, 'confirm'), {})),

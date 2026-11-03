@@ -3,7 +3,7 @@ import { within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createElement } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ALEX_ID, agreementsFixture, emptyAgreementsStore, SAM_ID } from './agreements.mocks';
+import { ALEX_ID, agreementsFixture, emptyAgreementsStore, HOUSE_KINDS, SAM_ID } from './agreements.mocks';
 import { AgreementsPage, listed } from './AgreementsPage';
 import { nth, renderAgreements } from './testing.mocks';
 
@@ -27,21 +27,22 @@ describe('AgreementsPage', () => {
   });
 
   it('shows where each agreement stands, its terms by kind, and who wrote them', async () => {
-    const view = renderAgreements(createElement(AgreementsPage, { people: PEOPLE }));
+    const view = renderAgreements(createElement(AgreementsPage, { people: PEOPLE, kinds: HOUSE_KINDS }));
     expect(await view.findByRole('status', { name: 'Where Us stands' })).toHaveTextContent(
       'Everyone has confirmed this version.',
     );
     expect(view.getByRole('status', { name: 'Where Household stands' })).toHaveTextContent('Waiting for Sam to confirm.');
     expect(view.getByRole('status', { name: 'Where Household stands' })).toHaveTextContent('Time to revisit it');
-    const limits = view.getByRole('region', { name: 'Us: Limits' });
-    expect(limits).toHaveTextContent('No sleepovers on work nights');
-    expect(view.getByRole('region', { name: 'Us: Likes' })).toHaveTextContent('Written by Alex');
+    const rules = view.getByRole('region', { name: 'Us: House rules' });
+    expect(rules).toHaveTextContent('Quiet after ten on weeknights');
+    expect(rules).toHaveTextContent('Written by Alex');
+    expect(view.getByRole('region', { name: 'Us: Terms' })).toHaveTextContent('We split the bills evenly');
   });
 
   it('starts an agreement with the people chosen', async () => {
     const store = emptyAgreementsStore();
     const user = userEvent.setup();
-    const view = renderAgreements(createElement(AgreementsPage, { people: PEOPLE }), store);
+    const view = renderAgreements(createElement(AgreementsPage, { people: PEOPLE, kinds: HOUSE_KINDS }), store);
     await user.type(await view.findByLabelText('What to call it'), 'Us');
     await user.click(view.getByLabelText('Alex'));
     await user.click(view.getByRole('button', { name: 'Start the agreement' }));
@@ -55,9 +56,9 @@ describe('AgreementsPage', () => {
   it('asks everyone to confirm again after a term changes', async () => {
     const store = agreementsFixture();
     const user = userEvent.setup();
-    const view = renderAgreements(createElement(AgreementsPage, { people: PEOPLE }), store);
+    const view = renderAgreements(createElement(AgreementsPage, { people: PEOPLE, kinds: HOUSE_KINDS }), store);
     const add = await view.findByRole('form', { name: 'Add to Us' });
-    await user.type(within(add).getByLabelText('New term'), 'Date nights on Fridays');
+    await user.type(within(add).getByLabelText('New term'), 'Bins out on Thursdays');
     await user.click(within(add).getByRole('button', { name: 'Add' }));
     const status = view.getByRole('status', { name: 'Where Us stands' });
     await vi.waitFor(() => {
@@ -72,20 +73,20 @@ describe('AgreementsPage', () => {
   it('rewords a term in place', async () => {
     const store = agreementsFixture();
     const user = userEvent.setup();
-    const view = renderAgreements(createElement(AgreementsPage, { people: PEOPLE }), store);
-    await user.click(await view.findByRole('button', { name: 'Change “No sleepovers on work nights”' }));
-    const form = view.getByRole('form', { name: 'Change “No sleepovers on work nights”' });
+    const view = renderAgreements(createElement(AgreementsPage, { people: PEOPLE, kinds: HOUSE_KINDS }), store);
+    await user.click(await view.findByRole('button', { name: 'Change “Quiet after ten on weeknights”' }));
+    const form = view.getByRole('form', { name: 'Change “Quiet after ten on weeknights”' });
     const wording = within(form).getByLabelText('Wording');
     await user.clear(wording);
-    await user.type(wording, 'No sleepovers on Sundays');
+    await user.type(wording, 'Quiet after eleven on weeknights');
     await user.click(within(form).getByRole('button', { name: 'Save' }));
-    expect(await view.findByText('No sleepovers on Sundays')).toBeInTheDocument();
+    expect(await view.findByText('Quiet after eleven on weeknights')).toBeInTheDocument();
   });
 
   it('lets the owner add someone, and anyone else leave', async () => {
     const store = agreementsFixture();
     const user = userEvent.setup();
-    const view = renderAgreements(createElement(AgreementsPage, { people: PEOPLE }), store);
+    const view = renderAgreements(createElement(AgreementsPage, { people: PEOPLE, kinds: HOUSE_KINDS }), store);
     const toggles = await view.findAllByRole('button', { name: 'Date and people' });
     await user.click(nth(toggles, 1));
     await user.selectOptions(view.getByLabelText('Add someone'), 'Sam');
@@ -98,6 +99,14 @@ describe('AgreementsPage', () => {
     await vi.waitFor(() => {
       expect(view.queryByRole('heading', { name: 'Household' })).not.toBeInTheDocument();
     });
+  });
+
+  it('says what the app asks it to, with only the default kind when it names none', async () => {
+    const view = renderAgreements(createElement(AgreementsPage, { people: PEOPLE, intro: 'House rules, agreed.' }));
+    expect(await view.findByText('House rules, agreed.')).toBeInTheDocument();
+    const us = await view.findByRole('region', { name: 'Us: Terms' });
+    expect(us).toHaveTextContent('Quiet after ten on weeknights');
+    expect(view.queryByRole('region', { name: 'Us: House rules' })).not.toBeInTheDocument();
   });
 
   it('wraps the start form, to offer a plan instead', async () => {

@@ -10,12 +10,11 @@ import { agreementsApi, useAgreements } from './agreementsApi';
 import {
   type Agreement,
   type AgreementPerson,
+  DEFAULT_KINDS,
   dueForRevisit,
-  KINDS,
-  kindChoice,
-  kindLabel,
+  shownKind,
   type Term,
-  type TermKind,
+  type TermKindInfo,
 } from './agreementsModel';
 
 const SELECT = 'h-9 rounded-md border bg-background px-3 text-sm font-normal';
@@ -44,6 +43,34 @@ export function listed(names: readonly string[]): string {
     return names.join('');
   }
   return `${names.slice(0, -1).join(', ')} and ${names.at(-1) ?? ''}`;
+}
+
+/** The choice of a term's kind, among the kinds the app names. */
+function KindSelect({
+  id,
+  kinds,
+  value,
+  onChange,
+}: {
+  id: string;
+  kinds: readonly TermKindInfo[];
+  value: string;
+  onChange: (kind: string) => void;
+}): ReactNode {
+  return (
+    <>
+      <label htmlFor={id} className='sr-only'>
+        Kind
+      </label>
+      <select id={id} value={value} onChange={(event) => onChange(event.target.value)} className={SELECT}>
+        {kinds.map((k) => (
+          <option key={k.value} value={k.value}>
+            {k.choice}
+          </option>
+        ))}
+      </select>
+    </>
+  );
 }
 
 /** Runs a write, then shows its problem (or nothing) and refreshes the agreements. */
@@ -145,11 +172,21 @@ function StartAgreement({
   );
 }
 
-function TermRow({ term, nameOf, onChanged }: { term: Term; nameOf: NameOf; onChanged: () => Promise<unknown> }): ReactNode {
+function TermRow({
+  term,
+  kinds,
+  nameOf,
+  onChanged,
+}: {
+  term: Term;
+  kinds: readonly TermKindInfo[];
+  nameOf: NameOf;
+  onChanged: () => Promise<unknown>;
+}): ReactNode {
   const client = useClient();
   const ids = { kind: useId(), text: useId() };
   const [editing, setEditing] = useState(false);
-  const [kind, setKind] = useState<TermKind>(term.kind);
+  const [kind, setKind] = useState(shownKind(term.kind, kinds));
   const [text, setText] = useState(term.text);
   const { busy, problem, run } = useWrite(onChanged);
   const save = (event: SyntheticEvent): void => {
@@ -164,21 +201,7 @@ function TermRow({ term, nameOf, onChanged }: { term: Term; nameOf: NameOf; onCh
     return (
       <li className='py-2'>
         <form onSubmit={save} aria-label={`Change “${term.text}”`} className='grid gap-2 sm:grid-cols-[8rem_1fr_auto_auto]'>
-          <label htmlFor={ids.kind} className='sr-only'>
-            Kind
-          </label>
-          <select
-            id={ids.kind}
-            value={kind}
-            onChange={(event) => setKind(KINDS.find((k) => k === event.target.value) ?? kind)}
-            className={SELECT}
-          >
-            {KINDS.map((k) => (
-              <option key={k} value={k}>
-                {kindChoice(k)}
-              </option>
-            ))}
-          </select>
+          <KindSelect id={ids.kind} kinds={kinds} value={kind} onChange={setKind} />
           <label htmlFor={ids.text} className='sr-only'>
             Wording
           </label>
@@ -233,10 +256,18 @@ function TermRow({ term, nameOf, onChanged }: { term: Term; nameOf: NameOf; onCh
   );
 }
 
-function AddTerm({ agreement, onChanged }: { agreement: Agreement; onChanged: () => Promise<unknown> }): ReactNode {
+function AddTerm({
+  agreement,
+  kinds,
+  onChanged,
+}: {
+  agreement: Agreement;
+  kinds: readonly TermKindInfo[];
+  onChanged: () => Promise<unknown>;
+}): ReactNode {
   const client = useClient();
   const ids = { kind: useId(), text: useId() };
-  const [kind, setKind] = useState<TermKind>('agreement');
+  const [kind, setKind] = useState(kinds.at(0)?.value ?? 'term');
   const [text, setText] = useState('');
   const { busy, problem, run } = useWrite(onChanged);
   const add = (event: SyntheticEvent): void => {
@@ -250,21 +281,7 @@ function AddTerm({ agreement, onChanged }: { agreement: Agreement; onChanged: ()
   return (
     <form onSubmit={add} aria-label={`Add to ${agreement.title}`} className='grid gap-2'>
       <div className='grid gap-2 sm:grid-cols-[8rem_1fr_auto]'>
-        <label htmlFor={ids.kind} className='sr-only'>
-          Kind
-        </label>
-        <select
-          id={ids.kind}
-          value={kind}
-          onChange={(event) => setKind(KINDS.find((k) => k === event.target.value) ?? kind)}
-          className={SELECT}
-        >
-          {KINDS.map((k) => (
-            <option key={k} value={k}>
-              {kindChoice(k)}
-            </option>
-          ))}
-        </select>
+        <KindSelect id={ids.kind} kinds={kinds} value={kind} onChange={setKind} />
         <label htmlFor={ids.text} className='sr-only'>
           New term
         </label>
@@ -272,7 +289,7 @@ function AddTerm({ agreement, onChanged }: { agreement: Agreement; onChanged: ()
           id={ids.text}
           value={text}
           onChange={(event) => setText(event.target.value)}
-          placeholder='Something agreed, a like or a limit'
+          placeholder='Something agreed'
           maxLength={2000}
         />
         <Button type='submit' variant='outline' disabled={busy || text.trim() === ''}>
@@ -406,12 +423,14 @@ function Details({
 
 function AgreementCard({
   agreement,
+  kinds,
   me,
   people,
   nameOf,
   onChanged,
 }: {
   agreement: Agreement;
+  kinds: readonly TermKindInfo[];
   me: string;
   people: readonly AgreementPerson[];
   nameOf: NameOf;
@@ -443,16 +462,17 @@ function AgreementCard({
             </span>
           )}
         </div>
-        {KINDS.map((kind) => {
-          const terms = agreement.terms.filter((t) => t.kind === kind);
+        {kinds.map((kind) => {
+          const terms = agreement.terms.filter((t) => shownKind(t.kind, kinds) === kind.value);
           return terms.length === 0 ? null : (
-            <section key={kind} aria-label={`${agreement.title}: ${kindLabel(kind)}`} className='grid gap-1'>
-              <h3 className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>{kindLabel(kind)}</h3>
+            <section key={kind.value} aria-label={`${agreement.title}: ${kind.heading}`} className='grid gap-1'>
+              <h3 className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>{kind.heading}</h3>
               <ul className='divide-y'>
                 {terms.map((term) => (
                   <TermRow
                     key={`${term.id}-${String(agreement.version)}`}
                     term={term}
+                    kinds={kinds}
                     nameOf={nameOf}
                     onChanged={onChanged}
                   />
@@ -462,7 +482,7 @@ function AgreementCard({
           );
         })}
         {agreement.terms.length === 0 && <p className='text-sm text-muted-foreground'>Nothing written down yet.</p>}
-        <AddTerm agreement={agreement} onChanged={onChanged} />
+        <AddTerm agreement={agreement} kinds={kinds} onChanged={onChanged} />
         <div className='flex flex-wrap items-center gap-3'>
           {mine?.confirmed === true ? (
             <span className='text-sm text-muted-foreground'>You confirmed this version.</span>
@@ -500,12 +520,24 @@ export interface AgreementsPageProps {
   people?: readonly AgreementPerson[];
   /** Wraps the form that starts an agreement, e.g. to offer a plan instead. */
   wrapStart?: (form: ReactElement) => ReactNode;
+  /** The kinds of term, in the order they show; the same values the server's register_term_kinds names. */
+  kinds?: readonly TermKindInfo[];
+  /** What the page says under its heading. */
+  intro?: ReactNode;
 }
+
+const INTRO =
+  'Write down what you have agreed. Any change asks everyone to confirm again, so nothing shifts without each of you knowing.';
 
 const asIs = (form: ReactElement): ReactNode => form;
 
-/** Written agreements with the people in someone's life: confirmed by each, revisited together. */
-export function AgreementsPage({ people = [], wrapStart = asIs }: AgreementsPageProps): ReactNode {
+/** Written agreements between people: confirmed by each, revisited together. */
+export function AgreementsPage({
+  people = [],
+  wrapStart = asIs,
+  kinds = DEFAULT_KINDS,
+  intro = INTRO,
+}: AgreementsPageProps): ReactNode {
   const { data: user } = useUser();
   const agreements = useAgreements();
   const me = user?.id ?? '';
@@ -516,10 +548,7 @@ export function AgreementsPage({ people = [], wrapStart = asIs }: AgreementsPage
     <div className='grid gap-6'>
       <div className='grid gap-1'>
         <h1 className='text-3xl font-semibold'>Agreements</h1>
-        <p className='text-muted-foreground'>
-          Write down what you have agreed, likes and limits included. Any change asks everyone to confirm again, so nothing
-          shifts without each of you knowing.
-        </p>
+        <p className='text-muted-foreground'>{intro}</p>
       </div>
       <Card>
         <CardHeader>
@@ -534,6 +563,7 @@ export function AgreementsPage({ people = [], wrapStart = asIs }: AgreementsPage
         <AgreementCard
           key={agreement.id}
           agreement={agreement}
+          kinds={kinds}
           me={me}
           people={people}
           nameOf={nameOf}

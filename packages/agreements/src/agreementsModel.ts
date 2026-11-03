@@ -2,12 +2,22 @@
 // What the server's agreements extension answers: the agreements someone is party to.
 import { z } from 'zod';
 
-export const KINDS = ['agreement', 'like', 'limit'] as const;
-export type TermKind = (typeof KINDS)[number];
+/** A kind of term the app's agreements hold (the server's register_term_kinds names the same values). */
+export interface TermKindInfo {
+  /** The kind as the server stores it. */
+  value: string;
+  /** The heading over the terms of this kind. */
+  heading: string;
+  /** The kind as a choice when writing a term. */
+  choice: string;
+}
+
+/** The one kind the server holds when the app names none. */
+export const DEFAULT_KINDS: readonly TermKindInfo[] = [{ value: 'term', heading: 'Terms', choice: 'Term' }];
 
 const TermSchema = z.object({
   id: z.string(),
-  kind: z.enum(KINDS),
+  kind: z.string(),
   text: z.string(),
   position: z.number(),
   written_by: z.string(),
@@ -43,28 +53,9 @@ export interface AgreementPerson {
   name: string;
 }
 
-/** The heading over each kind of term. */
-export function kindLabel(kind: TermKind): string {
-  switch (kind) {
-    case 'agreement':
-      return 'What we agreed';
-    case 'like':
-      return 'Likes';
-    case 'limit':
-      return 'Limits';
-  }
-}
-
-/** The kind as a choice when writing a term. */
-export function kindChoice(kind: TermKind): string {
-  switch (kind) {
-    case 'agreement':
-      return 'Agreed';
-    case 'like':
-      return 'Like';
-    case 'limit':
-      return 'Limit';
-  }
+/** The kind a term shows under: its own when the app names it, else the default (the first). */
+export function shownKind(kind: string, kinds: readonly TermKindInfo[]): string {
+  return kinds.some((k) => k.value === kind) ? kind : (kinds.at(0)?.value ?? kind);
 }
 
 /** Whether `revisitOn` (a date, YYYY-MM-DD) has come, as of `today`. */

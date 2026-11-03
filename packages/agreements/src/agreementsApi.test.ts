@@ -18,9 +18,9 @@ describe('agreementsApi', () => {
     const client = new ZephyrexClient({ baseUrl: testConfig.server.baseUrl });
     const started = await agreementsApi.start(client, { title: 'Us', revisit_on: null, party_user_ids: [ALEX_ID] });
     expect(started.parties.map((p) => p.user_id)).toEqual([ME_ID, ALEX_ID]);
-    const added = await agreementsApi.addTerm(client, started.id, 'limit', 'No phones at dinner');
+    const added = await agreementsApi.addTerm(client, started.id, 'rule', 'No phones at dinner');
     const term = nth(added.terms, 0);
-    expect(term).toMatchObject({ kind: 'limit', written_by: ME_ID });
+    expect(term).toMatchObject({ kind: 'rule', written_by: ME_ID });
     const reworded = await agreementsApi.changeTerm(client, term.id, { text: 'No phones at the table' });
     expect(reworded.version).toBe(added.version + 1);
     const confirmed = await agreementsApi.confirm(client, started.id);

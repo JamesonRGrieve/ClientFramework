@@ -3,8 +3,8 @@
 // between people, confirmed by each of them and revisited together.
 export { AGREEMENTS_ENDPOINT, agreementsApi, useAgreements } from './agreementsApi';
 export type { AgreementDetails, NewAgreement } from './agreementsApi';
-export { AgreementSchema, dueForRevisit, KINDS, kindChoice, kindLabel } from './agreementsModel';
-export type { Agreement, AgreementPerson, Party, Term, TermKind } from './agreementsModel';
+export { AgreementSchema, DEFAULT_KINDS, dueForRevisit, shownKind } from './agreementsModel';
+export type { Agreement, AgreementPerson, Party, Term, TermKindInfo } from './agreementsModel';
 export { AgreementsPage, listed } from './AgreementsPage';
 export type { AgreementsPageProps } from './AgreementsPage';
 export { agreementsExtension } from './extension';

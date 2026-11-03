@@ -4,11 +4,17 @@
 // adds people or deletes it.
 import { http, HttpResponse, type RequestHandler } from 'msw';
 import { z } from 'zod';
-import { type Agreement, KINDS, type Term, type TermKind } from './agreementsModel';
+import { type Agreement, DEFAULT_KINDS, type Term, type TermKindInfo } from './agreementsModel';
 
 export const ME_ID = 'user-me';
 export const ALEX_ID = 'user-alex';
 export const SAM_ID = 'user-sam';
+
+/** The kinds of term a house share's agreements might hold: the default, and house rules. */
+export const HOUSE_KINDS: readonly TermKindInfo[] = [
+  ...DEFAULT_KINDS,
+  { value: 'rule', heading: 'House rules', choice: 'Rule' },
+];
 const FIXTURE_VERSION = '2026-10-01T09:00:00';
 
 export interface AgreementsStore {
@@ -22,7 +28,7 @@ const BodySchema = z.object({
   clear_revisit: z.boolean().optional(),
   party_user_ids: z.array(z.string()).optional(),
   user_id: z.string().optional(),
-  kind: z.enum(KINDS).optional(),
+  kind: z.string().optional(),
   text: z.string().optional(),
 });
 const read = async (request: Request): Promise<z.infer<typeof BodySchema>> => BodySchema.parse(await request.json());
@@ -33,7 +39,7 @@ const party = (userId: string, confirmedVersion: number | null): Agreement['part
   confirmed_version: confirmedVersion,
 });
 
-const term = (id: string, kind: TermKind, text: string, position: number, writtenBy: string): Term => ({
+const term = (id: string, kind: string, text: string, position: number, writtenBy: string): Term => ({
   id,
   kind,
   text,
@@ -60,9 +66,9 @@ export function agreementsFixture(): AgreementsStore {
         owner_id: ME_ID,
         parties: [party(ME_ID, 2), party(ALEX_ID, 2)],
         terms: [
-          term('t1', 'agreement', 'We tell each other before a first date', 0, ME_ID),
-          term('t2', 'like', 'Slow Sunday mornings', 1, ALEX_ID),
-          term('t3', 'limit', 'No sleepovers on work nights', 2, ME_ID),
+          term('t1', 'term', 'We split the bills evenly', 0, ME_ID),
+          term('t2', 'rule', 'Guests leave by midnight', 1, ALEX_ID),
+          term('t3', 'rule', 'Quiet after ten on weeknights', 2, ME_ID),
         ],
         in_effect: false,
         updated_at: FIXTURE_VERSION,
@@ -74,7 +80,7 @@ export function agreementsFixture(): AgreementsStore {
         version: 1,
         owner_id: ALEX_ID,
         parties: [party(ALEX_ID, 1), party(ME_ID, 1), party(SAM_ID, null)],
-        terms: [term('t4', 'agreement', 'Whoever cooks does not wash up', 0, ALEX_ID)],
+        terms: [term('t4', 'term', 'Whoever cooks does not wash up', 0, ALEX_ID)],
         in_effect: false,
         updated_at: FIXTURE_VERSION,
       }),
@@ -186,13 +192,7 @@ export function agreementsHandlers(store: AgreementsStore = agreementsFixture(),
       }
       const body = await read(request);
       made += 1;
-      const added = term(
-        `t-new-${String(made)}`,
-        body.kind ?? 'agreement',
-        (body.text ?? '').trim(),
-        agreement.terms.length,
-        me,
-      );
+      const added = term(`t-new-${String(made)}`, body.kind ?? 'term', (body.text ?? '').trim(), agreement.terms.length, me);
       return changed(agreement, [...agreement.terms, added]);
     }),
     http.post('*/v1/agreements/:id/details', async ({ params, request }) => {

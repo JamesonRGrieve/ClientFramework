@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/nextjs';
 import { http, HttpResponse } from 'msw';
 import { expect, within } from 'storybook/test';
 import { withSignedIn, withZephyrexApi } from 'zephyrex/testing';
-import { ALEX_ID, agreementsHandlers, emptyAgreementsStore, ME_ID, SAM_ID } from './agreements.mocks';
+import { ALEX_ID, agreementsHandlers, emptyAgreementsStore, HOUSE_KINDS, ME_ID, SAM_ID } from './agreements.mocks';
 import { AgreementsPage } from './AgreementsPage';
 
 const me = http.get('*/v1/user', () => HttpResponse.json({ user: { id: ME_ID, email: 'me@example.com' } }));
@@ -16,6 +16,7 @@ const meta: Meta<typeof AgreementsPage> = {
       { userId: ALEX_ID, name: 'Alex' },
       { userId: SAM_ID, name: 'Sam' },
     ],
+    kinds: HOUSE_KINDS,
   },
   parameters: { nextjs: { appDirectory: true }, layout: 'padded', msw: { handlers: [me, ...agreementsHandlers()] } },
   decorators: [withSignedIn, withZephyrexApi],
