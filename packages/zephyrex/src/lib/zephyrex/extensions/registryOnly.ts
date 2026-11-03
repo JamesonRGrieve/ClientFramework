@@ -50,12 +50,6 @@ export const calendarExtension = entry(
   'Calendar',
   'Your own calendars on Google, Microsoft 365 and CalDAV, shared availability, and booking a time together',
 );
-// Agreements: @zephyrex/agreements extends this with the page for someone's agreements.
-export const agreementsExtension = entry(
-  'agreements',
-  'Agreements',
-  'Written agreements between people, confirmed by each of them and revisited together',
-);
 // Gifts: @zephyrex/gifts extends this with the page for someone's gift list.
 export const giftsExtension = entry(
   'gifts',
@@ -154,7 +148,6 @@ export const registryOnlyExtensions: readonly ZephyrexClientExtension[] = [
   radiusConsumerExtension,
   radiusProviderExtension,
   calendarExtension,
-  agreementsExtension,
   giftsExtension,
   mapsExtension,
   mediaExtension,
