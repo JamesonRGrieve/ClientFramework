@@ -47,6 +47,9 @@ describe('AgreementsPage', () => {
     await user.click(view.getByRole('button', { name: 'Start the agreement' }));
     expect(await view.findByRole('heading', { name: 'Us', level: 2 })).toBeInTheDocument();
     expect(store.agreements[0]?.parties.map((p) => p.user_id)).toEqual(['user-me', ALEX_ID]);
+    await vi.waitFor(() => {
+      expect(view.getByLabelText('What to call it')).toHaveValue('');
+    });
   });
 
   it('asks everyone to confirm again after a term changes', async () => {
