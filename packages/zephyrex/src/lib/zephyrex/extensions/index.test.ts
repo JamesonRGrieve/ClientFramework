@@ -7,6 +7,7 @@ import { allExtensions } from './index';
 // together: a client extension exists exactly when its server extension does.
 const SERVER_EXTENSIONS = [
   'acl_rbac',
+  'agreements',
   'ai',
   'ai_agents',
   'ai_chains',
