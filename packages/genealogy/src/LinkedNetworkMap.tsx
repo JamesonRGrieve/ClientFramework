@@ -4,11 +4,21 @@
 import { Button } from '@jgrieve/forms/components/ui/button';
 import Link from 'next/link.js';
 import { type ReactElement, type ReactNode, useId, useMemo, useState } from 'react';
+import { useSWRConfig } from 'swr';
 import { ApiError, useClient, useUser } from 'zephyrex';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
-import { FRIENDSHIP, genealogyApi, type LinkedNetwork, PARTNERSHIP, useLinkedNetwork } from './genealogyApi';
+import {
+  FRIENDSHIP,
+  genealogyApi,
+  type LinkedNetwork,
+  PARTNERSHIP,
+  PERSON_ENDPOINT,
+  useLinkedNetwork,
+  usePersons,
+} from './genealogyApi';
 import { type LegendEntry, TIE_LEGEND } from './legend';
 import { NetworkGraph } from './NetworkGraph';
+import { AddRelative } from './Relatives';
 import { personPath } from './routes';
 import { fromLinkedNetwork } from './socialLayout';
 
@@ -99,6 +109,96 @@ function StartWithYou({ onStarted }: { onStarted: () => Promise<unknown> }): Rea
 }
 
 /**
+ * What the map says instead of drawing: the start for a user with no record of themselves, a load
+ * failure, or that nobody is connected yet (with the form to add someone beneath it).
+ */
+function NetworkStatus({
+  linked,
+  empty,
+}: {
+  linked: ReturnType<typeof useLinkedNetwork>;
+  empty: boolean;
+}): ReactElement | null {
+  const { error } = linked;
+  if (error instanceof ApiError && error.status === NOT_FOUND) {
+    return <StartWithYou onStarted={async () => linked.mutate()} />;
+  }
+  if (error !== undefined) {
+    return (
+      <p role='alert' className='text-sm text-destructive'>
+        The network could not be loaded: {error.message}
+      </p>
+    );
+  }
+  return empty ? (
+    <p className='text-sm text-muted-foreground'>{linked.isLoading ? 'Loading…' : 'Nobody is connected to you yet.'}</p>
+  ) : null;
+}
+
+/** Which ties the map walks beyond its own kinds: friendships, and relationships that have ended. */
+function MapFilters({
+  throughFriends,
+  includeEnded,
+  onThroughFriends,
+  onIncludeEnded,
+}: {
+  throughFriends: boolean;
+  includeEnded: boolean;
+  onThroughFriends: (on: boolean) => void;
+  onIncludeEnded: (on: boolean) => void;
+}): ReactElement {
+  const ids = { friends: useId(), ended: useId() };
+  return (
+    <div className='flex flex-wrap gap-4 text-sm'>
+      <label htmlFor={ids.friends} className='flex items-center gap-1'>
+        <input
+          id={ids.friends}
+          type='checkbox'
+          checked={throughFriends}
+          onChange={(event) => onThroughFriends(event.target.checked)}
+        />
+        Through friendships too
+      </label>
+      <label htmlFor={ids.ended} className='flex items-center gap-1'>
+        <input
+          id={ids.ended}
+          type='checkbox'
+          checked={includeEnded}
+          onChange={(event) => onIncludeEnded(event.target.checked)}
+        />
+        Include ended relationships
+      </label>
+    </div>
+  );
+}
+
+/**
+ * Adding the people the user is connected to, from the map itself: someone new by name or someone
+ * already recorded, tied to the user's own record. Without it a new map is a dead end.
+ */
+function AddToMap({ centre }: { centre: string | null }): ReactElement | null {
+  const persons = usePersons();
+  const { mutate } = useSWRConfig();
+  const own = persons.data?.find((person) => person.id === centre);
+  if (own === undefined) {
+    return null;
+  }
+  return (
+    <section aria-label='Add someone you are connected to' className='grid gap-2 rounded-md border p-4'>
+      <h3 className='text-sm font-medium'>Add someone you are connected to</h3>
+      <AddRelative
+        person={own}
+        people={persons.data ?? []}
+        onAdded={async () => {
+          // The people, the map and every other walk over the ties are now stale.
+          await mutate((key) => typeof key === 'string' && key.includes(PERSON_ENDPOINT));
+        }}
+      />
+    </section>
+  );
+}
+
+/**
  * The signed-in user at the centre of their network merged across linked trees, each group (a
  * polycule, in a polycule app) branching off in its own direction, with the same people listed by
  * group. Strangers show as they chose: by name, or as "Someone".
@@ -122,7 +222,6 @@ export function LinkedNetworkMap({
   /** The kinds of tie walked (friendships are added when asked); partnerships when omitted. */
   kinds?: readonly string[];
 }): ReactElement {
-  const ids = { friends: useId(), ended: useId() };
   const [throughFriends, setThroughFriends] = useState(false);
   const [includeEnded, setIncludeEnded] = useState(false);
   const linked = useLinkedNetwork({
@@ -131,6 +230,7 @@ export function LinkedNetworkMap({
   });
   const graph = useMemo(() => (linked.data === undefined ? undefined : fromLinkedNetwork(linked.data)), [linked.data]);
   const groups = linked.data === undefined ? [] : byGroup(linked.data);
+  const centre = linked.data?.nodes.find((node) => node.key === linked.data?.center)?.person_id ?? null;
 
   return (
     <Card>
@@ -143,41 +243,16 @@ export function LinkedNetworkMap({
       <CardContent className={title === null ? 'grid gap-4 pt-6' : 'grid gap-4'}>
         {/* The filters, once there is a map to filter (and while one is on, even if it empties it). */}
         {linked.data !== undefined && (groups.length > 0 || throughFriends || includeEnded) && (
-          <div className='flex flex-wrap gap-4 text-sm'>
-            <label htmlFor={ids.friends} className='flex items-center gap-1'>
-              <input
-                id={ids.friends}
-                type='checkbox'
-                checked={throughFriends}
-                onChange={(event) => setThroughFriends(event.target.checked)}
-              />
-              Through friendships too
-            </label>
-            <label htmlFor={ids.ended} className='flex items-center gap-1'>
-              <input
-                id={ids.ended}
-                type='checkbox'
-                checked={includeEnded}
-                onChange={(event) => setIncludeEnded(event.target.checked)}
-              />
-              Include ended relationships
-            </label>
-          </div>
+          <MapFilters
+            throughFriends={throughFriends}
+            includeEnded={includeEnded}
+            onThroughFriends={setThroughFriends}
+            onIncludeEnded={setIncludeEnded}
+          />
         )}
-        {linked.error instanceof ApiError && linked.error.status === NOT_FOUND && (
-          <StartWithYou onStarted={async () => linked.mutate()} />
-        )}
-        {linked.error !== undefined && !(linked.error instanceof ApiError && linked.error.status === NOT_FOUND) && (
-          <p role='alert' className='text-sm text-destructive'>
-            The network could not be loaded: {linked.error.message}
-          </p>
-        )}
-        {linked.error === undefined && groups.length === 0 && (
-          <p className='text-sm text-muted-foreground'>
-            {linked.isLoading ? 'Loading…' : 'Nobody is connected to you yet.'}
-          </p>
-        )}
+        <NetworkStatus linked={linked} empty={groups.length === 0} />
         {graph !== undefined && groups.length > 0 && <NetworkGraph graph={graph} legend={legend} />}
+        {linked.data !== undefined && <AddToMap centre={centre} />}
         {groups.map((members, index) => {
           const label = groupLabel(
             index,

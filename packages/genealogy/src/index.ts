@@ -7,6 +7,7 @@ export { GedcomTransfer } from './GedcomTransfer';
 export { GenealogyPage } from './GenealogyPage';
 export { type AppTie, FAMILY_TREE, type GenealogyOptions, type PersonPanel } from './options';
 export { type CardField, type CardSection, PersonCard } from './PersonCard';
+export type { CardPole, CardScale } from './scales';
 export { GenealogyOptionsProvider, useGenealogyOptions } from './OptionsProvider';
 export {
   ACQUAINTANCE,

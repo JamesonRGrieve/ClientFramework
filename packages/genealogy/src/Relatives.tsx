@@ -2,6 +2,7 @@
 'use client';
 
 import { Button } from '@jgrieve/forms/components/ui/button';
+import { Input } from '@jgrieve/forms/components/ui/input';
 import { Label } from '@jgrieve/forms/components/ui/label';
 import Link from 'next/link.js';
 import { type ReactElement, type SyntheticEvent, useCallback, useId, useState } from 'react';
@@ -109,7 +110,14 @@ function lineDetail(line: RelationshipLine): string {
   return parts.length === 0 ? '' : ` (${parts.join(', ')})`;
 }
 
-function AddRelative({
+/** The "Who" choice that adds someone not yet recorded, named in the form. */
+const SOMEONE_NEW = '__new';
+
+/**
+ * A form tying `person` to someone: one already recorded, or someone new, added by name and tied
+ * in the same step, so nobody has to leave the page to record a person first.
+ */
+export function AddRelative({
   person,
   people,
   onAdded,
@@ -118,7 +126,7 @@ function AddRelative({
   people: Person[];
   onAdded: () => Promise<void>;
 }): ReactElement {
-  const ids = { role: useId(), relative: useId(), detail: useId(), since: useId() };
+  const ids = { role: useId(), relative: useId(), newName: useId(), detail: useId(), since: useId() };
   const client = useClient();
   const { data: user } = useUser();
   const yours = user !== undefined && person.linked_user_id === user.id;
@@ -126,28 +134,37 @@ function AddRelative({
   const { lineage, ties = [] } = useGenealogyOptions();
   const choices = roleChoices(lineage, ties);
   const [role, setRole] = useState<string>(lineage ? 'parent' : 'partner');
-  const [relativeId, setRelativeId] = useState('');
+  const others = people.filter((candidate) => candidate.id !== person.id);
+  // Nobody else recorded yet: the only choice is someone new.
+  const [relativeId, setRelativeId] = useState(others.length === 0 ? SOMEONE_NEW : '');
+  const [newName, setNewName] = useState('');
   const [detail, setDetail] = useState('');
   // When the tie began (YYYY-MM-DD), for anniversaries; optional.
   const [since, setSince] = useState('');
   const [problem, setProblem] = useState<string | null>(null);
-  const others = people.filter((candidate) => candidate.id !== person.id);
   const chosen = choices.find((choice) => choice.value === role) ?? choices.at(0);
   const details = chosen?.details ?? [];
 
   const submit = (event: SyntheticEvent<HTMLFormElement>): void => {
     event.preventDefault();
     if (relativeId === '' || chosen === undefined) {
-      setProblem('Choose who the relative is.');
+      setProblem(lineage ? 'Choose who the relative is.' : 'Choose who they are.');
+      return;
+    }
+    const name = newName.trim();
+    if (relativeId === SOMEONE_NEW && name === '') {
+      setProblem('Give their name.');
       return;
     }
     void (async (): Promise<void> => {
       try {
+        const targetId = relativeId === SOMEONE_NEW ? (await genealogyApi.createPerson(client, { name })).id : relativeId;
         await genealogyApi.createRelationship(client, {
-          ...chosen.fields(person.id, relativeId, detail === '' ? null : detail),
+          ...chosen.fields(person.id, targetId, detail === '' ? null : detail),
           ...(since === '' || LINEAGE_ROLES.has(role as RelativeRole) ? {} : { valid_from: `${since}T00:00:00` }),
         });
-        setRelativeId('');
+        setRelativeId(SOMEONE_NEW);
+        setNewName('');
         setSince('');
         setProblem(null);
         await onAdded();
@@ -169,6 +186,7 @@ function AddRelative({
             className={SELECT_CLASS}
           >
             <option value=''>Choose someone…</option>
+            <option value={SOMEONE_NEW}>Someone new…</option>
             {others.map((other) => (
               <option key={other.id} value={other.id}>
                 {personName(other)}
@@ -176,6 +194,12 @@ function AddRelative({
             ))}
           </select>
         </div>
+        {relativeId === SOMEONE_NEW && (
+          <div className='grid gap-1'>
+            <Label htmlFor={ids.newName}>Their name</Label>
+            <Input id={ids.newName} value={newName} onChange={(event) => setNewName(event.target.value)} />
+          </div>
+        )}
         <div className='grid gap-1'>
           <Label htmlFor={ids.role}>{yours ? 'Is your' : `Is ${personName(person)}’s`}</Label>
           <select

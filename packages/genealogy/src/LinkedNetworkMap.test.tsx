@@ -44,10 +44,19 @@ describe('LinkedNetworkMap', () => {
         <LinkedNetworkMap />
       </TestWrapper>,
     );
-    await userEvent.setup().click(await view.findByRole('button', { name: 'Add myself' }));
+    const clicks = userEvent.setup();
+    await clicks.click(await view.findByRole('button', { name: 'Add myself' }));
     expect(await view.findByText('Nobody is connected to you yet.')).toBeInTheDocument();
     expect(store.persons).toMatchObject([{ name: 'Sam Rivera', linked_user_id: 'user-1' }]);
     expect(view.queryByRole('alert')).toBeNull();
+    // Never a dead end: the map itself asks who they are connected to, and draws them once added.
+    const adding = await view.findByRole('region', { name: 'Add someone you are connected to' });
+    await clicks.type(within(adding).getByLabelText('Their name'), 'Jordan Blake');
+    await clicks.selectOptions(within(adding).getByRole('combobox', { name: /’s$|your$/ }), 'Partner');
+    await clicks.click(within(adding).getByRole('button', { name: /^Add (relative|connection)$/ }));
+    expect(await view.findByRole('region', { name: 'Group 1' })).toHaveTextContent('Jordan Blake');
+    expect(view.queryByText('Nobody is connected to you yet.')).toBeNull();
+    expect(store.relationships.length).toBeGreaterThan(0);
     document.cookie = 'zx_csrf=; path=/; max-age=0';
   });
 });

@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import type * as React from 'react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import Link from 'next/link.js';
+import { usePathname } from 'next/navigation.js';
+import { describe, expect, it, vi } from 'vitest';
 import * as mod from './sidebar';
-import { Sidebar, SidebarMenuSkeleton, SidebarProvider, SidebarRail } from './sidebar';
+import { Sidebar, SidebarMenuSkeleton, SidebarProvider, SidebarRail, useSidebar } from './sidebar';
 
 const START_X = 100;
 const DEFAULT_WIDTH_PX = 256;
@@ -37,6 +40,43 @@ function startDrag(rail: HTMLElement): void {
 describe('sidebar', () => {
   it('module exports', () => {
     expect(mod).toBeDefined();
+  });
+
+  it('closes the phone sheet once a link in it is followed', () => {
+    const PHONE_WIDTH = 390;
+    const desktopWidth = window.innerWidth;
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: PHONE_WIDTH });
+    function Opener(): React.ReactElement {
+      const { toggleSidebar } = useSidebar();
+      return (
+        <button type='button' onClick={toggleSidebar}>
+          Menu
+        </button>
+      );
+    }
+    // A fresh element each time, so a rerender reaches the provider and it reads the new path.
+    const page = (): React.ReactElement => (
+      <SidebarProvider>
+        <Opener />
+        <Sidebar>
+          <Link href='/genealogy'>People</Link>
+        </Sidebar>
+      </SidebarProvider>
+    );
+    try {
+      const view = render(page());
+      fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
+      expect(screen.getByRole('link', { name: 'People' })).toBeInTheDocument();
+      // Following the link changes the path; the sheet must not stay over the page it opened.
+      vi.mocked(usePathname).mockReturnValue('/genealogy');
+      act(() => {
+        view.rerender(page());
+      });
+      expect(screen.queryByRole('link', { name: 'People' })).toBeNull();
+    } finally {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: desktopWidth });
+      vi.mocked(usePathname).mockReturnValue('/');
+    }
   });
 
   it('toggles the sidebar when the rail is clicked in place', () => {

@@ -19,6 +19,35 @@ const EMPTY: Pick<Person, 'name' | 'birth_date' | 'death_date' | 'gender' | 'des
 
 const text = (value: string): string | null => (value.trim() === '' ? null : value.trim());
 
+/** The genders offered by name, as stored; anything else is "Other", in the person's own words. */
+const GENDERS = [
+  { value: 'male', label: 'Male' },
+  { value: 'female', label: 'Female' },
+  { value: 'nonbinary', label: 'Nonbinary' },
+] as const;
+const OTHER = 'other';
+const NAMED_GENDERS: ReadonlySet<string> = new Set(GENDERS.map((gender) => gender.value));
+
+/** The choice a stored gender shows as, and the words in the "Other" field. */
+function genderChoice(stored: string | null): { choice: string; words: string } {
+  if (stored === null || stored.trim() === '') {
+    return { choice: '', words: '' };
+  }
+  const value = stored.trim().toLowerCase();
+  if (NAMED_GENDERS.has(value)) {
+    return { choice: value, words: '' };
+  }
+  return { choice: OTHER, words: value === OTHER ? '' : stored.trim() };
+}
+
+/** What is stored for a choice: the named gender, the person's own words for "Other", or nothing. */
+function genderValue(choice: string, words: string): string | null {
+  if (choice === OTHER) {
+    return text(words) ?? OTHER;
+  }
+  return choice === '' ? null : choice;
+}
+
 /**
  * A person's details, blank for a new record or filled from `person` for an edit. `onSave` answers
  * with a problem to show, or null once the server has stored them.
@@ -33,11 +62,19 @@ export function PersonForm({
   onSave: (fields: PersonFields) => Promise<string | null>;
 }): ReactElement {
   const options = useGenealogyOptions();
-  const ids = { name: useId(), birth: useId(), death: useId(), gender: useId(), description: useId() };
+  const ids = {
+    name: useId(),
+    birth: useId(),
+    death: useId(),
+    gender: useId(),
+    genderWords: useId(),
+    description: useId(),
+  };
   const [name, setName] = useState(person.name ?? '');
   const [birth, setBirth] = useState(dateInput(person.birth_date));
   const [death, setDeath] = useState(dateInput(person.death_date));
-  const [gender, setGender] = useState(person.gender ?? '');
+  const [gender, setGender] = useState(() => genderChoice(person.gender).choice);
+  const [genderWords, setGenderWords] = useState(() => genderChoice(person.gender).words);
   const [description, setDescription] = useState(person.description ?? '');
   const [pending, setPending] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
@@ -54,7 +91,7 @@ export function PersonForm({
         name: text(name),
         birth_date: dateField(birth),
         death_date: dateField(death),
-        gender: text(gender),
+        gender: genderValue(gender, genderWords),
         description: text(description),
       });
       setProblem(failure);
@@ -81,8 +118,27 @@ export function PersonForm({
         )}
         <div className='grid gap-1'>
           <Label htmlFor={ids.gender}>Gender</Label>
-          <Input id={ids.gender} value={gender} onChange={(event) => setGender(event.target.value)} />
+          <select
+            id={ids.gender}
+            value={gender}
+            onChange={(event) => setGender(event.target.value)}
+            className='h-9 rounded-md border bg-background px-3 text-sm'
+          >
+            <option value=''>Not recorded</option>
+            {GENDERS.map((choice) => (
+              <option key={choice.value} value={choice.value}>
+                {choice.label}
+              </option>
+            ))}
+            <option value={OTHER}>Other</option>
+          </select>
         </div>
+        {gender === OTHER && (
+          <div className='grid gap-1'>
+            <Label htmlFor={ids.genderWords}>Gender, in their words</Label>
+            <Input id={ids.genderWords} value={genderWords} onChange={(event) => setGenderWords(event.target.value)} />
+          </div>
+        )}
       </div>
       <div className='grid gap-1'>
         <Label htmlFor={ids.description}>Notes</Label>

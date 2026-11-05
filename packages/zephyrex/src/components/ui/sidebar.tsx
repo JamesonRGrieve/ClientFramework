@@ -5,6 +5,7 @@ import { ViewVerticalIcon } from '@radix-ui/react-icons';
 import { Slot } from '@radix-ui/react-slot';
 import { type VariantProps, cva } from 'class-variance-authority';
 import { setCookie } from 'cookies-next/client';
+import { usePathname } from 'next/navigation.js';
 import * as React from 'react';
 import { useIsMobile } from '@/hooks/useMobile';
 import { Button } from '@/components/ui/button';
@@ -88,8 +89,15 @@ const SidebarProvider = React.forwardRef<
     ref,
   ) => {
     const isMobile = useIsMobile();
-    const [leftOpenMobile, setLeftOpenMobile] = React.useState(false);
-    const [rightOpenMobile, setRightOpenMobile] = React.useState(false);
+    // On a phone a sidebar is a sheet over the page. Each remembers the path it was opened on and
+    // is open only there, so going somewhere from it closes it rather than hiding the new page.
+    const pathname = usePathname();
+    const [leftOpenAt, setLeftOpenAt] = React.useState<string | null>(null);
+    const [rightOpenAt, setRightOpenAt] = React.useState<string | null>(null);
+    const leftOpenMobile = leftOpenAt === pathname;
+    const rightOpenMobile = rightOpenAt === pathname;
+    const setLeftOpenMobile = React.useCallback((open: boolean) => setLeftOpenAt(open ? pathname : null), [pathname]);
+    const setRightOpenMobile = React.useCallback((open: boolean) => setRightOpenAt(open ? pathname : null), [pathname]);
     const [leftWidth, setLeftWidth] = React.useState(SIDEBAR_DEFAULT_WIDTH_PX);
     const [rightWidth, setRightWidth] = React.useState(SIDEBAR_DEFAULT_WIDTH_PX);
     const [leftOpen, setLeftOpen] = React.useState(defaultLeftOpen);
@@ -122,10 +130,11 @@ const SidebarProvider = React.forwardRef<
       (side: SidebarSide) => {
         return () => {
           if (isMobile) {
+            const toggle = (openAt: string | null): string | null => (openAt === pathname ? null : pathname);
             if (side === 'left') {
-              setLeftOpenMobile((prev) => !prev);
+              setLeftOpenAt(toggle);
             } else {
-              setRightOpenMobile((prev) => !prev);
+              setRightOpenAt(toggle);
             }
           } else {
             const setOpen = createSetOpen(side, side === 'left' ? onLeftOpenChange : onRightOpenChange);
@@ -133,7 +142,7 @@ const SidebarProvider = React.forwardRef<
           }
         };
       },
-      [isMobile, createSetOpen, onLeftOpenChange, onRightOpenChange],
+      [isMobile, pathname, createSetOpen, onLeftOpenChange, onRightOpenChange],
     );
 
     const contextValue = React.useMemo<SidebarContextMap>(
@@ -169,6 +178,8 @@ const SidebarProvider = React.forwardRef<
         isMobile,
         leftOpenMobile,
         rightOpenMobile,
+        setLeftOpenMobile,
+        setRightOpenMobile,
         onLeftOpenChange,
         onRightOpenChange,
         createToggleSidebar,

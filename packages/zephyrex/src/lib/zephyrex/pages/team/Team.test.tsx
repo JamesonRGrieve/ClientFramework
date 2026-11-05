@@ -16,7 +16,7 @@ afterEach(() => {
 });
 
 const push = vi.fn();
-vi.mock('next/navigation.js', () => ({ useRouter: () => ({ push }) }));
+vi.mock('next/navigation.js', () => ({ useRouter: () => ({ push }), usePathname: () => '/team' }));
 
 const SERVER = testConfig.server.baseUrl;
 const ALPHA = '11111111-1111-1111-1111-111111111111';

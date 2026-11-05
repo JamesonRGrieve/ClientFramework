@@ -1,11 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { getGravatarUrl } from '@zephyrex/auth/gravatar';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { UserAvatar, userInitials } from './NavUser';
+import { NavUser, UserAvatar, userInitials } from './NavUser';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import type * as Hooks from '@/lib/zephyrex/hooks';
+import { useUser } from '@/lib/zephyrex/hooks';
 import { TestWrapper } from '@/testing/TestWrapper';
 
 vi.mock('@zephyrex/auth/gravatar', () => ({ getGravatarUrl: vi.fn(() => 'https://gravatar.example/avatar') }));
+vi.mock('@/lib/zephyrex/hooks', async (importOriginal) => ({
+  ...(await importOriginal<typeof Hooks>()),
+  useUser: vi.fn(),
+}));
 
 const ADA = { email: 'ada@example.com', first_name: 'Ada', last_name: 'Lovelace' };
 
@@ -45,5 +52,20 @@ describe('userInitials', () => {
     expect(userInitials({ first_name: '  ', last_name: 'Lovelace' })).toBeNull();
     expect(userInitials({ first_name: null })).toBeNull();
     expect(userInitials({})).toBeNull();
+  });
+});
+
+describe('NavUser', () => {
+  it('names the account button while the user is still loading', () => {
+    // Only skeletons inside: without a label the button has no accessible name (axe button-name).
+    vi.mocked(useUser).mockReturnValue({ data: undefined, error: undefined, isValidating: true, isLoading: true, mutate: vi.fn() });
+    render(
+      <TestWrapper>
+        <SidebarProvider>
+          <NavUser />
+        </SidebarProvider>
+      </TestWrapper>,
+    );
+    expect(screen.getByRole('button', { name: 'Your account' })).toBeInTheDocument();
   });
 });

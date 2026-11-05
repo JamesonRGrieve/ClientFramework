@@ -106,6 +106,49 @@ describe('PersonCard', () => {
     });
   });
 
+  it('takes a scaled field as a pole of each axis, with the strengths a result gives', async () => {
+    const store = withCard();
+    const user = userEvent.setup();
+    const pole = (letter: string, name: string) => ({ letter, name });
+    const sections: readonly CardSection[] = [
+      ...SECTIONS,
+      {
+        name: 'personality',
+        title: 'Personality',
+        fields: [
+          {
+            label: 'MBTI',
+            units: [],
+            scales: [
+              { poles: [pole('E', 'Extraversion'), pole('I', 'Introversion')] },
+              { poles: [pole('S', 'Sensing'), pole('N', 'Intuition')] },
+            ],
+          },
+        ],
+      },
+    ];
+    const view = renderGenealogy(<PersonCard personId='ben' sections={sections} />, store);
+    const personality = await view.findByRole('region', { name: 'Personality' });
+    const mind = within(personality).getByRole('group', { name: 'Extraversion or Introversion' });
+    const energy = within(personality).getByRole('group', { name: 'Sensing or Intuition' });
+    await user.selectOptions(within(mind).getByRole('combobox'), 'I');
+    await user.type(within(mind).getByRole('spinbutton'), '62');
+    await user.selectOptions(within(energy).getByRole('combobox'), 'N');
+    await user.click(within(personality).getByRole('button', { name: 'Add' }));
+    expect(await within(personality).findByRole('listitem')).toHaveTextContent('IN (I 62%)');
+    expect(store.attributes?.at(-1)).toMatchObject({ label: 'MBTI', value: 'IN (I 62%)' });
+    // Editing starts from the stored value, read back onto the axes.
+    await user.click(within(personality).getByRole('button', { name: 'Edit MBTI' }));
+    const editMind = within(within(personality).getByRole('listitem')).getByRole('group', {
+      name: 'Extraversion or Introversion',
+    });
+    expect(within(editMind).getByRole('combobox')).toHaveValue('I');
+    expect(within(editMind).getByRole('spinbutton')).toHaveValue(62);
+    await user.clear(within(editMind).getByRole('spinbutton'));
+    await user.type(within(editMind).getByRole('spinbutton'), '30');
+    expect(within(within(personality).getByRole('listitem')).getByRole('alert')).toHaveTextContent('from 50 to 100');
+  });
+
   it('hides a sensitive section’s values until asked', async () => {
     const store = withCard();
     store.attributes = [

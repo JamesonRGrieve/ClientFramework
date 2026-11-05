@@ -8,6 +8,15 @@ import { type ReactElement, type ReactNode, type SyntheticEvent, useId, useState
 import { UpgradePrompt, useClient, writeProblem } from 'zephyrex';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { type Attribute, genealogyApi, personCardPath, usePersonCard } from './genealogyApi';
+import {
+  type CardScale,
+  formatScaled,
+  MAX_STRENGTH,
+  MIN_STRENGTH,
+  parseScaled,
+  type ScalePoint,
+  scaledProblem,
+} from './scales';
 
 /**
  * A field a card section offers, with the units or size systems its value can be in, and the values
@@ -17,6 +26,11 @@ export interface CardField {
   label: string;
   units: readonly string[];
   choices?: readonly string[];
+  /**
+   * When set, the value is a type read off these axes, one pole of each, with how strongly when a
+   * result gives it (an MBTI type with its percentages); it is stored as readable text.
+   */
+  scales?: readonly CardScale[];
 }
 
 /**
@@ -47,21 +61,97 @@ const shownValue = (fact: Attribute): string =>
   fact.unit === null || fact.unit === undefined || fact.unit === '' ? fact.value : `${fact.value} ${fact.unit}`;
 
 const NO_CHOICES: readonly string[] = [];
+const NO_SCALES: readonly CardScale[] = [];
 
-/** The value of a field: one of its `choices` when it has them, otherwise free text. */
+/** A scaled value: a pole of each axis, with an optional strength towards it. */
+function ScaleInput({
+  id,
+  value,
+  scales,
+  onChange,
+}: {
+  id: string;
+  value: string;
+  scales: readonly CardScale[];
+  onChange: (value: string) => void;
+}): ReactElement {
+  const [points, setPoints] = useState<ScalePoint[]>(() => parseScaled(value, scales));
+  const problem = scaledProblem(points);
+  const change = (index: number, point: ScalePoint): void => {
+    const next = points.map((current, at) => (at === index ? point : current));
+    setPoints(next);
+    // Nothing to store while a strength is out of range, so the form cannot save it.
+    onChange(scaledProblem(next) === null ? formatScaled(next) : '');
+  };
+  return (
+    <div className='grid gap-2'>
+      {scales.map((scale, index) => {
+        const point = points[index] ?? { letter: '', strength: null };
+        const [first, second] = scale.poles;
+        const axis = `${first.name} or ${second.name}`;
+        const chosen = scale.poles.find((pole) => pole.letter === point.letter);
+        return (
+          <fieldset key={axis} aria-label={axis} className='m-0 flex flex-wrap items-center gap-2 border-0 p-0'>
+            <select
+              id={index === 0 ? id : undefined}
+              aria-label={axis}
+              value={point.letter}
+              onChange={(event) => change(index, { ...point, letter: event.target.value })}
+              className={SELECT_CLASS}
+            >
+              <option value=''>Choose…</option>
+              {scale.poles.map((pole) => (
+                <option key={pole.letter} value={pole.letter}>
+                  {pole.letter} · {pole.name}
+                </option>
+              ))}
+            </select>
+            <Input
+              type='number'
+              inputMode='numeric'
+              min={MIN_STRENGTH}
+              max={MAX_STRENGTH}
+              step={1}
+              aria-label={`How strongly ${chosen?.name ?? axis}, in percent`}
+              placeholder='%'
+              disabled={chosen === undefined}
+              value={point.strength === null ? '' : String(point.strength)}
+              onChange={(event) =>
+                change(index, { ...point, strength: event.target.value === '' ? null : Number(event.target.value) })
+              }
+              className='w-20'
+            />
+          </fieldset>
+        );
+      })}
+      {problem !== null && (
+        <p role='alert' className='text-sm text-destructive'>
+          {problem}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** The value of a field: read off its `scales`, one of its `choices`, or otherwise free text. */
 function ValueInput({
   id,
   value,
   choices,
+  scales = NO_SCALES,
   onChange,
   className,
 }: {
   id: string;
   value: string;
   choices: readonly string[];
+  scales?: readonly CardScale[];
   onChange: (value: string) => void;
   className?: string;
 }): ReactElement {
+  if (scales.length > 0) {
+    return <ScaleInput id={id} value={value} scales={scales} onChange={onChange} />;
+  }
   if (choices.length === 0) {
     return <Input id={id} value={value} onChange={(event) => onChange(event.target.value)} className={className} />;
   }
@@ -173,7 +263,14 @@ function AddFact({
         </div>
         <div className='grid gap-1'>
           <Label htmlFor={ids.value}>Value</Label>
-          <ValueInput id={ids.value} value={value} choices={field?.choices ?? NO_CHOICES} onChange={setValue} />
+          <ValueInput
+            key={label}
+            id={ids.value}
+            value={value}
+            choices={field?.choices ?? NO_CHOICES}
+            scales={field?.scales ?? NO_SCALES}
+            onChange={setValue}
+          />
         </div>
         {units.length > 0 && (
           <div className='grid gap-1'>
@@ -203,6 +300,7 @@ function AddFact({
 function FactRow({
   fact,
   choices,
+  scales,
   hidden,
   editable,
   actions,
@@ -211,6 +309,8 @@ function FactRow({
   fact: Attribute;
   /** The values the fact's field may take; free text when empty. */
   choices: readonly string[];
+  /** The axes the fact's value is read off, when it is scaled. */
+  scales: readonly CardScale[];
   /** Whether the value starts hidden, shown only on asking. */
   hidden: boolean;
   editable: boolean;
@@ -254,7 +354,14 @@ function FactRow({
             <Label htmlFor={valueId} className='sr-only'>
               {name}
             </Label>
-            <ValueInput id={valueId} value={value} choices={choices} onChange={setValue} className='max-w-xs' />
+            <ValueInput
+              id={valueId}
+              value={value}
+              choices={choices}
+              scales={scales}
+              onChange={setValue}
+              className='max-w-xs'
+            />
             <Button type='submit' size='sm'>
               Save
             </Button>
@@ -385,6 +492,7 @@ export function PersonCard({
                         key={fact.id}
                         fact={fact}
                         choices={section.fields.find((field) => field.label === fact.label)?.choices ?? NO_CHOICES}
+                        scales={section.fields.find((field) => field.label === fact.label)?.scales ?? NO_SCALES}
                         hidden={section.sensitive === true}
                         editable={section.locked !== true}
                         actions={actions?.(fact)}

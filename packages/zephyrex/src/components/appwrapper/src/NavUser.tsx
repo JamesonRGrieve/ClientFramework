@@ -63,6 +63,8 @@ export function NavUser() {
               <SidebarMenuButton
                 side='left'
                 size='lg'
+                // While the user loads, the button holds only placeholders: it still needs a name.
+                aria-label={hasUser ? undefined : 'Your account'}
                 className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:my-2 pl-0 transition-none'
               >
                 <UserAvatar user={user} />

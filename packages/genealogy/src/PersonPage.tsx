@@ -168,10 +168,11 @@ export function PersonPage({ params }: { params: Record<string, string> }): Reac
           </div>
         </CardContent>
       </Card>
+      {/* How they are connected comes first: an app's panels (a long card, say) would bury it. */}
+      <Relatives person={person} people={people} />
       {(options.panels ?? []).map(({ name, component: Panel }) => (
         <Panel key={name} person={person} />
       ))}
-      <Relatives person={person} people={people} />
       <SocialCircle person={person} people={people} />
       {options.lineage && <Lineage person={person} people={people} />}
       {options.lineage && <KinshipLookup initialPersonId={person.id} />}

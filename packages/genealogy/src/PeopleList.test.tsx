@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useRouter } from 'next/navigation.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { familyFixture } from './genealogy.mocks';
 import { PeopleList } from './PeopleList';
@@ -27,8 +28,10 @@ describe('PeopleList', () => {
     expect(within(list).getByRole('link', { name: /Ada Lovelace/ })).toHaveAttribute('href', '/genealogy/ada');
   });
 
-  it('adds a person to the tree', async () => {
+  it('adds a person to the tree, then opens them to record how they are connected', async () => {
     const store = familyFixture();
+    const push = vi.fn();
+    vi.mocked(useRouter).mockReturnValue({ ...vi.mocked(useRouter)(), push });
     const user = userEvent.setup();
     const view = renderGenealogy(<PeopleList />, store);
     await view.findByRole('list', { name: 'People' });
@@ -37,6 +40,7 @@ describe('PeopleList', () => {
     await user.click(view.getByRole('button', { name: 'Add person' }));
     expect(await view.findByRole('link', { name: /Medora Leigh/ })).toBeInTheDocument();
     expect(store.persons.at(-1)?.name).toBe('Medora Leigh');
+    expect(push).toHaveBeenCalledWith(`/genealogy/${store.persons.at(-1)?.id ?? ''}`);
   });
 
   it('says when nobody is recorded yet', async () => {

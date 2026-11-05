@@ -2,6 +2,7 @@
 'use client';
 
 import Link from 'next/link.js';
+import { useRouter } from 'next/navigation.js';
 import type { ReactElement } from 'react';
 import { useClient } from 'zephyrex';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
@@ -15,6 +16,7 @@ import { useGenealogyOptions } from './OptionsProvider';
 export function PeopleList(): ReactElement {
   const options = useGenealogyOptions();
   const client = useClient();
+  const router = useRouter();
   const persons = usePersons();
   const sorted = [...(persons.data ?? [])].sort((a, b) => personName(a).localeCompare(personName(b)));
 
@@ -25,7 +27,7 @@ export function PeopleList(): ReactElement {
         <CardDescription>
           {options.lineage
             ? 'Everyone in your family tree. Open someone to record their relatives.'
-            : 'Everyone you have recorded. Open someone to record how you know them.'}
+            : 'Everyone you have recorded. Add someone, or open them, to record how you are connected.'}
         </CardDescription>
       </CardHeader>
       <CardContent className='grid gap-4'>
@@ -56,8 +58,10 @@ export function PeopleList(): ReactElement {
               submitLabel='Add person'
               onSave={async (fields) => {
                 try {
-                  await genealogyApi.createPerson(client, fields);
+                  const added = await genealogyApi.createPerson(client, fields);
                   await persons.mutate();
+                  // Straight to them, where how they are connected is recorded next.
+                  router.push(personPath(added.id));
                   return null;
                 } catch (error) {
                   return error instanceof Error ? error.message : 'The person could not be added.';

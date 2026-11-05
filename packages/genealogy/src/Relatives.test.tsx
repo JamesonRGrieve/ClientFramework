@@ -154,6 +154,26 @@ describe('Relatives', () => {
     expect(await view.findByRole('region', { name: 'Directly connected' })).toHaveTextContent('Fay');
   });
 
+  it('adds someone not yet recorded by name, and ties them in the same step', async () => {
+    const store = familyFixture();
+    const before = store.persons.length;
+    const user = userEvent.setup();
+    const view = renderGenealogy(<Relatives person={ada(store)} people={store.persons} />, store);
+    await view.findByRole('list', { name: 'Relatives' });
+    await user.selectOptions(view.getByLabelText('Relative'), 'Someone new…');
+    await user.click(view.getByRole('button', { name: ADD_RELATIVE }));
+    expect(view.getByRole('alert')).toHaveTextContent('Give their name.');
+    await user.type(view.getByLabelText('Their name'), 'Mary Somerville');
+    await user.selectOptions(view.getByLabelText('Is Ada Lovelace’s'), 'Friend');
+    await user.click(view.getByRole('button', { name: ADD_RELATIVE }));
+    await vi.waitFor(() => {
+      expect(store.persons).toHaveLength(before + 1);
+    });
+    const mary = store.persons.at(-1);
+    expect(mary).toMatchObject({ name: 'Mary Somerville' });
+    expect(store.relationships.some((row) => row.target_person_id === mary?.id || row.person_id === mary?.id)).toBe(true);
+  });
+
   it('asks who the relative is before recording one', async () => {
     const store = familyFixture();
     const user = userEvent.setup();
