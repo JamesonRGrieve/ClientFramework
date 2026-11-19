@@ -302,7 +302,11 @@ function ShareAvailability({ people, nameOf }: { people: readonly CalendarPerson
             Share with
           </span>
           {offered.length === 0 ? (
-            <span className='text-sm text-muted-foreground'>Everyone the app knows already sees it.</span>
+            <span className='text-sm text-muted-foreground'>
+              {people.length === 0
+                ? 'Nobody in your tree has an account here yet. Once someone does, you can share with them here.'
+                : 'Everyone you could share with already sees it.'}
+            </span>
           ) : (
             <div className='flex flex-wrap gap-2' ref={chipGroup}>
               {offered.map((person) => (
@@ -318,21 +322,25 @@ function ShareAvailability({ people, nameOf }: { people: readonly CalendarPerson
             </div>
           )}
         </div>
-        <label htmlFor={bookId} className='flex h-9 items-center gap-2 text-sm'>
-          <Switch id={bookId} checked={canBook} onCheckedChange={setCanBook} />
-          They may book dates into my calendar
-        </label>
-        <Button
-          type='button'
-          disabled={chosen === NOBODY || busy}
-          onClick={() => {
-            run(calendarApi.share(client, chosen, canBook), 'Your availability could not be shared.');
-            setChosen(NOBODY);
-            setCanBook(false);
-          }}
-        >
-          Share
-        </Button>
+        {offered.length > 0 && (
+          <>
+            <label htmlFor={bookId} className='flex h-9 items-center gap-2 text-sm'>
+              <Switch id={bookId} checked={canBook} onCheckedChange={setCanBook} />
+              They may book dates into my calendar
+            </label>
+            <Button
+              type='button'
+              disabled={chosen === NOBODY || busy}
+              onClick={() => {
+                run(calendarApi.share(client, chosen, canBook), 'Your availability could not be shared.');
+                setChosen(NOBODY);
+                setCanBook(false);
+              }}
+            >
+              Share
+            </Button>
+          </>
+        )}
       </div>
       <Problem problem={problem} />
       {shares.data?.length === 0 && <p className='text-sm text-muted-foreground'>Nobody sees when you are busy yet.</p>}

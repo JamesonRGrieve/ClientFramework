@@ -70,6 +70,12 @@ describe('AvailabilityPage', () => {
     expect(await view.findByText(/Not counted: You, Alex/)).toBeInTheDocument();
   });
 
+  it('says plainly when there is nobody to share with yet, and offers no dead Share button', async () => {
+    const view = renderCalendar(<AvailabilityPage people={[]} />, emptyCalendarStore());
+    expect(await view.findByText(/^Nobody in your tree has an account here yet\./)).toBeInTheDocument();
+    expect(view.queryByRole('button', { name: 'Share' })).toBeNull();
+  });
+
   it('connects a CalDAV calendar, and says when it refuses', async () => {
     const store = emptyCalendarStore();
     const user = userEvent.setup();
