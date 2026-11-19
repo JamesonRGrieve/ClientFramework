@@ -27,6 +27,7 @@ import { relationshipLines } from './relationships';
 import { lifeSpan, personHue, personInitials, personName } from './people';
 import { PersonForm } from './PersonForm';
 import { personPath } from './routes';
+import { StartWithYou } from './StartWithYou';
 import { useGenealogyOptions } from './OptionsProvider';
 
 /** Above this many people the list gets a search box. */
@@ -224,9 +225,13 @@ export function PeopleList(): ReactElement {
         <SkeletonRows avatar label='Loading people' />
       )}
       {persons.error === undefined && !persons.isLoading && sorted.length === 0 && (
-        <p className='rounded-lg border border-dashed px-4 py-8 text-center text-sm text-muted-foreground'>
-          Nobody is recorded yet. Add yourself first, then the people in your life.
-        </p>
+        <div className='rounded-lg border border-dashed'>
+          <StartWithYou
+            heading='Start with you'
+            description='Nobody is recorded yet. Add yourself first, then the people in your life.'
+            onStarted={async () => persons.mutate()}
+          />
+        </div>
       )}
       {sorted.length > 0 && (
         <TiesOrNone selfId={selfId} nameOf={nameOf}>
