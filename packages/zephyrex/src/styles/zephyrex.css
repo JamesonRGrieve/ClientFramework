@@ -260,8 +260,10 @@
     --muted-foreground: 262.1 5% 60%;
     --accent: 224.10000000000002 28% 15%;
     --accent-foreground: 262.1 5% 90%;
-    --destructive: 0 50% 30%;
-    --destructive-foreground: 262.1 5% 90%;
+
+    /* Light enough to read as text on the dark background (6.7:1); its fill takes dark text. */
+    --destructive: 0 75% 68%;
+    --destructive-foreground: 0 0% 9%;
     --warning: 30 100% 70%;
     --warning-foreground: 30 15% 15%;
     --success: 120 100% 40%;
@@ -329,8 +331,8 @@
     --muted-foreground: 0 0% 60%;
     --accent: 0 0% 15%;
     --accent-foreground: 0 0% 90%;
-    --destructive: 0 0% 30%;
-    --destructive-foreground: 0 0% 90%;
+    --destructive: 0 0% 70%;
+    --destructive-foreground: 0 0% 9%;
     --warning: 0 0% 25%;
     --warning-foreground: 0 0% 85%;
     --success: 0 0% 25%;
