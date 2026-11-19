@@ -13,7 +13,7 @@ describe('GenealogyPage', () => {
   it('shows the people, the kinship lookup and GEDCOM transfer', async () => {
     const view = renderGenealogy(<GenealogyPage />);
     expect(view.getByRole('heading', { level: 1, name: 'Family tree' })).toBeInTheDocument();
-    expect(await view.findByRole('list', { name: 'People' })).toBeInTheDocument();
+    expect(await view.findByRole('table', { name: 'People' })).toBeInTheDocument();
     expect(view.getByText('How are they related?')).toBeInTheDocument();
     expect(view.getByLabelText('Import a GEDCOM file')).toBeInTheDocument();
   });
@@ -25,7 +25,7 @@ describe('GenealogyPage', () => {
       </GenealogyOptionsProvider>,
     );
     expect(view.getByRole('heading', { level: 1, name: 'People' })).toBeInTheDocument();
-    expect(await view.findByRole('list', { name: 'People' })).toBeInTheDocument();
+    expect(await view.findByRole('table', { name: 'People' })).toBeInTheDocument();
     expect(view.queryByLabelText('Import a GEDCOM file')).not.toBeInTheDocument();
   });
 });

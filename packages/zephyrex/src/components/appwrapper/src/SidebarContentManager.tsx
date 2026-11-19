@@ -26,6 +26,11 @@ export function SidebarContentProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/** The context sidebar's state, or undefined outside a SidebarContentProvider (a story, a bare page). */
+export function useOptionalSidebarContent(): SidebarContentType | undefined {
+  return useContext(SidebarContentManager);
+}
+
 export function useSidebarContent() {
   const context = useContext(SidebarContentManager);
   if (context === undefined) {

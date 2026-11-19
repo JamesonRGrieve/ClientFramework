@@ -67,6 +67,20 @@ describe('RequireFeature', () => {
     expect(view.getByRole('link', { name: 'See plans' })).toHaveAttribute('href', '/user/subscribe');
   });
 
+  it('shows the loading view while the plan loads, then the feature', async () => {
+    serve(['calendar_sync']);
+    const view = render(
+      <TestWrapper>
+        <RequireFeature feature='calendar_sync' loading={<p>Loading the page</p>}>
+          <p>{CONTENT}</p>
+        </RequireFeature>
+      </TestWrapper>,
+    );
+    expect(view.getByText('Loading the page')).toBeInTheDocument();
+    expect(await view.findByText(CONTENT)).toBeInTheDocument();
+    expect(view.queryByText('Loading the page')).not.toBeInTheDocument();
+  });
+
   it('shows the given fallback instead of the prompt', async () => {
     serve([]);
     const view = renderGate('Locked');

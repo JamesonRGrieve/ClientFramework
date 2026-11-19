@@ -7,7 +7,7 @@ import { fetchFrom } from 'zephyrex/testing/msw';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { LinkedNetwork } from './genealogyApi';
 import { genealogyHandlers, threePolyculesFixture } from './genealogy.mocks';
-import { byGroup, LinkedNetworkMap } from './LinkedNetworkMap';
+import { byGroup, LinkedNetworkMap, linkOf } from './LinkedNetworkMap';
 import { renderGenealogy } from './testing.mocks';
 
 const polycule = (index: number): string => `Polycule ${String(index + 1)}`;
@@ -23,7 +23,7 @@ describe('LinkedNetworkMap', () => {
     expect(
       within(first)
         .getAllByRole('link')
-        .map((link) => link.textContent),
+        .map((link) => link.querySelector('.truncate')?.textContent),
     ).toEqual(['Alex', 'Priya', 'Riley']);
     expect(view.getByRole('region', { name: 'Polycule 2' })).toHaveTextContent('Casey');
     expect(view.getByRole('region', { name: 'Polycule 3' })).toHaveTextContent('Jordan');
@@ -52,7 +52,7 @@ describe('LinkedNetworkMap', () => {
     // Never a dead end: the map itself asks who they are connected to, and draws them once added.
     const adding = await view.findByRole('region', { name: 'Add someone you are connected to' });
     await clicks.type(within(adding).getByLabelText('Their name'), 'Jordan Blake');
-    await clicks.selectOptions(within(adding).getByRole('combobox', { name: /’s$|your$/ }), 'Partner');
+    await clicks.click(within(adding).getByRole('button', { name: 'Partner' }));
     await clicks.click(within(adding).getByRole('button', { name: /^Add (relative|connection)$/ }));
     expect(await view.findByRole('region', { name: 'Group 1' })).toHaveTextContent('Jordan Blake');
     expect(view.queryByText('Nobody is connected to you yet.')).toBeNull();
@@ -80,5 +80,64 @@ describe('byGroup', () => {
       ties: [],
     };
     expect(byGroup(linked).map((members) => members.map((member) => member.key))).toEqual([['near', 'far'], ['other']]);
+  });
+});
+
+describe('linkOf', () => {
+  const linked = {
+    center: 'me',
+    kinds: ['partnership'],
+    nodes: [
+      {
+        key: 'me',
+        name: 'Sam',
+        visibility: 'private',
+        mine: true,
+        person_id: 'p-me',
+        user_id: null,
+        distance: 0,
+        group: null,
+      },
+      {
+        key: 'alex',
+        name: 'Alex Chen',
+        visibility: 'private',
+        mine: true,
+        person_id: 'p-alex',
+        user_id: null,
+        distance: 1,
+        group: 1,
+      },
+      {
+        key: 'riley',
+        name: 'Riley Okafor',
+        visibility: 'private',
+        mine: true,
+        person_id: 'p-riley',
+        user_id: null,
+        distance: 2,
+        group: 1,
+      },
+    ],
+    ties: [
+      { source: 'me', target: 'alex', kind: 'partnership', discriminator: 'dating', directed: false },
+      { source: 'riley', target: 'alex', kind: 'partnership', discriminator: null, directed: false },
+    ],
+  };
+
+  const node = (key: string): (typeof linked.nodes)[number] => {
+    const found = linked.nodes.find((candidate) => candidate.key === key);
+    if (found === undefined) {
+      throw new Error(`No node ${key} in the fixture`);
+    }
+    return found;
+  };
+
+  it('names the tie to you for someone next to the centre', () => {
+    expect(linkOf(linked, node('alex'))).toBe('Dating · you');
+  });
+
+  it('names the tie to the nearer person, by its kind when it has no discriminator', () => {
+    expect(linkOf(linked, node('riley'))).toBe('Partnership · Alex Chen');
   });
 });

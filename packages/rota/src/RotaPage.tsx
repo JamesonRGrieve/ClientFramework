@@ -1,12 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+import { ChoiceChip } from 'zephyrex/ui/choice-chip';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from 'zephyrex/ui/dropdown-menu';
+import { chipGroup } from 'zephyrex/hooks/chipKeys';
+import { LoadProblem } from 'zephyrex/ui/load-problem';
 import { type ReactElement, type ReactNode, type SyntheticEvent, useId, useState } from 'react';
 import { useUser, writeProblem } from 'zephyrex';
+import { notify } from 'zephyrex/hooks/useToast';
 import { Badge } from 'zephyrex/ui/badge';
 import { Button } from 'zephyrex/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from 'zephyrex/ui/dialog';
 import { Input } from 'zephyrex/ui/input';
+import { SkeletonRows } from 'zephyrex/ui/skeleton';
 import { useMyRotas, useRotaActions, useSchedule, useSwaps } from './rotaApi';
 import {
   cycleNightLabel,
@@ -15,6 +22,7 @@ import {
   membersOf,
   nightAt,
   nightLabel,
+  dayOf,
   type Rota,
   type RotaPerson,
   type Swap,
@@ -24,6 +32,26 @@ import {
 const SHOWN_NIGHTS = 14;
 const SELECT = 'h-9 rounded-md border bg-background px-3 text-sm font-normal';
 const OPEN = '';
+const HUES = 360;
+const HUE_SEED = 31;
+/** Up to this many people, a cycle night is chosen with chips; more, with a list. */
+const CHIP_MAX = 3;
+
+/** A stable colour per account, so each person's nights read at a glance. */
+function hueOf(userId: string): number {
+  let hash = 0;
+  for (const char of userId) {
+    hash = (hash * HUE_SEED + (char.codePointAt(0) ?? 0)) % HUES;
+  }
+  return hash;
+}
+
+/** Common cycle lengths, one tap each. */
+const CYCLE_PRESETS: readonly { days: number; label: string }[] = [
+  { days: 7, label: '1 week' },
+  { days: 14, label: '2 weeks' },
+  { days: 28, label: '4 weeks' },
+];
 
 /** What to call an account: "You", the name the app knows it by, or "Someone". */
 type NameOf = (userId: string | null) => string;
@@ -67,54 +95,107 @@ function Schedule({
   const [problem, setProblem] = useState<string | null>(null);
   const others = membersOf(rota, people).filter((userId) => userId !== me);
   const ask = async (night: string, toUserId: string): Promise<void> => {
-    setProblem(await writeProblem(askSwap(rota, night, toUserId), 'The swap could not be asked for.'));
+    const failed = await writeProblem(askSwap(rota, night, toUserId), 'The swap could not be asked for.');
+    setProblem(failed);
+    if (failed === null) {
+      notify('Swap asked for', `${nameOf(toUserId)} answers it.`);
+    }
   };
   return (
     <section aria-label={`${rota.name}: the next two weeks`} className='grid gap-2'>
       <h3 className='text-sm font-medium text-muted-foreground'>The next two weeks</h3>
       <Problem problem={problem} />
-      <ul className='grid gap-2 sm:grid-cols-2'>
-        {(schedule.data ?? []).map((night) => (
-          <li
-            key={night.night}
-            className={`flex items-center justify-between gap-2 rounded-md border px-3 py-2 ${
-              night.user_id !== null && night.user_id === me ? 'border-primary/40 bg-primary/5' : ''
-            }`}
-          >
-            <span className='grid'>
-              <span className='text-sm font-medium'>{nightLabel(night.night)}</span>
-              <span className='text-sm text-muted-foreground'>
-                {nameOf(night.user_id)}
-                {night.swapped && (
-                  <Badge variant='secondary' className='ml-2'>
-                    Swapped
-                  </Badge>
-                )}
+      <ol className='grid grid-cols-2 gap-1.5 sm:grid-cols-4 lg:grid-cols-7'>
+        {(schedule.data ?? []).map((night) => {
+          const mine = night.user_id !== null && night.user_id === me;
+          const day = dayOf(night.night);
+          const today = day.toDateString() === new Date().toDateString();
+          return (
+            <li
+              key={night.night}
+              aria-label={`${nightLabel(night.night)}: ${nameOf(night.user_id)}`}
+              aria-current={today ? 'date' : undefined}
+              className={`group grid content-start gap-2 rounded-lg border p-2 ${mine ? 'border-primary/50 bg-primary/10' : 'bg-muted/20'} ${today ? 'ring-2 ring-primary/70' : ''}`}
+            >
+              <span className='flex items-baseline justify-between gap-1'>
+                <span
+                  className={`text-xs uppercase tracking-wide ${today ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}
+                >
+                  {today ? 'Today' : day.toLocaleDateString('en-GB', { weekday: 'short' })}
+                </span>
+                <span className='text-lg font-semibold tabular-nums'>{String(day.getDate())}</span>
               </span>
-            </span>
-            {night.user_id !== null && night.user_id === me && others.length > 0 && (
-              <select
-                aria-label={`Hand ${nightLabel(night.night)} to`}
-                value={OPEN}
-                onChange={(event) => void ask(night.night, event.target.value)}
-                className={SELECT}
-              >
-                <option value={OPEN}>Swap…</option>
-                {others.map((userId) => (
-                  <option key={userId} value={userId}>
-                    To {nameOf(userId)}
-                  </option>
-                ))}
-              </select>
-            )}
-            {night.user_id !== null && night.user_id !== me && me !== undefined && (
-              <Button variant='outline' size='sm' onClick={() => void ask(night.night, me)}>
-                Ask for it
-              </Button>
-            )}
-          </li>
-        ))}
-      </ul>
+              <span className='flex items-center gap-1.5 text-sm'>
+                <span
+                  aria-hidden='true'
+                  className='inline-flex size-5 shrink-0 items-center justify-center rounded-full text-[0.6rem] font-semibold text-white'
+                  style={{
+                    backgroundColor:
+                      night.user_id === null ? 'hsl(0 0% 40%)' : `hsl(${String(hueOf(night.user_id))} 55% 30%)`,
+                  }}
+                >
+                  {nameOf(night.user_id).charAt(0)}
+                </span>
+                <span className='truncate font-medium'>{nameOf(night.user_id)}</span>
+              </span>
+              {night.swapped && (
+                <Badge variant='secondary' className='justify-self-start text-[0.65rem]'>
+                  Swapped
+                </Badge>
+              )}
+              {mine && others.length === 1 && (
+                <Button
+                  variant='outline'
+                  size='sm'
+                  className='h-7 text-xs transition-opacity pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100'
+                  aria-label={`Offer to ${nameOf(others[0] ?? '').split(' ')[0] ?? ''}: ${nightLabel(night.night)}`}
+                  onClick={() => void ask(night.night, others[0] ?? OPEN)}
+                >
+                  Offer to {nameOf(others[0] ?? '').split(' ')[0]}
+                </Button>
+              )}
+              {mine && others.length > 1 && (
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant='outline'
+                      size='sm'
+                      className='h-7 text-xs transition-opacity pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100 data-[state=open]:opacity-100'
+                      aria-label={`Offer to someone: ${nightLabel(night.night)}`}
+                    >
+                      Offer to… <span aria-hidden='true'>▾</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align='start'>
+                    {others.map((userId) => (
+                      <DropdownMenuItem key={userId} className='gap-2' onSelect={() => void ask(night.night, userId)}>
+                        <span
+                          aria-hidden='true'
+                          className='inline-flex size-5 items-center justify-center rounded-full text-[0.6rem] font-semibold text-white'
+                          style={{ backgroundColor: `hsl(${String(hueOf(userId))} 55% 30%)` }}
+                        >
+                          {nameOf(userId).charAt(0)}
+                        </span>
+                        {nameOf(userId)}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              {night.user_id !== null && !mine && me !== undefined && (
+                <Button
+                  variant='outline'
+                  size='sm'
+                  className='h-7 text-xs transition-opacity pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100'
+                  onClick={() => void ask(night.night, me)}
+                >
+                  Ask for it
+                </Button>
+              )}
+            </li>
+          );
+        })}
+      </ol>
     </section>
   );
 }
@@ -129,7 +210,11 @@ function Swaps({ rota, me, nameOf }: { rota: Rota; me: string | undefined; nameO
     return null;
   }
   const answer = async (swap: Swap, accept: boolean): Promise<void> => {
-    setProblem(await writeProblem(answerSwap(rota, swap, accept), 'Your answer could not be saved.'));
+    const failed = await writeProblem(answerSwap(rota, swap, accept), 'Your answer could not be saved.');
+    setProblem(failed);
+    if (failed === null) {
+      notify(accept ? 'Swap accepted' : 'Swap declined');
+    }
   };
   const other = (swap: Swap): string => nameOf(swap.from_user_id === me ? swap.to_user_id : swap.from_user_id);
   const what = (swap: Swap): string =>
@@ -189,19 +274,39 @@ function Cycle({ rota, people, nameOf }: { rota: Rota; people: readonly RotaPers
           return (
             <li key={label} className='flex items-center justify-between gap-2'>
               <span className='text-sm'>{label}</span>
-              <select
-                aria-label={label}
-                value={nightAt(rota, index)?.user_id ?? OPEN}
-                onChange={(event) => void set(index, event.target.value)}
-                className={SELECT}
-              >
-                <option value={OPEN}>Open</option>
-                {choices.map((userId) => (
-                  <option key={userId} value={userId}>
-                    {nameOf(userId)}
-                  </option>
-                ))}
-              </select>
+              {choices.length <= CHIP_MAX ? (
+                <div role='radiogroup' aria-label={label} className='inline-flex rounded-full border p-0.5'>
+                  <div className='contents' ref={chipGroup}>
+                    {[OPEN, ...choices].map((userId) => {
+                      const chosen = (nightAt(rota, index)?.user_id ?? OPEN) === userId;
+                      return (
+                        <ChoiceChip
+                          key={userId}
+                          checked={chosen}
+                          onClick={() => void set(index, userId)}
+                          className='flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors aria-checked:bg-primary aria-checked:text-primary-foreground'
+                        >
+                          {userId === OPEN ? 'Open' : nameOf(userId).split(' ')[0]}
+                        </ChoiceChip>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <select
+                  aria-label={label}
+                  value={nightAt(rota, index)?.user_id ?? OPEN}
+                  onChange={(event) => void set(index, event.target.value)}
+                  className={SELECT}
+                >
+                  <option value={OPEN}>Open</option>
+                  {choices.map((userId) => (
+                    <option key={userId} value={userId}>
+                      {nameOf(userId)}
+                    </option>
+                  ))}
+                </select>
+              )}
             </li>
           );
         })}
@@ -210,7 +315,8 @@ function Cycle({ rota, people, nameOf }: { rota: Rota; people: readonly RotaPers
   );
 }
 
-function NewRota({ open }: { open: boolean }): ReactElement {
+/** The form that starts a rota; `compact` stacks its fields (in a dialog), and `onDone` runs once it is started. */
+function NewRotaForm({ compact = false, onDone }: { compact?: boolean; onDone?: () => void }): ReactElement {
   const id = useId();
   const { create } = useRotaActions();
   const [name, setName] = useState('Nights');
@@ -219,23 +325,36 @@ function NewRota({ open }: { open: boolean }): ReactElement {
   const [problem, setProblem] = useState<string | null>(null);
   const submit = async (event: SyntheticEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
-    setProblem(
-      await writeProblem(
-        create({ name: name.trim(), cycle_days: Number(cycleDays), starts_on: startsOn }),
-        'The rota could not be started.',
-      ),
+    const failed = await writeProblem(
+      create({ name: name.trim(), cycle_days: Number(cycleDays), starts_on: startsOn }),
+      'The rota could not be started.',
     );
+    setProblem(failed);
+    if (failed === null) {
+      notify('Rota started', name.trim());
+      onDone?.();
+    }
   };
   return (
-    <details open={open} className='rounded-md border p-4'>
-      <summary className='cursor-pointer font-medium'>Start a rota</summary>
-      <form onSubmit={(event) => void submit(event)} className='mt-4 grid gap-3 sm:grid-cols-3'>
-        <label htmlFor={`${id}-name`} className='grid gap-1 text-sm font-medium'>
-          Name
-          <Input id={`${id}-name`} required maxLength={100} value={name} onChange={(e) => setName(e.target.value)} />
-        </label>
-        <label htmlFor={`${id}-cycle`} className='grid gap-1 text-sm font-medium'>
-          Nights before it repeats
+    <form onSubmit={(event) => void submit(event)} className={compact ? 'grid gap-4' : 'grid gap-4 sm:grid-cols-3'}>
+      <label htmlFor={`${id}-name`} className='grid gap-1 text-sm font-medium'>
+        Name
+        <Input id={`${id}-name`} required maxLength={100} value={name} onChange={(e) => setName(e.target.value)} />
+      </label>
+      <div className='grid gap-1 text-sm font-medium'>
+        <label htmlFor={`${id}-cycle`}>Nights before it repeats</label>
+        <div className='flex flex-wrap items-center gap-1.5' ref={chipGroup}>
+          {CYCLE_PRESETS.map((preset) => (
+            <button
+              key={preset.days}
+              type='button'
+              aria-pressed={Number(cycleDays) === preset.days}
+              onClick={() => setCycleDays(String(preset.days))}
+              className='rounded-full border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:text-foreground'
+            >
+              {preset.label}
+            </button>
+          ))}
           <Input
             id={`${id}-cycle`}
             type='number'
@@ -244,18 +363,57 @@ function NewRota({ open }: { open: boolean }): ReactElement {
             max={MAX_CYCLE_DAYS}
             value={cycleDays}
             onChange={(e) => setCycleDays(e.target.value)}
+            className='h-8 w-16'
           />
-        </label>
-        <label htmlFor={`${id}-start`} className='grid gap-1 text-sm font-medium'>
-          First night
-          <Input id={`${id}-start`} type='date' required value={startsOn} onChange={(e) => setStartsOn(e.target.value)} />
-        </label>
-        <div className='sm:col-span-3'>
-          <Problem problem={problem} />
-          <Button type='submit'>Start the rota</Button>
         </div>
-      </form>
-    </details>
+      </div>
+      <label htmlFor={`${id}-start`} className='grid gap-1 text-sm font-medium'>
+        First night
+        <Input id={`${id}-start`} type='date' required value={startsOn} onChange={(e) => setStartsOn(e.target.value)} />
+      </label>
+      <div className='col-span-full grid gap-2'>
+        <Problem problem={problem} />
+        <Button type='submit' className='justify-self-start'>
+          Start the rota
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+const NEW_ROTA_HELP = 'Name it, choose how long before it repeats, and when the first night is.';
+
+/** The first run: the form in a card, since there is no rota yet to show. */
+function FirstRota(): ReactElement {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Start your first rota</CardTitle>
+        <CardDescription>{NEW_ROTA_HELP}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <NewRotaForm />
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Once there is a rota, starting another is an action in the header, not a form under the rotas. */
+function NewRotaAction({ wrapStart }: { wrapStart: (form: ReactElement) => ReactNode }): ReactElement {
+  const [open, setOpen] = useState(false);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant='outline'>New rota</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Start another rota</DialogTitle>
+          <DialogDescription>{NEW_ROTA_HELP}</DialogDescription>
+        </DialogHeader>
+        {wrapStart(<NewRotaForm compact onDone={() => setOpen(false)} />)}
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -275,15 +433,20 @@ export function RotaPage({
   const rotas = useMyRotas();
   const { me, nameOf } = useNames(people);
   return (
-    <main className='mx-auto flex w-full max-w-4xl flex-col gap-6 p-4 md:p-10'>
-      <div className='grid gap-1'>
-        <h1 className='text-3xl font-semibold'>Nights rota</h1>
-        <p className='text-muted-foreground'>
-          Who each night is with, on a cycle that repeats. A swap moves one night, once both of you agree.
-        </p>
+    <main className='mx-auto flex w-full max-w-5xl flex-col gap-6 2xl:max-w-none'>
+      <div className='flex flex-wrap items-end justify-between gap-3'>
+        <div className='grid gap-1'>
+          <h1 className='text-2xl font-semibold tracking-tight text-balance sm:text-3xl'>Nights rota</h1>
+          <p className='text-muted-foreground'>
+            Who each night is with, on a cycle that repeats. A swap moves one night, once both of you agree.
+          </p>
+        </div>
+        {(rotas.data?.length ?? 0) > 0 && <NewRotaAction wrapStart={wrapStart} />}
       </div>
-      {rotas.error !== undefined && <Problem problem={`Your rotas could not be loaded: ${rotas.error.message}`} />}
-      {rotas.data?.length === 0 && <p className='text-sm text-muted-foreground'>No rotas yet. Start one below.</p>}
+      {rotas.error !== undefined && (
+        <LoadProblem what='your rotas' error={rotas.error} onRetry={async () => rotas.mutate()} />
+      )}
+      {rotas.error === undefined && rotas.data === undefined && <SkeletonRows rows={3} label='Loading your rotas' />}
       {(rotas.data ?? []).map((rota) => (
         <Card key={rota.id}>
           <CardHeader>
@@ -300,7 +463,7 @@ export function RotaPage({
           </CardContent>
         </Card>
       ))}
-      {rotas.data !== undefined && wrapStart(<NewRota open={rotas.data.length === 0} />)}
+      {rotas.data?.length === 0 && wrapStart(<FirstRota />)}
     </main>
   );
 }

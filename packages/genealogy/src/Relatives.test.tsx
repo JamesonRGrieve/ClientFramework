@@ -21,6 +21,34 @@ const DYNAMIC: AppTie = {
   detailLabel: 'Dynamic',
 };
 
+type View = ReturnType<typeof renderGenealogy>;
+type User = ReturnType<typeof userEvent.setup>;
+
+/** A row as "Role (detail): Name": its name, then the role line under it. */
+const lineOf = (item: HTMLElement): string =>
+  `${item.querySelector('.text-xs.text-muted-foreground')?.textContent ?? ''}: ${item.querySelector('.font-medium')?.textContent ?? ''}`;
+
+/** The add form: inline while nobody is recorded, otherwise in the dialog the header button opens. */
+const openAdd = async (user: User, view: View): Promise<HTMLElement> => {
+  const trigger = view.queryByRole('button', { name: /^Add (a relative|connection)$/ });
+  if (trigger !== null && view.queryByRole('dialog') === null) {
+    await user.click(trigger);
+    return view.findByRole('dialog');
+  }
+  return view.container;
+};
+
+/** Chooses someone in the searchable person picker labelled `label`. */
+const pickWho = async (user: User, form: HTMLElement, view: View, label: string, name: string): Promise<void> => {
+  await user.click(within(form).getByRole('combobox', { name: label }));
+  await user.click(await view.findByRole('option', { name }));
+};
+
+/** Presses the chip `chip` in the group named `group`. */
+const pickChip = async (user: User, form: HTMLElement, group: string, chip: string): Promise<void> => {
+  await user.click(within(within(form).getByRole('group', { name: group })).getByRole('button', { name: chip }));
+};
+
 describe('Relatives', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -30,9 +58,7 @@ describe('Relatives', () => {
     const store = polyculeFixture();
     const view = renderGenealogy(<Relatives person={personOf(store, 'ana')} people={store.persons} />, store);
     const list = await view.findByRole('list', { name: 'Relatives' });
-    const lines = within(list)
-      .getAllByRole('listitem')
-      .map((item) => item.textContent.replace('Remove', ''));
+    const lines = within(list).getAllByRole('listitem').map(lineOf);
     expect(lines.sort()).toEqual(['Partner (dating, ended): Eli', 'Partner (nesting): Ben']);
   });
 
@@ -40,9 +66,7 @@ describe('Relatives', () => {
     const store = familyFixture();
     const view = renderGenealogy(<Relatives person={ada(store)} people={store.persons} />, store);
     const list = await view.findByRole('list', { name: 'Relatives' });
-    const lines = within(list)
-      .getAllByRole('listitem')
-      .map((item) => item.textContent.replace('Remove', ''));
+    const lines = within(list).getAllByRole('listitem').map(lineOf);
     expect(lines.sort()).toEqual(
       [
         'Child (biological): Byron King-Noel',
@@ -78,17 +102,17 @@ describe('Relatives', () => {
       store,
     );
     await view.findByRole('list', { name: 'Connections' });
-    const role = view.getByLabelText(`Is ${ana.name}’s`);
-    const offered = within(role)
-      .getAllByRole('option')
+    const form = await openAdd(user, view);
+    const offered = within(within(form).getByRole('group', { name: `Is ${ana.name ?? ''}’s` }))
+      .getAllByRole('button')
       .map((option) => option.textContent);
     expect(offered).not.toContain('Parent');
     expect(offered).toEqual(expect.arrayContaining(['Partner', 'Sub', 'Dom']));
-    await user.selectOptions(view.getByLabelText('Who'), 'Ben');
-    await user.selectOptions(role, 'Sub');
-    await user.selectOptions(view.getByLabelText('Dynamic'), 'master');
-    await user.click(view.getByRole('button', { name: 'Add connection' }));
-    expect(await view.findByText('Sub (master):')).toBeInTheDocument();
+    await pickWho(user, form, view, 'Who', 'Ben');
+    await pickChip(user, form, `Is ${ana.name ?? ''}’s`, 'Sub');
+    await pickChip(user, form, 'Dynamic', 'master');
+    await user.click(within(form).getByRole('button', { name: 'Add connection' }));
+    expect(await view.findByText('Sub (master)')).toBeInTheDocument();
     expect(store.relationships.at(-1)).toMatchObject({
       person_id: 'ana',
       target_person_id: 'ben',
@@ -108,9 +132,10 @@ describe('Relatives', () => {
       store,
     );
     await view.findByRole('list', { name: 'Connections' });
-    await user.selectOptions(view.getByLabelText('Who'), 'Fay');
-    await user.type(view.getByLabelText('Since'), '2020-06-07');
-    await user.click(view.getByRole('button', { name: 'Add connection' }));
+    const form = await openAdd(user, view);
+    await pickWho(user, form, view, 'Who', 'Fay');
+    await user.type(within(form).getByLabelText('Since'), '2020-06-07');
+    await user.click(within(form).getByRole('button', { name: 'Add connection' }));
     await vi.waitFor(() => {
       expect(store.relationships.slice(-2).map((row) => row.valid_from)).toEqual([
         '2020-06-07T00:00:00',
@@ -124,11 +149,12 @@ describe('Relatives', () => {
     const user = userEvent.setup();
     const view = renderGenealogy(<Relatives person={ada(store)} people={store.persons} />, store);
     await view.findByRole('list', { name: 'Relatives' });
-    await user.selectOptions(view.getByLabelText('Relative'), WILLIAM);
-    await user.selectOptions(view.getByLabelText('Is Ada Lovelace’s'), 'Parent');
-    await user.selectOptions(view.getByLabelText('Parent’s role'), 'step');
-    await user.click(view.getByRole('button', { name: ADD_RELATIVE }));
-    expect(await view.findByText('Parent (step):')).toBeInTheDocument();
+    const form = await openAdd(user, view);
+    await pickWho(user, form, view, 'Relative', WILLIAM);
+    await pickChip(user, form, 'Is Ada Lovelace’s', 'Parent');
+    await pickChip(user, form, 'Parent’s role', 'step');
+    await user.click(within(form).getByRole('button', { name: ADD_RELATIVE }));
+    expect(await view.findByText('Parent (step)')).toBeInTheDocument();
     expect(store.relationships.at(-1)).toMatchObject({
       person_id: 'william',
       target_person_id: 'ada',
@@ -148,9 +174,10 @@ describe('Relatives', () => {
       store,
     );
     expect(await view.findByText('No partners are recorded for Eli.')).toBeInTheDocument();
-    await user.selectOptions(view.getByLabelText('Relative'), 'Fay');
-    await user.selectOptions(view.getByLabelText('Is Eli’s'), 'Partner');
-    await user.click(view.getByRole('button', { name: ADD_RELATIVE }));
+    const form = await openAdd(user, view);
+    await pickWho(user, form, view, 'Relative', 'Fay');
+    await pickChip(user, form, 'Is Eli’s', 'Partner');
+    await user.click(within(form).getByRole('button', { name: ADD_RELATIVE }));
     expect(await view.findByRole('region', { name: 'Directly connected' })).toHaveTextContent('Fay');
   });
 
@@ -160,12 +187,13 @@ describe('Relatives', () => {
     const user = userEvent.setup();
     const view = renderGenealogy(<Relatives person={ada(store)} people={store.persons} />, store);
     await view.findByRole('list', { name: 'Relatives' });
-    await user.selectOptions(view.getByLabelText('Relative'), 'Someone new…');
-    await user.click(view.getByRole('button', { name: ADD_RELATIVE }));
-    expect(view.getByRole('alert')).toHaveTextContent('Give their name.');
-    await user.type(view.getByLabelText('Their name'), 'Mary Somerville');
-    await user.selectOptions(view.getByLabelText('Is Ada Lovelace’s'), 'Friend');
-    await user.click(view.getByRole('button', { name: ADD_RELATIVE }));
+    const form = await openAdd(user, view);
+    await pickWho(user, form, view, 'Relative', 'Someone new…');
+    await user.click(within(form).getByRole('button', { name: ADD_RELATIVE }));
+    expect(within(form).getByRole('alert')).toHaveTextContent('Give their name.');
+    await user.type(within(form).getByLabelText('Their name'), 'Mary Somerville');
+    await pickChip(user, form, 'Is Ada Lovelace’s', 'Friend');
+    await user.click(within(form).getByRole('button', { name: ADD_RELATIVE }));
     await vi.waitFor(() => {
       expect(store.persons).toHaveLength(before + 1);
     });
@@ -178,7 +206,9 @@ describe('Relatives', () => {
     const store = familyFixture();
     const user = userEvent.setup();
     const view = renderGenealogy(<Relatives person={ada(store)} people={store.persons} />, store);
-    await user.click(await view.findByRole('button', { name: ADD_RELATIVE }));
-    expect(view.getByRole('alert')).toHaveTextContent('Choose who the relative is.');
+    await view.findByRole('list', { name: 'Relatives' });
+    const form = await openAdd(user, view);
+    await user.click(within(form).getByRole('button', { name: ADD_RELATIVE }));
+    expect(within(form).getByRole('alert')).toHaveTextContent('Choose who the relative is.');
   });
 });

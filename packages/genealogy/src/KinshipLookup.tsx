@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephy
 import { type Person, useKinship, usePersons } from './genealogyApi';
 import { describeKinship } from './kinship';
 import { personName } from './people';
+import { PersonPicker as SearchablePersonPicker } from './PersonPicker';
 
 function PersonPicker({
   label,
@@ -23,19 +24,13 @@ function PersonPicker({
   return (
     <div className='grid gap-1'>
       <Label htmlFor={id}>{label}</Label>
-      <select
+      <SearchablePersonPicker
         id={id}
+        people={people}
         value={value ?? ''}
-        onChange={(event) => onChange(event.target.value === '' ? null : event.target.value)}
-        className='h-9 rounded-md border bg-background px-3 text-sm'
-      >
-        <option value=''>Choose someone…</option>
-        {people.map((person) => (
-          <option key={person.id} value={person.id}>
-            {personName(person)}
-          </option>
-        ))}
-      </select>
+        onChange={(next) => onChange(next === '' ? null : next)}
+        placeholder='Choose someone…'
+      />
     </div>
   );
 }

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { type ReactNode, type SyntheticEvent, useId, useState } from 'react';
+import { type ReactElement, type ReactNode, type SyntheticEvent, useId, useState } from 'react';
 import { useClient, writeProblem } from 'zephyrex';
+import { ChoiceChip } from 'zephyrex/ui/choice-chip';
 import { Button } from 'zephyrex/ui/button';
 import { Input } from 'zephyrex/ui/input';
 import { findMidpoint, useNearby, usePlaceCategories } from './mapsApi';
@@ -18,8 +19,63 @@ import {
   MODES,
   type Place,
 } from './mapsModel';
+import { MeetMap } from './MeetMap';
 
-const SELECT = 'h-9 rounded-md border bg-background px-3 text-sm font-normal';
+/** A small icon per way of travelling (shapes from Lucide, ISC licence). */
+const MODE_ICON_PATHS: Readonly<Partial<Record<string, readonly string[]>>> = {
+  driving: [
+    'M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2',
+    'M9 17h6',
+    'M7 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0',
+    'M17 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0',
+  ],
+  walking: [
+    'M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z',
+    'M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z',
+    'M16 17h4',
+    'M4 13h4',
+  ],
+  bicycling: [
+    'M18.5 17.5m-3.5 0a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0',
+    'M5.5 17.5m-3.5 0a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0',
+    'M15 6m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0',
+    'M12 17.5V14l-3-3 4-3 2 3h2',
+  ],
+  transit: [
+    'M8 3.1V7a4 4 0 0 0 8 0V3.1',
+    'm9 15-1-1',
+    'm15 15 1-1',
+    'M9 19c-2.8 0-5-2.2-5-5v-4a8 8 0 0 1 16 0v4c0 2.8-2.2 5-5 5Z',
+    'm8 19-2 3',
+    'm16 19 2 3',
+  ],
+};
+
+function ModeIcon({ mode }: { mode: string }): ReactElement | null {
+  const paths = MODE_ICON_PATHS[mode];
+  if (paths === undefined) {
+    return null;
+  }
+  return (
+    <svg
+      aria-hidden='true'
+      viewBox='0 0 24 24'
+      fill='none'
+      stroke='currentColor'
+      strokeWidth={2}
+      strokeLinecap='round'
+      strokeLinejoin='round'
+      className='size-3.5 shrink-0'
+    >
+      {paths.map((d) => (
+        <path key={d} d={d} />
+      ))}
+    </svg>
+  );
+}
+
+const CHIP =
+  'rounded-full border px-3 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted aria-checked:border-primary aria-checked:bg-primary/10 aria-checked:text-foreground';
 const LINK = 'underline underline-offset-4';
 const OSM_COPYRIGHT = 'https://www.openstreetmap.org/copyright';
 const MIN_LOCATIONS = 2;
@@ -129,6 +185,7 @@ function Result({
           See it on the map
         </a>
       </div>
+      <MeetMap midpoint={midpoint} places={midpoint.places} labels={labels} />
       <ul aria-label='Getting there' className='divide-y'>
         {midpoint.legs.map((leg, index) => (
           <LegRow key={leg.location} leg={leg} label={labels[index] ?? leg.location} mode={mode} />
@@ -152,7 +209,7 @@ export interface MeetInTheMiddleProps {
 /** Pick two or more places; see the point halfway between them, everyone's way there, and places to meet. */
 export function MeetInTheMiddle({ known = [] }: MeetInTheMiddleProps): ReactNode {
   const client = useClient();
-  const ids = { known: useId(), typed: useId(), mode: useId(), category: useId() };
+  const ids = { typed: useId(), mode: useId(), category: useId() };
   const categories = usePlaceCategories();
   const [chosen, setChosen] = useState<KnownPlace[]>([]);
   const [typed, setTyped] = useState('');
@@ -198,126 +255,134 @@ export function MeetInTheMiddle({ known = [] }: MeetInTheMiddleProps): ReactNode
   return (
     <div className='grid gap-6'>
       <div className='grid gap-1'>
-        <h1 className='text-3xl font-semibold'>Meet in the middle</h1>
+        <h1 className='text-2xl font-semibold tracking-tight text-balance sm:text-3xl'>Meet in the middle</h1>
         <p className='text-muted-foreground'>
           The point halfway between everyone, how long each of you takes to get there, and places to meet nearby.
         </p>
       </div>
-      <form onSubmit={search} aria-label='Where from' className='grid gap-4 rounded-md border p-4'>
-        <div className='grid gap-2'>
-          <span className='text-sm font-medium'>Meeting between</span>
-          {chosen.length === 0 ? (
-            <p className='text-sm text-muted-foreground'>Add at least two places.</p>
-          ) : (
-            <ul aria-label='Meeting between' className='flex flex-wrap gap-2'>
-              {chosen.map((place) => (
-                <li key={place.location} className='flex items-center gap-1 rounded-full border py-1 pl-3 pr-1 text-sm'>
-                  {place.label}
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='sm'
-                    className='h-6 px-2'
-                    aria-label={`Remove ${place.label}`}
-                    onClick={() => setChosen(chosen.filter((current) => current !== place))}
-                  >
-                    ×
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <div className='flex flex-wrap items-end gap-2'>
-          {offered.length > 0 && (
-            <label htmlFor={ids.known} className='grid gap-1 text-sm font-medium'>
-              Add someone’s place
-              <select
-                id={ids.known}
-                value={NOTHING}
+      {/* Once there is a result, the form sits beside it on a wide screen, so the map is in view. */}
+      <div className={found === null ? 'grid gap-6' : 'grid items-start gap-6 xl:grid-cols-[24rem_minmax(0,1fr)]'}>
+        <form
+          onSubmit={search}
+          aria-label='Where from'
+          className={`grid gap-4 rounded-md border p-4 ${found === null ? '' : 'xl:sticky xl:top-6'}`}
+        >
+          <div className='grid gap-2'>
+            <span className='text-sm font-medium'>Meeting between</span>
+            {chosen.length === 0 ? (
+              <p className='text-sm text-muted-foreground'>Add at least two places.</p>
+            ) : (
+              <ul aria-label='Meeting between' className='flex flex-wrap gap-2'>
+                {chosen.map((place) => (
+                  <li key={place.location} className='flex items-center gap-1 rounded-full border py-1 pl-3 pr-1 text-sm'>
+                    {place.label}
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='sm'
+                      className='h-6 px-2'
+                      aria-label={`Remove ${place.label}`}
+                      onClick={() => setChosen(chosen.filter((current) => current !== place))}
+                    >
+                      ×
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className='flex flex-wrap items-end gap-2'>
+            {offered.length > 0 && (
+              <fieldset aria-label='Add someone’s place' className='min-w-0 grid basis-full gap-1.5'>
+                <span className='text-sm font-medium'>Add someone’s place</span>
+                <div className='flex flex-wrap gap-1.5'>
+                  {offered.map((place) => (
+                    <button
+                      key={place.location}
+                      type='button'
+                      disabled={full}
+                      onClick={() => add(place)}
+                      className={`${CHIP} disabled:opacity-50`}
+                    >
+                      <span aria-hidden='true'>+ </span>
+                      {place.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+            <label htmlFor={ids.typed} className='grid min-w-56 flex-1 gap-1 text-sm font-medium'>
+              Or type an address
+              <Input
+                id={ids.typed}
+                value={typed}
                 disabled={full}
-                onChange={(event) => {
-                  const place = offered.find((candidate) => candidate.location === event.target.value);
-                  if (place !== undefined) {
-                    add(place);
+                onChange={(event) => setTyped(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    addTyped();
                   }
                 }}
-                className={SELECT}
-              >
-                <option value={NOTHING}>Choose…</option>
-                {offered.map((place) => (
-                  <option key={place.location} value={place.location}>
-                    {place.label}
-                  </option>
-                ))}
-              </select>
+                placeholder='A street address, town or postcode'
+              />
             </label>
+            <Button type='button' variant='outline' onClick={addTyped} disabled={full || typed.trim() === ''}>
+              Add
+            </Button>
+          </div>
+          <div className='grid gap-3'>
+            <div role='radiogroup' aria-label='Travelling' className='grid gap-1.5'>
+              <span id={ids.mode} className='text-sm font-medium'>
+                Travelling
+              </span>
+              <div className='flex flex-wrap gap-2'>
+                {MODES.map((item) => (
+                  <ChoiceChip
+                    key={item.mode}
+                    checked={mode === item.mode}
+                    onClick={() => setMode(item.mode)}
+                    className={`${CHIP} inline-flex items-center gap-1.5`}
+                  >
+                    <ModeIcon mode={item.mode} />
+                    {item.label}
+                  </ChoiceChip>
+                ))}
+              </div>
+            </div>
+            <div role='radiogroup' aria-label='Places to meet' className='grid gap-1.5'>
+              <span id={ids.category} className='text-sm font-medium'>
+                Places to meet
+              </span>
+              <div className='flex flex-wrap gap-2'>
+                {[{ name: NOTHING, title: 'Just the middle' }, ...(categories.data ?? [])].map((item) => (
+                  <ChoiceChip
+                    key={item.name}
+                    checked={category === item.name}
+                    onClick={() => setCategory(item.name)}
+                    className={CHIP}
+                  >
+                    {item.title}
+                  </ChoiceChip>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className='flex flex-wrap items-end gap-2'>
+            <Button type='submit' disabled={chosen.length < MIN_LOCATIONS || finding}>
+              {finding ? 'Finding…' : 'Find the middle'}
+            </Button>
+          </div>
+          {problem !== null && (
+            <p role='alert' className='text-sm text-destructive'>
+              {problem}
+            </p>
           )}
-          <label htmlFor={ids.typed} className='grid min-w-56 flex-1 gap-1 text-sm font-medium'>
-            Or type an address
-            <Input
-              id={ids.typed}
-              value={typed}
-              disabled={full}
-              onChange={(event) => setTyped(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  addTyped();
-                }
-              }}
-              placeholder='A street address, town or postcode'
-            />
-          </label>
-          <Button type='button' variant='outline' onClick={addTyped} disabled={full || typed.trim() === ''}>
-            Add
-          </Button>
-        </div>
-        <div className='flex flex-wrap items-end gap-2'>
-          <label htmlFor={ids.mode} className='grid gap-1 text-sm font-medium'>
-            Travelling
-            <select
-              id={ids.mode}
-              value={mode}
-              onChange={(event) => setMode(MODES.find((item) => item.mode === event.target.value)?.mode ?? 'driving')}
-              className={SELECT}
-            >
-              {MODES.map((item) => (
-                <option key={item.mode} value={item.mode}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label htmlFor={ids.category} className='grid gap-1 text-sm font-medium'>
-            Places to meet
-            <select
-              id={ids.category}
-              value={category}
-              onChange={(event) => setCategory(event.target.value)}
-              className={SELECT}
-            >
-              <option value={NOTHING}>Just the middle</option>
-              {(categories.data ?? []).map((item) => (
-                <option key={item.name} value={item.name}>
-                  {item.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          <Button type='submit' disabled={chosen.length < MIN_LOCATIONS || finding}>
-            {finding ? 'Finding…' : 'Find the middle'}
-          </Button>
-        </div>
-        {problem !== null && (
-          <p role='alert' className='text-sm text-destructive'>
-            {problem}
-          </p>
+        </form>
+        {found !== null && (
+          <Result midpoint={found.midpoint} labels={found.labels} mode={found.mode} category={found.category} />
         )}
-      </form>
-      {found !== null && (
-        <Result midpoint={found.midpoint} labels={found.labels} mode={found.mode} category={found.category} />
-      )}
+      </div>
       <p className='text-xs text-muted-foreground'>
         Places and routes from{' '}
         <a className={LINK} href={OSM_COPYRIGHT} target='_blank' rel='noopener noreferrer'>

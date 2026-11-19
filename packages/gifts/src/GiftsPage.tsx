@@ -1,17 +1,26 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+import { chipGroup } from 'zephyrex/hooks/chipKeys';
 import { type ReactNode, type SyntheticEvent, useId, useState } from 'react';
 import { useClient, writeProblem } from 'zephyrex';
+import { notify } from 'zephyrex/hooks/useToast';
+import { LoadProblem } from 'zephyrex/ui/load-problem';
 import { Button } from 'zephyrex/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from 'zephyrex/ui/dialog';
 import { Input } from 'zephyrex/ui/input';
+import { Textarea } from 'zephyrex/ui/textarea';
+import { SkeletonRows } from 'zephyrex/ui/skeleton';
 import { giftsApi, useGifts, useShopLink } from './giftsApi';
 import { type Gift, type GiftIdea, type GiftPerson, STATUSES, statusLabel } from './giftsModel';
 
 const SELECT = 'h-9 rounded-md border bg-background px-3 text-sm font-normal';
 const LINK = 'underline underline-offset-4';
 const SOMEONE_ELSE = '';
+
+/** A title as a heading: its first letter in capitals ("peonies" → "Peonies"). */
+const capitalised = (text: string): string => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
 function Problem({ problem }: { problem: string | null }): ReactNode {
   return problem === null ? null : (
@@ -22,21 +31,35 @@ function Problem({ problem }: { problem: string | null }): ReactNode {
 }
 
 /** A link to search the shop for `query`, once the server has made it. */
+/** A steady hue per name, so someone's gifts carry the same colour every visit. */
+/** Up to this many people, "For" is a row of chips; beyond it, a list. */
+const CHIP_PEOPLE = 8;
+
+/** A string hash's multiplier, and the hue circle it lands on. */
+const HASH_MULTIPLIER = 31;
+const HUE_DEGREES = 360;
+
+function hueOfName(name: string): number {
+  let hash = 0;
+  for (const char of name) {
+    hash = (hash * HASH_MULTIPLIER + (char.codePointAt(0) ?? 0)) % HUE_DEGREES;
+  }
+  return hash;
+}
+
 function ShopSearch({ query }: { query: string }): ReactNode {
   const [asked, setAsked] = useState(false);
   const link = useShopLink(asked ? query : null);
   if (!asked) {
     return (
-      <Button
+      <button
         type='button'
-        size='sm'
-        variant='ghost'
-        className='justify-self-start'
+        className='justify-self-start text-sm font-medium text-primary underline-offset-4 hover:underline'
         onClick={() => setAsked(true)}
-        aria-label={`Find ${query} at the shop`}
+        aria-label={`Find it at the shop: ${query}`}
       >
         Find it at the shop
-      </Button>
+      </button>
     );
   }
   if (link.data === undefined) {
@@ -52,6 +75,8 @@ function ShopSearch({ query }: { query: string }): ReactNode {
 }
 
 function AddGift({ people, onAdded }: { people: readonly GiftPerson[]; onAdded: () => Promise<unknown> }): ReactNode {
+  // The form lives in a dialog the list's header opens; it closes once the gift is saved.
+  const [open, setOpen] = useState(false);
   const client = useClient();
   const ids = { who: useId(), name: useId(), title: useId(), url: useId(), note: useId() };
   // Until someone is chosen, the first person the app knows (they may arrive after the first render).
@@ -82,63 +107,120 @@ function AddGift({ people, onAdded }: { people: readonly GiftPerson[]; onAdded: 
         setTitle('');
         setUrl('');
         setNote('');
+        setOpen(false);
+        notify('Gift added', `${title.trim()} for ${forName}`);
         await onAdded();
       }
     })();
   };
   return (
-    <form onSubmit={save} aria-label='Add a gift' className='grid gap-3 sm:grid-cols-2'>
-      <label htmlFor={ids.who} className='grid gap-1 text-sm font-medium'>
-        For
-        <select id={ids.who} value={who} onChange={(event) => setChosen(event.target.value)} className={SELECT}>
-          {people.map((candidate) => (
-            <option key={candidate.ref} value={candidate.ref}>
-              {candidate.name}
-            </option>
-          ))}
-          <option value={SOMEONE_ELSE}>Someone else…</option>
-        </select>
-      </label>
-      {person === undefined ? (
-        <label htmlFor={ids.name} className='grid gap-1 text-sm font-medium'>
-          Their name
-          <Input id={ids.name} value={name} onChange={(event) => setName(event.target.value)} maxLength={200} required />
-        </label>
-      ) : (
-        <span aria-hidden='true' />
-      )}
-      <label htmlFor={ids.title} className='grid gap-1 text-sm font-medium'>
-        Gift
-        <Input id={ids.title} value={title} onChange={(event) => setTitle(event.target.value)} maxLength={200} required />
-      </label>
-      <label htmlFor={ids.url} className='grid gap-1 text-sm font-medium'>
-        Link (optional)
-        <Input
-          id={ids.url}
-          type='url'
-          value={url}
-          onChange={(event) => setUrl(event.target.value)}
-          placeholder='https://…'
-          maxLength={2000}
-        />
-      </label>
-      <label htmlFor={ids.note} className='grid gap-1 text-sm font-medium sm:col-span-2'>
-        Note (optional)
-        <Input
-          id={ids.note}
-          value={note}
-          onChange={(event) => setNote(event.target.value)}
-          placeholder='Size, colour, the occasion'
-          maxLength={2000}
-        />
-      </label>
-      <div className='grid gap-2 sm:col-span-2'>
-        <Problem problem={problem} />
-        <Button type='submit' className='justify-self-start' disabled={title.trim() === '' || forName === ''}>
-          Add the gift
-        </Button>
-      </div>
-    </form>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button type='button'>Add gift</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add a gift</DialogTitle>
+          <DialogDescription>Only you ever see this list.</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={save} aria-label='Add a gift' className='grid gap-3 sm:grid-cols-2'>
+          {people.length <= CHIP_PEOPLE ? (
+            <fieldset className='col-span-full grid min-w-0 gap-1.5'>
+              <legend id={ids.who} className='mb-1.5 text-sm font-medium'>
+                For
+              </legend>
+              <div className='flex flex-wrap gap-1.5' ref={chipGroup}>
+                {[
+                  ...people.map((candidate) => ({ ref: candidate.ref, name: candidate.name })),
+                  { ref: SOMEONE_ELSE, name: 'Someone else' },
+                ].map((choice) => (
+                  <button
+                    key={choice.ref}
+                    type='button'
+                    aria-pressed={who === choice.ref}
+                    onClick={() => setChosen(choice.ref)}
+                    className='inline-flex items-center gap-1.5 rounded-full border py-0.5 pl-0.5 pr-3 text-sm text-muted-foreground transition-colors hover:bg-muted aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:text-foreground'
+                  >
+                    <span
+                      aria-hidden='true'
+                      className='flex size-6 items-center justify-center rounded-full text-[0.65rem] font-semibold text-white'
+                      style={{
+                        backgroundColor:
+                          choice.ref === SOMEONE_ELSE
+                            ? 'hsl(var(--muted-foreground))'
+                            : `hsl(${String(hueOfName(choice.name))} 45% 30%)`,
+                      }}
+                    >
+                      {choice.ref === SOMEONE_ELSE ? '+' : choice.name.charAt(0).toUpperCase()}
+                    </span>
+                    {choice.name}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          ) : (
+            <label htmlFor={ids.who} className='grid gap-1 text-sm font-medium'>
+              For
+              <select id={ids.who} value={who} onChange={(event) => setChosen(event.target.value)} className={SELECT}>
+                {people.map((candidate) => (
+                  <option key={candidate.ref} value={candidate.ref}>
+                    {candidate.name}
+                  </option>
+                ))}
+                <option value={SOMEONE_ELSE}>Someone else…</option>
+              </select>
+            </label>
+          )}
+          {person === undefined ? (
+            <label htmlFor={ids.name} className='grid gap-1 text-sm font-medium'>
+              Their name
+              <Input id={ids.name} value={name} onChange={(event) => setName(event.target.value)} maxLength={200} required />
+            </label>
+          ) : (
+            people.length > CHIP_PEOPLE && <span aria-hidden='true' className='hidden sm:block' />
+          )}
+          <label htmlFor={ids.title} className='grid gap-1 text-sm font-medium'>
+            Gift
+            <Input
+              id={ids.title}
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              maxLength={200}
+              required
+            />
+          </label>
+          <label htmlFor={ids.url} className='grid gap-1 text-sm font-medium'>
+            Link (optional)
+            <Input
+              id={ids.url}
+              type='url'
+              value={url}
+              onChange={(event) => setUrl(event.target.value)}
+              placeholder='https://…'
+              maxLength={2000}
+            />
+          </label>
+          <label htmlFor={ids.note} className='grid gap-1 text-sm font-medium col-span-full'>
+            Note (optional)
+            <Textarea
+              id={ids.note}
+              rows={2}
+              className='field-sizing-content min-h-16 resize-none font-normal'
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              placeholder='Size, colour, the occasion'
+              maxLength={2000}
+            />
+          </label>
+          <div className='col-span-full grid gap-2'>
+            <Problem problem={problem} />
+            <Button type='submit' className='justify-self-start' disabled={title.trim() === '' || forName === ''}>
+              Add the gift
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -147,62 +229,81 @@ function GiftRow({ gift, onChanged }: { gift: Gift; onChanged: () => Promise<unk
   const statusId = useId();
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const run = (write: Promise<unknown>, fallback: string): void => {
+  const run = (write: Promise<unknown>, fallback: string, done?: string): void => {
     setBusy(true);
     void (async (): Promise<void> => {
-      setProblem(await writeProblem(write, fallback));
+      const failed = await writeProblem(write, fallback);
+      setProblem(failed);
+      if (failed === null && done !== undefined) {
+        notify(done);
+      }
       await onChanged();
       setBusy(false);
     })();
   };
   const link = gift.url ?? null;
   return (
-    <li className='grid gap-1 py-3'>
-      <div className='flex flex-wrap items-center gap-3'>
+    <li className='group grid gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-x-4'>
+      <div className='grid min-w-0 gap-0.5'>
         <span className={gift.status === 'given' ? 'font-medium text-muted-foreground line-through' : 'font-medium'}>
           {gift.title}
         </span>
-        <label htmlFor={statusId} className='sr-only'>
-          {`Where ${gift.title} is`}
-        </label>
-        <select
-          id={statusId}
-          value={gift.status}
-          disabled={busy}
-          onChange={(event) => {
-            const status = STATUSES.find((candidate) => candidate === event.target.value);
-            if (status !== undefined) {
-              run(giftsApi.setStatus(client, gift, status), 'That could not be saved.');
-            }
-          }}
-          className='h-8 rounded-md border bg-background px-2 text-sm'
-        >
-          {STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {statusLabel(status)}
-            </option>
-          ))}
-        </select>
+        <div className='flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground'>
+          {gift.note !== null && gift.note !== undefined && <span>{gift.note}</span>}
+          {gift.note !== null && gift.note !== undefined && <span aria-hidden='true'>·</span>}
+          {link === null ? (
+            <ShopSearch query={gift.title} />
+          ) : (
+            <a className={LINK} href={link} target='_blank' rel='noopener noreferrer sponsored'>
+              Where to buy it
+            </a>
+          )}
+        </div>
+      </div>
+      <div className='flex items-center justify-between gap-2 sm:justify-end'>
         <Button
           type='button'
           size='sm'
           variant='ghost'
           disabled={busy}
           aria-label={`Delete ${gift.title}`}
-          onClick={() => run(giftsApi.remove(client, gift), 'The gift could not be deleted.')}
+          className='order-last text-muted-foreground transition-opacity hover:text-destructive sm:order-none pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100'
+          onClick={() => run(giftsApi.remove(client, gift), 'The gift could not be deleted.', `${gift.title} deleted`)}
         >
           Delete
         </Button>
+        <span id={statusId} className='sr-only'>
+          {`Where ${gift.title} is`}
+        </span>
+        <div role='radiogroup' aria-labelledby={statusId} className='inline-flex rounded-full border p-0.5'>
+          {STATUSES.map((status) => (
+            <label
+              key={status}
+              className='cursor-pointer rounded-full px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring'
+            >
+              <input
+                type='radio'
+                className='sr-only'
+                name={statusId}
+                value={status}
+                checked={gift.status === status}
+                disabled={busy}
+                onChange={() =>
+                  run(
+                    giftsApi.setStatus(client, gift, status),
+                    'That could not be saved.',
+                    `${gift.title}: ${statusLabel(status).toLowerCase()}`,
+                  )
+                }
+              />
+              {statusLabel(status)}
+            </label>
+          ))}
+        </div>
       </div>
-      {gift.note !== null && gift.note !== undefined && <span className='text-sm text-muted-foreground'>{gift.note}</span>}
-      {link === null ? (
-        <ShopSearch query={gift.title} />
-      ) : (
-        <a className={`${LINK} text-sm`} href={link} target='_blank' rel='noopener noreferrer sponsored'>
-          Where to buy it
-        </a>
-      )}
-      <Problem problem={problem} />
+      <div className='sm:col-span-2'>
+        <Problem problem={problem} />
+      </div>
     </li>
   );
 }
@@ -226,6 +327,7 @@ function Ideas({ ideas, onSaved }: { ideas: readonly GiftIdea[]; onSaved: () => 
       );
       setProblem(failed);
       if (failed === null) {
+        notify('Saved to your list', idea.title);
         setSaved((current) => [...current, keyOf(idea)]);
         await onSaved();
       }
@@ -234,24 +336,32 @@ function Ideas({ ideas, onSaved }: { ideas: readonly GiftIdea[]; onSaved: () => 
   return (
     <div className='grid gap-2'>
       <Problem problem={problem} />
-      <ul aria-label='Ideas' className='divide-y'>
+      <ul aria-label='Ideas' className='grid gap-3 sm:grid-cols-2 xl:grid-cols-1'>
         {ideas.map((idea) => (
-          <li key={keyOf(idea)} className='flex flex-wrap items-center gap-3 py-2'>
-            <span className='grid flex-1'>
-              <span className='font-medium'>{idea.title}</span>
+          <li key={keyOf(idea)} className='grid gap-2 rounded-lg border bg-muted/20 p-3'>
+            <span className='grid'>
+              <span className='font-medium'>{capitalised(idea.title)}</span>
               <span className='text-sm text-muted-foreground'>
                 For {idea.forName}
                 {idea.note === undefined ? '' : ` · ${idea.note}`}
               </span>
             </span>
-            {saved.includes(keyOf(idea)) ? (
-              <span className='text-sm text-muted-foreground'>Saved</span>
-            ) : (
-              <Button type='button' size='sm' variant='outline' onClick={() => save(idea)} aria-label={`Save ${idea.title}`}>
-                Save
-              </Button>
-            )}
-            <ShopSearch query={idea.title} />
+            <span className='flex flex-wrap items-center gap-2'>
+              {saved.includes(keyOf(idea)) ? (
+                <span className='text-sm text-muted-foreground'>Saved to your list</span>
+              ) : (
+                <Button
+                  type='button'
+                  size='sm'
+                  variant='outline'
+                  onClick={() => save(idea)}
+                  aria-label={`Save to list: ${idea.title}`}
+                >
+                  Save to list
+                </Button>
+              )}
+              <ShopSearch query={idea.title} />
+            </span>
           </li>
         ))}
       </ul>
@@ -277,43 +387,66 @@ export function GiftsPage({ people = [], ideas = [] }: GiftsPageProps): ReactNod
   return (
     <div className='grid gap-6'>
       <div className='grid gap-1'>
-        <h1 className='text-3xl font-semibold'>Gifts</h1>
+        <h1 className='text-2xl font-semibold tracking-tight text-balance sm:text-3xl'>Gifts</h1>
         <p className='text-muted-foreground'>Ideas for the people in your life. Only you ever see this list.</p>
       </div>
-      {ideas.length > 0 && (
+      <div className={ideas.length > 0 ? 'grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]' : 'grid gap-6'}>
+        {ideas.length > 0 && (
+          <Card className='order-2 xl:sticky xl:top-6'>
+            <CardHeader>
+              <CardTitle>Ideas</CardTitle>
+              <CardDescription>From what they share with you: their sizes and favourites.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Ideas ideas={ideas} onSaved={refresh} />
+            </CardContent>
+          </Card>
+        )}
         <Card>
-          <CardHeader>
-            <CardTitle>Ideas</CardTitle>
-            <CardDescription>From what they share with you: their sizes and favourites.</CardDescription>
+          <CardHeader className='flex-row flex-wrap items-start justify-between gap-3 space-y-0'>
+            <div className='grid gap-1.5'>
+              <CardTitle>Your gift list</CardTitle>
+              <CardDescription>What you mean to give, and whether you have bought or given it yet.</CardDescription>
+            </div>
+            <AddGift people={people} onAdded={refresh} />
           </CardHeader>
-          <CardContent>
-            <Ideas ideas={ideas} onSaved={refresh} />
+          <CardContent className='grid gap-6'>
+            {gifts.error !== undefined && (
+              <LoadProblem what='your gift list' error={gifts.error} onRetry={async () => gifts.mutate()} />
+            )}
+            {gifts.error === undefined && gifts.data === undefined && <SkeletonRows rows={3} label='Loading your gifts' />}
+            {gifts.data?.length === 0 && (
+              <p className='rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground'>
+                {ideas.length > 0
+                  ? 'No gifts yet. Save one of the ideas, or add one yourself.'
+                  : 'No gifts yet. Add one yourself; ideas appear here once the people in your tree have sizes or favourites on their cards.'}
+              </p>
+            )}
+            {[...byPerson.entries()]
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([name, theirs]) => (
+                <section key={name} aria-label={`For ${name}`} className='grid gap-1'>
+                  <h2 className='flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground'>
+                    <span
+                      aria-hidden='true'
+                      className='inline-flex size-6 items-center justify-center rounded-full text-[0.65rem] font-semibold normal-case text-white'
+                      style={{ backgroundColor: `hsl(${String(hueOfName(name))} 45% 30%)` }}
+                    >
+                      {name.charAt(0).toUpperCase()}
+                    </span>
+                    For {name}
+                    <span className='font-normal normal-case tracking-normal tabular-nums'>· {String(theirs.length)}</span>
+                  </h2>
+                  <ul className='divide-y'>
+                    {theirs.map((gift) => (
+                      <GiftRow key={gift.id} gift={gift} onChanged={refresh} />
+                    ))}
+                  </ul>
+                </section>
+              ))}
           </CardContent>
         </Card>
-      )}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your gift list</CardTitle>
-          <CardDescription>What you mean to give, and whether you have bought or given it yet.</CardDescription>
-        </CardHeader>
-        <CardContent className='grid gap-6'>
-          <AddGift people={people} onAdded={refresh} />
-          {gifts.error !== undefined && <Problem problem={gifts.error.message} />}
-          {gifts.data?.length === 0 && <p className='text-sm text-muted-foreground'>No gifts yet.</p>}
-          {[...byPerson.entries()]
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([name, theirs]) => (
-              <section key={name} aria-label={`For ${name}`} className='grid gap-1'>
-                <h2 className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>For {name}</h2>
-                <ul className='divide-y'>
-                  {theirs.map((gift) => (
-                    <GiftRow key={gift.id} gift={gift} onChanged={refresh} />
-                  ))}
-                </ul>
-              </section>
-            ))}
-        </CardContent>
-      </Card>
+      </div>
       <p className='text-xs text-muted-foreground'>
         As an Amazon Associate, the people who run this app earn from qualifying purchases made through its links.
       </p>

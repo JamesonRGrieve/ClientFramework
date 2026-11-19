@@ -4,9 +4,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { KinshipLookup } from './KinshipLookup';
 import { renderGenealogy } from './testing.mocks';
 
-/** The pickers fill once the people load. */
-const peopleLoaded = async (view: ReturnType<typeof renderGenealogy>): Promise<void> => {
-  await view.findAllByRole('option', { name: 'Ada Lovelace' });
+type View = ReturnType<typeof renderGenealogy>;
+
+/** The pickers are ready once the people load (the lookup shows its pickers). */
+const peopleLoaded = async (view: View): Promise<void> => {
+  await view.findByRole('combobox', { name: 'Relative' });
+};
+
+/** Opens a searchable person picker and chooses someone from its list. */
+const pick = async (user: ReturnType<typeof userEvent.setup>, view: View, label: string, name: string): Promise<void> => {
+  await user.click(view.getByRole('combobox', { name: label }));
+  await user.click(await view.findByRole('option', { name }));
 };
 
 describe('KinshipLookup', () => {
@@ -18,8 +26,8 @@ describe('KinshipLookup', () => {
     const user = userEvent.setup();
     const view = renderGenealogy(<KinshipLookup />);
     await peopleLoaded(view);
-    await user.selectOptions(view.getByLabelText('Person'), 'Byron King-Noel');
-    await user.selectOptions(view.getByLabelText('Relative'), 'George Gordon Byron');
+    await pick(user, view, 'Person', 'Byron King-Noel');
+    await pick(user, view, 'Relative', 'George Gordon Byron');
     const answer = await view.findByRole('status');
     expect(answer).toHaveTextContent('George Gordon Byron is Byron King-Noel’s grandparent.');
     expect(answer).toHaveTextContent('Through George Gordon Byron.');
@@ -29,7 +37,7 @@ describe('KinshipLookup', () => {
     const user = userEvent.setup();
     const view = renderGenealogy(<KinshipLookup initialPersonId='byron-jr' />);
     await peopleLoaded(view);
-    await user.selectOptions(view.getByLabelText('Relative'), 'Anne Blunt');
+    await pick(user, view, 'Relative', 'Anne Blunt');
     expect(await view.findByRole('status')).toHaveTextContent('Anne Blunt is Byron King-Noel’s sibling.');
   });
 
@@ -37,7 +45,7 @@ describe('KinshipLookup', () => {
     const user = userEvent.setup();
     const view = renderGenealogy(<KinshipLookup initialPersonId='byron' />);
     await peopleLoaded(view);
-    await user.selectOptions(view.getByLabelText('Relative'), 'Anne Isabella Milbanke');
+    await pick(user, view, 'Relative', 'Anne Isabella Milbanke');
     expect(await view.findByRole('status')).toHaveTextContent('share no recorded ancestor');
   });
 });

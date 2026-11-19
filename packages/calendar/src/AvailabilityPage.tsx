@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+import { ChoiceChip } from 'zephyrex/ui/choice-chip';
+import { chipGroup } from 'zephyrex/hooks/chipKeys';
 import { type ReactElement, type ReactNode, type SyntheticEvent, useId, useState } from 'react';
 import { useClient, useUser, writeProblem } from 'zephyrex';
 import { Button } from 'zephyrex/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from 'zephyrex/ui/dialog';
 import { Input } from 'zephyrex/ui/input';
+import { SkeletonRows } from 'zephyrex/ui/skeleton';
+import { Switch } from 'zephyrex/ui/switch';
 import { calendarApi, useAvailabilityShares, useCalendarAccounts, useSharedWithMe } from './calendarApi';
 import {
   type Booked,
@@ -19,7 +24,6 @@ import {
   slotLabel,
 } from './calendarModel';
 
-const SELECT = 'h-9 rounded-md border bg-background px-3 text-sm font-normal';
 const LINK = 'underline underline-offset-4';
 const NOBODY = '';
 const DEFAULT_ACCOUNT_PAGE = '/user/manage';
@@ -34,8 +38,25 @@ const LENGTHS = [
   { minutes: 240, label: '4 hours' },
 ];
 const MS_PER_DAY = 86_400_000;
+/** How far ahead to look, one tap each. */
+const SPANS = [
+  { days: 3, label: 'Next 3 days' },
+  { days: 7, label: 'A week' },
+  { days: 14, label: 'Two weeks' },
+];
+/** The part of the day to look in, one tap each; any other window is typed below. */
+const WINDOWS = [
+  { start: '18:00', end: '23:00', label: 'Evenings' },
+  { start: '09:00', end: '17:00', label: 'Daytime' },
+  { start: '08:00', end: '23:00', label: 'Any time' },
+];
+const CHIP =
+  'rounded-full border px-3 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:text-foreground';
 
 type NameOf = (userId: string) => string;
+
+const timeOf = (iso: string): string =>
+  new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 
 function Problem({ problem }: { problem: string | null }): ReactNode {
   return problem === null ? null : (
@@ -99,6 +120,9 @@ function YourCalendars({ accountPage }: { accountPage: string }): ReactNode {
   return (
     <div className='grid gap-4'>
       {accounts.error !== undefined && <Problem problem={accounts.error.message} />}
+      {accounts.error === undefined && accounts.data === undefined && (
+        <SkeletonRows rows={2} label='Loading your calendars' />
+      )}
       {accounts.data?.length === 0 && <p className='text-sm text-muted-foreground'>No calendars connected yet.</p>}
       {(accounts.data ?? []).length > 0 && (
         <ul aria-label='Your calendars' className='divide-y'>
@@ -122,24 +146,29 @@ function YourCalendars({ accountPage }: { accountPage: string }): ReactNode {
           ))}
         </ul>
       )}
-      <form onSubmit={connect} aria-label='Connect a calendar' className='grid gap-3 rounded-md border p-4 sm:grid-cols-2'>
-        <label htmlFor={ids.service} className='grid gap-1 text-sm font-medium'>
-          Calendar
-          <select
-            id={ids.service}
-            value={service}
-            onChange={(event) =>
-              setService(CALENDAR_SERVICES.find((item) => item.provider === event.target.value)?.provider ?? 'caldav')
-            }
-            className={SELECT}
-          >
+      <form
+        onSubmit={connect}
+        aria-label='Connect a calendar'
+        className='grid gap-3 rounded-md border p-4 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2'
+      >
+        <fieldset className='col-span-full grid min-w-0 gap-1.5'>
+          <legend id={ids.service} className='mb-1.5 text-sm font-medium'>
+            Calendar
+          </legend>
+          <div className='flex flex-wrap gap-1.5' ref={chipGroup}>
             {CALENDAR_SERVICES.map((item) => (
-              <option key={item.provider} value={item.provider}>
+              <button
+                key={item.provider}
+                type='button'
+                aria-pressed={service === item.provider}
+                onClick={() => setService(item.provider)}
+                className={CHIP}
+              >
                 {item.label}
-              </option>
+              </button>
             ))}
-          </select>
-        </label>
+          </div>
+        </fieldset>
         <label htmlFor={ids.label} className='grid gap-1 text-sm font-medium'>
           Call it (optional)
           <Input
@@ -164,7 +193,7 @@ function YourCalendars({ accountPage }: { accountPage: string }): ReactNode {
                 />
               </label>
             )}
-            <p className='text-sm text-muted-foreground sm:col-span-2'>
+            <p className='text-sm text-muted-foreground col-span-full'>
               Uses the account you linked on{' '}
               <a className={LINK} href={accountPage}>
                 your account page
@@ -174,7 +203,7 @@ function YourCalendars({ accountPage }: { accountPage: string }): ReactNode {
           </>
         ) : (
           <>
-            <label htmlFor={ids.url} className='grid gap-1 text-sm font-medium sm:col-span-2'>
+            <label htmlFor={ids.url} className='grid gap-1 text-sm font-medium col-span-full'>
               Calendar address
               <Input
                 id={ids.url}
@@ -184,6 +213,9 @@ function YourCalendars({ accountPage }: { accountPage: string }): ReactNode {
                 placeholder='https://caldav.example.com/calendars/you/personal/'
                 required
                 maxLength={2000}
+                autoCapitalize='off'
+                autoCorrect='off'
+                spellCheck={false}
               />
             </label>
             <label htmlFor={ids.user} className='grid gap-1 text-sm font-medium'>
@@ -194,6 +226,9 @@ function YourCalendars({ accountPage }: { accountPage: string }): ReactNode {
                 onChange={(event) => setUsername(event.target.value)}
                 required
                 maxLength={200}
+                autoComplete='off'
+                autoCapitalize='off'
+                spellCheck={false}
               />
             </label>
             <label htmlFor={ids.password} className='grid gap-1 text-sm font-medium'>
@@ -210,7 +245,7 @@ function YourCalendars({ accountPage }: { accountPage: string }): ReactNode {
             </label>
           </>
         )}
-        <div className='grid gap-2 sm:col-span-2'>
+        <div className='grid gap-2 col-span-full'>
           <Problem problem={problem} />
           <Button type='submit' className='justify-self-start' disabled={busy}>
             {busy ? 'Connecting…' : 'Connect'}
@@ -243,19 +278,29 @@ function ShareAvailability({ people, nameOf }: { people: readonly CalendarPerson
   return (
     <div className='grid gap-3'>
       <div className='flex flex-wrap items-end gap-3'>
-        <label htmlFor={pickerId} className='grid min-w-56 gap-1 text-sm font-medium'>
-          Share with
-          <select id={pickerId} value={chosen} onChange={(event) => setChosen(event.target.value)} className={SELECT}>
-            <option value={NOBODY}>Choose someone…</option>
-            {offered.map((person) => (
-              <option key={person.userId} value={person.userId}>
-                {person.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div role='radiogroup' aria-labelledby={pickerId} className='grid gap-1.5'>
+          <span id={pickerId} className='text-sm font-medium'>
+            Share with
+          </span>
+          {offered.length === 0 ? (
+            <span className='text-sm text-muted-foreground'>Everyone the app knows already sees it.</span>
+          ) : (
+            <div className='flex flex-wrap gap-2' ref={chipGroup}>
+              {offered.map((person) => (
+                <ChoiceChip
+                  key={person.userId}
+                  checked={chosen === person.userId}
+                  onClick={() => setChosen(chosen === person.userId ? NOBODY : person.userId)}
+                  className={`${CHIP} aria-checked:border-primary aria-checked:bg-primary/10 aria-checked:text-foreground`}
+                >
+                  {person.name}
+                </ChoiceChip>
+              ))}
+            </div>
+          )}
+        </div>
         <label htmlFor={bookId} className='flex h-9 items-center gap-2 text-sm'>
-          <input id={bookId} type='checkbox' checked={canBook} onChange={(event) => setCanBook(event.target.checked)} />
+          <Switch id={bookId} checked={canBook} onCheckedChange={setCanBook} />
           They may book dates into my calendar
         </label>
         <Button
@@ -278,14 +323,12 @@ function ShareAvailability({ people, nameOf }: { people: readonly CalendarPerson
             <li key={share.user_id} className='flex flex-wrap items-center justify-between gap-2 py-2'>
               <span>{nameOf(share.user_id)}</span>
               <span className='flex items-center gap-3'>
-                <label className='flex items-center gap-2 text-sm'>
-                  <input
-                    type='checkbox'
+                <label htmlFor={`${bookId}-${share.user_id}`} className='flex items-center gap-2 text-sm'>
+                  <Switch
+                    id={`${bookId}-${share.user_id}`}
                     checked={share.can_book}
                     disabled={busy}
-                    onChange={(event) =>
-                      run(calendarApi.share(client, share.user_id, event.target.checked), 'That could not be saved.')
-                    }
+                    onCheckedChange={(on) => run(calendarApi.share(client, share.user_id, on), 'That could not be saved.')}
                   />
                   May book
                 </label>
@@ -346,11 +389,7 @@ function BookSlot({
     })();
   };
   return (
-    <form
-      onSubmit={book}
-      aria-label={`Book ${slotLabel(slot)}`}
-      className='grid gap-2 rounded-md bg-muted p-3 sm:grid-cols-2'
-    >
+    <form onSubmit={book} aria-label={`Book ${slotLabel(slot)}`} className='grid gap-3'>
       <label htmlFor={titleId} className='grid gap-1 text-sm font-medium'>
         What
         <Input id={titleId} value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={200} />
@@ -359,7 +398,7 @@ function BookSlot({
         Where (optional)
         <Input id={placeId} value={location} onChange={(event) => setLocation(event.target.value)} maxLength={200} />
       </label>
-      <p className='text-sm text-muted-foreground sm:col-span-2'>
+      <p className='text-sm text-muted-foreground'>
         Goes into your calendar
         {people.length > 0 ? ` and those of ${people.map(nameOf).join(', ')} who let you book them` : ''}.
       </p>
@@ -401,7 +440,9 @@ function FindATime({ nameOf }: { nameOf: NameOf }): ReactNode {
   const me = useUser().data?.id;
   const ids = { from: useId(), days: useId(), length: useId(), start: useId(), end: useId() };
   const sharing = useSharedWithMe();
-  const [who, setWho] = useState<readonly string[]>([]);
+  // Everyone who shares with you is in by default, so the first search already counts them.
+  const [picked, setWho] = useState<readonly string[] | null>(null);
+  const who = picked ?? (sharing.data ?? []).map((share) => share.user_id);
   const [firstDay, setFirstDay] = useState(dayFromToday(0));
   const [days, setDays] = useState(DEFAULT_DAYS);
   const [minutes, setMinutes] = useState(DEFAULT_MINUTES);
@@ -413,7 +454,7 @@ function FindATime({ nameOf }: { nameOf: NameOf }): ReactNode {
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const toggle = (userId: string, on: boolean): void => {
-    setWho((current) => (on ? [...current, userId] : current.filter((id) => id !== userId)));
+    setWho(on ? [...who.filter((id) => id !== userId), userId] : who.filter((id) => id !== userId));
   };
   const search = (event: SyntheticEvent): void => {
     event.preventDefault();
@@ -447,22 +488,124 @@ function FindATime({ nameOf }: { nameOf: NameOf }): ReactNode {
               Nobody shares when they are busy with you yet; you can still find your own free time.
             </p>
           )}
-          <div className='flex flex-wrap gap-3'>
-            {(sharing.data ?? []).map((share) => (
-              <label key={share.user_id} className='flex items-center gap-2 text-sm'>
-                <input
-                  type='checkbox'
-                  checked={who.includes(share.user_id)}
-                  onChange={(event) => toggle(share.user_id, event.target.checked)}
-                />
-                {nameOf(share.user_id)}
-              </label>
-            ))}
+          <div className='flex flex-wrap gap-2' ref={chipGroup}>
+            {(sharing.data ?? []).map((share) => {
+              const on = who.includes(share.user_id);
+              return (
+                <button
+                  key={share.user_id}
+                  type='button'
+                  aria-pressed={on}
+                  onClick={() => toggle(share.user_id, !on)}
+                  className={`${CHIP} flex items-center gap-2 py-1 pl-1`}
+                >
+                  <span
+                    aria-hidden='true'
+                    className='inline-flex size-6 items-center justify-center rounded-full bg-primary/20 text-[0.65rem] font-semibold text-foreground'
+                  >
+                    {nameOf(share.user_id).charAt(0)}
+                  </span>
+                  {nameOf(share.user_id)}
+                </button>
+              );
+            })}
           </div>
         </fieldset>
+        <div className='grid gap-3 sm:grid-cols-2'>
+          <fieldset aria-label='How far ahead' className='min-w-0 grid gap-1.5'>
+            <span className='text-sm font-medium'>How far ahead</span>
+            <div className='flex flex-wrap items-center gap-2' ref={chipGroup}>
+              {SPANS.map((span) => (
+                <button
+                  key={span.days}
+                  type='button'
+                  aria-pressed={days === span.days}
+                  onClick={() => setDays(span.days)}
+                  className={CHIP}
+                >
+                  {span.label}
+                </button>
+              ))}
+              {/* Or any number of days: the chips set the same value. */}
+              <span className='inline-flex items-center gap-1.5 text-sm text-muted-foreground'>
+                <Input
+                  id={ids.days}
+                  type='number'
+                  aria-label='Days'
+                  min={1}
+                  max={MAX_DAYS}
+                  value={days}
+                  onChange={(event) => setDays(Math.max(1, Math.min(MAX_DAYS, Number(event.target.value) || 1)))}
+                  className='h-8 w-16 tabular-nums'
+                />
+                days
+              </span>
+            </div>
+          </fieldset>
+          <fieldset aria-label='For how long' className='min-w-0 grid gap-1.5'>
+            <span className='text-sm font-medium'>For how long</span>
+            <div className='flex flex-wrap items-center gap-2' ref={chipGroup}>
+              {LENGTHS.map((length) => (
+                <button
+                  key={length.minutes}
+                  type='button'
+                  aria-pressed={minutes === length.minutes}
+                  onClick={() => setMinutes(length.minutes)}
+                  className={CHIP}
+                >
+                  {length.label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset aria-label='When in the day' className='min-w-0 grid gap-1.5 sm:col-span-2'>
+            <span className='text-sm font-medium'>When in the day</span>
+            <div className='flex flex-wrap items-center gap-2' ref={chipGroup}>
+              {WINDOWS.map((span) => (
+                <button
+                  key={span.label}
+                  type='button'
+                  aria-pressed={dayStart === span.start && dayEnd === span.end}
+                  onClick={() => {
+                    setDayStart(span.start);
+                    setDayEnd(span.end);
+                  }}
+                  className={CHIP}
+                >
+                  {span.label}
+                </button>
+              ))}
+              <span className='flex items-center gap-1.5 text-sm text-muted-foreground'>
+                <label htmlFor={ids.start} className='sr-only'>
+                  Between
+                </label>
+                <Input
+                  id={ids.start}
+                  type='time'
+                  value={dayStart}
+                  onChange={(event) => setDayStart(event.target.value)}
+                  required
+                  className='h-8 w-28'
+                />
+                to
+                <label htmlFor={ids.end} className='sr-only'>
+                  And
+                </label>
+                <Input
+                  id={ids.end}
+                  type='time'
+                  value={dayEnd}
+                  onChange={(event) => setDayEnd(event.target.value)}
+                  required
+                  className='h-8 w-28'
+                />
+              </span>
+            </div>
+          </fieldset>
+        </div>
         <div className='flex flex-wrap items-end gap-3'>
           <label htmlFor={ids.from} className='grid gap-1 text-sm font-medium'>
-            From
+            Starting
             <Input
               id={ids.from}
               type='date'
@@ -472,46 +615,6 @@ function FindATime({ nameOf }: { nameOf: NameOf }): ReactNode {
               required
             />
           </label>
-          <label htmlFor={ids.days} className='grid w-24 gap-1 text-sm font-medium'>
-            Days
-            <Input
-              id={ids.days}
-              type='number'
-              min={1}
-              max={MAX_DAYS}
-              value={days}
-              onChange={(event) => setDays(Math.max(1, Math.min(MAX_DAYS, Number(event.target.value) || 1)))}
-            />
-          </label>
-          <label htmlFor={ids.length} className='grid gap-1 text-sm font-medium'>
-            For
-            <select
-              id={ids.length}
-              value={minutes}
-              onChange={(event) => setMinutes(Number(event.target.value))}
-              className={SELECT}
-            >
-              {LENGTHS.map((length) => (
-                <option key={length.minutes} value={length.minutes}>
-                  {length.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label htmlFor={ids.start} className='grid gap-1 text-sm font-medium'>
-            Between
-            <Input
-              id={ids.start}
-              type='time'
-              value={dayStart}
-              onChange={(event) => setDayStart(event.target.value)}
-              required
-            />
-          </label>
-          <label htmlFor={ids.end} className='grid gap-1 text-sm font-medium'>
-            And
-            <Input id={ids.end} type='time' value={dayEnd} onChange={(event) => setDayEnd(event.target.value)} required />
-          </label>
           <Button type='submit' disabled={busy}>
             {busy ? 'Looking…' : 'Find free times'}
           </Button>
@@ -519,9 +622,20 @@ function FindATime({ nameOf }: { nameOf: NameOf }): ReactNode {
         <Problem problem={problem} />
       </form>
       {unread.length > 0 && (
-        <p className='text-sm text-muted-foreground'>
-          Not counted: {unread.map((person) => nameOf(person.user_id)).join(', ')} (no calendar connected, or it did not
-          answer).
+        <p
+          role='note'
+          className='flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-sm'
+        >
+          <span aria-hidden='true' className='text-amber-500'>
+            ⚠
+          </span>
+          <span>
+            Not counted: {unread.map((person) => nameOf(person.user_id)).join(', ')} (no calendar connected, or it did not
+            answer), so those busy times are not ruled out.
+          </span>
+          <a href='#your-calendars' className='font-medium underline underline-offset-4'>
+            Connect a calendar
+          </a>
         </p>
       )}
       {found?.slots.length === 0 && (
@@ -533,38 +647,64 @@ function FindATime({ nameOf }: { nameOf: NameOf }): ReactNode {
         </p>
       )}
       {(found?.slots ?? []).length > 0 && (
-        <ul aria-label='Free times' className='grid gap-2'>
-          {(found?.slots ?? []).map((slot) => (
-            <li key={slot.start} className='grid gap-2'>
-              <div className='flex flex-wrap items-center justify-between gap-2'>
-                <span>{slotLabel(slot)}</span>
-                <Button
-                  type='button'
-                  size='sm'
-                  variant='outline'
-                  onClick={() => setChosen(slot)}
-                  aria-label={`Book ${slotLabel(slot)}`}
-                >
-                  Book
-                </Button>
-              </div>
-              {chosen?.start === slot.start && (
-                <BookSlot
-                  slot={slot}
-                  people={who}
-                  nameOf={nameOf}
-                  onBooked={(result) => {
-                    setChosen(null);
-                    setBooked(bookedMessage(result, me, nameOf));
-                  }}
-                />
-              )}
+        <ul aria-label='Free times' className='grid gap-3 sm:grid-cols-2 lg:grid-cols-3'>
+          {byDay(found?.slots ?? []).map(([day, slots]) => (
+            <li key={day} className='grid content-start gap-2 rounded-lg border p-3'>
+              <span className='text-sm font-semibold'>{day}</span>
+              <ul className='flex flex-wrap gap-1.5 sm:grid'>
+                {slots.map((slot) => (
+                  <li key={slot.start} className='sm:grid'>
+                    <button
+                      type='button'
+                      onClick={() => setChosen(slot)}
+                      aria-label={`Book ${slotLabel(slot)}`}
+                      aria-pressed={chosen?.start === slot.start}
+                      className='flex items-center justify-between gap-3 rounded-md border bg-muted/20 px-3 py-1.5 text-sm tabular-nums hover:border-primary/60 aria-pressed:border-primary aria-pressed:bg-primary/10 sm:w-full'
+                    >
+                      {timeOf(slot.start)} – {timeOf(slot.end)}
+                      <span className='hidden text-xs text-primary sm:inline'>Book</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </li>
           ))}
         </ul>
       )}
+      {/* Booking a slot opens over the results (a bottom sheet on a phone), not squeezed into its day. */}
+      <Dialog open={chosen !== null} onOpenChange={(open) => !open && setChosen(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Book {chosen === null ? '' : slotLabel(chosen)}</DialogTitle>
+            <DialogDescription>Name it, and add where if you know.</DialogDescription>
+          </DialogHeader>
+          {chosen !== null && (
+            <BookSlot
+              slot={chosen}
+              people={who}
+              nameOf={nameOf}
+              onBooked={(result) => {
+                setChosen(null);
+                setBooked(bookedMessage(result, me, nameOf));
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
+}
+
+/** A slot's clock time in the user's own zone ("19:30"). */
+
+/** Free slots grouped under their day ("Fri 7 Nov"), in order. */
+function byDay(slots: readonly FreeSlot[]): [string, FreeSlot[]][] {
+  const days = new Map<string, FreeSlot[]>();
+  for (const slot of slots) {
+    const day = new Date(slot.start).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    days.set(day, [...(days.get(day) ?? []), slot]);
+  }
+  return [...days.entries()];
 }
 
 export interface AvailabilityPageProps {
@@ -588,7 +728,7 @@ export function AvailabilityPage({
   return (
     <div className='grid gap-6'>
       <div className='grid gap-1'>
-        <h1 className='text-3xl font-semibold'>Shared availability</h1>
+        <h1 className='text-2xl font-semibold tracking-tight text-balance sm:text-3xl'>Shared availability</h1>
         <p className='text-muted-foreground'>
           When everyone is free, and a date booked into all your calendars. Only busy times are shared, never what they are.
         </p>
@@ -600,24 +740,27 @@ export function AvailabilityPage({
         </CardHeader>
         <CardContent>{wrapFind(<FindATime nameOf={nameOf} />)}</CardContent>
       </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Your calendars</CardTitle>
-          <CardDescription>Where your busy times come from, and where dates are booked.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <YourCalendars accountPage={accountPage} />
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Who sees when you are busy</CardTitle>
-          <CardDescription>They see busy or free, never what you are doing.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ShareAvailability people={people} nameOf={nameOf} />
-        </CardContent>
-      </Card>
+      {/* The setup, side by side on a wide screen: where busy times come from, and who sees them. */}
+      <div className='grid items-start gap-6 xl:grid-cols-2'>
+        <Card id='your-calendars' className='scroll-mt-6'>
+          <CardHeader>
+            <CardTitle>Your calendars</CardTitle>
+            <CardDescription>Where your busy times come from, and where dates are booked.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <YourCalendars accountPage={accountPage} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Who sees when you are busy</CardTitle>
+            <CardDescription>They see busy or free, never what you are doing.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ShareAvailability people={people} nameOf={nameOf} />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

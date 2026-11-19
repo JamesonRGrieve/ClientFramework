@@ -38,7 +38,7 @@ describe('the health record types', () => {
       { id: 'c1', checked_at: '2026-01-01T21:00:00', mood: 4, about: 'Alex', notes: null },
       { id: 'c2', checked_at: '2026-01-02T21:00:00', mood: 2, about: null, notes: null },
     ];
-    expect(checkIns.map(checkInType.describe)).toEqual(['Mood 4 of 5, about Alex', 'Mood 2 of 5']);
+    expect(checkIns.map(checkInType.describe)).toEqual(['Good about Alex', 'Low']);
   });
 
   it('gives every field a place in its form', () => {

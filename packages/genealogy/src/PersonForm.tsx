@@ -5,6 +5,8 @@ import { Button } from '@jgrieve/forms/components/ui/button';
 import { Input } from '@jgrieve/forms/components/ui/input';
 import { Label } from '@jgrieve/forms/components/ui/label';
 import { type ReactElement, type SyntheticEvent, useId, useState } from 'react';
+import { ChoiceChip } from 'zephyrex/ui/choice-chip';
+import { Textarea } from 'zephyrex/ui/textarea';
 import type { Person, PersonFields } from './genealogyApi';
 import { dateField, dateInput } from './people';
 import { useGenealogyOptions } from './OptionsProvider';
@@ -101,11 +103,12 @@ export function PersonForm({
 
   return (
     <form className='grid gap-3' onSubmit={submit}>
-      <div className='grid gap-1'>
-        <Label htmlFor={ids.name}>Name</Label>
-        <Input id={ids.name} value={name} onChange={(event) => setName(event.target.value)} />
-      </div>
+      {/* Name and dates share a row: a name rarely needs more than half the card. */}
       <div className={options.lineage ? 'grid grid-cols-1 gap-3 sm:grid-cols-3' : 'grid grid-cols-1 gap-3 sm:grid-cols-2'}>
+        <div className='grid gap-1'>
+          <Label htmlFor={ids.name}>Name</Label>
+          <Input id={ids.name} value={name} onChange={(event) => setName(event.target.value)} />
+        </div>
         <div className='grid gap-1'>
           <Label htmlFor={ids.birth}>{options.lineage ? 'Born' : 'Birthday'}</Label>
           <Input id={ids.birth} type='date' value={birth} onChange={(event) => setBirth(event.target.value)} />
@@ -116,22 +119,22 @@ export function PersonForm({
             <Input id={ids.death} type='date' value={death} onChange={(event) => setDeath(event.target.value)} />
           </div>
         )}
-        <div className='grid gap-1'>
-          <Label htmlFor={ids.gender}>Gender</Label>
-          <select
-            id={ids.gender}
-            value={gender}
-            onChange={(event) => setGender(event.target.value)}
-            className='h-9 rounded-md border bg-background px-3 text-sm'
-          >
-            <option value=''>Not recorded</option>
-            {GENDERS.map((choice) => (
-              <option key={choice.value} value={choice.value}>
+        <div className='col-span-full grid gap-1'>
+          <span id={ids.gender} className='text-sm font-medium'>
+            Gender
+          </span>
+          <div role='radiogroup' aria-labelledby={ids.gender} className='flex flex-wrap gap-1.5'>
+            {[{ value: '', label: 'Not recorded' }, ...GENDERS, { value: OTHER, label: 'Other' }].map((choice) => (
+              <ChoiceChip
+                key={choice.value}
+                checked={gender === choice.value}
+                onClick={() => setGender(choice.value)}
+                className='rounded-full border px-3 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted aria-checked:border-primary aria-checked:bg-primary/10 aria-checked:text-foreground'
+              >
                 {choice.label}
-              </option>
+              </ChoiceChip>
             ))}
-            <option value={OTHER}>Other</option>
-          </select>
+          </div>
         </div>
         {gender === OTHER && (
           <div className='grid gap-1'>
@@ -140,9 +143,16 @@ export function PersonForm({
           </div>
         )}
       </div>
-      <div className='grid gap-1'>
+      <div className='col-span-full grid gap-1'>
         <Label htmlFor={ids.description}>Notes</Label>
-        <Input id={ids.description} value={description} onChange={(event) => setDescription(event.target.value)} />
+        <Textarea
+          id={ids.description}
+          rows={3}
+          className='min-h-20 resize-y'
+          placeholder='Allergies, how you met, anything worth remembering'
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+        />
       </div>
       {problem !== null && (
         <p role='alert' className='text-sm text-destructive'>

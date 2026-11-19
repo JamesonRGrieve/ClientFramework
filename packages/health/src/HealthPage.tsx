@@ -48,7 +48,7 @@ export function HealthPage(): ReactElement {
 
   return (
     <main className='mx-auto flex w-full max-w-4xl flex-col gap-6 p-4 md:p-10'>
-      <h1 className='text-3xl font-semibold'>Health</h1>
+      <h1 className='text-2xl font-semibold tracking-tight text-balance sm:text-3xl'>Health</h1>
       <div className='grid gap-4 sm:grid-cols-2'>
         <Figure
           title='Activity'

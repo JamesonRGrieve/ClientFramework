@@ -11,8 +11,8 @@ import { PeopleList } from './PeopleList';
 export function GenealogyPage(): ReactElement {
   const options = useGenealogyOptions();
   return (
-    <main className='mx-auto flex w-full max-w-4xl flex-col gap-6'>
-      <h1 className='text-3xl font-semibold'>{options.tree}</h1>
+    <main className='mx-auto flex w-full max-w-5xl flex-col gap-6 2xl:max-w-none'>
+      <h1 className='text-2xl font-semibold tracking-tight text-balance sm:text-3xl'>{options.tree}</h1>
       <PeopleList />
       {options.lineage && <KinshipLookup />}
       {options.gedcom && <GedcomTransfer />}

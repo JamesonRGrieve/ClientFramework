@@ -14,18 +14,19 @@ describe('PeopleList', () => {
 
   it('lists everyone by name with their years, each linking to their page', async () => {
     const view = renderGenealogy(<PeopleList />);
-    const list = await view.findByRole('list', { name: 'People' });
-    const links = within(list).getAllByRole('link');
-    expect(links.map((link) => link.textContent)).toEqual([
-      'Ada Lovelace1815–1852',
-      'Anne Blunt1837–1917',
-      'Anne Isabella Milbanke1792–1860',
-      'Byron King-Noel1836–1862',
-      'George Gordon Byron1788–1824',
-      'Ralph King-Milbanke1839–1906',
-      'William King1805–1893',
+    const table = await view.findByRole('table', { name: 'People' });
+    const rows = within(table).getAllByRole('row').slice(1);
+    expect(rows.map((row) => row.querySelector('a .truncate')?.textContent)).toEqual([
+      'Ada Lovelace',
+      'Anne Blunt',
+      'Anne Isabella Milbanke',
+      'Byron King-Noel',
+      'George Gordon Byron',
+      'Ralph King-Milbanke',
+      'William King',
     ]);
-    expect(within(list).getByRole('link', { name: /Ada Lovelace/ })).toHaveAttribute('href', '/genealogy/ada');
+    expect(rows[0]).toHaveTextContent('1815–1852');
+    expect(within(table).getByRole('link', { name: /Ada Lovelace/ })).toHaveAttribute('href', '/genealogy/ada');
   });
 
   it('adds a person to the tree, then opens them to record how they are connected', async () => {
@@ -34,10 +35,10 @@ describe('PeopleList', () => {
     vi.mocked(useRouter).mockReturnValue({ ...vi.mocked(useRouter)(), push });
     const user = userEvent.setup();
     const view = renderGenealogy(<PeopleList />, store);
-    await view.findByRole('list', { name: 'People' });
-    await user.click(view.getByText('Add a person'));
-    await user.type(view.getByLabelText('Name'), 'Medora Leigh');
+    await view.findByRole('table', { name: 'People' });
     await user.click(view.getByRole('button', { name: 'Add person' }));
+    await user.type(view.getByLabelText('Name'), 'Medora Leigh');
+    await user.click(within(view.getByRole('dialog')).getByRole('button', { name: 'Add person' }));
     expect(await view.findByRole('link', { name: /Medora Leigh/ })).toBeInTheDocument();
     expect(store.persons.at(-1)?.name).toBe('Medora Leigh');
     expect(push).toHaveBeenCalledWith(`/genealogy/${store.persons.at(-1)?.id ?? ''}`);
@@ -45,6 +46,6 @@ describe('PeopleList', () => {
 
   it('says when nobody is recorded yet', async () => {
     const view = renderGenealogy(<PeopleList />, { persons: [], relationships: [] });
-    expect(await view.findByText('Nobody is recorded yet.')).toBeInTheDocument();
+    expect(await view.findByText(/^Nobody is recorded yet\./)).toBeInTheDocument();
   });
 });

@@ -84,7 +84,7 @@ export function Account({
       <CardContent>
         <form
           aria-label='Change password'
-          className='grid gap-4 md:max-w-md'
+          className='grid gap-4 md:grid-cols-2'
           onSubmit={(event: SyntheticEvent<HTMLFormElement>) => {
             event.preventDefault();
             void submit(event.currentTarget);
@@ -96,6 +96,7 @@ export function Account({
             label='Current password'
             {...fieldAria(PASSWORD_FIELDS.current)}
           />
+          <span aria-hidden='true' className='hidden md:block' />
           <PasswordField
             id={PASSWORD_FIELDS.next}
             name={PASSWORD_FIELDS.next}
@@ -109,9 +110,6 @@ export function Account({
             }}
             {...fieldAria(PASSWORD_FIELDS.next)}
           />
-          {passwordPolicy !== undefined && (
-            <PasswordRules id={RULES_ID} policy={passwordPolicy} password={newPassword} refused={refused} />
-          )}
           <PasswordField
             id={PASSWORD_FIELDS.again}
             name={PASSWORD_FIELDS.again}
@@ -120,14 +118,23 @@ export function Account({
             placeholder='Enter the new password again'
             {...fieldAria(PASSWORD_FIELDS.again)}
           />
-          <Button type='submit' disabled={pending}>
+          {passwordPolicy !== undefined && (
+            <div className='md:col-span-full sm:[&_ul]:grid-cols-2 sm:[&_ul]:gap-x-6'>
+              <PasswordRules id={RULES_ID} policy={passwordPolicy} password={newPassword} refused={refused} />
+            </div>
+          )}
+          <Button type='submit' disabled={pending} className='md:col-start-1'>
             Change password
           </Button>
           {status !== null && (
             <p
               id={STATUS_ID}
               role={status.failed ? 'alert' : 'status'}
-              className={status.failed ? 'text-sm text-destructive' : 'text-sm text-muted-foreground'}
+              className={
+                status.failed
+                  ? 'text-sm text-destructive md:col-span-full'
+                  : 'text-sm text-muted-foreground md:col-span-full'
+              }
             >
               {status.message}
             </p>

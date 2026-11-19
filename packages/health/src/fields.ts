@@ -20,7 +20,17 @@ interface FieldBase<T> {
 export type FieldSpec<T> = FieldBase<T> &
   (
     | { readonly input: 'datetime' }
-    | { readonly input: 'number'; readonly min: number; readonly max: number; readonly step?: number }
+    | {
+        readonly input: 'number';
+        readonly min: number;
+        readonly max: number;
+        readonly step?: number;
+        /**
+         * One word per whole value from `min` to `max` (a mood from 1 to 5): the form shows them as a
+         * scale to tap rather than a box to type a number into.
+         */
+        readonly labels?: readonly string[];
+      }
     | { readonly input: 'text'; readonly maxLength: number; readonly multiline?: boolean }
     | { readonly input: 'choice'; readonly choices: readonly string[] }
   );

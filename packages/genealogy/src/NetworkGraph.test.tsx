@@ -30,7 +30,11 @@ describe('NetworkGraph', () => {
       </TestWrapper>,
     );
     const nodes = view.container.querySelectorAll('.genealogy-node');
-    expect([...nodes].map((node) => node.textContent)).toEqual(['Ana', 'Ben', 'Fay']);
+    expect([...nodes].map((node) => node.querySelector('.genealogy-node__label')?.textContent)).toEqual([
+      'Ana',
+      'Ben',
+      'Fay',
+    ]);
     expect(view.container.querySelector('.genealogy-node--focus')).toHaveTextContent('Ana');
     // The canvas is a picture of the lists beside it; the legend names the kinds drawn.
     expect(view.container.querySelector('.genealogy-network__canvas')).toHaveAttribute('aria-hidden', 'true');

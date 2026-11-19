@@ -48,9 +48,9 @@ describe('AgreementsPage', () => {
     await user.click(view.getByRole('button', { name: 'Start the agreement' }));
     expect(await view.findByRole('heading', { name: 'Us', level: 2 })).toBeInTheDocument();
     expect(store.agreements[0]?.parties.map((p) => p.user_id)).toEqual(['user-me', ALEX_ID]);
-    await vi.waitFor(() => {
-      expect(view.getByLabelText('What to call it')).toHaveValue('');
-    });
+    // With one agreement made, the start form moves behind a button that opens it in a dialog.
+    expect(view.queryByLabelText('What to call it')).toBeNull();
+    expect(view.getByRole('button', { name: 'Start an agreement' })).toBeInTheDocument();
   });
 
   it('asks everyone to confirm again after a term changes', async () => {
@@ -89,8 +89,7 @@ describe('AgreementsPage', () => {
     const view = renderAgreements(createElement(AgreementsPage, { people: PEOPLE, kinds: HOUSE_KINDS }), store);
     const toggles = await view.findAllByRole('button', { name: 'Date and people' });
     await user.click(nth(toggles, 1));
-    await user.selectOptions(view.getByLabelText('Add someone'), 'Sam');
-    await user.click(view.getByRole('button', { name: 'Add them' }));
+    await user.click(view.getByRole('button', { name: 'Add Sam' }));
     await vi.waitFor(() => {
       expect(store.agreements[0]?.parties.map((p) => p.user_id)).toContain(SAM_ID);
     });
@@ -116,6 +115,6 @@ describe('AgreementsPage', () => {
     );
     expect(await view.findByText('Upgrade to start one')).toBeInTheDocument();
     expect(view.queryByRole('button', { name: 'Start the agreement' })).not.toBeInTheDocument();
-    expect(await view.findByText('No agreements yet.')).toBeInTheDocument();
+    expect(await view.findByText('Start your first agreement')).toBeInTheDocument();
   });
 });

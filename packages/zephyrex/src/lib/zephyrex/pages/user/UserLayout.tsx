@@ -43,7 +43,9 @@ export function UserLayout({ children }: { children: ReactNode }): ReactNode {
           {config.app.name}
         </Link>
       </header>
-      <div className='flex w-full flex-1 flex-col items-center justify-center'>{children}</div>
+      <div className='flex w-full flex-1 flex-col items-center justify-start px-4 pt-8 pb-8 sm:justify-center sm:px-0 sm:pt-0'>
+        {children}
+      </div>
     </SidebarInset>
   );
 }

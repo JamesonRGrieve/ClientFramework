@@ -11,6 +11,7 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -19,12 +20,31 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
-import { useSelectedTeam } from '@/lib/zephyrex/hooks';
+import { useNotifications, useSelectedTeam } from '@/lib/zephyrex/hooks';
+import { NOTIFICATIONS_URL } from '@/lib/zephyrex/extensions/auth_notifications';
 import { toNavMenuItems } from '@/lib/zephyrex/navigation';
 import { useZephyrexConfig } from '@/lib/zephyrex/ZephyrexProvider';
 
 type Item = NavItem;
 type SubItem = NonNullable<Item['items']>[number];
+
+/** The most unread notifications the count shows before it says "9+" (as the bell does). */
+const UNREAD_MAX = 9;
+
+/** How many notifications are unread, beside the inbox's link; nothing when none are. */
+function UnreadCount(): React.JSX.Element | null {
+  const { data } = useNotifications();
+  const unread = data?.filter((notification) => !notification.read).length ?? 0;
+  if (unread === 0) {
+    return null;
+  }
+  return (
+    <SidebarMenuBadge className='bg-primary text-primary-foreground peer-hover/menu-button:text-primary-foreground peer-data-[active=true]/menu-button:text-primary-foreground'>
+      {unread > UNREAD_MAX ? `${String(UNREAD_MAX)}+` : unread}
+      <span className='sr-only'> unread</span>
+    </SidebarMenuBadge>
+  );
+}
 
 /**
  * A top-level entry with no children: a link, so it can be opened in a new tab, middle-clicked or
@@ -34,12 +54,18 @@ function NavLink({ item, active }: { item: Item; active: boolean }): React.JSX.E
   const ItemIcon = item.icon;
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild side='left' tooltip={item.title} className={cn(active && 'bg-muted')}>
+      <SidebarMenuButton
+        asChild
+        side='left'
+        tooltip={item.title}
+        className={cn(active && 'bg-muted font-medium text-foreground [&>svg]:text-primary')}
+      >
         <Link href={item.url ?? '/'} aria-current={active ? 'page' : undefined}>
           {ItemIcon !== undefined && <ItemIcon />}
           <span>{item.title}</span>
         </Link>
       </SidebarMenuButton>
+      {item.url === NOTIFICATIONS_URL && <UnreadCount />}
     </SidebarMenuItem>
   );
 }
@@ -61,6 +87,16 @@ export function NavMain(): React.JSX.Element {
   }));
 
   const topItems = itemsWithActiveState.filter((i) => i.title !== 'Documentation');
+  // Each entry's heading, by title (the menu items themselves carry no group).
+  const groupOf = new Map(contributedNavItems.map((definition) => [definition.title, definition.group]));
+  // The visible items that start a new group, so the group's heading goes above them.
+  const groupStarts = new Set<string>();
+  let previousGroup: string | undefined;
+  for (const item of topItems) {
+    const group = item.visible === false ? undefined : groupOf.get(item.title);
+    if (group !== undefined && group !== previousGroup) {groupStarts.add(item.title);}
+    if (group !== undefined) {previousGroup = group;}
+  }
   const bottomItems = itemsWithActiveState.filter((i) => i.title === 'Documentation');
 
   const sidebarItemClickHanlder = (isOpen: boolean, item: Item): void => {
@@ -87,10 +123,21 @@ export function NavMain(): React.JSX.Element {
             }
             const ItemIcon = item.icon;
             const hasChildren = item.items !== undefined && item.items.length > 0;
+            const group = groupOf.get(item.title);
+            const heading =
+              group !== undefined && groupStarts.has(item.title) ? (
+                <li
+                  key={`group-${group}`}
+                  className='px-2 pt-4 pb-1 text-[0.7rem] font-semibold uppercase tracking-wide text-muted-foreground first:pt-1 group-data-[collapsible=icon]:hidden'
+                >
+                  {group}
+                </li>
+              ) : null;
             if (!hasChildren && item.url !== undefined && item.url !== '') {
-              return <NavLink key={item.title} item={item} active={item.isActive} />;
+              return [heading, <NavLink key={item.title} item={item} active={item.isActive} />];
             }
-            return (
+            return [
+              heading,
               <Collapsible key={item.title} asChild defaultOpen={item.isActive} className='group/collapsible'>
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
@@ -147,8 +194,8 @@ export function NavMain(): React.JSX.Element {
                     </SidebarMenuSub>
                   </CollapsibleContent>
                 </SidebarMenuItem>
-              </Collapsible>
-            );
+              </Collapsible>,
+            ];
           })}
         </SidebarMenu>
       </div>

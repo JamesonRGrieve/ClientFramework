@@ -62,8 +62,10 @@ describe('PersonCard', () => {
     expect(within(allergies).queryByRole('form')).toBeNull();
     await user.click(within(allergies).getByRole('button', { name: '+ Add to allergies' }));
     const form = within(allergies).getByRole('form', { name: 'Add to Allergies' });
-    expect(within(form).getByLabelText('Field')).toHaveValue('medical');
-    await user.selectOptions(within(form).getByLabelText('Field'), 'medical');
+    // The field chips open on the first field not yet filled.
+    expect(
+      within(within(form).getByRole('group', { name: 'Field' })).getByRole('button', { name: 'Medical' }),
+    ).toHaveAttribute('aria-pressed', 'true');
     await user.type(within(form).getByLabelText('Value'), 'penicillin');
     await user.click(within(form).getByRole('button', { name: 'Add' }));
     expect(await within(allergies).findByText('penicillin')).toBeInTheDocument();
@@ -90,16 +92,21 @@ describe('PersonCard', () => {
       { name: 'personality', title: 'Personality', fields: [{ label: 'MBTI', units: [], choices: ['INFJ', 'ENFP'] }] },
     ];
     const view = renderGenealogy(<PersonCard personId='ben' sections={sections} />, store);
+    // An empty section waits in the "Add to the card" row until it is chosen.
+    await user.click(
+      within(await view.findByRole('group', { name: 'Add to the card' })).getByRole('button', { name: /Personality/ }),
+    );
     const personality = await view.findByRole('region', { name: 'Personality' });
-    const value = within(personality).getByLabelText('Value');
-    expect(value.tagName).toBe('SELECT');
-    await user.selectOptions(value, 'INFJ');
+    // Short codes are a grid to pick from.
+    await user.click(
+      within(within(personality).getByRole('radiogroup', { name: 'MBTI' })).getByRole('radio', { name: 'INFJ' }),
+    );
     await user.click(within(personality).getByRole('button', { name: 'Add' }));
     expect(await within(personality).findByRole('listitem')).toHaveTextContent('INFJ');
     await user.click(within(personality).getByRole('button', { name: 'Edit MBTI' }));
-    const editing = within(personality).getByLabelText('MBTI');
-    expect(editing.tagName).toBe('SELECT');
-    await user.selectOptions(editing, 'ENFP');
+    const editing = within(within(personality).getByRole('listitem')).getByRole('radiogroup', { name: 'MBTI' });
+    expect(within(editing).getByRole('radio', { name: 'INFJ' })).toHaveAttribute('aria-checked', 'true');
+    await user.click(within(editing).getByRole('radio', { name: 'ENFP' }));
     await user.click(within(personality).getByRole('button', { name: 'Save' }));
     await vi.waitFor(() => {
       expect(within(personality).getByRole('listitem')).toHaveTextContent('ENFP');
@@ -128,12 +135,16 @@ describe('PersonCard', () => {
       },
     ];
     const view = renderGenealogy(<PersonCard personId='ben' sections={sections} />, store);
+    // An empty section waits in the "Add to the card" row until it is chosen.
+    await user.click(
+      within(await view.findByRole('group', { name: 'Add to the card' })).getByRole('button', { name: /Personality/ }),
+    );
     const personality = await view.findByRole('region', { name: 'Personality' });
     const mind = within(personality).getByRole('group', { name: 'Extraversion or Introversion' });
     const energy = within(personality).getByRole('group', { name: 'Sensing or Intuition' });
-    await user.selectOptions(within(mind).getByRole('combobox'), 'I');
+    await user.click(within(mind).getByRole('button', { name: /Introversion/ }));
     await user.type(within(mind).getByRole('spinbutton'), '62');
-    await user.selectOptions(within(energy).getByRole('combobox'), 'N');
+    await user.click(within(energy).getByRole('button', { name: /Intuition/ }));
     await user.click(within(personality).getByRole('button', { name: 'Add' }));
     expect(await within(personality).findByRole('listitem')).toHaveTextContent('IN (I 62%)');
     expect(store.attributes?.at(-1)).toMatchObject({ label: 'MBTI', value: 'IN (I 62%)' });
@@ -142,7 +153,7 @@ describe('PersonCard', () => {
     const editMind = within(within(personality).getByRole('listitem')).getByRole('group', {
       name: 'Extraversion or Introversion',
     });
-    expect(within(editMind).getByRole('combobox')).toHaveValue('I');
+    expect(within(editMind).getByRole('button', { name: /Introversion/ })).toHaveAttribute('aria-pressed', 'true');
     expect(within(editMind).getByRole('spinbutton')).toHaveValue(62);
     await user.clear(within(editMind).getByRole('spinbutton'));
     await user.type(within(editMind).getByRole('spinbutton'), '30');

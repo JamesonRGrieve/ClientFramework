@@ -27,9 +27,8 @@ describe('MeetInTheMiddle', () => {
     const store = mapsFixture();
     const user = userEvent.setup();
     const view = renderMaps(<MeetInTheMiddle known={KNOWN} />, store);
-    const pick = view.getByLabelText(PICK);
-    await user.selectOptions(pick, ALEX);
-    await user.selectOptions(view.getByLabelText(PICK), SAM);
+    await user.click(within(view.getByRole('group', { name: PICK })).getByRole('button', { name: ALEX }));
+    await user.click(within(view.getByRole('group', { name: PICK })).getByRole('button', { name: SAM }));
     expect(view.queryByLabelText(PICK)).toBeNull();
     await user.click(view.getByRole('button', FIND));
     const there = await view.findByRole('list', THERE);
@@ -53,9 +52,11 @@ describe('MeetInTheMiddle', () => {
     await user.type(view.getByLabelText(TYPE), 'Edmonton{Enter}');
     await user.type(view.getByLabelText(TYPE), 'Calgary');
     await user.click(view.getByRole('button', { name: 'Add' }));
-    await user.selectOptions(view.getByLabelText('Travelling'), 'Walking');
-    await view.findByRole('option', { name: 'Cafés' });
-    await user.selectOptions(view.getByLabelText('Places to meet'), 'Just the middle');
+    await user.click(within(view.getByRole('radiogroup', { name: 'Travelling' })).getByRole('radio', { name: 'Walking' }));
+    await view.findByRole('radio', { name: 'Cafés' });
+    await user.click(
+      within(view.getByRole('radiogroup', { name: 'Places to meet' })).getByRole('radio', { name: 'Just the middle' }),
+    );
     await user.click(view.getByRole('button', FIND));
     expect(await view.findByRole('list', THERE)).toHaveTextContent('20 min on foot');
     expect(view.queryByRole('list', PLACES)).toBeNull();
@@ -66,7 +67,7 @@ describe('MeetInTheMiddle', () => {
   it('removes a place', async () => {
     const user = userEvent.setup();
     const view = renderMaps(<MeetInTheMiddle known={KNOWN} />);
-    await user.selectOptions(view.getByLabelText(PICK), ALEX);
+    await user.click(within(view.getByRole('group', { name: PICK })).getByRole('button', { name: ALEX }));
     await user.click(view.getByRole('button', { name: 'Remove Alex’s place' }));
     expect(view.getByText('Add at least two places.')).toBeInTheDocument();
   });
@@ -74,8 +75,8 @@ describe('MeetInTheMiddle', () => {
   it('says when nothing of that kind is near the middle', async () => {
     const user = userEvent.setup();
     const view = renderMaps(<MeetInTheMiddle known={KNOWN} />, { ...mapsFixture(), places: [] });
-    await user.selectOptions(view.getByLabelText(PICK), ALEX);
-    await user.selectOptions(view.getByLabelText(PICK), SAM);
+    await user.click(within(view.getByRole('group', { name: PICK })).getByRole('button', { name: ALEX }));
+    await user.click(within(view.getByRole('group', { name: PICK })).getByRole('button', { name: SAM }));
     await user.click(view.getByRole('button', FIND));
     expect(await view.findByText('Nothing of that kind is on the map near the middle.')).toBeInTheDocument();
   });
@@ -83,8 +84,8 @@ describe('MeetInTheMiddle', () => {
   it('says when no route reaches the middle', async () => {
     const user = userEvent.setup();
     const view = renderMaps(<MeetInTheMiddle known={KNOWN} />, { ...mapsFixture(), routed: false });
-    await user.selectOptions(view.getByLabelText(PICK), ALEX);
-    await user.selectOptions(view.getByLabelText(PICK), SAM);
+    await user.click(within(view.getByRole('group', { name: PICK })).getByRole('button', { name: ALEX }));
+    await user.click(within(view.getByRole('group', { name: PICK })).getByRole('button', { name: SAM }));
     await user.click(view.getByRole('button', FIND));
     expect(await view.findByRole('list', THERE)).toHaveTextContent('No route found; 140.0 km in a straight line');
     expect(view.queryByText(/The longest journey/)).toBeNull();

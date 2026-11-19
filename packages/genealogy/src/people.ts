@@ -43,3 +43,25 @@ export function generationTitle(generation: number, direction: 'ancestors' | 'de
   const prefix = greats === 0 ? 'Grand' : greats === 1 ? 'Great-grand' : `${greats}× great-grand`;
   return `${prefix}${many}`;
 }
+
+/** A person's initials, for their avatar: the first letters of their first and last names. */
+export function personInitials(person: Pick<Person, 'name'> | undefined): string {
+  const words = personName(person)
+    .split(/\s+/u)
+    .filter((word) => word !== '');
+  const first = words[0]?.charAt(0) ?? '?';
+  const last = words.length > 1 ? (words.at(-1)?.charAt(0) ?? '') : '';
+  return `${first}${last}`.toUpperCase();
+}
+
+const HUES = 360;
+const HUE_SEED = 31;
+
+/** A stable colour for someone, so they look the same on every page: a hue from their id. */
+export function personHue(person: Pick<Person, 'id'>): number {
+  let hash = 0;
+  for (const char of person.id) {
+    hash = (hash * HUE_SEED + (char.codePointAt(0) ?? 0)) % HUES;
+  }
+  return hash;
+}

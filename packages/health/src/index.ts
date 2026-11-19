@@ -4,6 +4,7 @@
 export { healthExtension } from './extension';
 export { HealthPage } from './HealthPage';
 export { RecordsPage } from './RecordsPage';
+export { RecordsPanel } from './RecordsPanel';
 export { HEALTH_PATH, recordsPath } from './routes';
 export { createRecord, useRecordActions, useRecords } from './healthApi';
 export type { RecordActions } from './healthApi';

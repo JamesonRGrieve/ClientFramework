@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { render, screen } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NavMain } from './NavMain';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { TestWrapper } from '@/testing/TestWrapper';
 import type { NavItemDefinition } from '@/lib/zephyrex/types';
+import { fetchFrom } from '@/testing/msw';
 
 const HTTP_UNAUTHORIZED = 401;
 
@@ -45,5 +47,42 @@ describe('NavMain', () => {
     ]);
     expect(screen.getByRole('link', { name: 'Reports' })).toHaveAttribute('href', '/reports');
     expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
+  });
+
+  it('counts unread notifications beside the inbox link, and shows nothing when all are read', async () => {
+    const now = '2026-11-17T00:00:00Z';
+    const notes = ['n1', 'n2', 'n3'].map((id) => ({ id, title: id, content: '', reference_type: null, reference_id: null, created_at: now }));
+    const serve = (read: boolean[]): void => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(
+          fetchFrom([
+            http.get('*/v1/notifications', () => HttpResponse.json({ notifications: notes })),
+            http.get('*/v1/user-notifications', () =>
+              HttpResponse.json({
+                user_notifications: notes.map((note, at) => ({ id: `d${note.id}`, notification_id: note.id, read: read[at], acknowledged: false })),
+              }),
+            ),
+          ]),
+        ),
+      );
+    };
+    serve([false, false, true]);
+    const view = renderNav([{ title: 'Notifications', url: '/notifications' }, { title: 'Reports', url: '/reports' }]);
+    expect(await view.findByText('2')).toBeInTheDocument();
+    expect(view.getByText('unread')).toHaveClass('sr-only');
+    view.unmount();
+    vi.unstubAllGlobals();
+    serve([true, true, true]);
+    const quiet = renderNav([{ title: 'Notifications', url: '/notifications' }]);
+    // Wait until the inbox has actually been fetched, so "nothing shown" is the answer, not the wait.
+    await vi.waitFor(() => {
+      const urls = vi.mocked(fetch).mock.calls.map(([input]) => String(input instanceof Request ? input.url : input));
+      expect(urls.some((url) => url.includes('/v1/user-notifications'))).toBe(true);
+    });
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 0);
+    });
+    expect(quiet.queryByText('unread')).not.toBeInTheDocument();
   });
 });

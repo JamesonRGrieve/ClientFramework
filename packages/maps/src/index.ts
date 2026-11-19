@@ -4,6 +4,7 @@
 export { mapsExtension } from './extension';
 export { findMidpoint, MAPS_ENDPOINT, useNearby, usePlaceCategories } from './mapsApi';
 export type { MidpointRequest } from './mapsApi';
+export { MeetMap, pointOf } from './MeetMap';
 export { distanceLabel, durationLabel, mapLink, MidpointSchema, MODES, PlaceSchema } from './mapsModel';
 export type { KnownPlace, Leg, Midpoint, Mode, Place, PlaceCategory } from './mapsModel';
 export { MeetInTheMiddle } from './MeetInTheMiddle';

@@ -16,7 +16,7 @@ function Log<T extends HealthRow>({ type }: { type: RecordType<T> }): ReactEleme
         <Link href={HEALTH_PATH} className='text-sm text-muted-foreground underline'>
           Health
         </Link>
-        <h1 className='text-3xl font-semibold'>{type.plural}</h1>
+        <h1 className='text-2xl font-semibold tracking-tight text-balance sm:text-3xl'>{type.plural}</h1>
       </div>
       <Card>
         <CardHeader>

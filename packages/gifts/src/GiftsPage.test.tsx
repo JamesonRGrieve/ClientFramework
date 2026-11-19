@@ -28,15 +28,19 @@ describe('GiftsPage', () => {
     ).toHaveAttribute('href', `https://www.amazon.ca/dp/B01?tag=${TAG}`);
   });
 
-  it('starts on the first person the app knows, even when they arrive late', () => {
+  it('starts on the first person the app knows, even when they arrive late', async () => {
+    const user = userEvent.setup();
     const view = renderGifts(<GiftsPage people={[]} />, emptyGiftsStore());
-    expect(view.getByLabelText('For')).toHaveValue('');
+    await user.click(view.getByRole('button', { name: 'Add gift' }));
+    const forGroup = (): HTMLElement => view.getByRole('group', { name: 'For' });
+    // Nobody known yet: the gift is for someone typed.
+    expect(within(forGroup()).getByRole('button', { name: /Someone else/, pressed: true })).toBeInTheDocument();
     view.rerender(
       <TestWrapper>
         <GiftsPage people={PEOPLE} />
       </TestWrapper>,
     );
-    expect(view.getByLabelText('For')).toHaveValue('p-alex');
+    expect(within(forGroup()).getByRole('button', { name: /Alex/, pressed: true })).toBeInTheDocument();
     expect(view.queryByLabelText('Their name')).toBeNull();
   });
 
@@ -44,13 +48,15 @@ describe('GiftsPage', () => {
     const store = emptyGiftsStore();
     const user = userEvent.setup();
     const view = renderGifts(<GiftsPage people={PEOPLE} />, store);
-    await user.selectOptions(view.getByLabelText('For'), 'Sam');
+    await user.click(view.getByRole('button', { name: 'Add gift' }));
+    await user.click(within(view.getByRole('group', { name: 'For' })).getByRole('button', { name: /Sam/ }));
     await user.type(view.getByLabelText('Gift'), 'Concert tickets');
     await user.click(view.getByRole('button', { name: 'Add the gift' }));
     await vi.waitFor(() => {
       expect(store.gifts).toMatchObject([{ for_name: 'Sam', for_ref: 'p-sam', title: 'Concert tickets' }]);
     });
-    await user.selectOptions(view.getByLabelText('For'), 'Someone else…');
+    await user.click(await view.findByRole('button', { name: 'Add gift' }));
+    await user.click(within(view.getByRole('group', { name: 'For' })).getByRole('button', { name: /Someone else/ }));
     await user.type(view.getByLabelText('Their name'), 'Jordan');
     await user.type(view.getByLabelText('Gift'), 'A book');
     await user.click(view.getByRole('button', { name: 'Add the gift' }));
@@ -63,7 +69,9 @@ describe('GiftsPage', () => {
     const store = giftsFixture();
     const user = userEvent.setup();
     const view = renderGifts(<GiftsPage people={PEOPLE} />, store);
-    await user.selectOptions(await view.findByLabelText('Where A silk scarf is'), 'Bought');
+    await user.click(
+      within(await view.findByRole('radiogroup', { name: 'Where A silk scarf is' })).getByRole('radio', { name: 'Bought' }),
+    );
     await vi.waitFor(() => {
       expect(store.gifts[0]?.status).toBe('bought');
     });
@@ -79,12 +87,12 @@ describe('GiftsPage', () => {
     const view = renderGifts(<GiftsPage people={PEOPLE} ideas={IDEAS} />, store);
     const ideas = view.getByRole('list', { name: 'Ideas' });
     expect(ideas).toHaveTextContent('For Alex · Their favourite flower');
-    await user.click(within(ideas).getByRole('button', { name: 'Save Peonies' }));
+    await user.click(within(ideas).getByRole('button', { name: 'Save to list: Peonies' }));
     await vi.waitFor(() => {
       expect(store.gifts).toMatchObject([{ for_ref: 'p-alex', title: 'Peonies', note: 'Their favourite flower' }]);
     });
-    expect(within(ideas).getByText('Saved')).toBeInTheDocument();
-    await user.click(within(ideas).getByRole('button', { name: 'Find Peonies at the shop' }));
+    expect(within(ideas).getByText('Saved to your list')).toBeInTheDocument();
+    await user.click(within(ideas).getByRole('button', { name: 'Find it at the shop: Peonies' }));
     expect(await within(ideas).findByRole('link', { name: 'Search the shop for Peonies' })).toHaveAttribute(
       'href',
       `https://www.amazon.ca/s?k=Peonies&tag=${TAG}`,

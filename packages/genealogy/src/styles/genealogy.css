@@ -26,6 +26,11 @@
   --spacing-genealogy-legend-width: 1rem;
   --spacing-genealogy-legend-height: 0.1875rem;
   --spacing-genealogy-shadow-blur: 2px;
+  --spacing-genealogy-node-gap: 0.375rem;
+  --spacing-genealogy-avatar: 1.375rem;
+  --spacing-genealogy-avatar-text: 0.6rem;
+  --spacing-genealogy-avatar-ring: 1.5px;
+  --color-genealogy-avatar-foreground: #fff;
   --text-genealogy-node: 0.9375rem;
   --text-genealogy-label: 0.8125rem;
   --radius-genealogy-pill: 9999px;
@@ -50,9 +55,10 @@
   width: 100%;
 }
 
-/* A phone: the graph runs top to bottom, given most of the screen's height. */
+/* A phone: the graph runs top to bottom, as tall as its shape needs (set inline), up to most of a screen. */
 .genealogy-network__canvas--portrait {
-  height: clamp(var(--spacing-genealogy-portrait-min), 75vh, var(--spacing-genealogy-portrait-max));
+  max-height: min(75vh, var(--spacing-genealogy-portrait-max));
+  width: 100%;
 }
 
 .genealogy-network .react-flow {
@@ -66,6 +72,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: var(--spacing-genealogy-node-gap);
   padding: 0 var(--spacing-genealogy-node-inline);
   border: 1px solid var(--color-genealogy-border);
   border-radius: var(--radius-genealogy-pill);
@@ -85,6 +92,29 @@
   border-color: var(--color-genealogy-primary);
   background: var(--color-genealogy-primary);
   color: var(--color-genealogy-primary-foreground);
+}
+
+/* The person's initials in their colour, as their avatar is everywhere else. */
+.genealogy-node__avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--spacing-genealogy-avatar);
+  height: var(--spacing-genealogy-avatar);
+  border-radius: 50%;
+  color: var(--color-genealogy-avatar-foreground);
+  font-size: var(--spacing-genealogy-avatar-text);
+  font-weight: 600;
+}
+
+.genealogy-node__avatar--unknown {
+  border: 1px dashed currentcolor;
+  color: var(--color-genealogy-muted-foreground);
+}
+
+.genealogy-node--focus .genealogy-node__avatar {
+  box-shadow: 0 0 0 var(--spacing-genealogy-avatar-ring) var(--color-genealogy-primary-foreground);
 }
 
 .genealogy-node__label {

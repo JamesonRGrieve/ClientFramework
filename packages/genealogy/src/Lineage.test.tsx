@@ -27,9 +27,9 @@ describe('Lineage', () => {
     const store = familyFixture();
     const user = userEvent.setup();
     const view = renderGenealogy(<Lineage person={personOf(store, 'byron')} people={store.persons} />, store);
-    await user.selectOptions(view.getByLabelText('Show'), 'Descendants');
+    await user.click(view.getByRole('button', { name: 'Descendants' }));
     expect(await view.findByRole('region', { name: 'Grandchildren' })).toHaveTextContent('Anne Blunt');
-    await user.selectOptions(view.getByLabelText('Generations'), '1');
+    await user.click(view.getByRole('button', { name: '1' }));
     await vi.waitFor(() => {
       expect(view.queryByRole('region', { name: 'Grandchildren' })).toBeNull();
     });

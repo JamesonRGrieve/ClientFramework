@@ -64,7 +64,7 @@ describe('Profile', () => {
     const onSave = vi.fn(saved);
     const user = userEvent.setup();
     const view = renderProfile({ profile: { ...profile, timezone: null }, onSave });
-    expect(view.getByLabelText('Timezone')).toHaveTextContent(detectTimezone());
+    expect((view.getByRole('combobox', { name: 'Timezone' }) as HTMLInputElement).value).toContain(detectTimezone());
     expect(onSave).not.toHaveBeenCalled();
     await user.click(view.getByRole('button', { name: SAVE }));
     expect(onSave).toHaveBeenCalledWith({ ...profile, timezone: null }, { timezone: detectTimezone() });

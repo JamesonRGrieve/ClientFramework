@@ -1,14 +1,17 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+import { LoadProblem } from 'zephyrex/ui/load-problem';
+import { SkeletonRows } from 'zephyrex/ui/skeleton';
 import Link from 'next/link.js';
-import { type ReactElement, useId, useMemo, useState } from 'react';
+import { useUser } from 'zephyrex';
+import { type ReactElement, useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { FRIENDSHIP, type Person, useMetamours, useNetwork } from './genealogyApi';
 import { NetworkGraph } from './NetworkGraph';
 import { useGenealogyOptions } from './OptionsProvider';
 import { fromNetwork } from './socialLayout';
-import { personName } from './people';
+import { personHue, personInitials, personName } from './people';
 import { personPath } from './routes';
 
 /** "Directly connected", "Two steps away", "3 steps away", … for a network distance. */
@@ -34,12 +37,26 @@ export function byDistance(
 }
 
 function PersonLink({ id, people }: { id: string; people: ReadonlyMap<string, Person> }): ReactElement {
+  const person = people.get(id);
   return (
-    <Link href={personPath(id)} className='block rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted'>
-      {personName(people.get(id))}
+    <Link
+      href={personPath(id)}
+      className='flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 text-sm font-medium hover:bg-muted'
+    >
+      <span
+        aria-hidden='true'
+        className='inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[0.6rem] font-semibold text-white'
+        style={{ backgroundColor: `hsl(${String(personHue({ id }))} 55% 30%)` }}
+      >
+        {personInitials(person)}
+      </span>
+      {personName(person)}
     </Link>
   );
 }
+
+const CHIP =
+  'rounded-full border px-3 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:text-foreground';
 
 /**
  * A person's polycule: everyone they reach through partnerships, or the kinds of tie the app's
@@ -47,7 +64,7 @@ function PersonLink({ id, people }: { id: string; people: ReadonlyMap<string, Pe
  */
 export function SocialCircle({ person, people }: { person: Person; people: Person[] }): ReactElement {
   const { circleKinds, legend } = useGenealogyOptions();
-  const ids = { friends: useId(), ended: useId() };
+  const me = useUser().data?.id;
   const [throughFriends, setThroughFriends] = useState(false);
   const [includeEnded, setIncludeEnded] = useState(false);
   const kinds = throughFriends ? [...circleKinds, FRIENDSHIP] : circleKinds;
@@ -66,44 +83,37 @@ export function SocialCircle({ person, people }: { person: Person; people: Perso
       ? []
       : byDistance(network.data.members.filter((member) => !metamourIds.has(member.person_id)));
   const name = personName(person);
+  const isYou = me !== undefined && person.linked_user_id === me;
   const error = network.error ?? metamours.error;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Polycule</CardTitle>
-        <CardDescription>Everyone {name} is connected to through partners, and their metamours.</CardDescription>
+        <CardDescription>
+          Everyone {isYou ? 'you are' : `${name} is`} connected to through partners, and their metamours.
+        </CardDescription>
       </CardHeader>
       <CardContent className='grid gap-4'>
-        <div className='flex flex-wrap gap-4 text-sm'>
-          <label htmlFor={ids.friends} className='flex items-center gap-1'>
-            <input
-              id={ids.friends}
-              type='checkbox'
-              checked={throughFriends}
-              onChange={(event) => setThroughFriends(event.target.checked)}
-            />
+        <fieldset aria-label='Show in the polycule' className='min-w-0 flex flex-wrap gap-2'>
+          <button
+            type='button'
+            aria-pressed={throughFriends}
+            className={CHIP}
+            onClick={() => setThroughFriends(!throughFriends)}
+          >
             Through friendships too
-          </label>
-          <label htmlFor={ids.ended} className='flex items-center gap-1'>
-            <input
-              id={ids.ended}
-              type='checkbox'
-              checked={includeEnded}
-              onChange={(event) => setIncludeEnded(event.target.checked)}
-            />
+          </button>
+          <button type='button' aria-pressed={includeEnded} className={CHIP} onClick={() => setIncludeEnded(!includeEnded)}>
             Include ended relationships
-          </label>
-        </div>
-        {error !== undefined && (
-          <p role='alert' className='text-sm text-destructive'>
-            The polycule could not be loaded: {error.message}
-          </p>
+          </button>
+        </fieldset>
+        {error !== undefined && <LoadProblem what='the polycule' error={error} />}
+        {error === undefined && groups.length === 0 && network.isLoading && (
+          <SkeletonRows rows={3} avatar label='Loading the polycule' />
         )}
-        {error === undefined && groups.length === 0 && (
-          <p className='text-sm text-muted-foreground'>
-            {network.isLoading ? 'Loading…' : `No partners are recorded for ${name}.`}
-          </p>
+        {error === undefined && groups.length === 0 && !network.isLoading && (
+          <p className='text-sm text-muted-foreground'>No partners are recorded for {name}.</p>
         )}
         {graph !== undefined && groups.length > 0 && <NetworkGraph graph={graph} legend={legend} />}
         {groups.map(({ distance, personIds }) => (

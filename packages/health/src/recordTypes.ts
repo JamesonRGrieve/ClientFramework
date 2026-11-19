@@ -238,6 +238,11 @@ export const sleepType: RecordType<Sleep> = {
   },
 };
 
+/** Each mood by name, from MOOD_LOW up: the form's scale and the history both read them. */
+const MOOD_WORDS = ['Awful', 'Low', 'Okay', 'Good', 'Great'];
+/** What a check-in about the user themselves is written as (the form's "Myself" suggestion). */
+const SELF_WORDS: ReadonlySet<string> = new Set(['myself', 'me', 'self', 'you', 'yourself']);
+
 export const checkInType: RecordType<CheckIn> = {
   name: 'check_in',
   title: 'Check-in',
@@ -248,13 +253,26 @@ export const checkInType: RecordType<CheckIn> = {
   schema: CheckInSchema,
   fields: [
     { key: 'checked_at', label: 'When', input: 'datetime', required: true },
-    { key: 'mood', label: 'Mood (1–5)', input: 'number', min: MOOD_LOW, max: MOOD_HIGH, required: true },
+    {
+      key: 'mood',
+      label: 'Mood',
+      input: 'number',
+      min: MOOD_LOW,
+      max: MOOD_HIGH,
+      labels: MOOD_WORDS,
+      required: true,
+    },
     { key: 'about', label: 'About', input: 'text', maxLength: MAX_ABOUT },
     { key: 'notes', label: 'Notes', input: 'text', maxLength: MAX_NOTES, multiline: true },
   ],
   timeOf: ({ checked_at: at }) => at,
-  describe: ({ mood, about }) =>
-    `Mood ${String(mood)} of ${String(MOOD_HIGH)}${about === null || about === undefined || about === '' ? '' : `, about ${about}`}`,
+  describe: ({ mood, about }) => {
+    const word = MOOD_WORDS[mood - MOOD_LOW] ?? `Mood ${String(mood)} of ${String(MOOD_HIGH)}`;
+    if (about === null || about === undefined || about.trim() === '') {
+      return word;
+    }
+    return `${word} about ${SELF_WORDS.has(about.trim().toLowerCase()) ? 'yourself' : about.trim()}`;
+  },
   draftOf: (row) => ({
     checked_at: row === null ? now() : localInput(row.checked_at),
     mood: shown(row?.mood),

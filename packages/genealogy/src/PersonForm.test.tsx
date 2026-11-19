@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { render } from '@testing-library/react';
+import { render, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { PersonForm } from './PersonForm';
@@ -33,27 +33,28 @@ describe('PersonForm', () => {
     );
     expect(view.getByLabelText('Name')).toHaveValue('Ada');
     expect(view.getByLabelText('Born')).toHaveValue('1815-12-10');
-    expect(view.getByLabelText('Gender')).toHaveValue('female');
+    expect(within(view.getByRole('radiogroup', { name: 'Gender' })).getByRole('radio', { name: 'Female' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
   });
 
   it('offers Male, Female, Nonbinary and Other, asking for words only for Other', async () => {
     const onSave = vi.fn(async () => Promise.resolve(null));
     const user = userEvent.setup();
     const view = render(<PersonForm submitLabel='Save' onSave={onSave} />);
-    const gender = view.getByLabelText('Gender');
-    expect([...gender.querySelectorAll('option')].map((option) => option.textContent)).toEqual([
-      'Not recorded',
-      'Male',
-      'Female',
-      'Nonbinary',
-      'Other',
-    ]);
+    const gender = view.getByRole('radiogroup', { name: 'Gender' });
+    expect(
+      within(gender)
+        .getAllByRole('radio')
+        .map((option) => option.textContent),
+    ).toEqual(['Not recorded', 'Male', 'Female', 'Nonbinary', 'Other']);
     expect(view.queryByLabelText(GENDER_WORDS)).toBeNull();
-    await user.selectOptions(gender, 'Nonbinary');
+    await user.click(within(gender).getByRole('radio', { name: 'Nonbinary' }));
     expect(view.queryByLabelText(GENDER_WORDS)).toBeNull();
     await user.click(view.getByRole('button', { name: 'Save' }));
     expect(onSave).toHaveBeenLastCalledWith(expect.objectContaining({ gender: 'nonbinary' }));
-    await user.selectOptions(gender, 'Other');
+    await user.click(within(gender).getByRole('radio', { name: 'Other' }));
     await user.type(view.getByLabelText(GENDER_WORDS), 'Genderfluid');
     await user.click(view.getByRole('button', { name: 'Save' }));
     expect(onSave).toHaveBeenLastCalledWith(expect.objectContaining({ gender: 'Genderfluid' }));
@@ -67,7 +68,10 @@ describe('PersonForm', () => {
         onSave={async () => Promise.resolve(null)}
       />,
     );
-    expect(view.getByLabelText('Gender')).toHaveValue('other');
+    expect(within(view.getByRole('radiogroup', { name: 'Gender' })).getByRole('radio', { name: 'Other' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
     expect(view.getByLabelText(GENDER_WORDS)).toHaveValue('Two-spirit');
   });
 

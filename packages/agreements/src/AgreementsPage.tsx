@@ -1,11 +1,25 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { type ReactElement, type ReactNode, type SyntheticEvent, useId, useState } from 'react';
+import { ChoiceChip } from 'zephyrex/ui/choice-chip';
+import { chipGroup } from 'zephyrex/hooks/chipKeys';
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  type ReactElement,
+  type ReactNode,
+  type SyntheticEvent,
+  useId,
+  useState,
+} from 'react';
 import { useClient, useUser, writeProblem } from 'zephyrex';
+import { notify } from 'zephyrex/hooks/useToast';
+import { LoadProblem } from 'zephyrex/ui/load-problem';
 import { Button } from 'zephyrex/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from 'zephyrex/ui/dialog';
 import { Input } from 'zephyrex/ui/input';
+import { SkeletonRows } from 'zephyrex/ui/skeleton';
+import { Textarea } from 'zephyrex/ui/textarea';
 import { agreementsApi, useAgreements } from './agreementsApi';
 import {
   type Agreement,
@@ -17,8 +31,65 @@ import {
   type TermKindInfo,
 } from './agreementsModel';
 
-const SELECT = 'h-9 rounded-md border bg-background px-3 text-sm font-normal';
-const NOBODY = '';
+/** A term's wording: one line high until it needs more, like an input that wraps. */
+const GROWING = 'field-sizing-content min-h-9 resize-none py-2';
+
+/** Enter saves the term; Shift+Enter starts a new line. */
+const submitOnEnter = (event: ReactKeyboardEvent<HTMLTextAreaElement>): void => {
+  if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+    event.preventDefault();
+    event.currentTarget.form?.requestSubmit();
+  }
+};
+
+/** When to look at an agreement again, one tap each; any other day is picked in the date field. */
+const REVISIT_IN = [
+  { months: 1, label: 'In a month' },
+  { months: 3, label: '3 months' },
+  { months: 6, label: '6 months' },
+  { months: 12, label: 'A year' },
+];
+const REVISIT_CHIP =
+  'rounded-full border px-3 py-1 text-sm font-normal text-muted-foreground transition-colors hover:bg-muted aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:text-foreground';
+
+/** Today plus `months`, as the date field's YYYY-MM-DD. */
+const monthsFromToday = (months: number): string => {
+  const day = new Date();
+  day.setMonth(day.getMonth() + months);
+  return `${String(day.getFullYear())}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+};
+
+function RevisitPicker({
+  id,
+  label,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}): ReactElement {
+  return (
+    <div className='grid min-w-0 gap-1 text-sm font-medium'>
+      <label htmlFor={id}>{label}</label>
+      <div className='flex flex-wrap items-center gap-1.5' ref={chipGroup}>
+        {REVISIT_IN.map((choice) => (
+          <button
+            key={choice.months}
+            type='button'
+            aria-pressed={value === monthsFromToday(choice.months)}
+            onClick={() => onChange(monthsFromToday(choice.months))}
+            className={REVISIT_CHIP}
+          >
+            {choice.label}
+          </button>
+        ))}
+        <Input id={id} type='date' value={value} onChange={(event) => onChange(event.target.value)} className='h-8 w-40' />
+      </div>
+    </div>
+  );
+}
 
 type NameOf = (userId: string) => string;
 
@@ -45,7 +116,7 @@ export function listed(names: readonly string[]): string {
   return `${names.slice(0, -1).join(', ')} and ${names.at(-1) ?? ''}`;
 }
 
-/** The choice of a term's kind, among the kinds the app names. */
+/** The choice of a term's kind, among the kinds the app names: one tap each. */
 function KindSelect({
   id,
   kinds,
@@ -58,18 +129,18 @@ function KindSelect({
   onChange: (kind: string) => void;
 }): ReactNode {
   return (
-    <>
-      <label htmlFor={id} className='sr-only'>
-        Kind
-      </label>
-      <select id={id} value={value} onChange={(event) => onChange(event.target.value)} className={SELECT}>
-        {kinds.map((k) => (
-          <option key={k.value} value={k.value}>
-            {k.choice}
-          </option>
-        ))}
-      </select>
-    </>
+    <div role='radiogroup' aria-label='Kind' id={id} className='col-span-full flex flex-wrap gap-1.5'>
+      {kinds.map((k) => (
+        <ChoiceChip
+          key={k.value}
+          checked={k.value === value}
+          onClick={() => onChange(k.value)}
+          className='rounded-full border px-3 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted aria-checked:border-primary aria-checked:bg-primary/10 aria-checked:text-foreground'
+        >
+          {k.choice}
+        </ChoiceChip>
+      ))}
+    </div>
   );
 }
 
@@ -139,10 +210,9 @@ function StartAgreement({
             required
           />
         </label>
-        <label htmlFor={ids.revisit} className='grid gap-1 text-sm font-medium'>
-          Revisit by (optional)
-          <Input id={ids.revisit} type='date' value={revisit} onChange={(event) => setRevisit(event.target.value)} />
-        </label>
+        <div className='col-span-full'>
+          <RevisitPicker id={ids.revisit} label='Revisit by (optional)' value={revisit} onChange={setRevisit} />
+        </div>
       </div>
       <fieldset className='grid gap-2'>
         <legend className='text-sm font-medium'>With</legend>
@@ -157,7 +227,12 @@ function StartAgreement({
                 key={person.userId}
                 className='flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/10'
               >
-                <input type='checkbox' checked={chosen.includes(person.userId)} onChange={() => toggle(person.userId)} />
+                <input
+                  type='checkbox'
+                  className='size-4 accent-primary'
+                  checked={chosen.includes(person.userId)}
+                  onChange={() => toggle(person.userId)}
+                />
                 {person.name}
               </label>
             ))}
@@ -193,6 +268,7 @@ function TermRow({
     event.preventDefault();
     void (async (): Promise<void> => {
       if (await run(agreementsApi.changeTerm(client, term.id, { kind, text: text.trim() }), 'That could not be saved.')) {
+        notify('Change saved', 'Everyone confirms the new version.');
         setEditing(false);
       }
     })();
@@ -200,12 +276,25 @@ function TermRow({
   if (editing) {
     return (
       <li className='py-2'>
-        <form onSubmit={save} aria-label={`Change “${term.text}”`} className='grid gap-2 sm:grid-cols-[8rem_1fr_auto_auto]'>
+        <form
+          onSubmit={save}
+          aria-label={`Change “${term.text}”`}
+          className='grid items-start gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]'
+        >
           <KindSelect id={ids.kind} kinds={kinds} value={kind} onChange={setKind} />
           <label htmlFor={ids.text} className='sr-only'>
             Wording
           </label>
-          <Input id={ids.text} value={text} onChange={(event) => setText(event.target.value)} maxLength={2000} required />
+          <Textarea
+            id={ids.text}
+            rows={1}
+            className={GROWING}
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            onKeyDown={submitOnEnter}
+            maxLength={2000}
+            required
+          />
           <Button type='submit' size='sm' disabled={busy || text.trim() === ''}>
             Save
           </Button>
@@ -227,30 +316,31 @@ function TermRow({
     );
   }
   return (
-    <li className='grid gap-1 py-2'>
-      <div className='flex flex-wrap items-start gap-2'>
-        <span className='flex-1'>{term.text}</span>
-        <Button
-          type='button'
-          size='sm'
-          variant='ghost'
-          onClick={() => setEditing(true)}
-          aria-label={`Change “${term.text}”`}
-        >
-          Change
-        </Button>
-        <Button
-          type='button'
-          size='sm'
-          variant='ghost'
-          disabled={busy}
-          aria-label={`Take out “${term.text}”`}
-          onClick={() => void run(agreementsApi.removeTerm(client, term.id), 'That could not be taken out.')}
-        >
-          Take out
-        </Button>
-      </div>
-      <span className='text-xs text-muted-foreground'>Written by {nameOf(term.written_by)}</span>
+    <li className='group grid gap-1 py-2'>
+      <span>{term.text}</span>
+      <span className='flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground'>
+        <span>Written by {nameOf(term.written_by) === 'You' ? 'you' : nameOf(term.written_by)}</span>
+        {/* With a mouse, the actions show on the row being pointed at or tabbed into; on touch, always. */}
+        <span className='flex items-center gap-x-3 transition-opacity pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100'>
+          <button
+            type='button'
+            className='underline-offset-2 hover:text-foreground hover:underline'
+            onClick={() => setEditing(true)}
+            aria-label={`Change “${term.text}”`}
+          >
+            Change
+          </button>
+          <button
+            type='button'
+            className='underline-offset-2 hover:text-destructive hover:underline disabled:opacity-50'
+            disabled={busy}
+            aria-label={`Take out “${term.text}”`}
+            onClick={() => void run(agreementsApi.removeTerm(client, term.id), 'That could not be taken out.')}
+          >
+            Take out
+          </button>
+        </span>
+      </span>
       <Problem problem={problem} />
     </li>
   );
@@ -274,21 +364,25 @@ function AddTerm({
     event.preventDefault();
     void (async (): Promise<void> => {
       if (await run(agreementsApi.addTerm(client, agreement.id, kind, text.trim()), 'That could not be added.')) {
+        notify('Added', text.trim());
         setText('');
       }
     })();
   };
   return (
     <form onSubmit={add} aria-label={`Add to ${agreement.title}`} className='grid gap-2'>
-      <div className='grid gap-2 sm:grid-cols-[8rem_1fr_auto]'>
-        <KindSelect id={ids.kind} kinds={kinds} value={kind} onChange={setKind} />
+      <KindSelect id={ids.kind} kinds={kinds} value={kind} onChange={setKind} />
+      <div className='grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2'>
         <label htmlFor={ids.text} className='sr-only'>
           New term
         </label>
-        <Input
+        <Textarea
           id={ids.text}
+          rows={1}
+          className={GROWING}
           value={text}
           onChange={(event) => setText(event.target.value)}
+          onKeyDown={submitOnEnter}
           placeholder='Something agreed'
           maxLength={2000}
         />
@@ -317,19 +411,15 @@ function Details({
   onChanged: () => Promise<unknown>;
 }): ReactNode {
   const client = useClient();
-  const ids = { revisit: useId(), add: useId() };
+  const ids = { revisit: useId() };
   const [revisit, setRevisit] = useState(agreement.revisit_on ?? '');
-  const [adding, setAdding] = useState(NOBODY);
   const { busy, problem, run } = useWrite(onChanged);
   const inIt = new Set(agreement.parties.map((p) => p.user_id));
   const addable = people.filter((person) => !inIt.has(person.userId));
   return (
     <div className='grid gap-3 border-t pt-4'>
       <div className='flex flex-wrap items-end gap-2'>
-        <label htmlFor={ids.revisit} className='grid gap-1 text-sm font-medium'>
-          Revisit by
-          <Input id={ids.revisit} type='date' value={revisit} onChange={(event) => setRevisit(event.target.value)} />
-        </label>
+        <RevisitPicker id={ids.revisit} label='Revisit by' value={revisit} onChange={setRevisit} />
         <Button
           type='button'
           size='sm'
@@ -346,34 +436,32 @@ function Details({
         </Button>
       </div>
       {isOwner && addable.length > 0 && (
-        <div className='flex flex-wrap items-end gap-2'>
-          <label htmlFor={ids.add} className='grid gap-1 text-sm font-medium'>
-            Add someone
-            <select id={ids.add} value={adding} onChange={(event) => setAdding(event.target.value)} className={SELECT}>
-              <option value={NOBODY}>Choose someone…</option>
-              {addable.map((person) => (
-                <option key={person.userId} value={person.userId}>
-                  {person.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <Button
-            type='button'
-            size='sm'
-            variant='outline'
-            disabled={busy || adding === NOBODY}
-            onClick={() =>
-              void (async (): Promise<void> => {
-                if (await run(agreementsApi.addParty(client, agreement.id, adding), 'They could not be added.')) {
-                  setAdding(NOBODY);
+        <fieldset aria-label='Add someone' className='min-w-0 grid gap-1.5'>
+          <span className='text-sm font-medium'>Add someone</span>
+          <div className='flex flex-wrap gap-1.5' ref={chipGroup}>
+            {addable.map((person) => (
+              <button
+                key={person.userId}
+                type='button'
+                disabled={busy}
+                aria-label={`Add ${person.name}`}
+                onClick={() =>
+                  void (async (): Promise<void> => {
+                    if (await run(agreementsApi.addParty(client, agreement.id, person.userId), 'They could not be added.')) {
+                      notify('Added to the agreement', `${person.name} confirms it like everyone else.`);
+                    }
+                  })()
                 }
-              })()
-            }
-          >
-            Add them
-          </Button>
-        </div>
+                className='rounded-full border px-3 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted disabled:opacity-55'
+              >
+                <span aria-hidden='true' className='text-primary'>
+                  +{' '}
+                </span>
+                {person.name}
+              </button>
+            ))}
+          </div>
+        </fieldset>
       )}
       <div className='flex flex-wrap gap-2'>
         {isOwner ? (
@@ -445,42 +533,82 @@ function AgreementCard({
   const others = agreement.parties.filter((p) => p.user_id !== me).map((p) => nameOf(p.user_id));
   return (
     <Card>
-      <CardHeader>
-        <h2 className='text-2xl font-semibold leading-none tracking-tight'>{agreement.title}</h2>
-        <CardDescription>{others.length === 0 ? 'Just you, so far.' : `With ${listed(others)}.`}</CardDescription>
+      <CardHeader className='flex-row flex-wrap items-start justify-between gap-3 space-y-0'>
+        <div className='grid gap-1.5'>
+          <h2 className='text-2xl font-semibold leading-none tracking-tight'>{agreement.title}</h2>
+          <CardDescription>{others.length === 0 ? 'Just you, so far.' : `With ${listed(others)}.`}</CardDescription>
+        </div>
+        <span
+          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+            due
+              ? 'bg-destructive text-destructive-foreground'
+              : agreement.in_effect
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground'
+          }`}
+        >
+          {due ? 'Revisit due' : agreement.in_effect ? 'Confirmed' : `Waiting on ${String(waiting.length)}`}
+        </span>
       </CardHeader>
       <CardContent className='grid gap-4'>
         <div role='status' aria-label={`Where ${agreement.title} stands`} className='grid gap-1 text-sm'>
           {agreement.in_effect ? (
-            <span className='font-medium text-primary'>Everyone has confirmed this version.</span>
+            <span className='sr-only'>Everyone has confirmed this version.</span>
           ) : (
-            <span className='font-medium'>Waiting for {listed(waiting)} to confirm.</span>
+            <span className='sr-only'>Waiting for {listed(waiting)} to confirm.</span>
           )}
+          {/* Who has confirmed this version, one chip each, so who is left is plain at a glance. */}
+          <ul aria-hidden='true' className='flex flex-wrap gap-1.5'>
+            {agreement.parties.map((party) => (
+              <li
+                key={party.user_id}
+                className={`inline-flex items-center gap-1.5 rounded-full border py-0.5 pr-2.5 pl-1 text-xs ${
+                  party.confirmed ? 'border-primary/40 bg-primary/10 text-foreground' : 'text-muted-foreground'
+                }`}
+              >
+                <span
+                  className={`inline-flex size-5 items-center justify-center rounded-full text-[0.6rem] font-semibold ${
+                    party.confirmed ? 'bg-primary text-primary-foreground' : 'border border-dashed'
+                  }`}
+                >
+                  {party.confirmed ? '✓' : nameOf(party.user_id).charAt(0)}
+                </span>
+                {nameOf(party.user_id)}
+                <span className='text-muted-foreground'>{party.confirmed ? 'Confirmed' : 'To confirm'}</span>
+              </li>
+            ))}
+          </ul>
           {agreement.revisit_on !== null && agreement.revisit_on !== undefined && (
             <span className={due ? 'font-medium text-destructive' : 'text-muted-foreground'}>
               {due ? 'Time to revisit it' : 'Revisit by'} {longDate(agreement.revisit_on)}.
             </span>
           )}
         </div>
-        {kinds.map((kind) => {
-          const terms = agreement.terms.filter((t) => shownKind(t.kind, kinds) === kind.value);
-          return terms.length === 0 ? null : (
-            <section key={kind.value} aria-label={`${agreement.title}: ${kind.heading}`} className='grid gap-1'>
-              <h3 className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>{kind.heading}</h3>
-              <ul className='divide-y'>
-                {terms.map((term) => (
-                  <TermRow
-                    key={`${term.id}-${String(agreement.version)}`}
-                    term={term}
-                    kinds={kinds}
-                    nameOf={nameOf}
-                    onChanged={onChanged}
-                  />
-                ))}
-              </ul>
-            </section>
-          );
-        })}
+        <div className='grid gap-4 lg:grid-cols-3'>
+          {kinds.map((kind) => {
+            const terms = agreement.terms.filter((t) => shownKind(t.kind, kinds) === kind.value);
+            return terms.length === 0 ? null : (
+              <section
+                key={kind.value}
+                aria-label={`${agreement.title}: ${kind.heading}`}
+                className='grid content-start gap-1 rounded-lg border bg-muted/20 p-3'
+              >
+                <h3 className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>{kind.heading}</h3>
+                <ul className='divide-y'>
+                  {terms.map((term) => (
+                    <TermRow
+                      key={`${term.id}-${String(agreement.version)}`}
+                      term={term}
+                      kinds={kinds}
+                      nameOf={nameOf}
+                      onChanged={onChanged}
+                    />
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
+        </div>
         {agreement.terms.length === 0 && <p className='text-sm text-muted-foreground'>Nothing written down yet.</p>}
         <AddTerm agreement={agreement} kinds={kinds} onChanged={onChanged} />
         <div className='flex flex-wrap items-center gap-3'>
@@ -490,7 +618,13 @@ function AgreementCard({
             <Button
               type='button'
               disabled={busy}
-              onClick={() => void run(agreementsApi.confirm(client, agreement.id), 'Your confirmation could not be saved.')}
+              onClick={() =>
+                void (async (): Promise<void> => {
+                  if (await run(agreementsApi.confirm(client, agreement.id), 'Your confirmation could not be saved.')) {
+                    notify('Confirmed', `You confirmed ${agreement.title}.`);
+                  }
+                })()
+              }
             >
               Confirm this version
             </Button>
@@ -542,23 +676,54 @@ export function AgreementsPage({
   const agreements = useAgreements();
   const me = user?.id ?? '';
   const refresh = async (): Promise<unknown> => agreements.mutate();
+  const [starting, setStarting] = useState(false);
   const nameOf: NameOf = (userId) =>
     userId === me ? 'You' : (people.find((person) => person.userId === userId)?.name ?? 'Someone');
   return (
     <div className='grid gap-6'>
-      <div className='grid gap-1'>
-        <h1 className='text-3xl font-semibold'>Agreements</h1>
-        <p className='text-muted-foreground'>{intro}</p>
+      <div className='flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between'>
+        <div className='grid gap-1'>
+          <h1 className='text-2xl font-semibold tracking-tight text-balance sm:text-3xl'>Agreements</h1>
+          <p className='max-w-prose text-muted-foreground'>{intro}</p>
+        </div>
+        {(agreements.data?.length ?? 0) > 0 && (
+          <Dialog open={starting} onOpenChange={setStarting}>
+            <DialogTrigger asChild>
+              <Button type='button'>Start an agreement</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Start an agreement</DialogTitle>
+                <DialogDescription>Only the people in it ever see it.</DialogDescription>
+              </DialogHeader>
+              {wrapStart(
+                <StartAgreement
+                  people={people}
+                  onStarted={async () => {
+                    setStarting(false);
+                    await refresh();
+                  }}
+                />,
+              )}
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Start an agreement</CardTitle>
-          <CardDescription>Only the people in it ever see it.</CardDescription>
-        </CardHeader>
-        <CardContent>{wrapStart(<StartAgreement people={people} onStarted={refresh} />)}</CardContent>
-      </Card>
-      {agreements.error !== undefined && <Problem problem={agreements.error.message} />}
-      {agreements.data?.length === 0 && <p className='text-sm text-muted-foreground'>No agreements yet.</p>}
+      {agreements.error === undefined && agreements.data === undefined && (
+        <SkeletonRows rows={3} label='Loading your agreements' />
+      )}
+      {agreements.data?.length === 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Start your first agreement</CardTitle>
+            <CardDescription>Only the people in it ever see it.</CardDescription>
+          </CardHeader>
+          <CardContent>{wrapStart(<StartAgreement people={people} onStarted={refresh} />)}</CardContent>
+        </Card>
+      )}
+      {agreements.error !== undefined && (
+        <LoadProblem what='your agreements' error={agreements.error} onRetry={async () => agreements.mutate()} />
+      )}
       {(agreements.data ?? []).map((agreement) => (
         <AgreementCard
           key={agreement.id}

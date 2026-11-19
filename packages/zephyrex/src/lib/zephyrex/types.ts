@@ -17,6 +17,11 @@ export interface NavItemDefinition {
   icon?: ComponentType<{ className?: string }>;
   badge?: string | number;
   children?: NavItemDefinition[];
+  /**
+   * A heading the sidebar shows over this entry and the ones after it that share it ("People",
+   * "Safety"). Entries without one sit under the previous heading, or none.
+   */
+  group?: string;
 }
 
 export type MiddlewareHook = (req: NextRequest) => Promise<{ activated: boolean; response: NextResponse }>;

@@ -4,6 +4,7 @@
 import { usePathname } from 'next/navigation.js';
 
 import { FaRobot } from 'react-icons/fa';
+import { CommandPalette } from './CommandPalette';
 import { NavMain } from './NavMain';
 import { ToggleSidebar } from './ToggleSidebar';
 import { accountsEnabled, DEFAULT_AUTH_PATH, MANAGE_PAGE } from '@/lib/zephyrex/authPath';
@@ -28,6 +29,7 @@ export function SidebarMain({ children, ...props }: React.ComponentProps<typeof 
         <SidebarLogo />
       </SidebarHeader>
       <SidebarContent>
+        <CommandPalette />
         <NavMain />
         {children}
       </SidebarContent>

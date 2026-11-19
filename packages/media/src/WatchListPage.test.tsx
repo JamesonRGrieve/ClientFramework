@@ -49,7 +49,7 @@ describe('WatchListPage', () => {
     const view = renderMedia(<WatchListPage people={PEOPLE} />, store);
     const titles = await view.findByRole('list', ON_LIST);
     const gump = present(within(titles).getAllByRole('listitem')[1], 'a second title');
-    await user.click(within(gump).getByRole('checkbox', { name: 'I want to see it' }));
+    await user.click(within(gump).getByRole('button', { name: 'Want Forrest Gump (1994)' }));
     await vi.waitFor(() => {
       expect(store.lists[0]?.titles[1]?.wanted_by).toEqual([ALEX, ME]);
     });
@@ -64,12 +64,12 @@ describe('WatchListPage', () => {
     const store = mediaFixture();
     const user = userEvent.setup();
     const view = renderMedia(<WatchListPage people={PEOPLE} />, store);
-    await user.selectOptions(await view.findByLabelText('Share with'), 'Sam');
-    await user.click(view.getByRole('button', { name: 'Share' }));
+    // Sharing is one tap on the person.
+    await user.click(await view.findByRole('button', { name: 'Share with Sam' }));
     await vi.waitFor(() => {
       expect(store.lists[0]?.member_ids).toEqual([ALEX, SAM]);
     });
-    await user.click(await view.findByRole('button', { name: 'Take Alex off the list' }));
+    await user.click(await view.findByRole('button', { name: 'Take off the list: Alex' }));
     await vi.waitFor(() => {
       expect(store.lists[0]?.member_ids).toEqual([SAM]);
     });
@@ -79,8 +79,9 @@ describe('WatchListPage', () => {
     const store = { ...mediaFixture(), me: ALEX };
     const user = userEvent.setup();
     const view = renderMedia(<WatchListPage people={[{ userId: ME, name: 'Jo' }]} />, store);
-    expect(await view.findByText('Jo (keeps the list)')).toBeInTheDocument();
-    expect(view.queryByLabelText('Share with')).toBeNull();
+    expect(await view.findByText('Jo')).toBeInTheDocument();
+    expect(view.getByText('Keeps the list')).toBeInTheDocument();
+    expect(view.queryByRole('group', { name: 'Share with' })).toBeNull();
     await user.click(view.getByRole('button', { name: 'Leave this list' }));
     await vi.waitFor(() => {
       expect(store.lists[0]?.member_ids).toEqual([]);

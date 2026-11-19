@@ -13,6 +13,7 @@ import {
 } from '@xyflow/react';
 import { useRouter } from 'next/navigation.js';
 import { type ReactElement, type RefObject, useEffect, useMemo, useRef, useState } from 'react';
+import { personHue, personInitials } from './people';
 import {
   borderPoint,
   type GraphInput,
@@ -40,6 +41,17 @@ function PersonNodeView({ data }: NodeProps<PersonNode>): ReactElement {
   return (
     <>
       <Handle type='target' position={Position.Top} style={CENTRED_HANDLE} isConnectable={false} />
+      <span
+        aria-hidden='true'
+        className={`genealogy-node__avatar${data.personId === null || data.personId === undefined ? ' genealogy-node__avatar--unknown' : ''}`}
+        style={
+          data.personId === null || data.personId === undefined
+            ? undefined
+            : { backgroundColor: `hsl(${String(personHue({ id: data.personId }))} 55% 30%)` }
+        }
+      >
+        {data.personId === null || data.personId === undefined ? '?' : personInitials({ name: data.label })}
+      </span>
       <span className='genealogy-node__label'>{data.label}</span>
       <Handle type='source' position={Position.Top} style={CENTRED_HANDLE} isConnectable={false} />
     </>
@@ -134,8 +146,8 @@ export function NetworkGraph({
     const layout = socialLayout(graph, orientation);
     return { nodes: layout.nodes.map((node) => ({ ...node, type: 'person' })), edges: layout.edges };
   }, [graph, orientation]);
-  // A wide canvas takes the layout's shape, so a flat network doesn't sit in a tall empty box.
-  const shape = orientation === 'landscape' ? { aspectRatio: String(aspectOf(nodes)), minHeight: MIN_HEIGHT } : undefined;
+  // The canvas takes the layout's shape either way, so a small network doesn't sit in a tall empty box.
+  const shape = { aspectRatio: String(aspectOf(nodes)), minHeight: MIN_HEIGHT };
   const kinds = new Set(graph.ties.map((tie) => tie.kind));
 
   return (

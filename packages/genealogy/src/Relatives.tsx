@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+import { chipGroup } from 'zephyrex/hooks/chipKeys';
+import { LoadProblem } from 'zephyrex/ui/load-problem';
+import { SkeletonRows } from 'zephyrex/ui/skeleton';
 import { Button } from '@jgrieve/forms/components/ui/button';
 import { Input } from '@jgrieve/forms/components/ui/input';
 import { Label } from '@jgrieve/forms/components/ui/label';
@@ -9,6 +12,7 @@ import { type ReactElement, type SyntheticEvent, useCallback, useId, useState } 
 import { useSWRConfig } from 'swr';
 import { ConflictPanel, useClient, useGuardedSave, useUser, writeProblem } from 'zephyrex';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from 'zephyrex/ui/dialog';
 import {
   ACQUAINTANCE_KINDS,
   ANCESTRY_ROLES,
@@ -24,7 +28,8 @@ import {
   SIBLING_KINDS,
   useRelationships,
 } from './genealogyApi';
-import { personName } from './people';
+import { personHue, personInitials, personName } from './people';
+import { PersonPicker } from './PersonPicker';
 import type { AppTie } from './options';
 import {
   appTieFor,
@@ -36,6 +41,10 @@ import {
 } from './relationships';
 import { personPath } from './routes';
 import { useGenealogyOptions } from './OptionsProvider';
+
+/** A one-tap choice; pressed when chosen. */
+const CHIP =
+  'rounded-full border px-3 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:text-foreground';
 
 const ROLE_CHOICES: { value: RelativeRole; label: string }[] = [
   { value: 'parent', label: 'Parent' },
@@ -176,23 +185,17 @@ export function AddRelative({
 
   return (
     <form className='grid gap-3' onSubmit={submit}>
-      <div className='grid grid-cols-1 gap-3 sm:grid-cols-4'>
+      <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
         <div className='grid gap-1'>
           <Label htmlFor={ids.relative}>{lineage ? 'Relative' : 'Who'}</Label>
-          <select
+          <PersonPicker
             id={ids.relative}
+            people={others}
             value={relativeId}
-            onChange={(event) => setRelativeId(event.target.value)}
-            className={SELECT_CLASS}
-          >
-            <option value=''>Choose someone…</option>
-            <option value={SOMEONE_NEW}>Someone new…</option>
-            {others.map((other) => (
-              <option key={other.id} value={other.id}>
-                {personName(other)}
-              </option>
-            ))}
-          </select>
+            onChange={setRelativeId}
+            placeholder='Choose someone…'
+            extra={{ value: SOMEONE_NEW, label: 'Someone new…' }}
+          />
         </div>
         {relativeId === SOMEONE_NEW && (
           <div className='grid gap-1'>
@@ -200,41 +203,46 @@ export function AddRelative({
             <Input id={ids.newName} value={newName} onChange={(event) => setNewName(event.target.value)} />
           </div>
         )}
-        <div className='grid gap-1'>
-          <Label htmlFor={ids.role}>{yours ? 'Is your' : `Is ${personName(person)}’s`}</Label>
-          <select
-            id={ids.role}
-            value={role}
-            onChange={(event) => {
-              setRole(event.target.value);
-              setDetail('');
-            }}
-            className={SELECT_CLASS}
-          >
+        <fieldset className='col-span-full grid min-w-0 gap-1.5'>
+          <legend id={ids.role} className='mb-1.5 text-sm font-medium'>
+            {yours ? 'Is your' : `Is ${personName(person)}’s`}
+          </legend>
+          <div className='flex flex-wrap gap-1.5' ref={chipGroup}>
             {choices.map((choice) => (
-              <option key={choice.value} value={choice.value}>
+              <button
+                key={choice.value}
+                type='button'
+                aria-pressed={role === choice.value}
+                onClick={() => {
+                  setRole(choice.value);
+                  setDetail('');
+                }}
+                className={CHIP}
+              >
                 {choice.label}
-              </option>
+              </button>
             ))}
-          </select>
-        </div>
-        {details.length > 0 && (
-          <div className='grid gap-1'>
-            <Label htmlFor={ids.detail}>{chosen?.detailLabel}</Label>
-            <select
-              id={ids.detail}
-              value={detail}
-              onChange={(event) => setDetail(event.target.value)}
-              className={SELECT_CLASS}
-            >
-              <option value=''>Not recorded</option>
-              {details.map((value) => (
-                <option key={value} value={value}>
-                  {humanize(value)}
-                </option>
-              ))}
-            </select>
           </div>
+        </fieldset>
+        {details.length > 0 && (
+          <fieldset className='col-span-full grid min-w-0 gap-1.5'>
+            <legend id={ids.detail} className='mb-1.5 text-sm font-medium'>
+              {chosen?.detailLabel}
+            </legend>
+            <div className='flex flex-wrap gap-1.5' ref={chipGroup}>
+              {['', ...details].map((value) => (
+                <button
+                  key={value === '' ? 'none' : value}
+                  type='button'
+                  aria-pressed={detail === value}
+                  onClick={() => setDetail(value)}
+                  className={`${CHIP} first-letter:uppercase`}
+                >
+                  {value === '' ? 'Not recorded' : humanize(value)}
+                </button>
+              ))}
+            </div>
+          </fieldset>
         )}
         {!LINEAGE_ROLES.has(role as RelativeRole) && (
           <div className='grid gap-1'>
@@ -299,24 +307,34 @@ function RelativeRow({
     void writeProblem(removing, 'The relationship could not be removed.').then(setProblem);
   };
   return (
-    <li className='grid gap-1 px-4 py-3 text-sm'>
+    <li className='group grid gap-1 px-4 py-2.5 text-sm'>
       <div className='flex flex-wrap items-center justify-between gap-2'>
-        <span>
-          <span className='text-muted-foreground'>
-            {humanize(line.role)}
-            {lineDetail(line)}:{' '}
+        <span className='flex min-w-0 items-center gap-3'>
+          <span
+            aria-hidden='true'
+            className='inline-flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white'
+            style={{ backgroundColor: `hsl(${String(personHue({ id: relative?.id ?? line.relativeId }))} 55% 30%)` }}
+          >
+            {personInitials(relative)}
           </span>
-          {relative === undefined ? (
-            name
-          ) : (
-            <Link href={personPath(relative.id)} className='font-medium underline'>
-              {name}
-            </Link>
-          )}
+          <span className='grid min-w-0'>
+            {relative === undefined ? (
+              <span className='font-medium'>{name}</span>
+            ) : (
+              <Link href={personPath(relative.id)} className='truncate font-medium hover:underline'>
+                {name}
+              </Link>
+            )}
+            <span className='text-xs text-muted-foreground'>
+              {humanize(line.role)}
+              {lineDetail(line)}
+            </span>
+          </span>
         </span>
         <Button
           size='sm'
-          variant='outline'
+          variant='ghost'
+          className='text-muted-foreground hover:text-destructive transition-opacity pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100'
           aria-label={`Remove ${name} as ${humanize(line.role).toLowerCase()}`}
           onClick={() => {
             run(removeRows(line.relationships));
@@ -359,8 +377,10 @@ export function Relatives({ person, people }: { person: Person; people: Person[]
   const asSubject = useRelationships(person.id, 'person_id');
   const asObject = useRelationships(person.id, 'target_person_id');
   const lines = relationshipLines(asSubject.data ?? [], asObject.data ?? [], ties);
+  const loading = asSubject.isLoading || asObject.isLoading;
   const error = asSubject.error ?? asObject.error;
   const { mutate } = useSWRConfig();
+  const [adding, setAdding] = useState(false);
   const refresh = async (): Promise<void> => {
     await Promise.all([
       asSubject.mutate(),
@@ -372,24 +392,44 @@ export function Relatives({ person, people }: { person: Person; people: Person[]
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{lineage ? 'Relatives' : 'Connections'}</CardTitle>
-        <CardDescription>
-          {lineage
-            ? `Parents, children, partners, siblings, friends and acquaintances recorded for ${forWhom}.`
-            : `Partners, friends and everyone else recorded for ${forWhom}.`}
-        </CardDescription>
+      <CardHeader className='flex-row flex-wrap items-start justify-between gap-3 space-y-0'>
+        <div className='grid gap-1.5'>
+          <CardTitle>{lineage ? 'Relatives' : 'Connections'}</CardTitle>
+          <CardDescription>
+            {lineage
+              ? `Parents, children, partners, siblings, friends and acquaintances recorded for ${forWhom}.`
+              : `Partners, friends and everyone else recorded for ${forWhom}.`}
+          </CardDescription>
+        </div>
+        {lines.length > 0 && (
+          <Dialog open={adding} onOpenChange={setAdding}>
+            <DialogTrigger asChild>
+              <Button size='sm'>{lineage ? 'Add a relative' : 'Add connection'}</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{lineage ? 'Add a relative' : 'Add a connection'}</DialogTitle>
+                <DialogDescription>Someone already recorded, or someone new.</DialogDescription>
+              </DialogHeader>
+              <AddRelative
+                person={person}
+                people={people}
+                onAdded={async () => {
+                  setAdding(false);
+                  await refresh();
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
       </CardHeader>
       <CardContent className='grid gap-4'>
-        {error !== undefined && (
-          <p role='alert' className='text-sm text-destructive'>
-            The relationships could not be loaded: {error.message}
-          </p>
+        {error !== undefined && <LoadProblem what='the relationships' error={error} onRetry={refresh} />}
+        {error === undefined && lines.length === 0 && loading && (
+          <SkeletonRows rows={2} avatar label={lineage ? 'Loading relatives' : 'Loading connections'} />
         )}
-        {error === undefined && lines.length === 0 && (
-          <p className='text-sm text-muted-foreground'>
-            {asSubject.isLoading || asObject.isLoading ? 'Loading…' : 'No relatives are recorded yet.'}
-          </p>
+        {error === undefined && lines.length === 0 && !loading && (
+          <p className='text-sm text-muted-foreground'>No relatives are recorded yet.</p>
         )}
         {lines.length > 0 && (
           <ul aria-label={lineage ? 'Relatives' : 'Connections'} className='divide-y rounded-md border'>
@@ -403,7 +443,8 @@ export function Relatives({ person, people }: { person: Person; people: Person[]
             ))}
           </ul>
         )}
-        <AddRelative person={person} people={people} onAdded={refresh} />
+        {/* With nobody yet, adding is the card's next step, so the form stays in view. */}
+        {lines.length === 0 && !loading && <AddRelative person={person} people={people} onAdded={refresh} />}
       </CardContent>
     </Card>
   );

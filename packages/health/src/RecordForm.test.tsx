@@ -34,10 +34,10 @@ describe('RecordForm', () => {
     expect(view.getByLabelText('When')).toHaveAttribute('type', 'datetime-local');
     expect(view.getByLabelText('Calories')).toHaveAttribute('type', 'number');
     expect(view.getByLabelText('Calories')).toHaveAttribute('max', '20000');
-    expect(view.getByRole('option', { name: 'Breakfast' })).toBeInTheDocument();
+    expect(view.getByRole('radio', { name: 'Breakfast' })).toBeInTheDocument();
     await user.type(view.getByLabelText('Food'), 'T');
     expect(onEdit).toHaveBeenLastCalledWith('food', 'ToastT');
-    await user.selectOptions(view.getByLabelText('Meal'), 'dinner');
+    await user.click(view.getByRole('radio', { name: 'Dinner' }));
     expect(onEdit).toHaveBeenLastCalledWith('kind', 'dinner');
     await user.click(view.getByRole('button', { name: 'Record' }));
     expect(onSubmit).toHaveBeenCalledOnce();

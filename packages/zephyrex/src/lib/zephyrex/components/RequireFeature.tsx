@@ -54,24 +54,27 @@ export function UpgradePrompt({
 
 /**
  * `children` when the signed-in user's plan unlocks `feature`; otherwise `fallback`, an upgrade
- * prompt by default. Nothing shows while the plan loads. The server enforces the same rule; this
- * only decides what to show.
+ * prompt by default. While the plan loads, `loading` (nothing by default). The server enforces the
+ * same rule; this only decides what to show.
  */
 export function RequireFeature({
   feature,
   title,
   children,
   fallback,
+  loading = null,
 }: {
   feature: string;
   /** How the prompt names the feature; its id, humanised, when omitted. */
   title?: string | undefined;
   children: ReactNode;
   fallback?: ReactNode;
+  /** What shows while the plan loads, such as the page's header over placeholder rows. */
+  loading?: ReactNode;
 }): ReactNode {
   const { data } = useEntitlement();
   if (data === undefined) {
-    return null;
+    return loading;
   }
   if (hasFeature(data, feature)) {
     return children;

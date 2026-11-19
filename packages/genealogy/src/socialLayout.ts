@@ -17,7 +17,7 @@ import { personPath } from './routes';
 /** How far apart the rings the layout starts from are, in flow units. */
 export const RING_GAP = 190;
 /** The node box, centred on its point, so distances measure from node centres. */
-export const NODE_WIDTH = 132;
+export const NODE_WIDTH = 144;
 export const NODE_HEIGHT = 40;
 // The force layout: ties pull to TIE_LENGTH, everyone repels, no two boxes overlap.
 const TIE_LENGTH = 170;
@@ -57,6 +57,8 @@ export interface GraphPerson {
   group?: number | null | undefined;
   /** Their page, when there is one to open. */
   href?: string | undefined;
+  /** Their record in the tree, for the colour their avatar has everywhere; none when shown anonymously. */
+  personId?: string | null | undefined;
 }
 
 /** One tie to draw; a directed one runs from `source` (its subject) and ends in an arrow. */
@@ -82,6 +84,7 @@ export function fromNetwork(network: Network, people: ReadonlyMap<string, Person
     label: personName(people.get(id)),
     distance,
     href: personPath(id),
+    personId: id,
   });
   return {
     center: person(network.person_id, 0),
@@ -107,6 +110,7 @@ export function fromLinkedNetwork(linked: LinkedNetwork): GraphInput {
     distance: node.distance,
     group: node.group,
     href: node.person_id === null ? undefined : personPath(node.person_id),
+    personId: node.person_id,
   });
   const center = linked.nodes.find((node) => node.key === linked.center);
   if (center === undefined) {
@@ -124,6 +128,7 @@ interface PersonNodeData extends Record<string, unknown> {
   /** The person whose network this is, drawn at the centre. */
   focus: boolean;
   href?: string | undefined;
+  personId?: string | null | undefined;
 }
 
 export type PersonNode = FlowNode<PersonNodeData>;
@@ -391,7 +396,12 @@ export function socialLayout(input: GraphInput, orientation: Orientation = 'land
     return {
       id,
       position: { x: x - NODE_WIDTH / 2, y: y - NODE_HEIGHT / 2 },
-      data: { label: everyone.get(id)?.label ?? SOMEONE, focus: isCenter, href: everyone.get(id)?.href },
+      data: {
+        label: everyone.get(id)?.label ?? SOMEONE,
+        focus: isCenter,
+        href: everyone.get(id)?.href,
+        personId: everyone.get(id)?.personId,
+      },
       className: isCenter ? 'genealogy-node genealogy-node--focus' : 'genealogy-node',
       width: NODE_WIDTH,
       height: NODE_HEIGHT,

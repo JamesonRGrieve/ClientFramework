@@ -81,7 +81,8 @@ export function Profile({
           type: 'text' as const,
           display: FIELD_LABELS.get(field) ?? field,
           value: saved.get(field) ?? (field === 'timezone' ? detectTimezone() : ''),
-          ...(field === 'language' ? { choices: LANGUAGES } : {}),
+          ...(field === 'language' ? { choices: LANGUAGES, placeholder: 'Choose a language' } : {}),
+          ...(field === 'timezone' ? { searchable: true, placeholder: 'Type a city or region' } : {}),
         },
       ]),
     );

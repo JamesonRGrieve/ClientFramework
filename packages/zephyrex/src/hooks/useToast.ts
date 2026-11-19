@@ -193,4 +193,12 @@ function useToast(): State & { toast: typeof toast; dismiss: (toastId?: string) 
   };
 }
 
-export { useToast, toast };
+/** How long a confirmation stays up, in milliseconds: long enough to read, short enough not to linger. */
+const NOTICE_MS = 2500;
+
+/** A short confirmation that something was done ("Gift added"), gone on its own after a moment. */
+function notify(title: string, description?: string): ToastHandle {
+  return toast({ title, ...(description === undefined ? {} : { description }), duration: NOTICE_MS });
+}
+
+export { notify, useToast, toast };

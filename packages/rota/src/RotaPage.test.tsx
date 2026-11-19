@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { fireEvent, within } from '@testing-library/react';
+import { within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nth } from 'zephyrex/testing';
@@ -31,16 +31,18 @@ describe('RotaPage', () => {
     const weeks = await view.findByRole('region', { name: WEEKS });
     const nights = await within(weeks).findAllByRole('listitem');
     expect(nights).toHaveLength(14);
-    expect(nights[0]).toHaveTextContent('Mon 5 OctOpen');
-    expect(nights[1]).toHaveTextContent('Tue 6 OctAlex');
-    expect(nights[2]).toHaveTextContent('Wed 7 OctSam');
+    expect(nights[0]).toHaveAccessibleName('Mon 5 Oct: Open');
+    expect(nights[1]).toHaveAccessibleName('Tue 6 Oct: Alex');
+    expect(nights[2]).toHaveAccessibleName('Wed 7 Oct: Sam');
+    // Today's tile says so in place of its weekday.
+    expect(nights[0]).toHaveTextContent('Today');
     expect(view.getByText('Every 4 nights, from Mon 28 Sept')).toBeInTheDocument();
   });
 
   it('calls an account it has no name for “Someone”', async () => {
     const view = renderRota(<RotaPage />);
     const weeks = await view.findByRole('region', { name: WEEKS });
-    expect((await within(weeks).findAllByRole('listitem'))[1]).toHaveTextContent('Tue 6 OctSomeone');
+    expect((await within(weeks).findAllByRole('listitem'))[1]).toHaveAccessibleName('Tue 6 Oct: Someone');
   });
 
   it('accepts a night handed to you, and the schedule moves it', async () => {
@@ -51,7 +53,8 @@ describe('RotaPage', () => {
     await userEvent.click(within(swaps).getByRole('button', { name: 'Accept' }));
     expect(await within(swaps).findByText('Accepted')).toBeInTheDocument();
     const weeks = view.getByRole('region', { name: WEEKS });
-    await vi.waitFor(() => expect(within(weeks).getAllByRole('listitem')[1]).toHaveTextContent('Tue 6 OctYouSwapped'));
+    await vi.waitFor(() => expect(within(weeks).getAllByRole('listitem')[1]).toHaveAccessibleName('Tue 6 Oct: You'));
+    expect(within(weeks).getAllByRole('listitem')[1]).toHaveTextContent('Swapped');
     expect(store.swaps[0]?.status).toBe('accepted');
   });
 
@@ -67,7 +70,9 @@ describe('RotaPage', () => {
     const store = rotaFixture();
     store.nights.push({ id: 'n3', rota_id: 'r1', day_index: 3, user_id: ME, created_at: null, updated_at: null });
     const view = renderRota(<RotaPage people={PEOPLE} />, store);
-    fireEvent.change(await view.findByRole('combobox', { name: 'Hand Mon 5 Oct to' }), { target: { value: SAM } });
+    // Two other people: the night's "Offer to…" menu lists them.
+    await userEvent.click(await view.findByRole('button', { name: 'Offer to someone: Mon 5 Oct' }));
+    await userEvent.click(await view.findByRole('menuitem', { name: 'Sam' }));
     expect(await view.findByText('Mon 5 Oct: from you to Sam')).toBeInTheDocument();
   });
 
@@ -75,11 +80,13 @@ describe('RotaPage', () => {
     const store = rotaFixture();
     const view = renderRota(<RotaPage people={PEOPLE} />, store);
     await userEvent.click(await view.findByText('The cycle'));
-    const fourth = view.getByRole('combobox', { name: 'Night 4 · Thu 1 Oct' });
-    expect(fourth).toHaveValue('');
-    fireEvent.change(fourth, { target: { value: SAM } });
+    const fourth = view.getByRole('radiogroup', { name: 'Night 4 · Thu 1 Oct' });
+    expect(within(fourth).getByRole('radio', { name: 'Open' })).toHaveAttribute('aria-checked', 'true');
+    await userEvent.click(within(fourth).getByRole('radio', { name: 'Sam' }));
     await vi.waitFor(() => expect(store.nights.find((night) => night.day_index === 3)?.user_id).toBe(SAM));
-    fireEvent.change(view.getByRole('combobox', { name: 'Night 1 · Mon 28 Sept' }), { target: { value: '' } });
+    await userEvent.click(
+      within(view.getByRole('radiogroup', { name: 'Night 1 · Mon 28 Sept' })).getByRole('radio', { name: 'Open' }),
+    );
     await vi.waitFor(() => expect(store.nights.find((night) => night.day_index === 0)).toBeUndefined());
   });
 
@@ -100,7 +107,7 @@ describe('RotaPage', () => {
   it('starts a first rota', async () => {
     const store = emptyRotaStore();
     const view = renderRota(<RotaPage />, store);
-    expect(await view.findByText('No rotas yet. Start one below.')).toBeInTheDocument();
+    expect(await view.findByText('Start your first rota')).toBeInTheDocument();
     const cycle = view.getByLabelText('Nights before it repeats');
     await userEvent.clear(cycle);
     await userEvent.type(cycle, '2');

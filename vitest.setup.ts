@@ -75,6 +75,13 @@ class NoLayoutResizeObserver {
 }
 Object.defineProperty(globalThis, 'ResizeObserver', { writable: true, value: NoLayoutResizeObserver });
 
+// scrollIntoView: jsdom has no layout, so there is nothing to scroll; cmdk scrolls the active item into view.
+if (typeof Element !== 'undefined' && typeof Element.prototype.scrollIntoView !== 'function') {
+  Element.prototype.scrollIntoView = function scrollIntoView(): void {
+    // Nothing to scroll without layout.
+  };
+}
+
 // Global fetch stub
 globalThis.fetch = vi.fn(async () =>
   Promise.resolve(

@@ -13,6 +13,7 @@ describe('@zephyrex/health', () => {
         'MEAL_KINDS',
         'MealSchema',
         'RECORD_TYPES',
+        'RecordsPanel',
         'RecordsPage',
         'SleepSchema',
         'CheckInSchema',

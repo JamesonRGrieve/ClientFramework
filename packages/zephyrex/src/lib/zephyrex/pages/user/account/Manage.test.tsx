@@ -104,7 +104,7 @@ describe('Manage', () => {
       </TestWrapper>,
     );
     expect(await view.findByRole('list', { name: YOUR_TEAMS })).toBeInTheDocument();
-    expect(view.getByLabelText('Timezone')).toHaveTextContent(detectTimezone());
+    expect((view.getByRole('combobox', { name: 'Timezone' }) as HTMLInputElement).value).toContain(detectTimezone());
     expect(fetchMock.mock.calls.filter(([, init]) => (init?.method ?? 'GET') !== 'GET')).toEqual([]);
   });
 

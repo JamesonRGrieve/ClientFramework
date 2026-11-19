@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { Label } from '@jgrieve/forms/components/ui/label';
+import { chipGroup } from 'zephyrex/hooks/chipKeys';
 import Link from 'next/link.js';
-import { type ReactElement, useId, useState } from 'react';
+import { type ReactElement, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { ANCESTRY_ROLES, type LineageDirection, type Person, useLineage } from './genealogyApi';
 import { byGeneration, generationTitle, lifeSpan, personName } from './people';
@@ -11,11 +11,9 @@ import { personPath } from './routes';
 
 const MOST_GENERATIONS_OFFERED = 5;
 const GENERATION_CHOICES = Array.from({ length: MOST_GENERATIONS_OFFERED }, (_, index) => index + 1);
-const SELECT_CLASS = 'h-9 rounded-md border bg-background px-3 text-sm';
 
 /** A person's family tree up (ancestors) or down (descendants), generation by generation. */
 export function Lineage({ person, people }: { person: Person; people: Person[] }): ReactElement {
-  const ids = { direction: useId(), generations: useId() };
   const [direction, setDirection] = useState<LineageDirection>('ancestors');
   const [generations, setGenerations] = useState<number | undefined>(undefined);
   const [roles, setRoles] = useState<string[]>([]);
@@ -31,40 +29,45 @@ export function Lineage({ person, people }: { person: Person; people: Person[] }
       </CardHeader>
       <CardContent className='grid gap-4'>
         <div className='flex flex-wrap items-end gap-3'>
-          <div className='grid gap-1'>
-            <Label htmlFor={ids.direction}>Show</Label>
-            <select
-              id={ids.direction}
-              value={direction}
-              onChange={(event) => setDirection(event.target.value === 'descendants' ? 'descendants' : 'ancestors')}
-              className={SELECT_CLASS}
-            >
-              <option value='ancestors'>Ancestors</option>
-              <option value='descendants'>Descendants</option>
-            </select>
-          </div>
-          <div className='grid gap-1'>
-            <Label htmlFor={ids.generations}>Generations</Label>
-            <select
-              id={ids.generations}
-              value={generations ?? ''}
-              onChange={(event) => setGenerations(event.target.value === '' ? undefined : Number(event.target.value))}
-              className={SELECT_CLASS}
-            >
-              <option value=''>All</option>
-              {GENERATION_CHOICES.map((count) => (
-                <option key={count} value={count}>
-                  {count}
-                </option>
+          <fieldset className='grid min-w-0 gap-1.5'>
+            <legend className='mb-1.5 text-sm font-medium'>Show</legend>
+            <div className='inline-flex w-fit rounded-full border p-0.5' ref={chipGroup}>
+              {(['ancestors', 'descendants'] as const).map((choice) => (
+                <button
+                  key={choice}
+                  type='button'
+                  aria-pressed={direction === choice}
+                  onClick={() => setDirection(choice)}
+                  className='rounded-full px-3 py-1 text-sm text-muted-foreground transition-colors aria-pressed:bg-primary aria-pressed:text-primary-foreground'
+                >
+                  {choice === 'ancestors' ? 'Ancestors' : 'Descendants'}
+                </button>
               ))}
-            </select>
-          </div>
+            </div>
+          </fieldset>
+          <fieldset className='grid min-w-0 gap-1.5'>
+            <legend className='mb-1.5 text-sm font-medium'>Generations</legend>
+            <div className='inline-flex w-fit rounded-full border p-0.5' ref={chipGroup}>
+              {[undefined, ...GENERATION_CHOICES].map((count) => (
+                <button
+                  key={count ?? 'all'}
+                  type='button'
+                  aria-pressed={generations === count}
+                  onClick={() => setGenerations(count)}
+                  className='min-w-8 rounded-full px-2.5 py-1 text-sm tabular-nums text-muted-foreground transition-colors aria-pressed:bg-primary aria-pressed:text-primary-foreground'
+                >
+                  {count ?? 'All'}
+                </button>
+              ))}
+            </div>
+          </fieldset>
           <fieldset className='flex flex-wrap gap-3 text-sm'>
             <legend className='mb-1 text-sm font-medium'>Through parents who are (all when none is ticked)</legend>
             {ANCESTRY_ROLES.map((role) => (
-              <label key={role} className='flex items-center gap-1'>
+              <label key={role} className='flex items-center gap-1.5 capitalize'>
                 <input
                   type='checkbox'
+                  className='size-4 accent-primary'
                   checked={roles.includes(role)}
                   onChange={(event) =>
                     setRoles(event.target.checked ? [...roles, role] : roles.filter((chosen) => chosen !== role))

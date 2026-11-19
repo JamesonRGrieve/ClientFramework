@@ -56,7 +56,7 @@
     "@zephyrex/ai-agents": "workspace:^",
     "@zephyrex/ai-prompts": "workspace:^",
     "msw": "^3.0.1",
-    "next": "^16.3.7",
+    "next": "^16.4.6",
     "react": "^19.3.0",
     "swr": "^2.5.1",
     "vitest": "^5.0.2",

@@ -35,9 +35,9 @@ describe('SocialCircle', () => {
     await view.findByRole('region', { name: DIRECT });
     expect(view.queryByRole('link', { name: 'Fay' })).toBeNull();
     expect(view.queryByRole('link', { name: 'Eli' })).toBeNull();
-    await user.click(view.getByRole('checkbox', { name: 'Through friendships too' }));
+    await user.click(view.getByRole('button', { name: 'Through friendships too' }));
     expect(await view.findByRole('link', { name: 'Fay' })).toBeInTheDocument();
-    await user.click(view.getByRole('checkbox', { name: 'Include ended relationships' }));
+    await user.click(view.getByRole('button', { name: 'Include ended relationships' }));
     expect(await view.findByRole('link', { name: 'Eli' })).toBeInTheDocument();
   });
 

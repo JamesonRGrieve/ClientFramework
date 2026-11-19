@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import { within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useRouter } from 'next/navigation.js';
 import type { ReactElement } from 'react';
@@ -43,7 +44,7 @@ describe('PersonPage', () => {
     vi.mocked(useRouter).mockReturnValue({ ...vi.mocked(useRouter)(), push });
     const user = userEvent.setup();
     const view = renderGenealogy(<PersonPage params={{ personId: 'ralph' }} />, store);
-    await user.click(await view.findByRole('button', { name: 'Remove Ralph King-Milbanke from the tree' }));
+    await user.click(await view.findByRole('button', { name: 'Remove from the tree: Ralph King-Milbanke' }));
     await vi.waitFor(() => {
       expect(push).toHaveBeenCalledWith(TREE_PATH);
     });
@@ -68,9 +69,13 @@ describe('PersonPage', () => {
     expect(view.queryByLabelText('Died')).not.toBeInTheDocument();
     expect(view.queryByText('How are they related?')).not.toBeInTheDocument();
     expect(view.queryByText('Family tree')).not.toBeInTheDocument();
-    expect(view.getByLabelText('Is Ada Lovelace’s')).toHaveValue('partner');
     expect(view.getByRole('heading', { name: 'Connections' })).toBeInTheDocument();
-    expect(view.getByRole('button', { name: 'Add connection' })).toBeInTheDocument();
+    // A new tie starts from partners: the dialog opens with Partner chosen.
+    await userEvent.setup().click(await view.findByRole('button', { name: 'Add connection' }));
+    const dialog = await view.findByRole('dialog');
+    expect(
+      within(within(dialog).getByRole('group', { name: 'Is Ada Lovelace’s' })).getByRole('button', { name: 'Partner' }),
+    ).toHaveAttribute('aria-pressed', 'true');
   });
 
   it("shows the app's panels after the details, given the person", async () => {

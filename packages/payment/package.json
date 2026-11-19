@@ -40,7 +40,7 @@
   },
   "peerDependencies": {
     "cookies-next": "^6.1.1",
-    "next": "^16.3.7",
+    "next": "^16.4.6",
     "react": "^19.2.8",
     "zephyrex": "workspace:^"
   },
@@ -49,7 +49,7 @@
     "@testing-library/react": "^16.3.3",
     "cookies-next": "^6.1.1",
     "msw": "^3.0.1",
-    "next": "^16.3.7",
+    "next": "^16.4.6",
     "react": "^19.3.0",
     "storybook": "^10.6.1",
     "vitest": "^5.0.2",

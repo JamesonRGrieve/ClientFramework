@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
+import { LoadProblem } from 'zephyrex/ui/load-problem';
 import { Button } from '@jgrieve/forms/components/ui/button';
-import { type ReactElement, useState } from 'react';
+import { type ReactElement, type ReactNode, useState } from 'react';
 import { ConflictPanel, serverInstant, useClient, useDraft, useEditBase, writeProblem } from 'zephyrex';
+import { SkeletonRows } from 'zephyrex/ui/skeleton';
 import { createRecord, useRecordActions, useRecords } from './healthApi';
 import { RecordForm, draftProblem } from './RecordForm';
 import { changesFrom, conflictFields, type HealthRow, type RecordType } from './records';
@@ -18,15 +20,26 @@ function NoticeLine({ notice }: { notice: Notice }): ReactElement | null {
   );
 }
 
+/** How a record's time shows in the list: short, with the full instant on hover. */
+const WHEN: Intl.DateTimeFormatOptions = {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+  hour: 'numeric',
+  minute: '2-digit',
+};
+
 /** Change one record, saved over the row it was opened on; or delete it. */
 function RecordEditor<T extends HealthRow>({
   type,
   row,
   onClose,
+  suggestions,
 }: {
   type: RecordType<T>;
   row: T;
   onClose: () => void;
+  suggestions?: Readonly<Record<string, readonly string[]>> | undefined;
 }): ReactElement {
   const { update, remove } = useRecordActions(type);
   const { base, rebaseOnSave } = useEditBase(row);
@@ -73,6 +86,7 @@ function RecordEditor<T extends HealthRow>({
         type={type}
         draft={draft}
         label={`Edit ${type.title.toLowerCase()}`}
+        suggestions={suggestions}
         onEdit={(key, value) => {
           setDraft((current) => ({ ...current, [key]: value }));
           setNotice(null);
@@ -121,7 +135,15 @@ function RecordEditor<T extends HealthRow>({
 }
 
 /** Record a new `type` entry, starting from now. */
-function NewRecordForm<T extends HealthRow>({ type }: { type: RecordType<T> }): ReactElement {
+function NewRecordForm<T extends HealthRow>({
+  type,
+  suggestions,
+  stacked = false,
+}: {
+  type: RecordType<T>;
+  suggestions?: Readonly<Record<string, readonly string[]>> | undefined;
+  stacked?: boolean;
+}): ReactElement {
   const client = useClient();
   const { mutate: refresh } = useRecords(type);
   const [draft, setDraft] = useState(() => type.draftOf(null));
@@ -150,6 +172,8 @@ function NewRecordForm<T extends HealthRow>({ type }: { type: RecordType<T> }): 
         type={type}
         draft={draft}
         label={`New ${type.title.toLowerCase()}`}
+        suggestions={suggestions}
+        stacked={stacked}
         onEdit={(key, value) => {
           setDraft((current) => ({ ...current, [key]: value }));
           setNotice(null);
@@ -164,43 +188,75 @@ function NewRecordForm<T extends HealthRow>({ type }: { type: RecordType<T> }): 
 }
 
 /** A `type` log: its records newest first, one at a time open to edit, and a form to record another. */
-export function RecordsPanel<T extends HealthRow>({ type }: { type: RecordType<T> }): ReactElement {
+export function RecordsPanel<T extends HealthRow>({
+  type,
+  suggestions,
+  layout = 'stack',
+  lead,
+}: {
+  type: RecordType<T>;
+  /** Per field key, values a text field offers one tap each (e.g. the people in your tree). */
+  suggestions?: Readonly<Record<string, readonly string[]>> | undefined;
+  /** `split`: on a wide screen the form and the history sit side by side, the history headed. */
+  layout?: 'stack' | 'split';
+  /** Something shown before each record in the history, such as a mood marker. */
+  lead?: (row: T) => ReactNode;
+}): ReactElement {
   const records = useRecords(type);
   const [openId, setOpenId] = useState<string | null>(null);
   const all = records.data ?? [];
   const open = all.find((row) => row.id === openId);
 
   return (
-    <div className='grid gap-6'>
-      <NewRecordForm type={type} />
-      {records.error !== undefined && (
-        <p role='alert' className='text-sm text-destructive'>
-          The {type.plural.toLowerCase()} could not be loaded: {records.error.message}
-        </p>
-      )}
-      {records.error === undefined && all.length === 0 && (
-        <p className='text-sm text-muted-foreground'>
-          {records.isLoading ? 'Loading…' : `No ${type.plural.toLowerCase()} recorded yet.`}
-        </p>
-      )}
-      {all.length > 0 && (
-        <ul aria-label={type.plural} className='divide-y rounded-md border'>
-          {all.map((row) => (
-            <li key={row.id} className='flex flex-wrap items-baseline justify-between gap-2 px-4 py-3 text-sm'>
-              <button
-                type='button'
-                className='text-left font-medium hover:underline'
-                aria-expanded={row.id === openId}
-                onClick={() => setOpenId(row.id === openId ? null : row.id)}
-              >
-                {type.describe(row)}
-              </button>
-              <span className='text-muted-foreground'>{serverInstant(type.timeOf(row)).toLocaleString()}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-      {open !== undefined && <RecordEditor key={open.id} type={type} row={open} onClose={() => setOpenId(null)} />}
+    <div className={layout === 'split' ? 'grid items-start gap-6 lg:grid-cols-2 lg:gap-10' : 'grid gap-6'}>
+      <NewRecordForm type={type} suggestions={suggestions} stacked={layout === 'split'} />
+      <div className='grid content-start gap-4'>
+        {layout === 'split' && (
+          <h2 className='text-sm font-semibold uppercase tracking-wide text-muted-foreground'>
+            History{all.length > 0 && <span className='ml-2 font-normal tabular-nums'>{String(all.length)}</span>}
+          </h2>
+        )}
+        {records.error !== undefined && (
+          <LoadProblem
+            what={`the ${type.plural.toLowerCase()}`}
+            error={records.error}
+            onRetry={async () => records.mutate()}
+          />
+        )}
+        {records.error === undefined && all.length === 0 && records.isLoading && (
+          <SkeletonRows rows={2} label={`Loading ${type.plural.toLowerCase()}`} />
+        )}
+        {records.error === undefined && all.length === 0 && !records.isLoading && (
+          <p className='text-sm text-muted-foreground'>No {type.plural.toLowerCase()} recorded yet.</p>
+        )}
+        {all.length > 0 && (
+          <ul aria-label={type.plural} className='divide-y rounded-md border'>
+            {all.map((row) => (
+              <li key={row.id} className='flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-3 text-sm'>
+                {lead?.(row)}
+                <button
+                  type='button'
+                  className='flex-1 text-left font-medium hover:underline'
+                  aria-expanded={row.id === openId}
+                  onClick={() => setOpenId(row.id === openId ? null : row.id)}
+                >
+                  {type.describe(row)}
+                </button>
+                <time
+                  dateTime={serverInstant(type.timeOf(row)).toISOString()}
+                  title={serverInstant(type.timeOf(row)).toLocaleString()}
+                  className='tabular-nums text-muted-foreground'
+                >
+                  {serverInstant(type.timeOf(row)).toLocaleString(undefined, WHEN)}
+                </time>
+              </li>
+            ))}
+          </ul>
+        )}
+        {open !== undefined && (
+          <RecordEditor key={open.id} type={type} row={open} onClose={() => setOpenId(null)} suggestions={suggestions} />
+        )}
+      </div>
     </div>
   );
 }

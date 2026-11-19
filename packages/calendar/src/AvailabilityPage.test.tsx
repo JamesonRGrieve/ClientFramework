@@ -20,20 +20,33 @@ describe('AvailabilityPage', () => {
     vi.unstubAllGlobals();
   });
 
-  it('finds when you and the people chosen are free, and books a date where it may go', async () => {
+  it('finds when you and the people chosen are free', async () => {
     const store = calendarFixture();
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const view = renderCalendar(<AvailabilityPage people={PEOPLE} />, store);
     const finder = view.getByRole('form', { name: 'Find a time' });
-    await user.click(await within(finder).findByRole('checkbox', { name: 'Alex' }));
-    await user.click(within(finder).getByRole('checkbox', { name: 'Jo' }));
-    await user.selectOptions(within(finder).getByLabelText('For'), '3 hours');
+    // Everyone who shares with you starts chosen.
+    expect(await within(finder).findByRole('button', { name: 'Alex' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(finder).getByRole('button', { name: 'Jo' })).toHaveAttribute('aria-pressed', 'true');
+    await user.click(
+      within(within(finder).getByRole('group', { name: 'For how long' })).getByRole('button', { name: '3 hours' }),
+    );
     await user.click(within(finder).getByRole('button', FIND));
-    const free = await view.findByRole('list', { name: 'Free times' });
+    expect(await view.findByRole('list', { name: 'Free times' })).toBeInTheDocument();
     expect(store.asked).toEqual([{ user_ids: [ALEX, JO], duration_minutes: 180 }]);
+  });
+
+  it('books a free time into the calendars where it may go, and says who to tell', async () => {
+    const store = calendarFixture();
+    const user = userEvent.setup({ delay: null });
+    const view = renderCalendar(<AvailabilityPage people={PEOPLE} />, store);
+    await view.findByRole('button', { name: 'Alex', pressed: true });
+    await user.click(view.getByRole('button', FIND));
+    const free = await view.findByRole('list', { name: 'Free times' });
     await user.click(within(free).getAllByRole('button', { name: /^Book / })[0] ?? free);
-    await user.clear(view.getByLabelText('What'));
-    await user.type(view.getByLabelText('What'), 'Dinner');
+    const what = view.getByLabelText('What');
+    await user.clear(what);
+    await user.type(what, 'Dinner');
     await user.click(view.getByRole('button', { name: 'Book it' }));
     expect(await view.findByRole('status')).toHaveTextContent(
       'Booked into your and Alex’s calendars. Tell Jo yourself: they don’t let you book them, or have no calendar connected.',
@@ -52,7 +65,7 @@ describe('AvailabilityPage', () => {
     const store = { ...calendarFixture(), unconnected: [ME, ALEX] };
     const user = userEvent.setup();
     const view = renderCalendar(<AvailabilityPage people={PEOPLE} />, store);
-    await user.click(await view.findByRole('checkbox', { name: 'Alex' }));
+    await view.findByRole('button', { name: 'Alex', pressed: true });
     await user.click(view.getByRole('button', FIND));
     expect(await view.findByText(/Not counted: You, Alex/)).toBeInTheDocument();
   });
@@ -78,7 +91,9 @@ describe('AvailabilityPage', () => {
     const user = userEvent.setup();
     const view = renderCalendar(<AvailabilityPage people={PEOPLE} accountPage='/me' />, emptyCalendarStore());
     const form = view.getByRole('form', CONNECT);
-    await user.selectOptions(within(form).getByLabelText('Calendar'), 'Google Calendar');
+    await user.click(
+      within(within(form).getByRole('group', { name: 'Calendar' })).getByRole('button', { name: 'Google Calendar' }),
+    );
     expect(within(form).getByRole('link', { name: 'your account page' })).toHaveAttribute('href', '/me');
     expect(within(form).queryByLabelText(PASSWORD)).toBeNull();
     await user.click(within(form).getByRole('button', { name: 'Connect' }));
@@ -89,7 +104,7 @@ describe('AvailabilityPage', () => {
     const store = calendarFixture();
     const user = userEvent.setup();
     const view = renderCalendar(<AvailabilityPage people={PEOPLE} />, store);
-    await user.selectOptions(view.getByLabelText('Share with'), 'Sam');
+    await user.click(within(view.getByRole('radiogroup', { name: 'Share with' })).getByRole('radio', { name: 'Sam' }));
     await user.click(view.getByRole('button', { name: 'Share' }));
     await vi.waitFor(() => {
       expect(store.shares).toContainEqual({ user_id: SAM, can_book: false });
