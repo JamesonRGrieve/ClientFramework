@@ -22,4 +22,14 @@ describe('SidebarLogo', () => {
     );
     expect(view.getByTestId('logo')).toBeInTheDocument();
   });
+
+  it('writes the name as the brand does, when the app gives one', () => {
+    const view = render(
+      <TestWrapper config={{ app: { name: 'Test App', brandName: 'test app' } }}>
+        <SidebarLogo />
+      </TestWrapper>,
+    );
+    expect(view.getByText('test app')).toBeInTheDocument();
+    expect(view.queryByText('Test App')).not.toBeInTheDocument();
+  });
 });

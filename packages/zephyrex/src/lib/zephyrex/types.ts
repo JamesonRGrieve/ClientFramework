@@ -113,6 +113,8 @@ export interface ZephyrexConfig {
   };
   app: {
     name: string;
+    /** The name as the brand writes it beside the logo ("cule"); `name` stays the name in sentences. */
+    brandName?: string;
     description?: string;
     defaultTheme?: 'dark' | 'light';
     logo?: ComponentType;

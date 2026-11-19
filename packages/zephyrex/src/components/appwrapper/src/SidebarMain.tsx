@@ -58,7 +58,7 @@ export function SidebarLogo() {
         </div>
       )}
       <div className='text-sm leading-tight text-left w-full hidden md:block group-data-[collapsible=icon]:hidden'>
-        <span className='font-semibold text-lg truncate block'>{config.app.name}</span>
+        <span className='font-semibold text-lg truncate block'>{config.app.brandName ?? config.app.name}</span>
       </div>
     </div>
   );

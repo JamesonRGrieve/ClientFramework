@@ -33,6 +33,18 @@ describe('UserLayout', () => {
     expect(view.getByRole('link', { name: 'Test App' })).toContainElement(view.getByTestId('logo'));
   });
 
+  it('names the link home as the brand writes it, when the app gives one', () => {
+    vi.mocked(usePathname).mockReturnValue('/user');
+    const view = render(
+      <TestWrapper config={{ app: { name: 'Test App', brandName: 'test app' } }}>
+        <UserLayout>
+          <p>step</p>
+        </UserLayout>
+      </TestWrapper>,
+    );
+    expect(view.getByRole('link', { name: 'test app' })).toHaveAttribute('href', '/');
+  });
+
   it('gives the account page the app shell instead', () => {
     const view = renderAt('/user/manage');
     expect(view.queryByRole('link', { name: 'Test App' })).not.toBeInTheDocument();
