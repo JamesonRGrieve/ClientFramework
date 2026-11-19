@@ -87,6 +87,21 @@ describe('AvailabilityPage', () => {
     expect(store.accounts).toHaveLength(1);
   });
 
+  it('folds the form away once a calendar is connected, and opens it again to add another', async () => {
+    const store = emptyCalendarStore();
+    const user = userEvent.setup();
+    const view = renderCalendar(<AvailabilityPage people={PEOPLE} />, store);
+    const form = view.getByRole('form', CONNECT);
+    await user.type(within(form).getByLabelText('Calendar address'), 'https://dav.example.org/cal/');
+    await user.type(within(form).getByLabelText('Sign-in name'), 'me');
+    await user.type(within(form).getByLabelText(PASSWORD), 'right');
+    await user.click(within(form).getByRole('button', { name: 'Connect' }));
+    await user.click(await view.findByRole('button', { name: 'Connect another calendar' }));
+    expect(view.getByRole('form', CONNECT)).toBeInTheDocument();
+    await user.click(view.getByRole('button', { name: 'Cancel' }));
+    expect(view.queryByRole('form', CONNECT)).toBeNull();
+  });
+
   it('sends Google to the account page, and shows the server’s answer', async () => {
     const user = userEvent.setup();
     const view = renderCalendar(<AvailabilityPage people={PEOPLE} accountPage='/me' />, emptyCalendarStore());

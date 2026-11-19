@@ -85,6 +85,10 @@ function YourCalendars({ accountPage }: { accountPage: string }): ReactNode {
   const [calendarId, setCalendarId] = useState('');
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // With a calendar connected, connecting another is a choice, not the page: the form folds away.
+  const [adding, setAdding] = useState(false);
+  const connected = (accounts.data ?? []).length > 0;
+  const formShown = !connected || adding;
   const delegated = service !== 'caldav';
   const run = (write: Promise<unknown>, fallback: string, after?: () => void): void => {
     setBusy(true);
@@ -114,6 +118,7 @@ function YourCalendars({ accountPage }: { accountPage: string }): ReactNode {
       () => {
         setLabel('');
         setPassword('');
+        setAdding(false);
       },
     );
   };
@@ -146,112 +151,126 @@ function YourCalendars({ accountPage }: { accountPage: string }): ReactNode {
           ))}
         </ul>
       )}
-      <form
-        onSubmit={connect}
-        aria-label='Connect a calendar'
-        className='grid gap-3 rounded-md border p-4 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2'
-      >
-        <fieldset className='col-span-full grid min-w-0 gap-1.5'>
-          <legend id={ids.service} className='mb-1.5 text-sm font-medium'>
-            Calendar
-          </legend>
-          <div className='flex flex-wrap gap-1.5' ref={chipGroup}>
-            {CALENDAR_SERVICES.map((item) => (
-              <button
-                key={item.provider}
-                type='button'
-                aria-pressed={service === item.provider}
-                onClick={() => setService(item.provider)}
-                className={CHIP}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </fieldset>
-        <label htmlFor={ids.label} className='grid gap-1 text-sm font-medium'>
-          Call it (optional)
-          <Input
-            id={ids.label}
-            value={label}
-            onChange={(event) => setLabel(event.target.value)}
-            placeholder='Personal'
-            maxLength={200}
-          />
-        </label>
-        {delegated ? (
-          <>
-            {service === 'google_calendar' && (
-              <label htmlFor={ids.calendar} className='grid gap-1 text-sm font-medium'>
-                Which calendar (optional)
+      {connected && !formShown && (
+        <Button type='button' variant='outline' className='justify-self-start' onClick={() => setAdding(true)}>
+          Connect another calendar
+        </Button>
+      )}
+      {formShown && (
+        <form
+          onSubmit={connect}
+          aria-label='Connect a calendar'
+          className='grid gap-3 rounded-md border p-4 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2'
+        >
+          <fieldset className='col-span-full grid min-w-0 gap-1.5'>
+            <legend id={ids.service} className='mb-1.5 text-sm font-medium'>
+              Calendar
+            </legend>
+            <div className='flex flex-wrap gap-1.5' ref={chipGroup}>
+              {CALENDAR_SERVICES.map((item) => (
+                <button
+                  key={item.provider}
+                  type='button'
+                  aria-pressed={service === item.provider}
+                  onClick={() => setService(item.provider)}
+                  className={CHIP}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          <label htmlFor={ids.label} className='grid gap-1 text-sm font-medium'>
+            Call it (optional)
+            <Input
+              id={ids.label}
+              value={label}
+              onChange={(event) => setLabel(event.target.value)}
+              placeholder='Personal'
+              maxLength={200}
+            />
+          </label>
+          {delegated ? (
+            <>
+              {service === 'google_calendar' && (
+                <label htmlFor={ids.calendar} className='grid gap-1 text-sm font-medium'>
+                  Which calendar (optional)
+                  <Input
+                    id={ids.calendar}
+                    value={calendarId}
+                    onChange={(event) => setCalendarId(event.target.value)}
+                    placeholder='primary'
+                    maxLength={200}
+                  />
+                </label>
+              )}
+              <p className='text-sm text-muted-foreground col-span-full'>
+                Uses the account you linked on{' '}
+                <a className={LINK} href={accountPage}>
+                  your account page
+                </a>
+                . Link it there first, allowing calendar access.
+              </p>
+            </>
+          ) : (
+            <>
+              <label htmlFor={ids.url} className='grid gap-1 text-sm font-medium col-span-full'>
+                Calendar address
                 <Input
-                  id={ids.calendar}
-                  value={calendarId}
-                  onChange={(event) => setCalendarId(event.target.value)}
-                  placeholder='primary'
-                  maxLength={200}
+                  id={ids.url}
+                  type='url'
+                  value={url}
+                  onChange={(event) => setUrl(event.target.value)}
+                  placeholder='https://caldav.example.com/calendars/you/personal/'
+                  required
+                  maxLength={2000}
+                  autoCapitalize='off'
+                  autoCorrect='off'
+                  spellCheck={false}
                 />
               </label>
-            )}
-            <p className='text-sm text-muted-foreground col-span-full'>
-              Uses the account you linked on{' '}
-              <a className={LINK} href={accountPage}>
-                your account page
-              </a>
-              . Link it there first, allowing calendar access.
-            </p>
-          </>
-        ) : (
-          <>
-            <label htmlFor={ids.url} className='grid gap-1 text-sm font-medium col-span-full'>
-              Calendar address
-              <Input
-                id={ids.url}
-                type='url'
-                value={url}
-                onChange={(event) => setUrl(event.target.value)}
-                placeholder='https://caldav.example.com/calendars/you/personal/'
-                required
-                maxLength={2000}
-                autoCapitalize='off'
-                autoCorrect='off'
-                spellCheck={false}
-              />
-            </label>
-            <label htmlFor={ids.user} className='grid gap-1 text-sm font-medium'>
-              Sign-in name
-              <Input
-                id={ids.user}
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                required
-                maxLength={200}
-                autoComplete='off'
-                autoCapitalize='off'
-                spellCheck={false}
-              />
-            </label>
-            <label htmlFor={ids.password} className='grid gap-1 text-sm font-medium'>
-              App password
-              <Input
-                id={ids.password}
-                type='password'
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-                maxLength={200}
-                autoComplete='off'
-              />
-            </label>
-          </>
-        )}
-        <div className='grid gap-2 col-span-full'>
-          <Problem problem={problem} />
-          <Button type='submit' className='justify-self-start' disabled={busy}>
-            {busy ? 'Connecting…' : 'Connect'}
-          </Button>
-        </div>
-      </form>
+              <label htmlFor={ids.user} className='grid gap-1 text-sm font-medium'>
+                Sign-in name
+                <Input
+                  id={ids.user}
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  required
+                  maxLength={200}
+                  autoComplete='off'
+                  autoCapitalize='off'
+                  spellCheck={false}
+                />
+              </label>
+              <label htmlFor={ids.password} className='grid gap-1 text-sm font-medium'>
+                App password
+                <Input
+                  id={ids.password}
+                  type='password'
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                  maxLength={200}
+                  autoComplete='off'
+                />
+              </label>
+            </>
+          )}
+          <div className='grid gap-2 col-span-full'>
+            <Problem problem={problem} />
+            <div className='flex flex-wrap gap-2'>
+              <Button type='submit' disabled={busy}>
+                {busy ? 'Connecting…' : 'Connect'}
+              </Button>
+              {connected && (
+                <Button type='button' variant='ghost' disabled={busy} onClick={() => setAdding(false)}>
+                  Cancel
+                </Button>
+              )}
+            </div>
+          </div>
+        </form>
+      )}
     </div>
   );
 }
