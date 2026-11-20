@@ -105,8 +105,12 @@ function versionTag(row: RecordRow): string {
   return entityTag(frameworkTimestamp(row.updatedAt));
 }
 
+/**
+ * The record a write carries, as server-framework reads it (`extract_body_data`): the value under
+ * the resource's key when the body has it, else the whole body (a bare record).
+ */
 function parse<T>(schema: z.ZodType<T>, envelope: object, resource: string): T {
-  const body: unknown = Reflect.get(envelope, resource);
+  const body: unknown = resource in envelope ? Reflect.get(envelope, resource) : envelope;
   if (typeof body !== 'object' || body === null || Array.isArray(body)) {
     throw validationError(`A ${resource} object is required`, resource);
   }

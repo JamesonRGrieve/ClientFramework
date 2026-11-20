@@ -116,8 +116,14 @@ describe('collectionRoutes and recordRoutes', () => {
     expect(response.headers.get('etag')).toBe(`"${frameworkTimestamp(row?.updatedAt ?? new Date())}"`);
   });
 
-  it('refuses a create without the resource envelope with 422', async () => {
+  it('takes a bare record without the envelope, as server-framework does', async () => {
     const response = await collection.POST(call('POST', BASE, { title: 'loose' }), params(''));
+    expect(response.status).toBe(201);
+    expect(await response.json()).toMatchObject({ note: { title: 'loose' } });
+  });
+
+  it('refuses an envelope whose record is not an object with 422', async () => {
+    const response = await collection.POST(call('POST', BASE, { note: 'loose' }), params(''));
     expect(response.status).toBe(422);
   });
 
