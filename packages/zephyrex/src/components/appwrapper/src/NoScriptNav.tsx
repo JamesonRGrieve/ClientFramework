@@ -1,7 +1,9 @@
 'use client';
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+import { usePathname } from 'next/navigation.js';
 import type { ReactNode } from 'react';
+import { DEFAULT_AUTH_PATH, sidebarShownOn } from '@/lib/zephyrex/authPath';
 import type { NavItemDefinition } from '@/lib/zephyrex/types';
 import { useZephyrexConfig } from '@/lib/zephyrex/ZephyrexProvider';
 
@@ -16,13 +18,15 @@ const linksOf = (definition: NavItemDefinition): { title: string; url: string }[
 
 /**
  * The app's pages as a menu that needs no JavaScript, for a phone with scripts off or not yet
- * loaded: a `<details>` list of the same entries the sidebar shows, as plain links. It sits beside
- * the sidebar's phone button inside `<noscript>`, so with scripts on it's never rendered.
+ * loaded: a `<details>` list of the same entries the sidebar shows, as plain links, on the same pages
+ * (none on the landing page or the sign-in pages, where the sidebar isn't shown either). It sits
+ * beside the sidebar's phone button inside `<noscript>`, so with scripts on it's never rendered.
  */
 export function NoScriptNav(): ReactNode {
-  const { navItems } = useZephyrexConfig();
+  const { navItems, config } = useZephyrexConfig();
+  const pathname = usePathname();
   const links = navItems.flatMap(linksOf);
-  if (links.length === 0) {
+  if (links.length === 0 || !sidebarShownOn(pathname, config.auth?.authPath ?? DEFAULT_AUTH_PATH)) {
     return null;
   }
   return (

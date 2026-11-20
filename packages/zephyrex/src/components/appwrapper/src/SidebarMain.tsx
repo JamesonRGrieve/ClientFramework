@@ -7,7 +7,7 @@ import { FaRobot } from 'react-icons/fa';
 import { CommandPalette } from './CommandPalette';
 import { NavMain } from './NavMain';
 import { ToggleSidebar } from './ToggleSidebar';
-import { accountsEnabled, DEFAULT_AUTH_PATH, MANAGE_PAGE } from '@/lib/zephyrex/authPath';
+import { accountsEnabled, DEFAULT_AUTH_PATH, sidebarShownOn } from '@/lib/zephyrex/authPath';
 import { useZephyrexConfig } from '@/lib/zephyrex/ZephyrexProvider';
 import { NavUser } from '@/components/appwrapper/src/NavUser';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '@/components/ui/sidebar';
@@ -18,8 +18,7 @@ export function SidebarMain({ children, ...props }: React.ComponentProps<typeof 
   const { config } = useZephyrexConfig();
   const authPath = config.auth?.authPath ?? DEFAULT_AUTH_PATH;
 
-  // No sidebar on the landing page or the sign-in pages; the account page keeps it.
-  if (pathname === '/' || (pathname.startsWith(authPath) && pathname !== `${authPath}${MANAGE_PAGE}`)) {
+  if (!sidebarShownOn(pathname, authPath)) {
     return null;
   }
 
