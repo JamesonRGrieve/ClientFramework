@@ -73,9 +73,11 @@ const ToastClose = React.forwardRef<
       className,
     )}
     toast-close=''
+    // An icon-only button needs a name of its own (axe button-name); a caller's aria-label wins.
+    aria-label='Dismiss notice'
     {...props}
   >
-    <Cross2Icon className='h-4 w-4' />
+    <Cross2Icon aria-hidden='true' className='h-4 w-4' />
   </ToastPrimitives.Close>
 ));
 ToastClose.displayName = ToastPrimitives.Close.displayName;
