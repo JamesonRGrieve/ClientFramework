@@ -418,6 +418,7 @@ function Details({
   people,
   nameOf,
   onChanged,
+  onHide,
 }: {
   agreement: Agreement;
   isOwner: boolean;
@@ -425,6 +426,8 @@ function Details({
   people: readonly AgreementPerson[];
   nameOf: NameOf;
   onChanged: () => Promise<unknown>;
+  /** Hides the whole agreement while its deletion can still be undone, or shows it again. */
+  onHide: (hidden: boolean) => void;
 }): ReactNode {
   const client = useClient();
   const ids = { revisit: useId() };
@@ -487,7 +490,21 @@ function Details({
             variant='ghost'
             className='text-destructive'
             disabled={busy}
-            onClick={() => void run(agreementsApi.remove(client, agreement.id), 'The agreement could not be deleted.')}
+            onClick={() => {
+              onHide(true);
+              deferWithUndo(
+                `${agreement.title} deleted for everyone`,
+                () => {
+                  void (async (): Promise<void> => {
+                    if (!(await run(agreementsApi.remove(client, agreement.id), 'The agreement could not be deleted.'))) {
+                      onHide(false);
+                      notify('The agreement could not be deleted.');
+                    }
+                  })();
+                },
+                () => onHide(false),
+              );
+            }}
           >
             Delete it for everyone
           </Button>
@@ -497,7 +514,23 @@ function Details({
             size='sm'
             variant='ghost'
             disabled={busy}
-            onClick={() => void run(agreementsApi.removeParty(client, agreement.id, me), 'You could not leave it just now.')}
+            onClick={() => {
+              onHide(true);
+              deferWithUndo(
+                `You left ${agreement.title}`,
+                () => {
+                  void (async (): Promise<void> => {
+                    if (
+                      !(await run(agreementsApi.removeParty(client, agreement.id, me), 'You could not leave it just now.'))
+                    ) {
+                      onHide(false);
+                      notify('You could not leave it just now.');
+                    }
+                  })();
+                },
+                () => onHide(false),
+              );
+            }}
           >
             Leave it
           </Button>
@@ -547,6 +580,11 @@ function AgreementCard({
   const waiting = agreement.parties.filter((p) => !p.confirmed).map((p) => nameOf(p.user_id));
   const due = dueForRevisit(agreement.revisit_on, today());
   const others = agreement.parties.filter((p) => p.user_id !== me).map((p) => nameOf(p.user_id));
+  // Deleted, but still within its undo window: hidden until the notice goes or Undo brings it back.
+  const [hidden, setHidden] = useState(false);
+  if (hidden) {
+    return null;
+  }
   return (
     <Card>
       <CardHeader className='flex-row flex-wrap items-start justify-between gap-3 space-y-0'>
@@ -658,6 +696,7 @@ function AgreementCard({
             people={people}
             nameOf={nameOf}
             onChanged={onChanged}
+            onHide={setHidden}
           />
         )}
       </CardContent>

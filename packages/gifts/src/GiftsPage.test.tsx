@@ -101,6 +101,30 @@ describe('GiftsPage', () => {
     });
   });
 
+  it('marks every chosen gift given at once', async () => {
+    const store = giftsFixture();
+    const user = userEvent.setup();
+    const view = renderGifts(<GiftsPage people={PEOPLE} />, store);
+    await user.click(await view.findByRole('checkbox', { name: 'Choose A silk scarf' }));
+    await user.click(view.getByRole('checkbox', { name: 'Choose Peonies' }));
+    expect(view.getByRole('status')).toHaveTextContent('2 gifts chosen');
+    await user.click(view.getByRole('button', { name: 'Mark given' }));
+    await vi.waitFor(() => {
+      expect(store.gifts.map((gift) => gift.status)).toEqual(['given', 'given']);
+    });
+  });
+
+  it('moves chosen gifts to someone else', async () => {
+    const store = giftsFixture();
+    const user = userEvent.setup();
+    const view = renderGifts(<GiftsPage people={PEOPLE} />, store);
+    await user.click(await view.findByRole('checkbox', { name: 'Choose A silk scarf' }));
+    await user.selectOptions(view.getByRole('combobox', { name: 'Move to' }), 'p-sam');
+    await vi.waitFor(() => {
+      expect(store.gifts.at(0)?.for_ref).toBe('p-sam');
+    });
+  });
+
   it('moves through the list with J and K, and deletes with Delete', async () => {
     const store = giftsFixture();
     const user = userEvent.setup();

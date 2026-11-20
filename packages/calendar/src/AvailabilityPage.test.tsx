@@ -2,6 +2,7 @@
 import { within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { UNDO_MS } from 'zephyrex/hooks/useToast';
 import { AvailabilityPage, bookedMessage } from './AvailabilityPage';
 import { ALEX, calendarFixture, emptyCalendarStore, JO, ME, SAM } from './calendar.mocks';
 import { renderCalendar } from './testing.mocks';
@@ -134,7 +135,13 @@ describe('AvailabilityPage', () => {
     await vi.waitFor(() => {
       expect(sharing).toHaveTextContent('Sam');
     });
+    // Stopping hides the share at once and keeps it for the undo window; then it ends.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     await user.click(view.getByRole('button', { name: 'Stop sharing with Alex' }));
+    expect(view.queryByRole('button', { name: 'Stop sharing with Alex' })).not.toBeInTheDocument();
+    expect(store.shares).toHaveLength(2);
+    vi.advanceTimersByTime(UNDO_MS);
+    vi.useRealTimers();
     await vi.waitFor(() => {
       expect(store.shares.map((share) => share.user_id)).toEqual([SAM]);
     });

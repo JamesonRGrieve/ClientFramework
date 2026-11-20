@@ -6,9 +6,11 @@ import { rowList } from 'zephyrex/hooks/rowKeys';
 import { type ReactNode, type SyntheticEvent, useId, useState } from 'react';
 import { useClient, writeProblem } from 'zephyrex';
 import { deferWithUndo, notify } from 'zephyrex/hooks/useToast';
+import { useHidden } from 'zephyrex/hooks/useWrites';
 import { LoadProblem } from 'zephyrex/ui/load-problem';
 import { Button } from 'zephyrex/ui/button';
 import { InlineText } from 'zephyrex/ui/inline-text';
+import { type RowSelection, SelectionBar, useSelection } from 'zephyrex/ui/selection-bar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from 'zephyrex/ui/dialog';
 import { Input } from 'zephyrex/ui/input';
@@ -226,7 +228,15 @@ function AddGift({ people, onAdded }: { people: readonly GiftPerson[]; onAdded: 
   );
 }
 
-function GiftRow({ gift, onChanged }: { gift: Gift; onChanged: () => Promise<unknown> }): ReactNode {
+function GiftRow({
+  gift,
+  selection,
+  onChanged,
+}: {
+  gift: Gift;
+  selection: RowSelection;
+  onChanged: () => Promise<unknown>;
+}): ReactNode {
   const client = useClient();
   const statusId = useId();
   const [problem, setProblem] = useState<string | null>(null);
@@ -259,29 +269,38 @@ function GiftRow({ gift, onChanged }: { gift: Gift; onChanged: () => Promise<unk
   }
   return (
     <li data-row className='group grid gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-x-4'>
-      <div className='grid min-w-0 gap-0.5'>
-        <InlineText
-          value={gift.title}
-          label='Gift'
-          rowOpen
-          onSave={async (title) => change({ title }, 'The gift could not be renamed.')}
-          className={gift.status === 'given' ? 'font-medium text-muted-foreground line-through' : 'font-medium'}
+      <div className='flex min-w-0 items-start gap-3'>
+        <input
+          type='checkbox'
+          aria-label={`Choose ${gift.title}`}
+          checked={selection.has(gift.id)}
+          onChange={() => selection.toggle(gift.id)}
+          className='mt-1 size-4 shrink-0 accent-primary'
         />
-        <div className='flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground'>
+        <div className='grid min-w-0 gap-0.5'>
           <InlineText
-            value={gift.note ?? ''}
-            label='Note'
-            placeholder='Add a note'
-            onSave={async (note) => change({ note }, 'The note could not be saved.')}
+            value={gift.title}
+            label='Gift'
+            rowOpen
+            onSave={async (title) => change({ title }, 'The gift could not be renamed.')}
+            className={gift.status === 'given' ? 'font-medium text-muted-foreground line-through' : 'font-medium'}
           />
-          <span aria-hidden='true'>·</span>
-          {link === null ? (
-            <ShopSearch query={gift.title} />
-          ) : (
-            <a className={LINK} href={link} target='_blank' rel='noopener noreferrer sponsored'>
-              Where to buy it
-            </a>
-          )}
+          <div className='flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground'>
+            <InlineText
+              value={gift.note ?? ''}
+              label='Note'
+              placeholder='Add a note'
+              onSave={async (note) => change({ note }, 'The note could not be saved.')}
+            />
+            <span aria-hidden='true'>·</span>
+            {link === null ? (
+              <ShopSearch query={gift.title} />
+            ) : (
+              <a className={LINK} href={link} target='_blank' rel='noopener noreferrer sponsored'>
+                Where to buy it
+              </a>
+            )}
+          </div>
         </div>
       </div>
       <div className='flex items-center justify-between gap-2 sm:justify-end'>
@@ -405,6 +424,154 @@ function Ideas({ ideas, onSaved }: { ideas: readonly GiftIdea[]; onSaved: () => 
   );
 }
 
+const giftCount = (count: number): string => (count === 1 ? '1 gift' : `${String(count)} gifts`);
+
+/**
+ * What to do with every ticked gift at once: mark them bought or given, give them to someone else,
+ * or delete them (with undo). Each write goes in turn, so one failure stops the rest and says why.
+ */
+function BulkGifts({
+  gifts,
+  people,
+  selection,
+  onHide,
+  onChanged,
+}: {
+  gifts: readonly Gift[];
+  people: readonly GiftPerson[];
+  selection: RowSelection;
+  /** Hides the gifts while their deletion can still be undone, or shows them again. */
+  onHide: (ids: readonly string[], hide: boolean) => void;
+  onChanged: () => Promise<unknown>;
+}): ReactNode {
+  const client = useClient();
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const chosen = gifts.filter((gift) => selection.has(gift.id));
+  const each = (write: (gift: Gift) => Promise<unknown>, fallback: string, done: string): void => {
+    setBusy(true);
+    void (async (): Promise<void> => {
+      const writes = chosen.reduce<Promise<unknown>>(async (before, gift) => {
+        await before;
+        return write(gift);
+      }, Promise.resolve());
+      const failed = await writeProblem(writes, fallback);
+      setProblem(failed);
+      if (failed === null) {
+        notify(done);
+        selection.clear();
+      }
+      await onChanged();
+      setBusy(false);
+    })();
+  };
+  const remove = (): void => {
+    const ids = chosen.map((gift) => gift.id);
+    onHide(ids, true);
+    selection.clear();
+    deferWithUndo(
+      `${giftCount(chosen.length)} deleted`,
+      () => {
+        void writeProblem(
+          chosen.reduce<Promise<unknown>>(async (before, gift) => {
+            await before;
+            return giftsApi.remove(client, gift);
+          }, Promise.resolve()),
+          'The gifts could not be deleted.',
+        ).then(async (failed) => {
+          setProblem(failed);
+          if (failed !== null) {
+            onHide(ids, false);
+          }
+          return onChanged();
+        });
+      },
+      () => {
+        onHide(ids, false);
+      },
+    );
+  };
+  return (
+    <div className='grid gap-2'>
+      <SelectionBar selection={selection} noun='gift'>
+        {chosen.length < gifts.length && (
+          <Button type='button' size='sm' variant='ghost' onClick={() => selection.toggleAll(gifts.map((gift) => gift.id))}>
+            Choose all
+          </Button>
+        )}
+        <Button
+          type='button'
+          size='sm'
+          variant='outline'
+          disabled={busy}
+          onClick={() =>
+            each(
+              async (gift) => giftsApi.setStatus(client, gift, 'bought'),
+              'Those could not be marked bought.',
+              `${giftCount(chosen.length)} marked bought`,
+            )
+          }
+        >
+          Mark bought
+        </Button>
+        <Button
+          type='button'
+          size='sm'
+          variant='outline'
+          disabled={busy}
+          onClick={() =>
+            each(
+              async (gift) => giftsApi.setStatus(client, gift, 'given'),
+              'Those could not be marked given.',
+              `${giftCount(chosen.length)} marked given`,
+            )
+          }
+        >
+          Mark given
+        </Button>
+        {people.length > 0 && (
+          <select
+            aria-label='Move to'
+            value=''
+            disabled={busy}
+            className={`${SELECT} h-8`}
+            onChange={(event) => {
+              const to = people.find((candidate) => candidate.ref === event.target.value);
+              if (to !== undefined) {
+                each(
+                  async (gift) => giftsApi.edit(client, gift, { for_name: to.name, for_ref: to.ref }),
+                  'Those could not be moved.',
+                  `${giftCount(chosen.length)} moved to ${to.name}`,
+                );
+              }
+            }}
+          >
+            <option value='' disabled>
+              Move to…
+            </option>
+            {people.map((candidate) => (
+              <option key={candidate.ref} value={candidate.ref}>
+                {candidate.name}
+              </option>
+            ))}
+          </select>
+        )}
+        <Button
+          type='button'
+          size='sm'
+          variant='outline'
+          disabled={busy}
+          onClick={remove}
+          className='hover:text-destructive'
+        >
+          Delete
+        </Button>
+      </SelectionBar>
+      <Problem problem={problem} />
+    </div>
+  );
+}
+
 export interface GiftsPageProps {
   /** The people the app knows, to choose who a gift is for. */
   people?: readonly GiftPerson[];
@@ -416,8 +583,18 @@ export interface GiftsPageProps {
 export function GiftsPage({ people = [], ideas = [] }: GiftsPageProps): ReactNode {
   const gifts = useGifts();
   const refresh = async (): Promise<unknown> => gifts.mutate();
+  const selection = useSelection();
+  // Deleted together, within their undo window: hidden until the notice goes or Undo brings them back.
+  const { shown, pending, hide: hideGifts, show: showGifts } = useHidden(gifts.data ?? [], (gift) => gift.id);
+  const hide = (ids: readonly string[], hiding: boolean): void => {
+    if (hiding) {
+      hideGifts(ids);
+    } else {
+      showGifts(ids);
+    }
+  };
   const byPerson = new Map<string, Gift[]>();
-  for (const gift of gifts.data ?? []) {
+  for (const gift of shown) {
     byPerson.set(gift.for_name, [...(byPerson.get(gift.for_name) ?? []), gift]);
   }
   return (
@@ -451,7 +628,8 @@ export function GiftsPage({ people = [], ideas = [] }: GiftsPageProps): ReactNod
               <LoadProblem what='your gift list' error={gifts.error} onRetry={async () => gifts.mutate()} />
             )}
             {gifts.error === undefined && gifts.data === undefined && <SkeletonRows rows={3} label='Loading your gifts' />}
-            {gifts.data?.length === 0 && (
+            <BulkGifts gifts={shown} people={people} selection={selection} onHide={hide} onChanged={refresh} />
+            {gifts.data !== undefined && shown.length === 0 && !pending && (
               <p className='rounded-lg border border-dashed px-4 py-6 text-center text-sm text-muted-foreground'>
                 {ideas.length > 0
                   ? 'No gifts yet. Save one of the ideas, or add one yourself.'
@@ -475,7 +653,7 @@ export function GiftsPage({ people = [], ideas = [] }: GiftsPageProps): ReactNod
                   </h2>
                   <ul className='divide-y'>
                     {theirs.map((gift) => (
-                      <GiftRow key={gift.id} gift={gift} onChanged={refresh} />
+                      <GiftRow key={gift.id} gift={gift} selection={selection} onChanged={refresh} />
                     ))}
                   </ul>
                 </section>

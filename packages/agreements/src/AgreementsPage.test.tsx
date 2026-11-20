@@ -3,7 +3,8 @@ import { within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createElement } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ALEX_ID, agreementsFixture, emptyAgreementsStore, HOUSE_KINDS, SAM_ID } from './agreements.mocks';
+import { UNDO_MS } from 'zephyrex/hooks/useToast';
+import { ALEX_ID, agreementsFixture, emptyAgreementsStore, HOUSE_KINDS, ME_ID, SAM_ID } from './agreements.mocks';
 import { AgreementsPage, listed } from './AgreementsPage';
 import { nth, renderAgreements } from './testing.mocks';
 
@@ -94,9 +95,32 @@ describe('AgreementsPage', () => {
       expect(store.agreements[0]?.parties.map((p) => p.user_id)).toContain(SAM_ID);
     });
     await user.click(nth(toggles, 0));
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     await user.click(view.getByRole('button', { name: 'Leave it' }));
+    expect(view.queryByRole('heading', { name: 'Household' })).not.toBeInTheDocument();
+    vi.advanceTimersByTime(UNDO_MS);
+    vi.useRealTimers();
     await vi.waitFor(() => {
-      expect(view.queryByRole('heading', { name: 'Household' })).not.toBeInTheDocument();
+      expect(
+        store.agreements.find((agreement) => agreement.title === 'Household')?.parties.map((p) => p.user_id),
+      ).not.toContain(ME_ID);
+    });
+  });
+
+  it('deletes an agreement for everyone, with a moment to take it back', async () => {
+    const store = agreementsFixture();
+    const user = userEvent.setup();
+    const view = renderAgreements(createElement(AgreementsPage, { people: PEOPLE, kinds: HOUSE_KINDS }), store);
+    const toggles = await view.findAllByRole('button', { name: 'Date and people' });
+    await user.click(nth(toggles, 1));
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    await user.click(view.getByRole('button', { name: 'Delete it for everyone' }));
+    expect(view.queryByRole('heading', { name: 'Us' })).not.toBeInTheDocument();
+    expect(store.agreements).toHaveLength(2);
+    vi.advanceTimersByTime(UNDO_MS);
+    vi.useRealTimers();
+    await vi.waitFor(() => {
+      expect(store.agreements.map((agreement) => agreement.title)).toEqual(['Household']);
     });
   });
 

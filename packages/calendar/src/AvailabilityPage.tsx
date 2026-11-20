@@ -5,6 +5,7 @@ import { ChoiceChip } from 'zephyrex/ui/choice-chip';
 import { chipGroup } from 'zephyrex/hooks/chipKeys';
 import { type ReactElement, type ReactNode, type SyntheticEvent, useId, useState } from 'react';
 import { useClient, useUser, writeProblem } from 'zephyrex';
+import { deferWithUndo } from 'zephyrex/hooks/useToast';
 import { Button } from 'zephyrex/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from 'zephyrex/ui/dialog';
@@ -284,6 +285,12 @@ function ShareAvailability({ people, nameOf }: { people: readonly CalendarPerson
   const [canBook, setCanBook] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Stopped, but still within the undo window: hidden here until the notice goes or Undo keeps it.
+  const [stopping, setStopping] = useState<ReadonlySet<string>>(new Set());
+  const unhide = (userId: string): void => {
+    setStopping((current) => new Set([...current].filter((each) => each !== userId)));
+  };
+  const visible = (shares.data ?? []).filter((share) => !stopping.has(share.user_id));
   const sharedWith = new Set((shares.data ?? []).map((share) => share.user_id));
   const offered = people.filter((person) => !sharedWith.has(person.userId));
   const run = (write: Promise<unknown>, fallback: string): void => {
@@ -343,10 +350,12 @@ function ShareAvailability({ people, nameOf }: { people: readonly CalendarPerson
         )}
       </div>
       <Problem problem={problem} />
-      {shares.data?.length === 0 && <p className='text-sm text-muted-foreground'>Nobody sees when you are busy yet.</p>}
-      {(shares.data ?? []).length > 0 && (
+      {shares.data !== undefined && visible.length === 0 && (
+        <p className='text-sm text-muted-foreground'>Nobody sees when you are busy yet.</p>
+      )}
+      {visible.length > 0 && (
         <ul aria-label='Sharing with' className='divide-y'>
-          {(shares.data ?? []).map((share) => (
+          {visible.map((share) => (
             <li key={share.user_id} className='flex flex-wrap items-center justify-between gap-2 py-2'>
               <span>{nameOf(share.user_id)}</span>
               <span className='flex items-center gap-3'>
@@ -365,7 +374,25 @@ function ShareAvailability({ people, nameOf }: { people: readonly CalendarPerson
                   variant='ghost'
                   disabled={busy}
                   aria-label={`Stop sharing with ${nameOf(share.user_id)}`}
-                  onClick={() => run(calendarApi.unshare(client, share.user_id), 'Sharing could not be stopped.')}
+                  onClick={() => {
+                    setStopping((current) => new Set([...current, share.user_id]));
+                    deferWithUndo(
+                      `${nameOf(share.user_id)} no longer sees when you are busy`,
+                      () => {
+                        const stop = async (): Promise<void> => {
+                          try {
+                            await calendarApi.unshare(client, share.user_id);
+                          } catch (failure) {
+                            // They still see it: show the share again beside the reason.
+                            unhide(share.user_id);
+                            throw failure;
+                          }
+                        };
+                        run(stop(), 'Sharing could not be stopped.');
+                      },
+                      () => unhide(share.user_id),
+                    );
+                  }}
                 >
                   Stop sharing
                 </Button>

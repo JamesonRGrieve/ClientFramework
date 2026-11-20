@@ -37,6 +37,9 @@ export type NewGift = {
 const Envelope = z.object({ gift: GiftSchema });
 const giftPath = (gift: Gift): string => `${GIFT_ENDPOINT}/${encodeURIComponent(gift.id)}`;
 
+/** What can change on a gift after it is saved: its words, and who it is for. */
+export type GiftChanges = { title?: string; note?: string; for_name?: string; for_ref?: string | null };
+
 export const giftsApi = {
   add: async (client: ZephyrexClient, gift: NewGift): Promise<Gift> =>
     Envelope.parse(await client.post(GIFT_ENDPOINT, { gift })).gift,
@@ -44,7 +47,7 @@ export const giftsApi = {
   setStatus: async (client: ZephyrexClient, gift: Gift, status: GiftStatus): Promise<Gift> =>
     Envelope.parse(await client.put(giftPath(gift), { gift: { status } }, gift)).gift,
   /** Changes the gift's title or note, guarded by its version. */
-  edit: async (client: ZephyrexClient, gift: Gift, changes: { title?: string; note?: string }): Promise<Gift> =>
+  edit: async (client: ZephyrexClient, gift: Gift, changes: GiftChanges): Promise<Gift> =>
     Envelope.parse(await client.put(giftPath(gift), { gift: changes }, gift)).gift,
   remove: async (client: ZephyrexClient, gift: Gift): Promise<void> => {
     await client.delete(giftPath(gift), gift);
