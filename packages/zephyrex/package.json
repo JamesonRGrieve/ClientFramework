@@ -1,7 +1,7 @@
 {
   "name": "zephyrex",
   "version": "0.0.1-alpha.1",
-  "description": "Zephyrex Framework Client — app shell, auth, extensions, and UI for Zephyrex servers.",
+  "description": "Zephyrex Framework Client \u2014 app shell, auth, extensions, and UI for Zephyrex servers.",
   "author": "Jameson R Grieve",
   "license": "AGPL-3.0-or-later",
   "type": "module",
@@ -30,8 +30,12 @@
     "*.css"
   ],
   "files": [
-    "dist"
+    "dist",
+    "gates"
   ],
+  "bin": {
+    "zephyrex-gates": "./gates/cli.mjs"
+  },
   "exports": {
     ".": {
       "types": "./dist/lib/zephyrex/index.d.ts",

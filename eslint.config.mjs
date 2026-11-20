@@ -95,6 +95,9 @@ export default [
       'public/**',
       'app/**',
       'scripts/**',
+      // The ratchet scripts, moved from scripts/ into the core package so apps run them too: the same
+      // Node build scripts, outside the TypeScript project, ignored as scripts/ always was.
+      'packages/zephyrex/gates/**',
       '.storybook/**',
       'next-env.d.ts',
       'next.config.js',
