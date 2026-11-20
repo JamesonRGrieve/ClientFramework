@@ -115,12 +115,7 @@ function FieldInput<T>({
         return (
           <div role='radiogroup' aria-labelledby={`${id}-label`} id={id} className='flex flex-wrap gap-1.5'>
             {field.choices.map((choice) => (
-              <ChoiceChip
-                key={choice}
-                checked={value === choice}
-                onClick={() => onChange(choice)}
-                className={`${SUGGESTION} px-3 py-1 text-sm`}
-              >
+              <ChoiceChip key={choice} checked={value === choice} onClick={() => onChange(choice)}>
                 {capitalised(choice)}
               </ChoiceChip>
             ))}

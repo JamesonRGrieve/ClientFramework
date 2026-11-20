@@ -53,6 +53,10 @@
       "types": "./dist/hooks/*.d.ts",
       "default": "./dist/hooks/*.js"
     },
+    "./log": {
+      "types": "./dist/lib/log.d.ts",
+      "default": "./dist/lib/log.js"
+    },
     "./client": {
       "types": "./dist/lib/zephyrex/client.d.ts",
       "default": "./dist/lib/zephyrex/client.js"
