@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import type { ReactNode } from 'react';
+import { NoScriptNav } from './NoScriptNav';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
@@ -12,6 +13,7 @@ export function SidebarHeader({ children }: { children: ReactNode }) {
     >
       <div className='flex items-center h-full md:hidden'>
         <SidebarTrigger className='size-10' />
+        <NoScriptNav />
         <Separator orientation='vertical' className='h-4' />
       </div>
       {children}
