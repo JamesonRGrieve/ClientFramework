@@ -50,14 +50,30 @@ export function mintNonce(): string {
  * The Content-Security-Policy for one response. Development adds what Next's dev server needs:
  * eval for fast refresh, and its WebSocket.
  */
+/**
+ * Whether a build should ask the browser to upgrade insecure requests: not in development, and not
+ * when the app says its public origin is plain http (`NEXT_PUBLIC_APP_URI=http://…`, as a production
+ * build served for e2e on 127.0.0.1 is). Unset, a production build upgrades, as it always has.
+ */
+export function upgradesInsecure(development: boolean, appUri: string | undefined): boolean {
+  return !development && !(appUri ?? '').trim().toLowerCase().startsWith('http://');
+}
+
 export function contentSecurityPolicy({
   nonce,
   development,
   additions = {},
+  upgradeInsecure = !development,
 }: {
   nonce: string;
   development: boolean;
   additions?: CspAdditions;
+  /**
+   * Whether the browser upgrades the page's http requests to https: on in production, off in
+   * development, and off for a production build served over plain http (an e2e run on
+   * 127.0.0.1), where an upgrade breaks every same-origin request (see `upgradesInsecure`).
+   */
+  upgradeInsecure?: boolean;
 }): string {
   const extra: CspAdditions = {
     'script-src': [`'nonce-${nonce}'`, ...(development ? ["'unsafe-eval'"] : [])],
@@ -74,6 +90,6 @@ export function contentSecurityPolicy({
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    ...(development ? [] : ['upgrade-insecure-requests']),
+    ...(upgradeInsecure ? ['upgrade-insecure-requests'] : []),
   ].join('; ');
 }

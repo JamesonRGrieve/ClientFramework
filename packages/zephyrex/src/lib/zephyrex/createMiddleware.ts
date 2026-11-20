@@ -2,7 +2,7 @@
 import { createAuthMiddleware } from '@zephyrex/auth/auth.middleware';
 import { NextResponse, type NextRequest } from 'next/server.js';
 import { accountsEnabled, DEFAULT_AUTH_PATH } from './authPath';
-import { contentSecurityPolicy, mintNonce } from './contentSecurityPolicy';
+import { contentSecurityPolicy, mintNonce, upgradesInsecure } from './contentSecurityPolicy';
 import { sessionOnlyAuthPaths } from './pages/user/authPagesConfig';
 import type { MiddlewareHook, ZephyrexClientExtension, ZephyrexConfig } from './types';
 
@@ -62,12 +62,14 @@ export function createMiddleware(
   ];
 
   const development = process.env.NODE_ENV !== 'production';
+  const upgradeInsecure = upgradesInsecure(development, process.env.NEXT_PUBLIC_APP_URI);
 
   return async function middleware(req: NextRequest): Promise<NextResponse> {
     const nonce = mintNonce();
     const policy = contentSecurityPolicy({
       nonce,
       development,
+      upgradeInsecure,
       ...(config.contentSecurityPolicy === undefined ? {} : { additions: config.contentSecurityPolicy }),
     });
     const finish = (response: NextResponse): NextResponse => {

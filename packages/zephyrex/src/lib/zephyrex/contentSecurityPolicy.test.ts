@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest';
-import { contentSecurityPolicy, mintNonce } from './contentSecurityPolicy';
+import { contentSecurityPolicy, mintNonce, upgradesInsecure } from './contentSecurityPolicy';
+
+const UPGRADE = 'upgrade-insecure-requests';
 
 const directive = (policy: string, name: string): string[] =>
   policy
@@ -19,8 +21,17 @@ describe('contentSecurityPolicy', () => {
     expect(policy).toContain("frame-ancestors 'none'");
     expect(policy).toContain("base-uri 'self'");
     expect(policy).toContain("form-action 'self'");
-    expect(policy).toContain('upgrade-insecure-requests');
+    expect(policy).toContain(UPGRADE);
     expect(policy).not.toContain('unsafe-eval');
+  });
+
+  it('upgrades insecure requests in production, but not for a build served over plain http', () => {
+    expect(upgradesInsecure(false, undefined)).toBe(true);
+    expect(upgradesInsecure(false, 'https://cule.app')).toBe(true);
+    // An e2e run serves the production build on http://127.0.0.1, where an upgrade breaks every request.
+    expect(upgradesInsecure(false, 'http://127.0.0.1:1210')).toBe(false);
+    expect(upgradesInsecure(true, 'https://cule.app')).toBe(false);
+    expect(contentSecurityPolicy({ nonce: 'n', development: false, upgradeInsecure: false })).not.toContain(UPGRADE);
   });
 
   it('lets the provider frames in', () => {
@@ -32,7 +43,7 @@ describe('contentSecurityPolicy', () => {
     const policy = contentSecurityPolicy({ nonce: 'n', development: true });
     expect(directive(policy, 'script-src')).toContain("'unsafe-eval'");
     expect(directive(policy, 'connect-src')).toContain('ws:');
-    expect(policy).not.toContain('upgrade-insecure-requests');
+    expect(policy).not.toContain(UPGRADE);
   });
 
   it('adds an app’s sources without repeating the framework’s', () => {
