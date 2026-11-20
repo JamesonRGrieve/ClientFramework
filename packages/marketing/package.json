@@ -1,0 +1,56 @@
+{
+  "name": "@zephyrex/marketing",
+  "version": "0.0.1-alpha.1",
+  "description": "Zephyrex landing-page components: header, hero, sections, feature and pricing cards, FAQ, call to action and footer, filled with each app's own copy.",
+  "author": "Jameson R Grieve",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JamesonRGrieve/ClientFramework.git",
+    "directory": "packages/marketing"
+  },
+  "bugs": {
+    "url": "https://github.com/JamesonRGrieve/ClientFramework/issues"
+  },
+  "keywords": [
+    "zephyrex",
+    "marketing",
+    "landing",
+    "react",
+    "nextjs"
+  ],
+  "scripts": {
+    "compile": "node ../../scripts/compile-package.mjs",
+    "verify:dist": "node ../../scripts/verify-dist.mjs",
+    "prepack": "pnpm compile && pnpm verify:dist"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "next": "^16.2.6",
+    "react": "^19.2.8",
+    "zephyrex": "workspace:^"
+  },
+  "devDependencies": {
+    "@storybook/nextjs": "^10.6.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "next": "^16.4.6",
+    "react": "^19.3.0",
+    "storybook": "^10.6.1",
+    "vitest": "^5.0.2",
+    "zephyrex": "workspace:^"
+  }
+}

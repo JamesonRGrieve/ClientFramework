@@ -1,0 +1,49 @@
+{
+  "name": "@zephyrex/lite",
+  "version": "0.0.1-alpha.1",
+  "description": "Zephyrex lite edition API: Next.js route handlers that answer a one-person (or session-checked) app's records exactly as the Zephyrex server does.",
+  "author": "Jameson R Grieve",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JamesonRGrieve/ClientFramework.git",
+    "directory": "packages/lite"
+  },
+  "bugs": {
+    "url": "https://github.com/JamesonRGrieve/ClientFramework/issues"
+  },
+  "keywords": [
+    "zephyrex",
+    "lite",
+    "self-hosted",
+    "nextjs"
+  ],
+  "scripts": {
+    "compile": "node ../../scripts/compile-package.mjs",
+    "verify:dist": "node ../../scripts/verify-dist.mjs",
+    "prepack": "pnpm compile && pnpm verify:dist"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "next": "^16.2.6",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "next": "^16.4.6",
+    "vitest": "^5.0.2",
+    "zod": "^4.6.5"
+  }
+}
