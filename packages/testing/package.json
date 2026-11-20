@@ -1,0 +1,50 @@
+{
+  "name": "@zephyrex/testing",
+  "version": "0.0.1-alpha.1",
+  "description": "Zephyrex end-to-end test helpers: the axe accessibility pass every app runs, at WCAG 2.1 A and AA in the theme under test.",
+  "author": "Jameson R Grieve",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JamesonRGrieve/ClientFramework.git",
+    "directory": "packages/testing"
+  },
+  "bugs": {
+    "url": "https://github.com/JamesonRGrieve/ClientFramework/issues"
+  },
+  "keywords": [
+    "zephyrex",
+    "testing",
+    "playwright",
+    "axe",
+    "accessibility"
+  ],
+  "scripts": {
+    "compile": "node ../../scripts/compile-package.mjs",
+    "verify:dist": "node ../../scripts/verify-dist.mjs",
+    "prepack": "pnpm compile && pnpm verify:dist"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "@axe-core/playwright": "4.11.0",
+    "@playwright/test": "1.63.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.11.0",
+    "@playwright/test": "1.63.0",
+    "vitest": "^5.0.2"
+  }
+}
