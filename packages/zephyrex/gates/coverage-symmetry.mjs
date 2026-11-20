@@ -7,19 +7,16 @@
  * a summary printed to stdout.
  *
  * "Component" sources are *.tsx files (excluding stories, tests, app/).
- * Every *.ts or *.tsx source file (excluding stories, tests) should
+ * Every *.ts or *.tsx source file (excluding stories, tests, type
+ * declarations, config, and the dirs symmetry-rules.mjs skips) should
  * eventually have a *.test.* neighbor.
  */
 import { readdirSync, statSync, writeFileSync } from 'node:fs';
 import { extname, join, relative, resolve } from 'node:path';
 import { SOURCE_ROOTS } from './source-roots.mjs';
+import { isMeasuredSource, SKIP_DIRS, SOURCE_RE, STORY_RE, TEST_RE } from './symmetry-rules.mjs';
 
 const OUT = resolve(process.cwd(), '.symmetry-coverage.json');
-
-const SKIP_DIRS = new Set(['app', 'node_modules', 'dist', '__generated__']);
-const STORY_RE = /\.stories\.(ts|tsx|mdx|js|jsx)$/;
-const TEST_RE = /\.test\.(ts|tsx|js|jsx)$/;
-const SOURCE_RE = /\.(ts|tsx)$/;
 
 function walk(dir, acc = []) {
   for (const entry of readdirSync(dir)) {
@@ -37,12 +34,8 @@ function walk(dir, acc = []) {
   return acc;
 }
 
-// Next.js root convention files (proxy/middleware/instrumentation) are not
-// reusable components and get no story/test, same as the app/ dir (see §8).
-const CONVENTION_RE = /(^|\/)(proxy|middleware|instrumentation)\.(ts|tsx)$/;
-
 const all = SOURCE_ROOTS.flatMap((root) => walk(resolve(process.cwd(), root)));
-const sources = all.filter((p) => SOURCE_RE.test(p) && !STORY_RE.test(p) && !TEST_RE.test(p) && !CONVENTION_RE.test(p));
+const sources = all.filter((p) => isMeasuredSource(p));
 const stories = new Set(all.filter((p) => STORY_RE.test(p)).map((p) => p.replace(STORY_RE, '')));
 const tests = new Set(all.filter((p) => TEST_RE.test(p)).map((p) => p.replace(TEST_RE, '')));
 
