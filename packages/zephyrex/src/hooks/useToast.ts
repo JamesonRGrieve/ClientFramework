@@ -231,4 +231,17 @@ function deferWithUndo(title: string, act: () => void, onUndo: () => void): Toas
   });
 }
 
-export { deferWithUndo, notify, UNDO_MS, useToast, toast };
+/**
+ * Removes every toast at once, and forgets their removal timers. The store is module-level, so a
+ * test suite calls this between tests (`zephyrex/testing/setup` does), or one test's notice is
+ * still on screen in the next.
+ */
+function clearToasts(): void {
+  for (const timeout of toastTimeouts.values()) {
+    clearTimeout(timeout);
+  }
+  toastTimeouts.clear();
+  dispatch({ type: 'REMOVE_TOAST', toastId: undefined });
+}
+
+export { clearToasts, deferWithUndo, notify, UNDO_MS, useToast, toast };

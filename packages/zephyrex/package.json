@@ -77,6 +77,10 @@
       "types": "./dist/testing/index.d.ts",
       "default": "./dist/testing/index.js"
     },
+    "./testing/setup": {
+      "types": "./dist/testing/setup.d.ts",
+      "default": "./dist/testing/setup.js"
+    },
     "./testing/msw": {
       "types": "./dist/testing/msw.d.ts",
       "default": "./dist/testing/msw.js"
