@@ -35,10 +35,29 @@ export type FieldSpec<T> = FieldBase<T> &
     | { readonly input: 'choice'; readonly choices: readonly string[] }
   );
 
+/** An instant as a datetime-local input's text, in the user's own time zone. */
+export function localInputAt(at: Date): string {
+  return new Date(at.getTime() - at.getTimezoneOffset() * MS_PER_MINUTE).toISOString().slice(0, LOCAL_INPUT_LENGTH);
+}
+
 /** A server timestamp as a datetime-local input's text, in the user's own time zone. */
 export function localInput(value: string): string {
-  const at = serverInstant(value);
-  return new Date(at.getTime() - at.getTimezoneOffset() * MS_PER_MINUTE).toISOString().slice(0, LOCAL_INPUT_LENGTH);
+  return localInputAt(serverInstant(value));
+}
+
+const MS_PER_HOUR = 3_600_000;
+const HOURS_PER_DAY = 24;
+
+/**
+ * The one-tap times a datetime field offers beside its picker, as of `now`: most records are made
+ * at or near the moment, so the picker is for the rest.
+ */
+export function quickTimes(now: Date): readonly (readonly [name: string, text: string])[] {
+  return [
+    ['Now', localInputAt(now)],
+    ['An hour ago', localInputAt(new Date(now.getTime() - MS_PER_HOUR))],
+    ['Yesterday', localInputAt(new Date(now.getTime() - HOURS_PER_DAY * MS_PER_HOUR))],
+  ];
 }
 
 /** A datetime-local input's text (the user's time) as the UTC timestamp the server takes. */

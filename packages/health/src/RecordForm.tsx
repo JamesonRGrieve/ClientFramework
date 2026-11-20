@@ -7,7 +7,7 @@ import { Label } from '@jgrieve/forms/components/ui/label';
 import { Input } from '@jgrieve/forms/components/ui/input';
 import { type ReactElement, type ReactNode, type SyntheticEvent, useId } from 'react';
 import { Textarea } from 'zephyrex/ui/textarea';
-import { type Draft, type FieldSpec, fieldProblem } from './fields';
+import { type Draft, type FieldSpec, fieldProblem, quickTimes } from './fields';
 import type { HealthRow, RecordType } from './records';
 
 const NOTES_ROWS = 3;
@@ -85,13 +85,30 @@ function FieldInput<T>({
   switch (field.input) {
     case 'datetime':
       return (
-        <Input
-          id={id}
-          type='datetime-local'
-          required={required}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-        />
+        <div className='grid gap-1.5'>
+          <Input
+            id={id}
+            type='datetime-local'
+            required={required}
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+          />
+          <fieldset aria-label={`Quick times for ${field.label}`} className='min-w-0 flex flex-wrap gap-1.5'>
+            <div className='contents' ref={chipGroup}>
+              {quickTimes(new Date()).map(([name, text]) => (
+                <button
+                  key={name}
+                  type='button'
+                  aria-pressed={value === text}
+                  onClick={() => onChange(text)}
+                  className={SUGGESTION}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        </div>
       );
     case 'number':
       if (field.labels?.length === field.max - field.min + 1) {
@@ -146,14 +163,8 @@ function FieldInput<T>({
           onChange={(event) => onChange(event.target.value)}
         />
       ) : (
+        // With suggestions, the chips come first (they're the usual answer) and the box takes the rest.
         <div className='grid gap-1.5'>
-          <Input
-            id={id}
-            required={required}
-            maxLength={field.maxLength}
-            value={value}
-            onChange={(event) => onChange(event.target.value)}
-          />
           {suggestions.length > 0 && (
             <fieldset aria-label={`Suggestions for ${field.label}`} className='min-w-0 flex flex-wrap gap-1.5'>
               <div className='contents' ref={chipGroup}>
@@ -171,6 +182,14 @@ function FieldInput<T>({
               </div>
             </fieldset>
           )}
+          <Input
+            id={id}
+            required={required}
+            maxLength={field.maxLength}
+            placeholder={suggestions.length > 0 ? 'Or type your own' : undefined}
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+          />
         </div>
       );
   }
