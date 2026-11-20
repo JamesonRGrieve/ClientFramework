@@ -43,6 +43,9 @@ export const giftsApi = {
   /** Moves the gift along (idea, bought, given), guarded by its version. */
   setStatus: async (client: ZephyrexClient, gift: Gift, status: GiftStatus): Promise<Gift> =>
     Envelope.parse(await client.put(giftPath(gift), { gift: { status } }, gift)).gift,
+  /** Changes the gift's title or note, guarded by its version. */
+  edit: async (client: ZephyrexClient, gift: Gift, changes: { title?: string; note?: string }): Promise<Gift> =>
+    Envelope.parse(await client.put(giftPath(gift), { gift: changes }, gift)).gift,
   remove: async (client: ZephyrexClient, gift: Gift): Promise<void> => {
     await client.delete(giftPath(gift), gift);
   },

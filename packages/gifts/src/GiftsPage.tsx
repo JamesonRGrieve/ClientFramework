@@ -2,11 +2,13 @@
 'use client';
 
 import { chipGroup } from 'zephyrex/hooks/chipKeys';
+import { rowList } from 'zephyrex/hooks/rowKeys';
 import { type ReactNode, type SyntheticEvent, useId, useState } from 'react';
 import { useClient, writeProblem } from 'zephyrex';
 import { deferWithUndo, notify } from 'zephyrex/hooks/useToast';
 import { LoadProblem } from 'zephyrex/ui/load-problem';
 import { Button } from 'zephyrex/ui/button';
+import { InlineText } from 'zephyrex/ui/inline-text';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from 'zephyrex/ui/dialog';
 import { Input } from 'zephyrex/ui/input';
@@ -244,18 +246,35 @@ function GiftRow({ gift, onChanged }: { gift: Gift; onChanged: () => Promise<unk
     })();
   };
   const link = gift.url ?? null;
+  // Edits the title or note in place; the reason it failed, or null.
+  const change = async (changes: { title?: string; note?: string }, fallback: string): Promise<string | null> => {
+    const failed = await writeProblem(giftsApi.edit(client, gift, changes), fallback);
+    if (failed === null) {
+      await onChanged();
+    }
+    return failed;
+  };
   if (leaving && problem === null) {
     return null;
   }
   return (
-    <li className='group grid gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-x-4'>
+    <li data-row className='group grid gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-x-4'>
       <div className='grid min-w-0 gap-0.5'>
-        <span className={gift.status === 'given' ? 'font-medium text-muted-foreground line-through' : 'font-medium'}>
-          {gift.title}
-        </span>
+        <InlineText
+          value={gift.title}
+          label='Gift'
+          rowOpen
+          onSave={async (title) => change({ title }, 'The gift could not be renamed.')}
+          className={gift.status === 'given' ? 'font-medium text-muted-foreground line-through' : 'font-medium'}
+        />
         <div className='flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground'>
-          {gift.note !== null && gift.note !== undefined && <span>{gift.note}</span>}
-          {gift.note !== null && gift.note !== undefined && <span aria-hidden='true'>·</span>}
+          <InlineText
+            value={gift.note ?? ''}
+            label='Note'
+            placeholder='Add a note'
+            onSave={async (note) => change({ note }, 'The note could not be saved.')}
+          />
+          <span aria-hidden='true'>·</span>
           {link === null ? (
             <ShopSearch query={gift.title} />
           ) : (
@@ -272,6 +291,7 @@ function GiftRow({ gift, onChanged }: { gift: Gift; onChanged: () => Promise<unk
           variant='ghost'
           disabled={busy}
           aria-label={`Delete ${gift.title}`}
+          data-row-remove
           className='order-last text-muted-foreground transition-opacity hover:text-destructive sm:order-none pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100'
           onClick={() => {
             setLeaving(true);
@@ -426,7 +446,7 @@ export function GiftsPage({ people = [], ideas = [] }: GiftsPageProps): ReactNod
             </div>
             <AddGift people={people} onAdded={refresh} />
           </CardHeader>
-          <CardContent className='grid gap-6'>
+          <CardContent ref={rowList} className='grid gap-6'>
             {gifts.error !== undefined && (
               <LoadProblem what='your gift list' error={gifts.error} onRetry={async () => gifts.mutate()} />
             )}

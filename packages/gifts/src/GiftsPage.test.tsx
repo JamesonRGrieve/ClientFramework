@@ -88,6 +88,31 @@ describe('GiftsPage', () => {
     });
   });
 
+  it('renames a gift where it stands', async () => {
+    const store = giftsFixture();
+    const user = userEvent.setup();
+    const view = renderGifts(<GiftsPage people={PEOPLE} />, store);
+    await user.click(await view.findByRole('button', { name: 'Gift: Peonies. Edit' }));
+    const field = view.getByRole('textbox', { name: 'Gift' });
+    await user.clear(field);
+    await user.type(field, 'Tulips{Enter}');
+    await vi.waitFor(() => {
+      expect(store.gifts.map((gift) => gift.title)).toContain('Tulips');
+    });
+  });
+
+  it('moves through the list with J and K, and deletes with Delete', async () => {
+    const store = giftsFixture();
+    const user = userEvent.setup();
+    const view = renderGifts(<GiftsPage people={PEOPLE} />, store);
+    const first = await view.findByRole('button', { name: /^Gift: A silk scarf/ });
+    first.focus();
+    await user.keyboard('j');
+    expect(view.getByRole('button', { name: /^Gift: Peonies/ })).toHaveFocus();
+    await user.keyboard('{Delete}');
+    expect(view.queryByRole('button', { name: /^Gift: Peonies/ })).toBeNull();
+  });
+
   it('saves an idea from the app, and searches the shop for it', async () => {
     const store = emptyGiftsStore();
     const user = userEvent.setup();
