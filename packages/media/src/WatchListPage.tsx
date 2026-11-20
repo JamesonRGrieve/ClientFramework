@@ -310,7 +310,9 @@ function TitleRow({
     return null;
   }
   return (
-    <li className={`group flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5 ${watched ? 'opacity-60' : ''}`}>
+    <li
+      className={`group flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5 ${watched ? 'text-muted-foreground [&_img]:grayscale' : ''}`}
+    >
       <Poster item={title} size='small' />
       <div className='grid min-w-0 flex-1 gap-1'>
         <span className={watched ? 'truncate font-medium line-through' : 'truncate font-medium'}>{label}</span>
