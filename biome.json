@@ -1,8 +1,6 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
-  "extends": [
-    "./packages/zephyrex/gates/biome-config.json"
-  ],
+  "extends": ["./packages/zephyrex/gates/biome-config.json"],
   "linter": {
     "includes": [
       "src/**",
