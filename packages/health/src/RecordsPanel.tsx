@@ -232,23 +232,26 @@ export function RecordsPanel<T extends HealthRow>({
         {all.length > 0 && (
           <ul aria-label={type.plural} className='divide-y rounded-md border'>
             {all.map((row) => (
-              <li key={row.id} className='flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-3 text-sm'>
+              <li key={row.id} className='flex items-center gap-3 px-4 py-3 text-sm'>
                 {lead?.(row)}
-                <button
-                  type='button'
-                  className='flex-1 text-left font-medium hover:underline'
-                  aria-expanded={row.id === openId}
-                  onClick={() => setOpenId(row.id === openId ? null : row.id)}
-                >
-                  {type.describe(row)}
-                </button>
-                <time
-                  dateTime={serverInstant(type.timeOf(row)).toISOString()}
-                  title={serverInstant(type.timeOf(row)).toLocaleString()}
-                  className='tabular-nums text-muted-foreground'
-                >
-                  {serverInstant(type.timeOf(row)).toLocaleString(undefined, WHEN)}
-                </time>
+                {/* On a phone the date goes under the description, so a long one isn't squeezed into two lines. */}
+                <div className='grid min-w-0 flex-1 gap-0.5 sm:flex sm:items-center sm:justify-between sm:gap-3'>
+                  <button
+                    type='button'
+                    className='text-left font-medium hover:underline'
+                    aria-expanded={row.id === openId}
+                    onClick={() => setOpenId(row.id === openId ? null : row.id)}
+                  >
+                    {type.describe(row)}
+                  </button>
+                  <time
+                    dateTime={serverInstant(type.timeOf(row)).toISOString()}
+                    title={serverInstant(type.timeOf(row)).toLocaleString()}
+                    className='shrink-0 text-xs tabular-nums text-muted-foreground sm:text-sm'
+                  >
+                    {serverInstant(type.timeOf(row)).toLocaleString(undefined, WHEN)}
+                  </time>
+                </div>
               </li>
             ))}
           </ul>
