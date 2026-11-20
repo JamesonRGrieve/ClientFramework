@@ -15,6 +15,9 @@ const PEOPLE = [
 const FIND = { name: 'Find free times' };
 const CONNECT = { name: 'Connect a calendar' };
 const PASSWORD = 'App password';
+const CALDAV = /^CalDAV/;
+const ADDRESS = 'Calendar address';
+const PRESSED = 'aria-pressed';
 
 describe('AvailabilityPage', () => {
   afterEach(() => {
@@ -27,8 +30,8 @@ describe('AvailabilityPage', () => {
     const view = renderCalendar(<AvailabilityPage people={PEOPLE} />, store);
     const finder = view.getByRole('form', { name: 'Find a time' });
     // Everyone who shares with you starts chosen.
-    expect(await within(finder).findByRole('button', { name: 'Alex' })).toHaveAttribute('aria-pressed', 'true');
-    expect(within(finder).getByRole('button', { name: 'Jo' })).toHaveAttribute('aria-pressed', 'true');
+    expect(await within(finder).findByRole('button', { name: 'Alex' })).toHaveAttribute(PRESSED, 'true');
+    expect(within(finder).getByRole('button', { name: 'Jo' })).toHaveAttribute(PRESSED, 'true');
     await user.click(
       within(within(finder).getByRole('group', { name: 'For how long' })).getByRole('button', { name: '3 hours' }),
     );
@@ -77,12 +80,27 @@ describe('AvailabilityPage', () => {
     expect(view.queryByRole('button', { name: 'Share' })).toBeNull();
   });
 
+  it('asks which kind of calendar first, and shows only what that kind needs', async () => {
+    const user = userEvent.setup();
+    const view = renderCalendar(<AvailabilityPage people={PEOPLE} />, emptyCalendarStore());
+    const form = view.getByRole('form', CONNECT);
+    expect(within(form).queryByLabelText(ADDRESS)).toBeNull();
+    expect(within(form).queryByRole('button', { name: 'Connect' })).toBeNull();
+    expect(within(form).getByRole('button', { name: 'Google Calendar' })).toHaveAccessibleDescription(
+      'Through the Google account you linked',
+    );
+    await user.click(within(form).getByRole('button', { name: CALDAV }));
+    expect(within(form).getByLabelText(ADDRESS)).toBeInTheDocument();
+    expect(within(form).getByRole('button', { name: CALDAV })).toHaveAttribute(PRESSED, 'true');
+  });
+
   it('connects a CalDAV calendar, and says when it refuses', async () => {
     const store = emptyCalendarStore();
     const user = userEvent.setup();
     const view = renderCalendar(<AvailabilityPage people={PEOPLE} />, store);
     const form = view.getByRole('form', CONNECT);
-    await user.type(within(form).getByLabelText('Calendar address'), 'https://dav.example.org/cal/');
+    await user.click(within(form).getByRole('button', { name: CALDAV }));
+    await user.type(within(form).getByLabelText(ADDRESS), 'https://dav.example.org/cal/');
     await user.type(within(form).getByLabelText('Sign-in name'), 'me');
     await user.type(within(form).getByLabelText(PASSWORD), 'wrong');
     await user.click(within(form).getByRole('button', { name: 'Connect' }));
@@ -99,7 +117,8 @@ describe('AvailabilityPage', () => {
     const user = userEvent.setup();
     const view = renderCalendar(<AvailabilityPage people={PEOPLE} />, store);
     const form = view.getByRole('form', CONNECT);
-    await user.type(within(form).getByLabelText('Calendar address'), 'https://dav.example.org/cal/');
+    await user.click(within(form).getByRole('button', { name: CALDAV }));
+    await user.type(within(form).getByLabelText(ADDRESS), 'https://dav.example.org/cal/');
     await user.type(within(form).getByLabelText('Sign-in name'), 'me');
     await user.type(within(form).getByLabelText(PASSWORD), 'right');
     await user.click(within(form).getByRole('button', { name: 'Connect' }));

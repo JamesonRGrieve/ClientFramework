@@ -16,7 +16,6 @@ import { calendarApi, useAvailabilityShares, useCalendarAccounts, useSharedWithM
 import {
   type Booked,
   browserZone,
-  CALENDAR_SERVICES,
   type CalendarPerson,
   type CalendarService,
   type FreeSlot,
@@ -74,11 +73,23 @@ function dayFromToday(offset: number): string {
   return `${String(day.getFullYear())}-${pad(day.getMonth() + 1)}-${pad(day.getDate())}`;
 }
 
+/** What each kind of calendar needs, under its name on the tile that picks it. */
+const SERVICE_HINTS: Record<CalendarService, string> = {
+  google_calendar: 'Through the Google account you linked',
+  microsoft_calendar: 'Through the Microsoft account you linked',
+  caldav: 'Any calendar with an address and an app password',
+};
+/** The tiles' order: the two most people use first. */
+const SERVICE_ORDER: readonly CalendarService[] = ['google_calendar', 'microsoft_calendar', 'caldav'];
+const TILE =
+  'grid gap-0.5 rounded-lg border p-3 text-left text-sm transition-colors hover:bg-muted aria-pressed:border-primary aria-pressed:bg-primary/5 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring';
+
 function YourCalendars({ accountPage }: { accountPage: string }): ReactNode {
   const client = useClient();
   const ids = { service: useId(), label: useId(), url: useId(), user: useId(), password: useId(), calendar: useId() };
   const accounts = useCalendarAccounts();
-  const [service, setService] = useState<CalendarService>('caldav');
+  // Nothing is chosen at first: the kind of calendar decides which fields there are.
+  const [service, setService] = useState<CalendarService | null>(null);
   const [label, setLabel] = useState('');
   const [url, setUrl] = useState('');
   const [username, setUsername] = useState('');
@@ -105,6 +116,9 @@ function YourCalendars({ accountPage }: { accountPage: string }): ReactNode {
   };
   const connect = (event: SyntheticEvent): void => {
     event.preventDefault();
+    if (service === null) {
+      return;
+    }
     run(
       calendarApi.connect(client, {
         provider: service,
@@ -167,109 +181,120 @@ function YourCalendars({ accountPage }: { accountPage: string }): ReactNode {
             <legend id={ids.service} className='mb-1.5 text-sm font-medium'>
               Calendar
             </legend>
-            <div className='flex flex-wrap gap-1.5' ref={chipGroup}>
-              {CALENDAR_SERVICES.map((item) => (
+            <div className='grid gap-2 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3' ref={chipGroup}>
+              {SERVICE_ORDER.map((provider) => (
                 <button
-                  key={item.provider}
+                  key={provider}
                   type='button'
-                  aria-pressed={service === item.provider}
-                  onClick={() => setService(item.provider)}
-                  className={CHIP}
+                  aria-pressed={service === provider}
+                  aria-labelledby={`${ids.service}-${provider}-name`}
+                  aria-describedby={`${ids.service}-${provider}`}
+                  onClick={() => setService(provider)}
+                  className={TILE}
                 >
-                  {item.label}
+                  <span id={`${ids.service}-${provider}-name`} className='font-medium'>
+                    {serviceLabel(provider)}
+                  </span>
+                  <span id={`${ids.service}-${provider}`} className='text-xs text-muted-foreground'>
+                    {SERVICE_HINTS[provider]}
+                  </span>
                 </button>
               ))}
             </div>
           </fieldset>
-          <label htmlFor={ids.label} className='grid gap-1 text-sm font-medium'>
-            Call it (optional)
-            <Input
-              id={ids.label}
-              value={label}
-              onChange={(event) => setLabel(event.target.value)}
-              placeholder='Personal'
-              maxLength={200}
-            />
-          </label>
-          {delegated ? (
+          {service !== null && (
             <>
-              {service === 'google_calendar' && (
-                <label htmlFor={ids.calendar} className='grid gap-1 text-sm font-medium'>
-                  Which calendar (optional)
-                  <Input
-                    id={ids.calendar}
-                    value={calendarId}
-                    onChange={(event) => setCalendarId(event.target.value)}
-                    placeholder='primary'
-                    maxLength={200}
-                  />
-                </label>
+              <label htmlFor={ids.label} className='grid gap-1 text-sm font-medium'>
+                Call it (optional)
+                <Input
+                  id={ids.label}
+                  value={label}
+                  onChange={(event) => setLabel(event.target.value)}
+                  placeholder='Personal'
+                  maxLength={200}
+                />
+              </label>
+              {delegated ? (
+                <>
+                  {service === 'google_calendar' && (
+                    <label htmlFor={ids.calendar} className='grid gap-1 text-sm font-medium'>
+                      Which calendar (optional)
+                      <Input
+                        id={ids.calendar}
+                        value={calendarId}
+                        onChange={(event) => setCalendarId(event.target.value)}
+                        placeholder='primary'
+                        maxLength={200}
+                      />
+                    </label>
+                  )}
+                  <p className='text-sm text-muted-foreground col-span-full'>
+                    Uses the account you linked on{' '}
+                    <a className={LINK} href={accountPage}>
+                      your account page
+                    </a>
+                    . Link it there first, allowing calendar access.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <label htmlFor={ids.url} className='grid gap-1 text-sm font-medium col-span-full'>
+                    Calendar address
+                    <Input
+                      id={ids.url}
+                      type='url'
+                      value={url}
+                      onChange={(event) => setUrl(event.target.value)}
+                      placeholder='https://caldav.example.com/calendars/you/personal/'
+                      required
+                      maxLength={2000}
+                      autoCapitalize='off'
+                      autoCorrect='off'
+                      spellCheck={false}
+                    />
+                  </label>
+                  <label htmlFor={ids.user} className='grid gap-1 text-sm font-medium'>
+                    Sign-in name
+                    <Input
+                      id={ids.user}
+                      value={username}
+                      onChange={(event) => setUsername(event.target.value)}
+                      required
+                      maxLength={200}
+                      autoComplete='off'
+                      autoCapitalize='off'
+                      spellCheck={false}
+                    />
+                  </label>
+                  <label htmlFor={ids.password} className='grid gap-1 text-sm font-medium'>
+                    App password
+                    <Input
+                      id={ids.password}
+                      type='password'
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      required
+                      maxLength={200}
+                      autoComplete='off'
+                    />
+                  </label>
+                </>
               )}
-              <p className='text-sm text-muted-foreground col-span-full'>
-                Uses the account you linked on{' '}
-                <a className={LINK} href={accountPage}>
-                  your account page
-                </a>
-                . Link it there first, allowing calendar access.
-              </p>
-            </>
-          ) : (
-            <>
-              <label htmlFor={ids.url} className='grid gap-1 text-sm font-medium col-span-full'>
-                Calendar address
-                <Input
-                  id={ids.url}
-                  type='url'
-                  value={url}
-                  onChange={(event) => setUrl(event.target.value)}
-                  placeholder='https://caldav.example.com/calendars/you/personal/'
-                  required
-                  maxLength={2000}
-                  autoCapitalize='off'
-                  autoCorrect='off'
-                  spellCheck={false}
-                />
-              </label>
-              <label htmlFor={ids.user} className='grid gap-1 text-sm font-medium'>
-                Sign-in name
-                <Input
-                  id={ids.user}
-                  value={username}
-                  onChange={(event) => setUsername(event.target.value)}
-                  required
-                  maxLength={200}
-                  autoComplete='off'
-                  autoCapitalize='off'
-                  spellCheck={false}
-                />
-              </label>
-              <label htmlFor={ids.password} className='grid gap-1 text-sm font-medium'>
-                App password
-                <Input
-                  id={ids.password}
-                  type='password'
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  required
-                  maxLength={200}
-                  autoComplete='off'
-                />
-              </label>
+              <div className='grid gap-2 col-span-full'>
+                <Problem problem={problem} />
+                <div className='flex flex-wrap gap-2'>
+                  <Button type='submit' disabled={busy}>
+                    {busy ? 'Connecting…' : 'Connect'}
+                  </Button>
+                  {connected && (
+                    <Button type='button' variant='ghost' disabled={busy} onClick={() => setAdding(false)}>
+                      Cancel
+                    </Button>
+                  )}
+                </div>
+              </div>
             </>
           )}
-          <div className='grid gap-2 col-span-full'>
-            <Problem problem={problem} />
-            <div className='flex flex-wrap gap-2'>
-              <Button type='submit' disabled={busy}>
-                {busy ? 'Connecting…' : 'Connect'}
-              </Button>
-              {connected && (
-                <Button type='button' variant='ghost' disabled={busy} onClick={() => setAdding(false)}>
-                  Cancel
-                </Button>
-              )}
-            </div>
-          </div>
         </form>
       )}
     </div>
