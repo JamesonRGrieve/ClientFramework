@@ -15,6 +15,12 @@ describe('zephyrex/testing/setup', () => {
     expect(document.body.hasPointerCapture(1)).toBe(false);
   });
 
+  it('installs matchMedia where jsdom has the property but no function', () => {
+    Object.defineProperty(window, 'matchMedia', { writable: true, configurable: true, value: undefined });
+    installJsdomStandIns();
+    expect(window.matchMedia('(prefers-color-scheme: dark)').matches).toBe(false);
+  });
+
   it('clears every notice, so none outlives its test', () => {
     render(<Toaster />);
     act(() => {

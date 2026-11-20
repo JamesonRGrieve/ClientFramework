@@ -42,10 +42,11 @@ export function installJsdomStandIns(): void {
   if (typeof window === 'undefined') {
     return;
   }
-  if (!('matchMedia' in window)) {
+  // jsdom can have the property, undefined: check that it can be called, not that it exists.
+  if (typeof window.matchMedia !== 'function') {
     Object.defineProperty(window, 'matchMedia', { writable: true, value: unmatched });
   }
-  if (!('ResizeObserver' in window)) {
+  if (typeof window.ResizeObserver !== 'function') {
     Object.defineProperty(window, 'ResizeObserver', { writable: true, value: NoLayoutResizeObserver });
   }
   // Radix's toast and slider capture the pointer; jsdom has no pointer capture.
