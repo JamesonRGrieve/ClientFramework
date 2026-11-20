@@ -37,6 +37,18 @@ describe('ApiReferencePage', () => {
 });
 
 describe('PrivacyPage', () => {
+  it('heads a policy without its own title with the one h1, and lays a table out as a table', () => {
+    const view = render(
+      <TestWrapper>
+        <PrivacyPage content={'We keep what we need.\n\n| What | How long |\n| --- | --- |\n| Email | Until you leave |'} />
+      </TestWrapper>,
+    );
+    expect(view.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    expect(view.getByRole('heading', { level: 1, name: 'Privacy Policy' })).toBeInTheDocument();
+    expect(view.getByRole('table')).toHaveTextContent('Until you leave');
+    expect(view.queryByRole('button', { name: /^Copy row/ })).toBeNull();
+  });
+
   it('renders the policy Markdown the app passes in', () => {
     const view = render(
       <TestWrapper>

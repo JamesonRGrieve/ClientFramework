@@ -52,7 +52,13 @@ export function createColumns<TData extends RowData>(columns: ColumnData[]): Dat
           <div className='flex justify-end gap-1'>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant='outline' size='icon' className='w-8 h-8 bg-transparent' onClick={copyData}>
+                <Button
+                  variant='outline'
+                  size='icon'
+                  className='w-8 h-8 bg-transparent'
+                  aria-label={`Copy row ${String(row.index + 1)}`}
+                  onClick={copyData}
+                >
                   <Copy className='w-3 h-3' />
                 </Button>
               </TooltipTrigger>

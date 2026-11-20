@@ -3,8 +3,6 @@
 import { type ReactNode, useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { DataTable } from '../data-table';
-import { createColumns } from '../data-table/data-table-columns';
 import CodeBlock from './CodeBlock';
 import MarkdownHeading from './Heading';
 import MarkdownImage from './Image';
@@ -39,36 +37,6 @@ export default function MarkdownBlock({ content, role, createdAt }: MarkdownBloc
     [role, createdAt, shownAt],
   );
 
-  function parseMarkdownTable(markdown: string) {
-    const tableLines = markdown.split('\n').filter((line) => line.includes('|'));
-    if (tableLines.length === 0) {
-      return { columns: [], rows: [] };
-    }
-
-    const headers = (tableLines[0] ?? '')
-      .split('|')
-      .map((header) => header.trim())
-      .filter(Boolean);
-
-    const rows = tableLines.slice(2).map((rowLine, rowIndex) => ({
-      id: rowIndex + 1,
-      ...Object.fromEntries(
-        rowLine
-          .split('|')
-          .map((cell) => cell.trim())
-          .filter(Boolean)
-          .map((cell, cellIndex) => [`col${cellIndex}`, cell]),
-      ),
-    }));
-
-    const columns = headers.map((header, index) => ({
-      field: `col${index}`,
-      headerName: header,
-      width: 150,
-    }));
-
-    return { columns, rows };
-  }
   try {
     return (
       // Switch to https://github.com/ariabuckles/simple-markdown ?
@@ -112,13 +80,19 @@ export default function MarkdownBlock({ content, role, createdAt }: MarkdownBloc
                 li({ children }) {
                   return <li className='my-1'>{children}</li>;
                 },
-                table() {
-                  const { columns, rows } = parseMarkdownTable(segment.content);
+                // A document's table is read, not worked: a plain table, scrolling sideways on a phone.
+                table({ children }) {
                   return (
-                    <div className='w-full'>
-                      <DataTable columns={createColumns(columns)} data={rows} />
+                    <div className='my-4 w-full overflow-x-auto'>
+                      <table className='w-full border-collapse text-sm'>{children}</table>
                     </div>
                   );
+                },
+                th({ children }) {
+                  return <th className='border-b px-3 py-2 text-left font-semibold'>{children}</th>;
+                },
+                td({ children }) {
+                  return <td className='border-b px-3 py-2 align-top'>{children}</td>;
                 },
                 code({ children }) {
                   return (
