@@ -3,12 +3,21 @@ import { describe, expect, it } from 'vitest';
 import * as lite from './index';
 
 describe('@zephyrex/lite', () => {
-  it('exports the record handlers, the owner and the request helpers', () => {
+  it('exports the record handlers, the owners (local and accounts) and the request helpers', () => {
     expect(Object.keys(lite).sort()).toEqual(
       [
         'ApiError',
         'LOCAL_OWNER_ID',
         'MAX_BODY_BYTES',
+        'SESSION_COOKIE',
+        'accountRoutes',
+        'accountsOwner',
+        'hashPassword',
+        'refuseCrossSiteWrite',
+        'secureCompare',
+        'sessionAccount',
+        'sessionToken',
+        'verifyPassword',
         'apiErrorResponse',
         'setErrorReporter',
         'STATUS',

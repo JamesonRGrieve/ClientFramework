@@ -4,6 +4,19 @@
  * handlers, in exactly the shape server-framework answers it, so one UI runs on either back end.
  * Server-only: import it from `route.lite.ts` handlers, never from a client component.
  */
+
+export {
+  type AccountStore,
+  accountRoutes,
+  accountsOwner,
+  hashPassword,
+  type LocalAccount,
+  SESSION_COOKIE,
+  secureCompare,
+  sessionAccount,
+  sessionToken,
+  verifyPassword,
+} from './accounts';
 export {
   ApiError,
   apiErrorResponse,
@@ -14,7 +27,7 @@ export {
   validationError,
 } from './apiErrors';
 export { entityTag, evaluateIfMatch, type IfMatchResult, nextUpdateStamp } from './conditionalRequest';
-export { LOCAL_OWNER_ID, localOwner } from './localOwner';
+export { LOCAL_OWNER_ID, localOwner, refuseCrossSiteWrite } from './localOwner';
 export {
   collectionRoutes,
   frameworkTimestamp,

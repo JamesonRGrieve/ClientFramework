@@ -21,6 +21,15 @@ const SAME_SITE_FETCHES = new Set(['same-origin', 'none']);
 
 /** The local owner, once the request has shown it comes from this app (an `OwnerResolver`). */
 export function localOwner(request: NextRequest): Owner {
+  refuseCrossSiteWrite(request);
+  return { id: LOCAL_OWNER_ID };
+}
+
+/**
+ * Throws unless a write comes from this app's own pages and says it is JSON: what a lite app
+ * checks in place of a session's CSRF token (`localOwner`, and `accountsOwner` before its session).
+ */
+export function refuseCrossSiteWrite(request: NextRequest): void {
   if (!SAFE_METHODS.has(request.method)) {
     const site = request.headers.get('sec-fetch-site');
     if (site !== null && !SAME_SITE_FETCHES.has(site)) {
@@ -34,5 +43,4 @@ export function localOwner(request: NextRequest): Owner {
       throw new ApiError(STATUS.UNSUPPORTED_MEDIA_TYPE, 'Unsupported Media Type', { supported: ['application/json'] });
     }
   }
-  return { id: LOCAL_OWNER_ID };
 }
