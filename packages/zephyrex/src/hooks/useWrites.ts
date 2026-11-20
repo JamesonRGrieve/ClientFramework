@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { writeProblem } from '../lib/zephyrex/useGuardedSave';
 import { deferWithUndo, notify } from './useToast';
 
@@ -56,10 +56,14 @@ export interface Hidden<T> {
 /**
  * Which items of a list are hidden, by id. An id the list no longer contains (its removal went
  * through and the list reloaded) simply stops mattering, so nothing has to clear it. The list is
- * empty, for a first-run state, when `shown.length === 0 && !pending`.
+ * empty, for a first-run state, when `shown.length === 0 && !pending`. `shown` keeps its identity
+ * until `items`, the hidden ids or `idOf` change, so it can key a `useMemo` or an effect. Pass a
+ * stable `idOf` (a module-level function, or one from `useCallback`), not an inline arrow.
  */
 export function useHidden<T>(items: readonly T[], idOf: (item: T) => string): Hidden<T> {
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
+  const shown = useMemo(() => items.filter((item) => !hidden.has(idOf(item))), [items, hidden, idOf]);
+  const pending = useMemo(() => items.some((item) => hidden.has(idOf(item))), [items, hidden, idOf]);
   const change = (ids: readonly string[], hiding: boolean): void => {
     setHidden((current) => {
       const next = new Set(current);
@@ -74,8 +78,8 @@ export function useHidden<T>(items: readonly T[], idOf: (item: T) => string): Hi
     });
   };
   return {
-    shown: items.filter((item) => !hidden.has(idOf(item))),
-    pending: items.some((item) => hidden.has(idOf(item))),
+    shown,
+    pending,
     hide: (ids) => change(ids, true),
     show: (ids) => change(ids, false),
   };

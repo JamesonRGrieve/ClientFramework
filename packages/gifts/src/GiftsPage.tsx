@@ -19,6 +19,10 @@ import { SkeletonRows } from 'zephyrex/ui/skeleton';
 import { giftsApi, useGifts, useShopLink } from './giftsApi';
 import { type Gift, type GiftIdea, type GiftPerson, STATUSES, statusLabel } from './giftsModel';
 
+/** Stable inputs for useHidden: the same empty list and id reader on every render. */
+const NO_GIFTS: Gift[] = [];
+const giftId = (gift: Gift): string => gift.id;
+
 const SELECT = 'h-9 rounded-md border bg-background px-3 text-sm font-normal';
 const LINK = 'underline underline-offset-4';
 const SOMEONE_ELSE = '';
@@ -585,7 +589,7 @@ export function GiftsPage({ people = [], ideas = [] }: GiftsPageProps): ReactNod
   const refresh = async (): Promise<unknown> => gifts.mutate();
   const selection = useSelection();
   // Deleted together, within their undo window: hidden until the notice goes or Undo brings them back.
-  const { shown, pending, hide: hideGifts, show: showGifts } = useHidden(gifts.data ?? [], (gift) => gift.id);
+  const { shown, pending, hide: hideGifts, show: showGifts } = useHidden(gifts.data ?? NO_GIFTS, giftId);
   const hide = (ids: readonly string[], hiding: boolean): void => {
     if (hiding) {
       hideGifts(ids);

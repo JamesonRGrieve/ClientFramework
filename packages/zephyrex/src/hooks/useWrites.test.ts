@@ -33,6 +33,22 @@ describe('useHidden', () => {
   });
 });
 
+describe('useHidden, across renders', () => {
+  const idOf = (item: { id: string }): string => item.id;
+
+  it('keeps `shown` the same array while its inputs are unchanged', () => {
+    const items = [{ id: 'g1' }, { id: 'g2' }];
+    const { result, rerender } = renderHook(() => useHidden(items, idOf));
+    const first = result.current.shown;
+    rerender();
+    expect(result.current.shown).toBe(first);
+    act(() => {
+      result.current.hide(['g1']);
+    });
+    expect(result.current.shown).not.toBe(first);
+  });
+});
+
 describe('useWrites', () => {
   afterEach(() => {
     vi.useRealTimers();
