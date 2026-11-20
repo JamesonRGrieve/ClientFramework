@@ -36,7 +36,7 @@ export function SiteHeader({ brand, nav, cta, menuLabel = 'Menu' }: SiteHeaderPr
           </Button>
         </nav>
         <details className='relative md:hidden'>
-          <summary className='cursor-pointer list-none rounded-md border px-3 py-1.5 text-sm marker:hidden'>
+          <summary className='cursor-pointer list-none rounded-md border px-3 py-1.5 text-sm marker:hidden [&::-webkit-details-marker]:hidden'>
             {menuLabel}
           </summary>
           <nav aria-label='Main' className='absolute right-0 mt-2 w-48 rounded-lg border bg-background p-2 shadow-lg'>

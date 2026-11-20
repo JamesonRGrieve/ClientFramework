@@ -12,4 +12,9 @@ describe('SiteFooter', () => {
     expect(screen.getByRole('link', { name: 'Privacy policy' })).toHaveAttribute('href', '/docs/privacy');
     expect(screen.getByText('Made for tables everywhere.')).toBeInTheDocument();
   });
+
+  it('puts its column titles at the level the page needs', () => {
+    render(<SiteFooter columns={FOOTER} level={3} />);
+    expect(screen.getByRole('heading', { level: 3, name: 'Product' })).toBeInTheDocument();
+  });
 });
