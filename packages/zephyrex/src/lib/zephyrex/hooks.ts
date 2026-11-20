@@ -179,12 +179,16 @@ export type ServerExtension = z.infer<typeof ServerExtensionSchema>;
 const NO_EXTENSIONS_STATUSES: ReadonlySet<number> = new Set([HTTP_STATUS.UNAUTHORIZED, HTTP_STATUS.NOT_FOUND]);
 
 /**
- * The extensions the server runs (GET /v1/extension, which needs a session). A signed-out visitor
- * sends nothing; a 401 or 404 reads as none.
+ * The extensions the server runs (GET /v1/extension). In an app with accounts it needs a session,
+ * so a signed-out visitor sends nothing (and no 401 lands on a public page). An app without
+ * accounts (`auth.enabled: false`, a lite edition) asks regardless, since nobody ever signs in;
+ * its `{ "extensions": [] }` reads as none. A 401 or 404 reads as none.
  */
 export function useServerExtensions(): SWRResponse<ServerExtension[], Error> {
   const client = useClient();
-  return useSWR<ServerExtension[], Error>(useHasSession() ? '/v1/extension' : null, async () => {
+  const { config } = useZephyrexConfig();
+  const ask = useHasSession() || config.auth?.enabled === false;
+  return useSWR<ServerExtension[], Error>(ask ? '/v1/extension' : null, async () => {
     try {
       return z.object({ extensions: z.array(ServerExtensionSchema) }).parse(await client.get('/v1/extension')).extensions;
     } catch (error) {

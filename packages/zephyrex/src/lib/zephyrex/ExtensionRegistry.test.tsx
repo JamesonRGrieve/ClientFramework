@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { renderHook, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useActiveExtensions } from './ExtensionRegistry';
 import { useServerExtensions } from './hooks';
@@ -32,6 +33,11 @@ const EXTENSIONS: ZephyrexClientExtension[] = [
   { name: 'quota', serverExtension: 'quota' },
 ];
 
+/** The shell of an app without accounts (a lite edition): `auth.enabled: false`. */
+function Accountless({ children }: { children: ReactNode }): ReactNode {
+  return <TestWrapper config={{ auth: { enabled: false } }}>{children}</TestWrapper>;
+}
+
 describe('useServerExtensions', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -53,6 +59,23 @@ describe('useServerExtensions', () => {
       expect(result.current.data).toEqual([]);
     });
     expect(result.current.error).toBeUndefined();
+  });
+
+  it('asks without a session in an app without accounts, where nobody ever signs in', async () => {
+    const fetchMock = answer(HTTP_OK, { extensions: [WEBHOOKS_ROW] });
+    const { result } = renderHook(() => useServerExtensions(), { wrapper: Accountless });
+    await waitFor(() => {
+      expect(result.current.data).toEqual([WEBHOOKS_ROW]);
+    });
+    expect(fetchMock).toHaveBeenCalled();
+  });
+
+  it('reads a lite edition’s empty list as none', async () => {
+    answer(HTTP_OK, { extensions: [] });
+    const { result } = renderHook(() => useServerExtensions(), { wrapper: Accountless });
+    await waitFor(() => {
+      expect(result.current.data).toEqual([]);
+    });
   });
 
   it('lists what a signed-in user’s server runs', async () => {
