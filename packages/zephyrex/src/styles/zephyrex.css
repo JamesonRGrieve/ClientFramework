@@ -65,6 +65,12 @@
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
 
+  /* Motion easings, as utilities (`ease-standard`, `ease-enter`, `ease-exit`): standard for
+     things that move within the page, enter for what arrives, exit for what leaves. */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-enter: cubic-bezier(0, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.3, 0, 1, 1);
+
   /* Custom-scrollbar tokens. Centralised so the body / track / thumb rules
      stay in lockstep and remain customisable per downstream theme. */
   --scrollbar-thumb: rgba(80, 80, 120, 0.5);
@@ -89,6 +95,28 @@
     to {
       height: 0;
     }
+  }
+}
+
+/* Motion durations, one scale for every app: `duration-(--duration-base)`. Fast is feedback on a
+   control (a press, a hover), base is most entrances and exits, slow is a panel or sheet, slower
+   a large surface, and tick is a value gliding between one-second updates (a timer). Under
+   reduced motion every duration is zero, so anything built on them stops moving at once. */
+:root {
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+  --duration-tick: 1000ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --duration-slower: 0ms;
+    --duration-tick: 0ms;
   }
 }
 

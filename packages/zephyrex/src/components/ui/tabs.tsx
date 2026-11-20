@@ -44,7 +44,7 @@ const TabsContent = React.forwardRef<
     className={cn(
       'mt-2 ring-offset-background focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
       // A tab's content arrives with a short fade and rise, so the switch reads as one change.
-      'data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 data-[state=active]:duration-200 motion-reduce:animate-none',
+      'data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 data-[state=active]:duration-(--duration-base) motion-reduce:animate-none',
       className,
     )}
     {...props}

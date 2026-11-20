@@ -101,7 +101,7 @@ export const AccordionTrigger = ({ children, className = '', parentValue = '' }:
       onClick={handleToggle}
     >
       {children}
-      <ExpandMore aria-hidden className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      <ExpandMore aria-hidden className={`transition-transform duration-(--duration-base) ${isOpen ? 'rotate-180' : ''}`} />
     </button>
   );
 };
@@ -126,7 +126,7 @@ export const AccordionContent = ({ children, className = '', parentValue = '' }:
     <section
       id={contentId}
       aria-labelledby={triggerId}
-      className={`overflow-hidden transition-all duration-300 ${className}`}
+      className={`overflow-hidden transition-all duration-(--duration-slow) ${className}`}
     >
       {children}
     </section>
