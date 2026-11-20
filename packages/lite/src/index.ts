@@ -26,6 +26,7 @@ export {
   setErrorReporter,
   validationError,
 } from './apiErrors';
+export { type Column, type Columns, columnsOf, type FieldValue, fieldsOf, jsonList, jsonObject, plain } from './columns';
 export { entityTag, evaluateIfMatch, type IfMatchResult, nextUpdateStamp } from './conditionalRequest';
 export { LOCAL_OWNER_ID, localOwner, refuseCrossSiteWrite } from './localOwner';
 export {
