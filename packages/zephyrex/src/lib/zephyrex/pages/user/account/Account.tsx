@@ -123,7 +123,7 @@ export function Account({
               <PasswordRules id={RULES_ID} policy={passwordPolicy} password={newPassword} refused={refused} />
             </div>
           )}
-          <Button type='submit' disabled={pending} className='md:col-start-1'>
+          <Button type='submit' disabled={pending} className='justify-self-start md:col-start-1'>
             Change password
           </Button>
           {status !== null && (
