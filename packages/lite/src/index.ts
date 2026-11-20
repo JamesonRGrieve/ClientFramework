@@ -4,7 +4,15 @@
  * handlers, in exactly the shape server-framework answers it, so one UI runs on either back end.
  * Server-only: import it from `route.lite.ts` handlers, never from a client component.
  */
-export { ApiError, apiErrorResponse, type ErrorDetail, recordError, setErrorReporter, validationError } from './apiErrors';
+export {
+  ApiError,
+  apiErrorResponse,
+  type ErrorDetail,
+  logUnexpected,
+  recordError,
+  setErrorReporter,
+  validationError,
+} from './apiErrors';
 export { entityTag, evaluateIfMatch, type IfMatchResult, nextUpdateStamp } from './conditionalRequest';
 export { LOCAL_OWNER_ID, localOwner } from './localOwner';
 export {

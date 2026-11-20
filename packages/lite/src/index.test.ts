@@ -17,6 +17,7 @@ describe('@zephyrex/lite', () => {
         'evaluateIfMatch',
         'frameworkTimestamp',
         'localOwner',
+        'logUnexpected',
         'nextUpdateStamp',
         'notFound',
         'optionalString',

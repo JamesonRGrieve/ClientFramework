@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it, vi } from 'vitest';
-import { ApiError, apiErrorResponse } from './apiErrors';
+import { ApiError, apiErrorResponse, logUnexpected, setErrorReporter } from './apiErrors';
 
 describe('apiErrorResponse', () => {
   it('returns an ApiError as { detail } with its status', async () => {
@@ -42,5 +42,33 @@ describe('apiErrorResponse', () => {
   it('passes FastAPI’s request-validation list through as it is', async () => {
     const detail = [{ type: 'dict_type', loc: ['body'], msg: 'Input should be a valid dictionary', input: [1] }];
     await expect(apiErrorResponse(new ApiError(422, detail)).json()).resolves.toEqual({ detail });
+  });
+});
+
+describe('unexpected errors are reported', () => {
+  it('through zephyrex’s log by default, at the errors-only verbosity', () => {
+    // zephyrex's log reads the client's setting where there is a window (these tests run in jsdom).
+    vi.stubEnv('LOG_VERBOSITY_SERVER', '1');
+    vi.stubEnv('NEXT_PUBLIC_LOG_VERBOSITY_CLIENT', '1');
+    const spy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const error = new Error('disk full');
+    apiErrorResponse(error);
+    expect(spy).toHaveBeenCalledWith(error);
+    spy.mockRestore();
+    vi.unstubAllEnvs();
+  });
+
+  it('to the app’s own reporter in its place, and to nobody once it is cleared', () => {
+    const report = vi.fn();
+    const spy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    setErrorReporter(report);
+    apiErrorResponse(new Error('one'));
+    expect(report).toHaveBeenCalledTimes(1);
+    setErrorReporter(undefined);
+    apiErrorResponse(new Error('two'));
+    expect(report).toHaveBeenCalledTimes(1);
+    expect(spy).not.toHaveBeenCalled();
+    setErrorReporter(logUnexpected);
+    spy.mockRestore();
   });
 });

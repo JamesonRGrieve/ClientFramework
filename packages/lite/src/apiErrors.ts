@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+
 import { NextResponse } from 'next/server.js';
+import log, { ERRORS_ONLY } from 'zephyrex/log';
 import { STATUS } from './status';
 
 /**
@@ -38,13 +40,21 @@ export function validationError(message: string, field?: string): ApiError {
   });
 }
 
+/**
+ * The default for an unexpected error: zephyrex's log, at the errors-only verbosity, so it shows
+ * whenever LOG_VERBOSITY_SERVER is 1 or more (the framework's packages write to the console only
+ * through it).
+ */
+export function logUnexpected(error: unknown): void {
+  log([error], ERRORS_ONLY, 'unexpected error in a lite route');
+}
+
 /** Told of every unexpected error a route answers with the opaque 500 (see setErrorReporter). */
-let reporter: ((error: unknown) => void) | undefined;
+let reporter: ((error: unknown) => void) | undefined = logUnexpected;
 
 /**
- * Names who is told of an unexpected error: the app's own logger. The framework's packages write
- * nothing to the console themselves (only zephyrex's log does), so without a reporter an
- * unexpected error is answered with the opaque 500 and not logged. Pass `undefined` to stop.
+ * Names who is told of an unexpected error in place of zephyrex's log (logUnexpected, the
+ * default): the app's own logger or error tracker. Pass `undefined` to stop reporting.
  */
 export function setErrorReporter(report: ((error: unknown) => void) | undefined): void {
   reporter = report;
