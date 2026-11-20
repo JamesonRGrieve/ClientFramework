@@ -12,7 +12,7 @@ import {
   useState,
 } from 'react';
 import { useClient, useUser, writeProblem } from 'zephyrex';
-import { notify } from 'zephyrex/hooks/useToast';
+import { deferWithUndo, notify } from 'zephyrex/hooks/useToast';
 import { LoadProblem } from 'zephyrex/ui/load-problem';
 import { Button } from 'zephyrex/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
@@ -264,6 +264,8 @@ function TermRow({
   const [kind, setKind] = useState(shownKind(term.kind, kinds));
   const [text, setText] = useState(term.text);
   const { busy, problem, run } = useWrite(onChanged);
+  // Taken out, but still within its undo window: hidden until the notice goes or Undo brings it back.
+  const [leaving, setLeaving] = useState(false);
   const save = (event: SyntheticEvent): void => {
     event.preventDefault();
     void (async (): Promise<void> => {
@@ -273,6 +275,9 @@ function TermRow({
       }
     })();
   };
+  if (leaving && problem === null) {
+    return null;
+  }
   if (editing) {
     return (
       <li className='py-2'>
@@ -335,7 +340,18 @@ function TermRow({
             className='underline-offset-2 hover:text-destructive hover:underline disabled:opacity-50'
             disabled={busy}
             aria-label={`Take out “${term.text}”`}
-            onClick={() => void run(agreementsApi.removeTerm(client, term.id), 'That could not be taken out.')}
+            onClick={() => {
+              setLeaving(true);
+              deferWithUndo(
+                `“${term.text}” taken out`,
+                () => {
+                  void run(agreementsApi.removeTerm(client, term.id), 'That could not be taken out.');
+                },
+                () => {
+                  setLeaving(false);
+                },
+              );
+            }}
           >
             Take out
           </button>

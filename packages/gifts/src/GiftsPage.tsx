@@ -4,7 +4,7 @@
 import { chipGroup } from 'zephyrex/hooks/chipKeys';
 import { type ReactNode, type SyntheticEvent, useId, useState } from 'react';
 import { useClient, writeProblem } from 'zephyrex';
-import { notify } from 'zephyrex/hooks/useToast';
+import { deferWithUndo, notify } from 'zephyrex/hooks/useToast';
 import { LoadProblem } from 'zephyrex/ui/load-problem';
 import { Button } from 'zephyrex/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
@@ -229,6 +229,8 @@ function GiftRow({ gift, onChanged }: { gift: Gift; onChanged: () => Promise<unk
   const statusId = useId();
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Deleted, but still within its undo window: hidden here until the notice goes or Undo brings it back.
+  const [leaving, setLeaving] = useState(false);
   const run = (write: Promise<unknown>, fallback: string, done?: string): void => {
     setBusy(true);
     void (async (): Promise<void> => {
@@ -242,6 +244,9 @@ function GiftRow({ gift, onChanged }: { gift: Gift; onChanged: () => Promise<unk
     })();
   };
   const link = gift.url ?? null;
+  if (leaving && problem === null) {
+    return null;
+  }
   return (
     <li className='group grid gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-x-4'>
       <div className='grid min-w-0 gap-0.5'>
@@ -268,7 +273,18 @@ function GiftRow({ gift, onChanged }: { gift: Gift; onChanged: () => Promise<unk
           disabled={busy}
           aria-label={`Delete ${gift.title}`}
           className='order-last text-muted-foreground transition-opacity hover:text-destructive sm:order-none pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100'
-          onClick={() => run(giftsApi.remove(client, gift), 'The gift could not be deleted.', `${gift.title} deleted`)}
+          onClick={() => {
+            setLeaving(true);
+            deferWithUndo(
+              `${gift.title} deleted`,
+              () => {
+                run(giftsApi.remove(client, gift), 'The gift could not be deleted.');
+              },
+              () => {
+                setLeaving(false);
+              },
+            );
+          }}
         >
           Delete
         </Button>

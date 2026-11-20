@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { act, renderHook } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
-import { reducer, toast, useToast } from './useToast';
+import type { MouseEvent as ReactMouseEvent } from 'react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { deferWithUndo, reducer, toast, UNDO_MS, useToast } from './useToast';
 
 const toastOf = (id: string): { id: string; title: string; open: boolean } => ({ id, title: `Toast ${id}`, open: true });
 
@@ -52,5 +53,40 @@ describe('useToast', () => {
       result.current.dismiss(handle?.id);
     });
     expect(result.current.toasts[0]?.open).toBe(false);
+  });
+});
+
+describe('deferWithUndo', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('does the action once the undo window has passed', () => {
+    vi.useFakeTimers();
+    const run = vi.fn();
+    const undone = vi.fn();
+    deferWithUndo('Peonies deleted', run, undone);
+    expect(run).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(UNDO_MS);
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(undone).not.toHaveBeenCalled();
+  });
+
+  it('offers Undo on the notice, which calls the action off', () => {
+    vi.useFakeTimers();
+    const run = vi.fn();
+    const undone = vi.fn();
+    const { result } = renderHook(() => useToast());
+    act(() => {
+      deferWithUndo('Peonies deleted', run, undone);
+    });
+    const action = result.current.toasts[0]?.action;
+    expect(action?.props).toMatchObject({ altText: 'Undo: Peonies deleted' });
+    act(() => {
+      action?.props.onClick?.({} as ReactMouseEvent<HTMLButtonElement>);
+    });
+    vi.advanceTimersByTime(UNDO_MS);
+    expect(undone).toHaveBeenCalledTimes(1);
+    expect(run).not.toHaveBeenCalled();
   });
 });

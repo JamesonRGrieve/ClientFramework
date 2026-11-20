@@ -5,7 +5,7 @@ import { ChoiceChip } from 'zephyrex/ui/choice-chip';
 import { chipGroup } from 'zephyrex/hooks/chipKeys';
 import { type ReactElement, type ReactNode, type SyntheticEvent, useId, useState } from 'react';
 import { useUser, writeProblem } from 'zephyrex';
-import { notify } from 'zephyrex/hooks/useToast';
+import { deferWithUndo, notify } from 'zephyrex/hooks/useToast';
 import { LoadProblem } from 'zephyrex/ui/load-problem';
 import { Button } from 'zephyrex/ui/button';
 import { Card, CardContent, CardDescription, CardTitle } from 'zephyrex/ui/card';
@@ -304,6 +304,11 @@ function TitleRow({
   const watched = title.watched_on !== null && title.watched_on !== undefined;
   const removable = me !== undefined && (me === list.keeper_id || me === title.added_by);
   const label = titleLabel(title);
+  // Taken off, but still within its undo window: hidden until the notice goes or Undo brings it back.
+  const [leaving, setLeaving] = useState(false);
+  if (leaving && write.problem === null) {
+    return null;
+  }
   return (
     <li className={`group flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5 ${watched ? 'opacity-60' : ''}`}>
       <Poster item={title} size='small' />
@@ -321,9 +326,18 @@ function TitleRow({
             disabled={write.busy}
             aria-label={`Take off ${label}`}
             className='order-last text-muted-foreground transition-opacity hover:text-destructive sm:order-none pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100'
-            onClick={() =>
-              write.run(actions.remove(list, title.title_id), 'The film could not be taken off.', `${label} taken off`)
-            }
+            onClick={() => {
+              setLeaving(true);
+              deferWithUndo(
+                `${label} taken off`,
+                () => {
+                  write.run(actions.remove(list, title.title_id), 'The film could not be taken off.');
+                },
+                () => {
+                  setLeaving(false);
+                },
+              );
+            }}
           >
             Take off
           </Button>

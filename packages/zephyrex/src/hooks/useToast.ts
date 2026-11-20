@@ -4,7 +4,7 @@
 // Inspired by react-hot-toast library
 import * as React from 'react';
 
-import type { ToastActionElement, ToastProps } from '@/components/ui/toast';
+import { ToastAction, type ToastActionElement, type ToastProps } from '@/components/ui/toast';
 
 const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 1000000;
@@ -201,4 +201,34 @@ function notify(title: string, description?: string): ToastHandle {
   return toast({ title, ...(description === undefined ? {} : { description }), duration: NOTICE_MS });
 }
 
-export { notify, useToast, toast };
+/** How long a deletion can still be taken back, in milliseconds. */
+const UNDO_MS = 6000;
+
+/**
+ * Holds a destructive action back while a notice offers to take it back ("Peonies deleted · Undo").
+ * `act` runs once the notice's time is up unless Undo is pressed first, which calls `onUndo` instead
+ * and `act` never runs. The caller hides the item meanwhile, so the page changes at once.
+ */
+function deferWithUndo(title: string, act: () => void, onUndo: () => void): ToastHandle {
+  let settled = false;
+  const timer = setTimeout(() => {
+    if (!settled) {
+      settled = true;
+      act();
+    }
+  }, UNDO_MS);
+  const undo = (): void => {
+    if (!settled) {
+      settled = true;
+      clearTimeout(timer);
+      onUndo();
+    }
+  };
+  return toast({
+    title,
+    duration: UNDO_MS,
+    action: React.createElement(ToastAction, { altText: `Undo: ${title}`, onClick: undo }, 'Undo'),
+  });
+}
+
+export { deferWithUndo, notify, UNDO_MS, useToast, toast };

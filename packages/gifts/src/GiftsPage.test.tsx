@@ -2,6 +2,7 @@
 import { within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { UNDO_MS } from 'zephyrex/hooks/useToast';
 import { TestWrapper } from 'zephyrex/testing';
 import { emptyGiftsStore, giftsFixture, TAG } from './gifts.mocks';
 import { GiftsPage } from './GiftsPage';
@@ -75,7 +76,13 @@ describe('GiftsPage', () => {
     await vi.waitFor(() => {
       expect(store.gifts[0]?.status).toBe('bought');
     });
+    // Deleting hides the gift at once and keeps it for the undo window; then it is gone.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     await user.click(view.getByRole('button', { name: 'Delete Peonies' }));
+    expect(view.queryByRole('button', { name: 'Delete Peonies' })).toBeNull();
+    expect(store.gifts.map((gift) => gift.title)).toContain('Peonies');
+    vi.advanceTimersByTime(UNDO_MS);
+    vi.useRealTimers();
     await vi.waitFor(() => {
       expect(store.gifts.map((gift) => gift.title)).toEqual(['A silk scarf']);
     });
