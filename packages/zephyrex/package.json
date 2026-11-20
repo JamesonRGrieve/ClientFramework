@@ -37,6 +37,7 @@
     "zephyrex-gates": "./gates/cli.mjs"
   },
   "exports": {
+    "./biome": "./gates/biome-config.json",
     ".": {
       "types": "./dist/lib/zephyrex/index.d.ts",
       "default": "./dist/lib/zephyrex/index.js"
