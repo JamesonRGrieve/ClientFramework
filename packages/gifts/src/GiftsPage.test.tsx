@@ -159,4 +159,18 @@ describe('GiftsPage', () => {
     const view = renderGifts(<GiftsPage />, emptyGiftsStore());
     expect(view.getByText(/As an Amazon Associate/)).toBeInTheDocument();
   });
+
+  it('holds the Ideas column open while the app is still working them out', () => {
+    const store = giftsFixture();
+    const view = renderGifts(<GiftsPage people={PEOPLE} ideasLoading />, store);
+    expect(view.getByText('Loading ideas').closest('[role=status]')).toBeInTheDocument();
+    expect(view.getByText('Ideas')).toBeInTheDocument();
+  });
+
+  it('shows no Ideas column once the app has none', () => {
+    const store = giftsFixture();
+    const view = renderGifts(<GiftsPage people={PEOPLE} />, store);
+    expect(view.queryByText('Ideas')).not.toBeInTheDocument();
+    expect(view.queryByText('Loading ideas')).not.toBeInTheDocument();
+  });
 });

@@ -296,14 +296,17 @@ function GiftRow({
               placeholder='Add a note'
               onSave={async (note) => change({ note }, 'The note could not be saved.')}
             />
-            <span aria-hidden='true'>·</span>
-            {link === null ? (
-              <ShopSearch query={gift.title} />
-            ) : (
-              <a className={LINK} href={link} target='_blank' rel='noopener noreferrer sponsored'>
-                Where to buy it
-              </a>
-            )}
+            {/* The dot and its link wrap together, so a narrow row never ends on a bare dot. */}
+            <span className='inline-flex items-center gap-x-2 whitespace-nowrap'>
+              <span aria-hidden='true'>·</span>
+              {link === null ? (
+                <ShopSearch query={gift.title} />
+              ) : (
+                <a className={LINK} href={link} target='_blank' rel='noopener noreferrer sponsored'>
+                  Where to buy it
+                </a>
+              )}
+            </span>
           </div>
         </div>
       </div>
@@ -581,10 +584,15 @@ export interface GiftsPageProps {
   people?: readonly GiftPerson[];
   /** Suggestions the app draws from what it knows about them. */
   ideas?: readonly GiftIdea[];
+  /**
+   * The app is still working out `ideas`: the Ideas column is held open with placeholder rows, so
+   * the list doesn't render full width and then jump narrower when they arrive.
+   */
+  ideasLoading?: boolean;
 }
 
 /** A private list of gifts for the people in your life, with links to the shop. */
-export function GiftsPage({ people = [], ideas = [] }: GiftsPageProps): ReactNode {
+export function GiftsPage({ people = [], ideas = [], ideasLoading = false }: GiftsPageProps): ReactNode {
   const gifts = useGifts();
   const refresh = async (): Promise<unknown> => gifts.mutate();
   const selection = useSelection();
@@ -607,15 +615,23 @@ export function GiftsPage({ people = [], ideas = [] }: GiftsPageProps): ReactNod
         <h1 className='text-2xl font-semibold tracking-tight text-balance sm:text-3xl'>Gifts</h1>
         <p className='text-muted-foreground'>Ideas for the people in your life. Only you ever see this list.</p>
       </div>
-      <div className={ideas.length > 0 ? 'grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]' : 'grid gap-6'}>
-        {ideas.length > 0 && (
+      <div
+        className={
+          ideasLoading || ideas.length > 0 ? 'grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]' : 'grid gap-6'
+        }
+      >
+        {(ideasLoading || ideas.length > 0) && (
           <Card className='order-2 xl:sticky xl:top-6'>
             <CardHeader>
               <CardTitle>Ideas</CardTitle>
               <CardDescription>From what they share with you: their sizes and favourites.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Ideas ideas={ideas} onSaved={refresh} />
+              {ideasLoading && ideas.length === 0 ? (
+                <SkeletonRows rows={2} label='Loading ideas' />
+              ) : (
+                <Ideas ideas={ideas} onSaved={refresh} />
+              )}
             </CardContent>
           </Card>
         )}
