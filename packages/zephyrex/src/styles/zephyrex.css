@@ -1,9 +1,16 @@
 /*
  * The Zephyrex design system: Tailwind, its theme tokens and base styles. Published as
- * `zephyrex/styles.css`. An app imports it and adds `@source` for the compiled packages whose
- * classes it renders (Tailwind skips node_modules), as src/app/globals.css does.
+ * `zephyrex/styles.css`. Tailwind skips node_modules, so a package's classes are generated only
+ * where a stylesheet names it with `@source`. This file names its own package (the `@source` below
+ * resolves against this file, in the package's dist), so importing it is enough for zephyrex's
+ * components. An app still adds one `@source` per other framework package it renders
+ * (`@source '../../node_modules/@zephyrex/<name>/dist';`, and `@jgrieve/forms`); without it that
+ * package's parts render unstyled (Text Mutation's landing, with @zephyrex/marketing, 2026-11-21).
  */
 @import 'tailwindcss';
+
+/* This package's own components, wherever the app installed it. */
+@source '../';
 
 /* Math in markdown code blocks (react-latex-next) renders with KaTeX's fonts and layout. */
 @import 'katex/dist/katex.min.css';

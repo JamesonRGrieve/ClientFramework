@@ -19,7 +19,9 @@ export default function MarkdownHeading({ tag, children, className, ...props }: 
 
   const id = generateId(text);
 
-  const baseClasses = 'my-1 font-bold';
+  // A section heading has more room above it than below, so it reads as the start of what follows
+  // (my-1 left it sitting on the list before it); none above when it opens the block.
+  const baseClasses = 'mt-8 mb-3 first:mt-0 font-semibold tracking-tight text-balance';
   const sizeClasses = {
     h1: 'text-4xl',
     h2: 'text-3xl',
@@ -32,7 +34,7 @@ export default function MarkdownHeading({ tag, children, className, ...props }: 
   const HeadingTag = tag;
 
   return (
-    <HeadingTag id={id} className={`${baseClasses} ${sizeClasses[tag]} ${className || ''}`} {...props}>
+    <HeadingTag id={id} className={`${baseClasses} ${sizeClasses[tag]} ${className ?? ''}`} {...props}>
       {children}
     </HeadingTag>
   );

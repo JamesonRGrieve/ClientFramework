@@ -14,4 +14,12 @@ describe('Alert', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Your gift list could not be loaded.Server unavailable');
     expect(screen.queryByRole('heading')).toBeNull();
   });
+
+  it('gives a title that wraps room between its lines', () => {
+    render(<AlertTitle>Your recipes could not be loaded.</AlertTitle>);
+    // leading-none made a title wrapped on a phone touch its own second line.
+    const title = screen.getByText('Your recipes could not be loaded.');
+    expect(title).toHaveClass('leading-snug');
+    expect(title).not.toHaveClass('leading-none');
+  });
 });
