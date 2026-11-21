@@ -15,6 +15,11 @@ export const accountsEnabled = (config: Pick<ZephyrexConfig, 'auth'>): boolean =
  * account page keeps it). The no-script menu follows the same rule, so neither lists the app's pages
  * where the other doesn't.
  */
-export function sidebarShownOn(pathname: string, authPath: string): boolean {
+// `pathname` may be null although Next types it a string: outside the app router (a test, a
+// pages-router host) usePathname answers null. That counts as the landing page: no sidebar.
+export function sidebarShownOn(pathname: string | null, authPath: string): boolean {
+  if (pathname === null) {
+    return false;
+  }
   return !(pathname === '/' || (pathname.startsWith(authPath) && pathname !== `${authPath}${MANAGE_PAGE}`));
 }

@@ -29,6 +29,17 @@ describe('NoScriptNav', () => {
     }
   });
 
+  it('renders nothing, and doesn’t throw, outside the app router (no pathname)', () => {
+    // Outside the app router usePathname answers null, though Next types it a string.
+    vi.mocked(usePathname as () => string | null).mockReturnValue(null);
+    const html = renderToString(
+      <TestWrapper config={{ navItems: NAV }}>
+        <NoScriptNav />
+      </TestWrapper>,
+    );
+    expect(html).not.toContain(NOSCRIPT);
+  });
+
   it('serves the sidebar’s pages as plain links inside <noscript>, and hides the scripted button', () => {
     vi.mocked(usePathname).mockReturnValue('/genealogy');
     const html = renderToString(
