@@ -41,6 +41,8 @@ export type { FileUpload, UploadResult } from './useFileUpload';
 export { useUpload } from './useUpload';
 export type { Upload, UploadProgress, UploadRequest } from './useUpload';
 export { useSubscription } from './useSubscription';
+export { RETRY_INTERVAL_MS, useRetryCountdown } from './useRetryCountdown';
+export type { RetryCountdown } from './useRetryCountdown';
 export { ENTITLEMENT_PATH, EntitlementSchema, hasFeature, limitOf, useEntitlement, withinLimit } from './useEntitlement';
 export type { Entitlement } from './useEntitlement';
 export type { SubscriptionOptions } from './useSubscription';

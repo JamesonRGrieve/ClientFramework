@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { ApiError } from '../client';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -40,15 +40,36 @@ describe('ErrorBoundary', () => {
     expect(screen.getByText('Something went wrong')).toBeInTheDocument();
   });
 
-  it('renders server down message for 500+ errors', () => {
-    render(
-      <TestWrapper>
-        <ErrorBoundary>
-          <ThrowError error={new ApiError(502, 'Bad Gateway')} />
-        </ErrorBoundary>
-      </TestWrapper>,
-    );
-    expect(screen.getByText('Server Unavailable')).toBeInTheDocument();
+  it('says the server is unavailable for a 5xx and tries again by itself every 10 s', async () => {
+    vi.useFakeTimers();
+    try {
+      let down = true;
+      function MaybeDown(): React.JSX.Element {
+        if (down) {
+          throw new ApiError(502, 'Bad Gateway');
+        }
+        return <p>Back</p>;
+      }
+      render(
+        <TestWrapper>
+          <ErrorBoundary>
+            <MaybeDown />
+          </ErrorBoundary>
+        </TestWrapper>,
+      );
+      expect(screen.getByText('Server unavailable')).toBeInTheDocument();
+      expect(screen.getByText('Trying again in 10 s…')).toBeInTheDocument();
+      down = false;
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(10_000);
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
+      });
+      expect(screen.getByText('Back')).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('renders custom fallback node', () => {
