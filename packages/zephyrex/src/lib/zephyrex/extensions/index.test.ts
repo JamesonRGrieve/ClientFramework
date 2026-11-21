@@ -56,6 +56,7 @@ const SERVER_EXTENSIONS = [
   'kerberos_provider',
   'ldap_consumer',
   'ldap_provider',
+  'live_sync',
   'local_ai',
   'local_ai_gguf',
   'local_ai_torch',

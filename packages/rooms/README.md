@@ -34,6 +34,8 @@ const status = useRoom(
 ```
 
 `type` is the server's name for the record's type (`scene` for `SceneModel`, `user_team`).
+The hook follows `room.type` and `room.id`, not the object, so an inline `{ type, id }` is fine.
+It reads `onChange` and `onReset` through refs, so inline callbacks don't resubscribe.
 `useRoom` follows the room over server-sent events with the session's credentials. The browser
 reconnects and catches up from the last change it saw. Each change is handed on once, in order.
 When the stream can't be had (no `EventSource`, or a refused connection), it polls `/changes`

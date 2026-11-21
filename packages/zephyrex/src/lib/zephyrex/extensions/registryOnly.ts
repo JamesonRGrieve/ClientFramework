@@ -62,6 +62,13 @@ export const giftsExtension = entry(
   'Gifts',
   'A private list of gift ideas for the people in your life, with links to the shop',
 );
+// Live sync: one person's own windows and devices on a named channel (a teleprompter driven from a
+// phone). No client package yet: Zephyreader carries its own LiveChannel (Framework Candidates).
+export const liveSyncExtension = entry(
+  'live_sync',
+  'Live sync',
+  'Your own windows and devices kept in step on a named channel, one of them in control',
+);
 // Maps: @zephyrex/maps extends this with the page for meeting in the middle.
 export const mapsExtension = entry(
   'maps',
@@ -171,6 +178,7 @@ export const registryOnlyExtensions: readonly ZephyrexClientExtension[] = [
   calendarExtension,
   agreementsExtension,
   giftsExtension,
+  liveSyncExtension,
   mapsExtension,
   mediaExtension,
   roomsExtension,
