@@ -12,11 +12,11 @@ import MarkdownBlock from '../../../../components/markdown/MarkdownBlock';
  */
 export function PrivacyPage({ content }: { content: string }): ReactNode {
   // The page body owns the one h1 (a SidebarPage title is chrome): the policy's own `# ` heading
-  // when it starts with one, or "Privacy Policy" above it when it doesn't.
+  // when it starts with one, or "Privacy policy" (sentence case, like every title) above it when it doesn't.
   const titled = /^\s*# /.test(content);
   return (
-    <SidebarPage title='Privacy Policy'>
-      {!titled && <h1 className='mb-4 text-2xl font-semibold tracking-tight sm:text-3xl'>Privacy Policy</h1>}
+    <SidebarPage title='Docs'>
+      {!titled && <h1 className='mb-4 text-2xl font-semibold tracking-tight sm:text-3xl'>Privacy policy</h1>}
       <MarkdownBlock content={content} />
     </SidebarPage>
   );

@@ -44,7 +44,7 @@ describe('PrivacyPage', () => {
       </TestWrapper>,
     );
     expect(view.getAllByRole('heading', { level: 1 })).toHaveLength(1);
-    expect(view.getByRole('heading', { level: 1, name: 'Privacy Policy' })).toBeInTheDocument();
+    expect(view.getByRole('heading', { level: 1, name: 'Privacy policy' })).toBeInTheDocument();
     expect(view.getByRole('table')).toHaveTextContent('Until you leave');
     expect(view.queryByRole('button', { name: /^Copy row/ })).toBeNull();
   });

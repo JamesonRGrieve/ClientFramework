@@ -27,8 +27,9 @@ export function ApiReferencePage(): ReactNode {
   const docs = useSWR(['api-reference', server], async () => published(`${server}/openapi.json`), {
     revalidateOnFocus: false,
   });
+  // The bar names the section; the h1 below names the page (they never repeat).
   return (
-    <SidebarPage title='API Reference'>
+    <SidebarPage title='Docs'>
       <div className='grid gap-3'>
         <h1 className='text-2xl font-semibold tracking-tight text-balance sm:text-3xl'>API reference</h1>
         {docs.data === true && (

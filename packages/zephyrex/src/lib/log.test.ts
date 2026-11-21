@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import log, { passesVerbosity } from './log';
+import { afterEach, beforeEach, describe, expect, it, type MockInstance, vi } from 'vitest';
+import log, { devWarning, passesVerbosity } from './log';
 
 describe('passesVerbosity', () => {
   it('passes a level at or below the configured verbosity', () => {
@@ -24,7 +24,7 @@ describe('passesVerbosity', () => {
 
 describe('log (in the browser)', () => {
   const setting = process.env.NEXT_PUBLIC_LOG_VERBOSITY_CLIENT;
-  let consoleLog: ReturnType<typeof vi.spyOn>;
+  let consoleLog: MockInstance<typeof console.log>;
 
   beforeEach(() => {
     consoleLog = vi.spyOn(console, 'log').mockImplementation(() => undefined);
@@ -55,5 +55,23 @@ describe('log (in the browser)', () => {
   it('prints an empty item list and ignores an empty heading', () => {
     log([], { client: 1 }, '');
     expect(consoleLog.mock.calls).toEqual([[]]);
+  });
+});
+
+describe('devWarning', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  it('warns while building and stays silent in production', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    vi.stubEnv('NODE_ENV', 'development');
+    devWarning('the bar repeats the h1');
+    expect(warn).toHaveBeenCalledWith('[zephyrex] the bar repeats the h1');
+    warn.mockClear();
+    vi.stubEnv('NODE_ENV', 'production');
+    devWarning('the bar repeats the h1');
+    expect(warn).not.toHaveBeenCalled();
   });
 });

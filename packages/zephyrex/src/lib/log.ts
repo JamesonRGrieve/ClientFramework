@@ -52,3 +52,13 @@ export default function log(
     emit(logItems, heading);
   }
 }
+
+/**
+ * A mistake worth seeing while building an app (a page that breaks a framework rule): a console
+ * warning in development, nothing in production. Not for anything a person using the app caused.
+ */
+export function devWarning(message: string): void {
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn(`[zephyrex] ${message}`);
+  }
+}

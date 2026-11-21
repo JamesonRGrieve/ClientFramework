@@ -18,8 +18,10 @@ export async function TeamPage({ params }: TeamPageProps): Promise<ReactNode> {
   // Without a route id, both show the active team.
   const team = id === undefined ? {} : { teamId: id };
   return (
-    <SidebarPage title='Team Management'>
+    // A top-level page: the bar stays empty, and the page's one h1 names it.
+    <SidebarPage title=''>
       <PageWithSlots name='team' sidebar={<Team {...team} />} sidebarTitle='Team Details'>
+        <h1 className='px-4 text-2xl font-semibold tracking-tight text-balance sm:text-3xl'>Team management</h1>
         <div className='overflow-x-auto px-4'>
           <TeamMembers {...team} />
         </div>
