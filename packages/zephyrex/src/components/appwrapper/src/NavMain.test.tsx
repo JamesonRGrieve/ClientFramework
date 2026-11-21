@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NavMain } from './NavMain';
@@ -47,6 +47,28 @@ describe('NavMain', () => {
     ]);
     expect(screen.getByRole('link', { name: 'Reports' })).toHaveAttribute('href', '/reports');
     expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument();
+  });
+
+  it('shows the sub-entries an entry computes, after its own, and follows them as they change', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Promise.resolve(new Response('{}', { status: HTTP_UNAUTHORIZED }))),
+    );
+    const latest = { campaigns: [{ title: 'The Koronus Run', url: '/campaign/k1' }] };
+    const useLatestCampaigns = (): readonly { title: string; url: string }[] => latest.campaigns;
+    const view = renderNav([{ title: 'Campaigns', url: '/campaigns', useChildren: useLatestCampaigns }]);
+    // Once it has children it opens like any parent entry.
+    fireEvent.click(await screen.findByRole('button', { name: 'Campaigns' }));
+    expect(await screen.findByRole('link', { name: 'The Koronus Run' })).toHaveAttribute('href', '/campaign/k1');
+    latest.campaigns = [{ title: 'Ashes of Solenne', url: '/campaign/s2' }, ...latest.campaigns];
+    view.rerender(
+      <TestWrapper config={{ navItems: [{ title: 'Campaigns', url: '/campaigns', useChildren: useLatestCampaigns }] }}>
+        <SidebarProvider>
+          <NavMain />
+        </SidebarProvider>
+      </TestWrapper>,
+    );
+    expect(await screen.findByRole('link', { name: 'Ashes of Solenne' })).toBeInTheDocument();
   });
 
   it('counts unread notifications beside the inbox link, and shows nothing when all are read', async () => {

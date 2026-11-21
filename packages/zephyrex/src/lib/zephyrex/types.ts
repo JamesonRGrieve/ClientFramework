@@ -11,12 +11,25 @@ export interface RouteDefinition {
   component: ComponentType<{ params: Record<string, string>; searchParams: Record<string, string> }>;
 }
 
+/** A sub-entry a nav item computes as the sidebar renders (`useChildren`). */
+export interface NavChild {
+  title: string;
+  url: string;
+}
+
 export interface NavItemDefinition {
   title: string;
   url: string;
   icon?: ComponentType<{ className?: string }>;
   badge?: string | number;
   children?: NavItemDefinition[];
+  /**
+   * Sub-entries computed as the sidebar renders: a hook (it may read SWR data, so it updates live),
+   * shown after any static `children`; undefined while it has nothing yet. Pass a stable function
+   * (module level), as for any hook: the 3 latest campaigns under Campaigns, a wiki's record kinds
+   * under Settings.
+   */
+  useChildren?: () => readonly NavChild[] | undefined;
   /**
    * A heading the sidebar shows over this entry and the ones after it that share it ("People",
    * "Safety"). Entries without one sit under the previous heading, or none.

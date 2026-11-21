@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { ChevronRightIcon } from '@radix-ui/react-icons';
+import { useCallback, useEffect, useState } from 'react';
 
 import Link from 'next/link.js';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation.js';
@@ -22,7 +23,8 @@ import {
 import { cn } from '@/lib/utils';
 import { useNotifications, useSelectedTeam } from '@/lib/zephyrex/hooks';
 import { NOTIFICATIONS_URL } from '@/lib/zephyrex/extensions/auth_notifications';
-import { toNavMenuItems } from '@/lib/zephyrex/navigation';
+import { sameChildren, toNavMenuItems } from '@/lib/zephyrex/navigation';
+import type { NavChild } from '@/lib/zephyrex/types';
 import { useZephyrexConfig } from '@/lib/zephyrex/ZephyrexProvider';
 
 type Item = NavItem;
@@ -70,6 +72,26 @@ function NavLink({ item, active }: { item: Item; active: boolean }): React.JSX.E
   );
 }
 
+/**
+ * Calls one nav entry's `useChildren` hook and hands what it gives to the menu. It renders nothing:
+ * the menu draws the sub-entries, and a hook is never called in a loop.
+ */
+function NavChildren({
+  title,
+  useChildren,
+  onChildren,
+}: {
+  title: string;
+  useChildren: () => readonly NavChild[] | undefined;
+  onChildren: (title: string, children: readonly NavChild[]) => void;
+}): null {
+  const children = useChildren();
+  useEffect(() => {
+    onChildren(title, children ?? []);
+  }, [title, children, onChildren]);
+  return null;
+}
+
 export function NavMain(): React.JSX.Element {
   const router = useRouter();
   const pathname = usePathname();
@@ -78,10 +100,15 @@ export function NavMain(): React.JSX.Element {
   const company: { name?: string; my_role?: number } | undefined = useSelectedTeam() ?? undefined;
   const { toggleSidebar, open } = useSidebar('left');
   const { navItems: contributedNavItems } = useZephyrexConfig();
+  // The sub-entries each entry's `useChildren` gave, by title; replaced only when they change.
+  const [computed, setComputed] = useState<ReadonlyMap<string, readonly NavChild[]>>(new Map());
+  const takeChildren = useCallback((title: string, children: readonly NavChild[]): void => {
+    setComputed((known) => (sameChildren(known.get(title) ?? [], children) ? known : new Map(known).set(title, children)));
+  }, []);
 
   // Only what the app's config and its enabled extensions declare: a page the app does not mount
   // has no entry.
-  const itemsWithActiveState = toNavMenuItems(contributedNavItems).map((item) => ({
+  const itemsWithActiveState = toNavMenuItems(contributedNavItems, computed).map((item) => ({
     ...item,
     isActive: isActive(item, pathname, queryParams),
   }));
@@ -113,6 +140,16 @@ export function NavMain(): React.JSX.Element {
   // Add logic to determine if team management should be shown
   return (
     <SidebarGroup className='flex flex-col h-full'>
+      {contributedNavItems.map((definition) =>
+        definition.useChildren === undefined ? null : (
+          <NavChildren
+            key={definition.title}
+            title={definition.title}
+            useChildren={definition.useChildren}
+            onChildren={takeChildren}
+          />
+        ),
+      )}
       <div className='flex-1 overflow-y-auto overflow-x-hidden'>
         {/* Names the menu for screen readers; on screen the entries speak for themselves. */}
         <SidebarGroupLabel className='sr-only'>Pages</SidebarGroupLabel>
@@ -168,7 +205,7 @@ export function NavMain(): React.JSX.Element {
                         }
                         const SubIcon = subItem.icon;
                         return (
-                          <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubItem key={`${subItem.url}#${subItem.title}`}>
                             <SidebarMenuSubButton asChild>
                               <Link
                                 href={
@@ -229,7 +266,7 @@ export function NavMain(): React.JSX.Element {
                       {item.items?.map((subItem) => {
                         const SubIcon = subItem.icon;
                         return (
-                          <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubItem key={`${subItem.url}#${subItem.title}`}>
                             <SidebarMenuSubButton asChild>
                               <Link href={subItem.url}>
                                 {SubIcon !== undefined && <SubIcon className='w-4 h-4' />}
