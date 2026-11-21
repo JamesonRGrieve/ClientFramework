@@ -28,6 +28,8 @@ const SEEN = { created_at: CREATED, updated_at: UPDATED };
 const TEAM_PATH = '/v1/team/t1';
 const HTTP_TOO_MANY = 429;
 const HTTP_SERVER_ERROR = 500;
+/** What a 500 with no readable body says. */
+const UNREADABLE_500 = 'The server answered 500';
 const HTTP_BAD_GATEWAY = 502;
 const NOT_FOUND_BODY = '{"detail":"Not found"}';
 const RETRY_AFTER_SECONDS = 2;
@@ -265,8 +267,10 @@ describe('ApiError', () => {
 
   it('falls back to the body when it is not the error shape, or the status when there is none', () => {
     expect(new ApiError(HTTP_BAD_GATEWAY, 'Bad Gateway')).toMatchObject({ message: 'Bad Gateway', failed: [] });
-    expect(new ApiError(HTTP_SERVER_ERROR, '{"error":"boom"}')).toMatchObject({ message: '{"error":"boom"}' });
-    expect(new ApiError(HTTP_SERVER_ERROR, '').message).toBe(`HTTP ${HTTP_SERVER_ERROR}`);
+    // JSON with no detail, or nothing at all, says nothing a person can read: name the status.
+    expect(new ApiError(HTTP_SERVER_ERROR, '{"error":"boom"}')).toMatchObject({ message: UNREADABLE_500 });
+    expect(new ApiError(HTTP_SERVER_ERROR, '{}').message).toBe(UNREADABLE_500);
+    expect(new ApiError(HTTP_SERVER_ERROR, '').message).toBe(UNREADABLE_500);
   });
 });
 

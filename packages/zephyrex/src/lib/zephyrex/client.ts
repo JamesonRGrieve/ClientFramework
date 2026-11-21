@@ -42,20 +42,26 @@ const ErrorBodySchema = z.object({
 });
 
 /**
- * `body`'s `detail` and `failed`, when it is the server's error shape; else the start of the body
- * itself, or the status when there is none.
+ * `body`'s `detail` and `failed`, when it is the server's error shape. A body that is plain text is
+ * the message itself (its start). A body that is JSON without a detail (`{}`, `{"error": …}`), or
+ * an empty one, says nothing a person can read, so the message names the status instead.
  */
 function errorDetail(status: number, body: string): { detail: string; failed: string[] } {
+  const unreadable = { detail: `The server answered ${String(status)}`, failed: [] };
+  if (body.trim() === '') {
+    return unreadable;
+  }
   try {
     const parsed = ErrorBodySchema.safeParse(JSON.parse(body));
     if (parsed.success) {
       const { detail } = parsed.data;
       return typeof detail === 'string' ? { detail, failed: [] } : { detail: detail.message, failed: detail.failed ?? [] };
     }
+    return unreadable;
   } catch {
     // Not JSON: the body is the message.
   }
-  return { detail: body === '' ? `HTTP ${status}` : body.slice(0, ERROR_PREVIEW_CHARS), failed: [] };
+  return { detail: body.slice(0, ERROR_PREVIEW_CHARS), failed: [] };
 }
 
 /**
