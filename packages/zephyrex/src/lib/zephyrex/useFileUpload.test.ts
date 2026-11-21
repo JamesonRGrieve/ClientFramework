@@ -2,37 +2,17 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useFileUpload } from './useFileUpload';
+import { fakeXhr, type SentRequest } from '@/testing/fakeXhr';
 import { TestWrapper } from '@/testing/TestWrapper';
 
 const HTTP_CREATED = 201;
 const HTTP_SERVER_ERROR = 500;
 
-type SentRequest = { method: string; url: string; headers: Record<string, string> };
-
-/** Answers every upload with a fixed status and body, recording what was sent. */
-const fakeXhr = (status: number, body: string): SentRequest[] => {
-  const sent: SentRequest[] = [];
-  class FakeXhr extends EventTarget {
-    readonly upload = new EventTarget();
-    status = 0;
-    statusText = '';
-    responseText = '';
-    private request: SentRequest = { method: '', url: '', headers: {} };
-    open(method: string, url: string): void {
-      this.request = { method, url, headers: {} };
-    }
-    setRequestHeader(header: string, value: string): void {
-      this.request.headers[header] = value;
-    }
-    send(): void {
-      sent.push(this.request);
-      this.status = status;
-      this.responseText = body;
-      this.dispatchEvent(new Event('load'));
-    }
-  }
-  vi.stubGlobal('XMLHttpRequest', FakeXhr);
-  return sent;
+/** Puts a fake XMLHttpRequest in place that answers every upload with `status` and `body`. */
+const answering = (status: number, body: string): SentRequest[] => {
+  const fake = fakeXhr(status, body);
+  vi.stubGlobal('XMLHttpRequest', fake.Xhr);
+  return fake.sent;
 };
 
 const file = new File(['hello'], 'hello.txt', { type: 'text/plain' });
@@ -52,7 +32,7 @@ describe('useFileUpload', () => {
 
   it('posts the file with the CSRF token and returns what the server stored', async () => {
     document.cookie = 'zx_csrf=token-1; path=/';
-    const sent = fakeXhr(HTTP_CREATED, JSON.stringify({ url: '/f/1', filename: 'hello.txt', size: 5, id: 'f1' }));
+    const sent = answering(HTTP_CREATED, JSON.stringify({ url: '/f/1', filename: 'hello.txt', size: 5, id: 'f1' }));
     const { result } = renderHook(() => useFileUpload('/v1/avatar'), { wrapper: TestWrapper });
     let stored: Awaited<ReturnType<typeof result.current.upload>> = null;
     await act(async () => {
@@ -63,11 +43,13 @@ describe('useFileUpload', () => {
     expect(sent[0]?.method).toBe('POST');
     expect(sent[0]?.url).toMatch(/\/v1\/avatar$/);
     expect(sent[0]?.headers['X-CSRF-Token']).toBe('token-1');
+    const body = sent[0]?.body;
+    expect(body instanceof FormData ? body.get('file') : null).toBeInstanceOf(File);
     expect(result.current.error).toBeNull();
   });
 
   it('reports a failed upload', async () => {
-    fakeXhr(HTTP_SERVER_ERROR, 'boom');
+    answering(HTTP_SERVER_ERROR, 'boom');
     const { result } = renderHook(() => useFileUpload(), { wrapper: TestWrapper });
     await act(async () => {
       expect(await result.current.upload(file)).toBeNull();
@@ -77,7 +59,7 @@ describe('useFileUpload', () => {
   });
 
   it('refuses an answer that is not an upload result', async () => {
-    fakeXhr(HTTP_CREATED, JSON.stringify({ ok: true }));
+    answering(HTTP_CREATED, JSON.stringify({ ok: true }));
     const { result } = renderHook(() => useFileUpload(), { wrapper: TestWrapper });
     await act(async () => {
       expect(await result.current.upload(file)).toBeNull();
