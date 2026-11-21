@@ -25,7 +25,7 @@ describe('PersonPage', () => {
     expect(await view.findByRole('region', { name: 'Parents' })).toHaveTextContent('George Gordon Byron');
   });
 
-  it('saves changes to the details', async () => {
+  it('saves changes to the details as a field is left, with no Save button', async () => {
     const store = familyFixture();
     const user = userEvent.setup();
     const view = renderGenealogy(<PersonPage params={{ personId: 'ada' }} />, store);
@@ -33,7 +33,9 @@ describe('PersonPage', () => {
     const name = await view.findByLabelText('Name');
     await user.clear(name);
     await user.type(name, renamed);
-    await user.click(view.getByRole('button', { name: 'Save' }));
+    expect(view.queryByRole('button', { name: 'Save' })).toBeNull();
+    await user.tab();
+    expect(await view.findByText('Saved')).toBeInTheDocument();
     expect(await view.findByRole('heading', { level: 1, name: renamed })).toBeInTheDocument();
     expect(store.persons.find((row) => row.id === 'ada')?.name).toBe(renamed);
   });

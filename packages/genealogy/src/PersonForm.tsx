@@ -53,15 +53,21 @@ function genderValue(choice: string, words: string): string | null {
 /**
  * A person's details, blank for a new record or filled from `person` for an edit. `onSave` answers
  * with a problem to show, or null once the server has stored them.
+ *
+ * With `autosave` (an existing person's page), there is no Save button: a field is saved as you
+ * leave it, a gender as you pick it, and a quiet status says when it's stored, as the rest of the
+ * page edits in place. A new person keeps the button: creating one is a deliberate step.
  */
 export function PersonForm({
   person = EMPTY,
   submitLabel,
   onSave,
+  autosave = false,
 }: {
   person?: Pick<Person, 'name' | 'birth_date' | 'death_date' | 'gender' | 'description'>;
   submitLabel: string;
   onSave: (fields: PersonFields) => Promise<string | null>;
+  autosave?: boolean;
 }): ReactElement {
   const options = useGenealogyOptions();
   const ids = {
@@ -80,26 +86,44 @@ export function PersonForm({
   const [description, setDescription] = useState(person.description ?? '');
   const [pending, setPending] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+  const fieldsOf = (choice: string = gender): PersonFields => ({
+    name: text(name),
+    birth_date: dateField(birth),
+    death_date: dateField(death),
+    gender: genderValue(choice, genderWords),
+    description: text(description),
+  });
+  // What the server last stored, so leaving an unchanged field saves nothing.
+  const [stored, setStored] = useState(() => JSON.stringify(fieldsOf()));
 
-  const submit = (event: SyntheticEvent<HTMLFormElement>): void => {
-    event.preventDefault();
+  const commit = (fields: PersonFields): void => {
     if (birth !== '' && death !== '' && death < birth) {
       setProblem('The date of death is before the date of birth.');
       return;
     }
+    const wire = JSON.stringify(fields);
+    if (autosave && wire === stored) {
+      return;
+    }
     setPending(true);
+    setSaved(false);
     void (async (): Promise<void> => {
-      const failure = await onSave({
-        name: text(name),
-        birth_date: dateField(birth),
-        death_date: dateField(death),
-        gender: genderValue(gender, genderWords),
-        description: text(description),
-      });
+      const failure = await onSave(fields);
       setProblem(failure);
       setPending(false);
+      if (failure === null) {
+        setStored(wire);
+        setSaved(true);
+      }
     })();
   };
+  const submit = (event: SyntheticEvent<HTMLFormElement>): void => {
+    event.preventDefault();
+    commit(fieldsOf());
+  };
+  /** Saves as a field is left, with autosave on. */
+  const leave = autosave ? (): void => commit(fieldsOf()) : undefined;
 
   return (
     <form className='grid gap-3' onSubmit={submit}>
@@ -107,16 +131,28 @@ export function PersonForm({
       <div className={options.lineage ? 'grid grid-cols-1 gap-3 sm:grid-cols-3' : 'grid grid-cols-1 gap-3 sm:grid-cols-2'}>
         <div className='grid gap-1'>
           <Label htmlFor={ids.name}>Name</Label>
-          <Input id={ids.name} value={name} onChange={(event) => setName(event.target.value)} />
+          <Input id={ids.name} value={name} onChange={(event) => setName(event.target.value)} onBlur={leave} />
         </div>
         <div className='grid gap-1'>
           <Label htmlFor={ids.birth}>{options.lineage ? 'Born' : 'Birthday'}</Label>
-          <Input id={ids.birth} type='date' value={birth} onChange={(event) => setBirth(event.target.value)} />
+          <Input
+            id={ids.birth}
+            type='date'
+            value={birth}
+            onChange={(event) => setBirth(event.target.value)}
+            onBlur={leave}
+          />
         </div>
         {options.lineage && (
           <div className='grid gap-1'>
             <Label htmlFor={ids.death}>Died</Label>
-            <Input id={ids.death} type='date' value={death} onChange={(event) => setDeath(event.target.value)} />
+            <Input
+              id={ids.death}
+              type='date'
+              value={death}
+              onChange={(event) => setDeath(event.target.value)}
+              onBlur={leave}
+            />
           </div>
         )}
         <div className='col-span-full grid gap-1'>
@@ -128,8 +164,13 @@ export function PersonForm({
               <ChoiceChip
                 key={choice.value}
                 checked={gender === choice.value}
-                onClick={() => setGender(choice.value)}
-                className='rounded-full border px-3 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted aria-checked:border-primary aria-checked:bg-primary/10 aria-checked:text-foreground'
+                onClick={() => {
+                  setGender(choice.value);
+                  // "Other" waits for their words; any other pick is the whole answer.
+                  if (autosave && choice.value !== OTHER) {
+                    commit(fieldsOf(choice.value));
+                  }
+                }}
               >
                 {choice.label}
               </ChoiceChip>
@@ -139,7 +180,12 @@ export function PersonForm({
         {gender === OTHER && (
           <div className='grid gap-1'>
             <Label htmlFor={ids.genderWords}>Gender, in their words</Label>
-            <Input id={ids.genderWords} value={genderWords} onChange={(event) => setGenderWords(event.target.value)} />
+            <Input
+              id={ids.genderWords}
+              value={genderWords}
+              onChange={(event) => setGenderWords(event.target.value)}
+              onBlur={leave}
+            />
           </div>
         )}
       </div>
@@ -152,6 +198,7 @@ export function PersonForm({
           placeholder='Allergies, how you met, anything worth remembering'
           value={description}
           onChange={(event) => setDescription(event.target.value)}
+          onBlur={leave}
         />
       </div>
       {problem !== null && (
@@ -159,11 +206,17 @@ export function PersonForm({
           {problem}
         </p>
       )}
-      <div>
-        <Button type='submit' disabled={pending}>
-          {submitLabel}
-        </Button>
-      </div>
+      {autosave ? (
+        <p role='status' className='min-h-4 text-xs text-muted-foreground'>
+          {pending ? 'Saving…' : saved ? 'Saved' : ''}
+        </p>
+      ) : (
+        <div>
+          <Button type='submit' disabled={pending}>
+            {submitLabel}
+          </Button>
+        </div>
+      )}
     </form>
   );
 }

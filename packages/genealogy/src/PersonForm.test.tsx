@@ -88,4 +88,29 @@ describe('PersonForm', () => {
     await user.click(view.getByRole('button', { name: 'Save' }));
     expect(await view.findByRole('alert')).toHaveTextContent('Name is too long');
   });
+
+  it('with autosave, saves a field as it is left and a gender as it is picked, and nothing unchanged', async () => {
+    const onSave = vi.fn(async () => Promise.resolve(null));
+    const user = userEvent.setup();
+    const view = render(
+      <PersonForm
+        person={{ name: 'Ada', birth_date: null, death_date: null, gender: null, description: null }}
+        submitLabel='Save'
+        autosave
+        onSave={onSave}
+      />,
+    );
+    expect(view.queryByRole('button', { name: 'Save' })).toBeNull();
+    await user.click(view.getByLabelText('Name'));
+    await user.tab();
+    expect(onSave).not.toHaveBeenCalled();
+    await user.type(view.getByLabelText('Name'), ' King');
+    await user.tab();
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenLastCalledWith(expect.objectContaining({ name: 'Ada King' }));
+    expect(await view.findByText('Saved')).toBeInTheDocument();
+    await user.click(view.getByRole('radio', { name: 'Female' }));
+    expect(onSave).toHaveBeenCalledTimes(2);
+    expect(onSave).toHaveBeenLastCalledWith(expect.objectContaining({ name: 'Ada King', gender: 'female' }));
+  });
 });

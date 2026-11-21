@@ -59,6 +59,7 @@ function PersonDetails({
         key={person.id}
         person={base}
         submitLabel='Save'
+        autosave
         onSave={async (fields) => writeProblem(rebaseOnSave(update.save(base, fields)), SAVE_FAILURE)}
       />
       {update.conflict !== null && (
