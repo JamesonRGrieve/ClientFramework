@@ -323,7 +323,8 @@
     --card-foreground: 0 0% 10%;
     --popover: 0 0% 95%;
     --popover-foreground: 0 0% 4%;
-    --primary: 0 0% 57.8%;
+    /* 40%, not the dark theme's 57.8%: the light page needs 3:1 for a primary control and 4.5:1 for white text on it. */
+    --primary: 0 0% 40%;
     --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 70%;
     --secondary-foreground: 0 0% 0%;
