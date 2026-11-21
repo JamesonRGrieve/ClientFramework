@@ -181,7 +181,7 @@ export function Profile({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Profile</CardTitle>
+        <CardTitle level={2}>Profile</CardTitle>
         <CardDescription>
           Signed in as <span className='font-medium text-foreground'>{profile.email}</span>. Changes save as you make them.
         </CardDescription>

@@ -52,6 +52,8 @@ describe('Manage', () => {
     );
     // The page's one h1, not an h2 under the frame's title.
     expect(view.getByRole('heading', { level: 1, name: 'Your account' })).toBeInTheDocument();
+    // Its cards sit straight under the h1, so they are h2s: the outline never skips a level.
+    expect(await view.findByRole('heading', { level: 2, name: 'Teams' })).toBeInTheDocument();
     expect(view.getByRole('button', { name: `Back to ${testConfig.app.name}` })).toBeInTheDocument();
     const teams = await view.findByRole('list', { name: YOUR_TEAMS });
     expect(within(teams).getByRole('link', { name: 'Analytical Engines' })).toHaveAttribute('href', '/team/t1');

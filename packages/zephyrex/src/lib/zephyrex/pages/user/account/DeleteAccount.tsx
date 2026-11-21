@@ -47,7 +47,7 @@ export function DeleteAccount({
   return (
     <Card className='border-destructive/40'>
       <CardHeader>
-        <CardTitle>Delete your account</CardTitle>
+        <CardTitle level={2}>Delete your account</CardTitle>
         <CardDescription>{note}</CardDescription>
       </CardHeader>
       <CardContent>

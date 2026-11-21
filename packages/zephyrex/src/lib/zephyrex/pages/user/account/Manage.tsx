@@ -32,7 +32,7 @@ function Teams(): ReactNode {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Teams</CardTitle>
+        <CardTitle level={2}>Teams</CardTitle>
         <CardDescription>The teams you belong to.</CardDescription>
       </CardHeader>
       <CardContent>

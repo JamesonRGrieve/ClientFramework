@@ -78,7 +78,7 @@ export function Account({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Password</CardTitle>
+        <CardTitle level={2}>Password</CardTitle>
         <CardDescription>Change the password you sign in with.</CardDescription>
       </CardHeader>
       <CardContent>

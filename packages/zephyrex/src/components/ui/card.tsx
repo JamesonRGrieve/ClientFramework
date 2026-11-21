@@ -13,12 +13,22 @@ const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 ));
 CardHeader.displayName = 'CardHeader';
 
-const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
-  ({ className, children, ...props }, ref) => (
-    <h3 ref={ref} className={cn('text-2xl font-semibold leading-none tracking-tight', className)} {...props}>
-      {children}
-    </h3>
-  ),
+const TITLE_TAGS = { 2: 'h2', 3: 'h3', 4: 'h4' } as const;
+type TitleLevel = keyof typeof TITLE_TAGS;
+
+/**
+ * A card's title, an h3 unless `level` says otherwise: a card straight under a page's h1 passes 2, so
+ * the outline never skips a level (axe's heading-order, and the audits' own check).
+ */
+const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement> & { level?: TitleLevel }>(
+  ({ className, children, level = 3, ...props }, ref) => {
+    const Tag = TITLE_TAGS[level];
+    return (
+      <Tag ref={ref} className={cn('text-2xl font-semibold leading-none tracking-tight', className)} {...props}>
+        {children}
+      </Tag>
+    );
+  },
 );
 CardTitle.displayName = 'CardTitle';
 
