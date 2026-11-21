@@ -54,6 +54,27 @@ The second argument decides whose records a request sees:
 - **Your own `OwnerResolver`** (`(request) => Owner | Promise<Owner>`) is for an app with
   accounts, e.g. a session check. It throws `ApiError(401)` to refuse a request.
 
+## One catch-all for many resources
+
+An app, or a suite package another app composes (the wiki inside rpg-ai), can describe its routes
+as a table and serve them all from one catch-all, `app/api/v1/[...path]/route.lite.ts`:
+
+```typescript
+import { crudRoutes, localOwner, mergeRoutes, mountRoutes, type RouteTable } from '@zephyrex/lite';
+
+const appRoutes: RouteTable = {
+  task: crudRoutes(taskSpec, localOwner),
+  report: { collection: { POST: makeReport }, actions: { latest: { GET: latestReport } } },
+};
+export const { GET, POST, PUT, PATCH, DELETE } = mountRoutes(mergeRoutes(wikiRoutes, appRoutes));
+```
+
+Each resource has `collection` (`/v1/task`), `record` (`/v1/task/{id}`, the id in `params`),
+named `actions` (`/v1/task/of`, matched before an id) and `recordActions`
+(`/v1/kit/{id}/apply`). Anything else is the framework's 404. Next serves the app's own specific
+routes first, so its `/v1/extension` still wins. `mergeRoutes` refuses a resource two tables both
+answer. A catch-all named otherwise (`[...wiki]`) passes `mountRoutes(table, { param: 'wiki' })`.
+
 ## Exports
 
 - Handlers: `collectionRoutes`, `recordRoutes`, and the types `ResourceSpec`, `RecordRow`,
@@ -63,6 +84,8 @@ The second argument decides whose records a request sees:
 - Errors: `ApiError`, `apiErrorResponse`, `recordError`, `validationError`, and the type
   `ErrorDetail`.
 - Preconditions: `entityTag`, `evaluateIfMatch` and `nextUpdateStamp`.
+- Catch-all: `mountRoutes`, `mergeRoutes`, `crudRoutes`, `routeFor`, and the types `RouteTable`,
+  `ResourceRoutes`, `RouteMethods`, `RouteHandler`, `RouteMethod`, `CatchAllHandler` and `MountOptions`.
 - Bodies: `readJsonObject`, `readBytes`, `requiredString`, `optionalString` and `MAX_BODY_BYTES`.
 
 ## License

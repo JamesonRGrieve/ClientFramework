@@ -41,5 +41,18 @@ export {
   recordRoutes,
   toDto,
 } from './records';
+export {
+  type CatchAllHandler,
+  crudRoutes,
+  mergeRoutes,
+  type MountOptions,
+  mountRoutes,
+  type ResourceRoutes,
+  type RouteHandler,
+  type RouteMethod,
+  type RouteMethods,
+  type RouteTable,
+  routeFor,
+} from './routes';
 export { MAX_BODY_BYTES, optionalString, readBytes, readJsonObject, requiredString } from './requestBody';
 export { STATUS } from './status';
