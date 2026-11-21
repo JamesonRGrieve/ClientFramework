@@ -4,7 +4,11 @@ import type { ReactNode } from 'react';
 import type { FooterColumn } from './content';
 import { Heading, type HeadingLevel } from './Heading';
 
-/** Site-wide footer links, and an optional closing line (the app's own words); column titles at the caller's level (h2 by default). */
+/**
+ * Site-wide footer links, and an optional closing note (the app's own words); column titles at the
+ * caller's level (h2 by default). The note sits in a div, not a p, so it may itself be a paragraph
+ * or a list: a block inside a p is invalid HTML and breaks hydration (React error 418).
+ */
 export function SiteFooter({
   columns,
   note,
@@ -34,7 +38,7 @@ export function SiteFooter({
           </div>
         ))}
       </nav>
-      {note && <p className='mt-8 text-xs text-muted-foreground'>{note}</p>}
+      {note !== undefined && note !== null && <div className='mt-8 text-xs text-muted-foreground'>{note}</div>}
     </footer>
   );
 }
