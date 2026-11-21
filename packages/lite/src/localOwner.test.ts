@@ -4,13 +4,13 @@ import { describe, expect, it } from 'vitest';
 import { ApiError } from './apiErrors';
 import { LOCAL_OWNER_ID, localOwner } from './localOwner';
 
-const URL = 'http://localhost/api/v1/thing';
+const THING_URL = 'http://localhost/api/v1/thing';
 
 function request(method: string, headers: Record<string, string> = {}): NextRequest {
-  return new NextRequest(URL, { method, headers });
+  return new NextRequest(THING_URL, { method, headers });
 }
 
-function refusal(run: () => unknown): ApiError {
+function refusal(run: () => void): ApiError {
   try {
     run();
   } catch (error) {
@@ -47,7 +47,7 @@ describe('localOwner', () => {
 
   it('refuses a write that is not JSON with 415, but lets a DELETE carry no body', () => {
     const refused = refusal(() =>
-      localOwner(new NextRequest(URL, { method: 'POST', headers: { 'content-type': 'text/plain' }, body: 'hello' })),
+      localOwner(new NextRequest(THING_URL, { method: 'POST', headers: { 'content-type': 'text/plain' }, body: 'hello' })),
     );
     expect([refused.status, refused.detail, refused.extra]).toEqual([
       415,
@@ -55,5 +55,28 @@ describe('localOwner', () => {
       { supported: ['application/json'] },
     ]);
     expect(localOwner(request('DELETE')).id).toBe(LOCAL_OWNER_ID);
+  });
+
+  it('takes a raw body of a media type the route names, and refuses others with 415 naming them', () => {
+    const pictures = ['image/png', 'application/pdf'];
+    const upload = (type: string): NextRequest =>
+      new NextRequest(THING_URL, {
+        method: 'POST',
+        headers: { 'sec-fetch-site': 'same-origin', 'content-type': type },
+        body: 'png!',
+      });
+    expect(localOwner(upload('image/png'), pictures).id).toBe(LOCAL_OWNER_ID);
+    const refused = refusal(() => localOwner(upload('application/json'), pictures));
+    expect([refused.status, refused.extra]).toEqual([415, { supported: pictures }]);
+    const crossSite = refusal(() =>
+      localOwner(
+        new NextRequest(THING_URL, {
+          method: 'POST',
+          headers: { 'sec-fetch-site': 'cross-site', 'content-type': 'image/png' },
+        }),
+        pictures,
+      ),
+    );
+    expect(crossSite.status).toBe(403);
   });
 });

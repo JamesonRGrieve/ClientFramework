@@ -47,6 +47,10 @@ The second argument decides whose records a request sees:
 
 - **`localOwner`** is for a one-person app with no accounts. Every record belongs to
   `LOCAL_OWNER_ID`. A write must come from the app's own pages (`Sec-Fetch-Site`) and be JSON.
+  A route that takes a file's own bytes, such as an upload, names the media types it reads instead:
+  `localOwner(request, ['image/png', 'application/pdf'])`. Any other type is refused with a 415 that
+  lists them. Read such a body with `readBytes(request, maxBytes)`, which refuses with a 413 past the
+  route's cap.
 - **Your own `OwnerResolver`** (`(request) => Owner | Promise<Owner>`) is for an app with
   accounts, e.g. a session check. It throws `ApiError(401)` to refuse a request.
 
@@ -55,11 +59,11 @@ The second argument decides whose records a request sees:
 - Handlers: `collectionRoutes`, `recordRoutes`, and the types `ResourceSpec`, `RecordRow`,
   `Owner` and `OwnerResolver`.
 - Owners: `localOwner` and `LOCAL_OWNER_ID`.
-- Shapes: `toDto`, `frameworkTimestamp` and `notFound`.
+- Shapes: `toDto`, `frameworkTimestamp`, `notFound`, and `parseBody` (a route's own body, unwrapped and refused as the handlers do).
 - Errors: `ApiError`, `apiErrorResponse`, `recordError`, `validationError`, and the type
   `ErrorDetail`.
 - Preconditions: `entityTag`, `evaluateIfMatch` and `nextUpdateStamp`.
-- Bodies: `readJsonObject`, `requiredString`, `optionalString` and `MAX_BODY_BYTES`.
+- Bodies: `readJsonObject`, `readBytes`, `requiredString`, `optionalString` and `MAX_BODY_BYTES`.
 
 ## License
 

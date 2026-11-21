@@ -34,11 +34,12 @@ export {
   frameworkTimestamp,
   notFound,
   type Owner,
+  parseBody,
   type OwnerResolver,
   type RecordRow,
   type ResourceSpec,
   recordRoutes,
   toDto,
 } from './records';
-export { MAX_BODY_BYTES, optionalString, readJsonObject, requiredString } from './requestBody';
+export { MAX_BODY_BYTES, optionalString, readBytes, readJsonObject, requiredString } from './requestBody';
 export { STATUS } from './status';

@@ -10,11 +10,24 @@ import { STATUS } from './status';
 export const MAX_BODY_BYTES = 10_485_760; // 10 MiB
 const TOO_LARGE = 'Request body exceeds maximum allowed size';
 
-/** The rest of the stream, refused the moment it passes the cap. */
+/** What `JSON.parse` can return. */
+type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
+
+/** `text` parsed, or the framework's 400 for malformed JSON. */
+function parseJson(text: string): Json {
+  try {
+    return JSON.parse(text) as Json;
+  } catch {
+    throw new ApiError(STATUS.BAD_REQUEST, 'Invalid JSON syntax in request body');
+  }
+}
+
+/** The rest of the stream, refused the moment it passes `max`. */
 async function collect(
   reader: ReadableStreamDefaultReader<Uint8Array>,
   chunks: Uint8Array[],
   size: number,
+  max: number,
 ): Promise<Uint8Array[]> {
   // A client that hangs up mid-body is not a server fault: refused like any unreadable body.
   const { done, value } = await reader.read().catch(() => {
@@ -23,25 +36,33 @@ async function collect(
   if (done) {
     return chunks;
   }
-  if (size + value.byteLength > MAX_BODY_BYTES) {
+  if (size + value.byteLength > max) {
     await reader.cancel();
     throw new ApiError(STATUS.PAYLOAD_TOO_LARGE, TOO_LARGE);
   }
   chunks.push(value);
-  return collect(reader, chunks, size + value.byteLength);
+  return collect(reader, chunks, size + value.byteLength, max);
 }
 
-/** The request body as text, within the cap (a declared length over it is refused unread). */
-async function readCapped(request: Request): Promise<string> {
+/**
+ * The request body's bytes, refused with the server's 413 once they pass `maxBytes` (the server's
+ * cap by default; an upload route passes its own, as server-framework's capped_body does). A declared
+ * length over it is refused unread.
+ */
+export async function readBytes(request: Request, maxBytes: number = MAX_BODY_BYTES): Promise<Uint8Array> {
   const declared = Number(request.headers.get('content-length') ?? Number.NaN);
-  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
+  if (Number.isFinite(declared) && declared > maxBytes) {
     throw new ApiError(STATUS.PAYLOAD_TOO_LARGE, TOO_LARGE);
   }
   if (request.body === null) {
-    return '';
+    return new Uint8Array();
   }
-  const chunks = await collect(request.body.getReader(), [], 0);
-  return Buffer.concat(chunks).toString('utf8');
+  return Buffer.concat(await collect(request.body.getReader(), [], 0, maxBytes));
+}
+
+/** The request body as text, within the cap. */
+async function readCapped(request: Request): Promise<string> {
+  return Buffer.from(await readBytes(request)).toString('utf8');
 }
 
 /**
@@ -57,12 +78,7 @@ export async function readJsonObject(request: Request): Promise<object> {
       { type: 'missing', loc: ['body'], msg: 'Field required', input: null, ctx: { error: 'Field required' } },
     ]);
   }
-  let body: unknown;
-  try {
-    body = JSON.parse(text);
-  } catch {
-    throw new ApiError(STATUS.BAD_REQUEST, 'Invalid JSON syntax in request body');
-  }
+  const body = parseJson(text);
   if (typeof body !== 'object' || body === null || Array.isArray(body)) {
     throw new ApiError(STATUS.UNPROCESSABLE, [
       { type: 'dict_type', loc: ['body'], msg: 'Input should be a valid dictionary', input: body },
@@ -72,7 +88,7 @@ export async function readJsonObject(request: Request): Promise<object> {
 }
 
 export function requiredString(body: object, key: string): string {
-  const value: unknown = Reflect.get(body, key);
+  const value = Reflect.get(body, key) as Json | undefined;
   if (typeof value !== 'string' || value === '') {
     throw validationError(`${key} is required`, key);
   }
@@ -80,7 +96,7 @@ export function requiredString(body: object, key: string): string {
 }
 
 export function optionalString(body: object, key: string): string | undefined {
-  const value: unknown = Reflect.get(body, key);
+  const value = Reflect.get(body, key) as Json | undefined;
   if (value === undefined || value === null) {
     return undefined;
   }

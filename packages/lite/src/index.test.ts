@@ -35,6 +35,8 @@ describe('@zephyrex/lite', () => {
         'nextUpdateStamp',
         'notFound',
         'optionalString',
+        'parseBody',
+        'readBytes',
         'readJsonObject',
         'recordError',
         'recordRoutes',

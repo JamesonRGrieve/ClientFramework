@@ -107,10 +107,14 @@ function versionTag(row: RecordRow): string {
 
 /**
  * The record a write carries, as server-framework reads it (`extract_body_data`): the value under
- * the resource's key when the body has it, else the whole body (a bare record).
+ * the resource's key when the body has it, else the whole body (a bare record). It is checked
+ * against `schema`, and a failure is the framework's 422 (`validation_error` with each issue's
+ * `loc` and `msg`). Exported for a lite app's own routes that mirror a framework route beyond plain
+ * CRUD (a PATCH, an action such as `/apply`), so they refuse a body exactly as these handlers do.
  */
-function parse<T>(schema: z.ZodType<T>, envelope: object, resource: string): T {
-  const body: unknown = resource in envelope ? Reflect.get(envelope, resource) : envelope;
+export function parseBody<T>(schema: z.ZodType<T>, envelope: object, resource: string): T {
+  const body = (resource in envelope ? Reflect.get(envelope, resource) : envelope) as
+    object | string | number | boolean | null;
   if (typeof body !== 'object' || body === null || Array.isArray(body)) {
     throw validationError(`A ${resource} object is required`, resource);
   }
@@ -154,7 +158,7 @@ export function collectionRoutes<Row extends RecordRow, Create, Update>(
   owner: OwnerResolver,
 ): { GET: Handler; POST: Handler } {
   return {
-    async GET(request) {
+    async GET(request): Promise<NextResponse> {
       try {
         const user = await owner(request);
         const { offset, limit } = listWindow(request);
@@ -170,10 +174,10 @@ export function collectionRoutes<Row extends RecordRow, Create, Update>(
         return apiErrorResponse(error);
       }
     },
-    async POST(request) {
+    async POST(request): Promise<NextResponse> {
       try {
         const user = await owner(request);
-        const input = parse(spec.createSchema, await readJsonObject(request), spec.resource);
+        const input = parseBody(spec.createSchema, await readJsonObject(request), spec.resource);
         await spec.beforeCreate?.(user.id);
         const row = await spec.insert(user.id, input, new Date());
         return NextResponse.json(
@@ -211,7 +215,10 @@ export function recordRoutes<Row extends RecordRow, Create, Update>(
   spec: ResourceSpec<Row, Create, Update>,
   owner: OwnerResolver,
 ): { GET: Handler; PUT: Handler; DELETE: Handler } {
-  const owned = async (request: NextRequest, context: { params: Promise<Record<string, string>> }) => {
+  const owned = async (
+    request: NextRequest,
+    context: { params: Promise<Record<string, string>> },
+  ): Promise<{ user: Owner; row: Row }> => {
     const user = await owner(request);
     const { id } = await context.params;
     const row = await spec.find(id, user.id);
@@ -221,7 +228,7 @@ export function recordRoutes<Row extends RecordRow, Create, Update>(
     return { user, row };
   };
   return {
-    async GET(request, context) {
+    async GET(request, context): Promise<NextResponse> {
       try {
         const { row } = await owned(request, context);
         const base = `/v1/${spec.resource}`;
@@ -236,14 +243,14 @@ export function recordRoutes<Row extends RecordRow, Create, Update>(
         return apiErrorResponse(error);
       }
     },
-    async PUT(request, context) {
+    async PUT(request, context): Promise<NextResponse> {
       try {
         const { user, row } = await owned(request, context);
         const refused = precondition(spec, request, row);
         if (refused !== null) {
           return refused;
         }
-        const input = parse(spec.updateSchema, await readJsonObject(request), spec.resource);
+        const input = parseBody(spec.updateSchema, await readJsonObject(request), spec.resource);
         const updated = await spec.updateIfCurrent(row.id, row.updatedAt, input, nextUpdateStamp(row.updatedAt), user.id);
         if (updated === null) {
           const current = await spec.find(row.id, user.id);
@@ -257,7 +264,7 @@ export function recordRoutes<Row extends RecordRow, Create, Update>(
         return apiErrorResponse(error);
       }
     },
-    async DELETE(request, context) {
+    async DELETE(request, context): Promise<NextResponse> {
       try {
         const { row } = await owned(request, context);
         const refused = precondition(spec, request, row);

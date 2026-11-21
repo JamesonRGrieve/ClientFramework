@@ -7,6 +7,7 @@ import {
   collectionRoutes,
   frameworkTimestamp,
   type OwnerResolver,
+  parseBody,
   type RecordRow,
   type ResourceSpec,
   recordRoutes,
@@ -21,7 +22,12 @@ const BASE = 'http://localhost/api/v1/note';
 const OWNER = 'owner-1';
 const STRANGER = 'owner-2';
 
-function noteStore() {
+interface NoteStore {
+  rows: Map<string, NoteRow>;
+  spec: ResourceSpec<NoteRow, { title: string }, { title?: string }>;
+}
+
+function noteStore(): NoteStore {
   const rows = new Map<string, NoteRow>();
   let next = 0;
   const spec: ResourceSpec<NoteRow, { title: string }, { title?: string }> = {
@@ -31,12 +37,14 @@ function noteStore() {
     createSchema: z.object({ title: z.string().min(1) }),
     updateSchema: z.object({ title: z.string().min(1).optional() }),
     list: async (ownerId, query) =>
-      [...rows.values()].filter(
-        (row) => row.createdById === ownerId && (query.get('title') === null || row.title === query.get('title')),
+      Promise.resolve(
+        [...rows.values()].filter(
+          (row) => row.createdById === ownerId && (query.get('title') === null || row.title === query.get('title')),
+        ),
       ),
     find: async (id, ownerId) => {
       const row = rows.get(id);
-      return row !== undefined && row.createdById === ownerId ? row : null;
+      return Promise.resolve(row?.createdById === ownerId ? row : null);
     },
     insert: async (ownerId, input, stamp) => {
       next += 1;
@@ -49,19 +57,20 @@ function noteStore() {
         title: input.title,
       };
       rows.set(row.id, row);
-      return row;
+      return Promise.resolve(row);
     },
     updateIfCurrent: async (id, version, input, stamp, userId) => {
       const row = rows.get(id);
-      if (row === undefined || row.updatedAt.getTime() !== version.getTime()) {
-        return null;
+      if (row?.updatedAt.getTime() !== version.getTime()) {
+        return Promise.resolve(null);
       }
       const updated = { ...row, ...input, updatedAt: stamp, updatedById: userId };
       rows.set(id, updated);
-      return updated;
+      return Promise.resolve(updated);
     },
     remove: async (id) => {
       rows.delete(id);
+      return Promise.resolve();
     },
     fields: (row) => ({ title: row.title }),
   };
@@ -71,7 +80,8 @@ function noteStore() {
 /** An owner resolver that, like a session check, answers asynchronously. */
 const ownerAs =
   (id: string): OwnerResolver =>
-  async () => ({ id });
+  async () =>
+    Promise.resolve({ id });
 
 const refuseAll: OwnerResolver = () => {
   throw new ApiError(401, 'No authentication provided.');
@@ -79,7 +89,7 @@ const refuseAll: OwnerResolver = () => {
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
 
-function call(method: string, url: string, body?: unknown, headers: Record<string, string> = {}): NextRequest {
+function call(method: string, url: string, body?: object, headers: Record<string, string> = {}): NextRequest {
   return new NextRequest(url, {
     method,
     headers: { ...JSON_HEADERS, ...headers },
@@ -87,7 +97,7 @@ function call(method: string, url: string, body?: unknown, headers: Record<strin
   });
 }
 
-const params = (id: string) => ({ params: Promise.resolve({ id }) });
+const params = (id: string): { params: Promise<{ id: string }> } => ({ params: Promise.resolve({ id }) });
 
 describe('collectionRoutes and recordRoutes', () => {
   let store: ReturnType<typeof noteStore>;
@@ -152,8 +162,9 @@ describe('collectionRoutes and recordRoutes', () => {
   it('reads one record with its links', async () => {
     const { id } = await created();
     const response = await record.GET(call('GET', `${BASE}/${id}`), params(id));
-    const body = (await response.json()) as { _links: unknown };
-    expect(body._links).toEqual({ self: { href: `/v1/note/${id}` }, collection: { href: '/v1/note' } });
+    expect(await response.json()).toMatchObject({
+      _links: { self: { href: `/v1/note/${id}` }, collection: { href: '/v1/note' } },
+    });
   });
 
   it("answers another owner's record as not found", async () => {
@@ -195,5 +206,31 @@ describe('collectionRoutes and recordRoutes', () => {
     const response = await collectionRoutes(store.spec, refuseAll).GET(call('GET', BASE), params(''));
     expect(response.status).toBe(401);
     expect(await response.json()).toEqual({ detail: 'No authentication provided.' });
+  });
+});
+
+describe('parseBody', () => {
+  const Kit = z.object({ name: z.string() });
+
+  it('unwraps the resource’s envelope, or takes a bare record', () => {
+    expect(parseBody(Kit, { application: { name: 'Hive' } }, 'application')).toEqual({ name: 'Hive' });
+    expect(parseBody(Kit, { name: 'Spire' }, 'application')).toEqual({ name: 'Spire' });
+  });
+
+  it('refuses a record that fails the schema with the framework’s 422', () => {
+    let refused: ApiError | null = null;
+    try {
+      parseBody(Kit, { application: { name: 7 } }, 'application');
+    } catch (error) {
+      if (error instanceof ApiError) {
+        refused = error;
+      }
+    }
+    expect(refused?.status).toBe(422);
+    expect(refused?.detail).toMatchObject({
+      message: 'Validation error',
+      code: 'validation_error',
+      errors: [{ loc: ['name'] }],
+    });
   });
 });
