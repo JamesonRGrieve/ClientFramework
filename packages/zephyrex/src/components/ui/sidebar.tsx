@@ -438,7 +438,9 @@ const SidebarInset = React.forwardRef<HTMLDivElement, React.ComponentProps<'main
     <main
       ref={ref}
       className={cn(
-        'relative flex min-h-svh flex-1 flex-col bg-background',
+        // min-w-0: a flex item is min-width:auto by default, so one unbreakable line in the page (a
+        // <pre> of a curl command) widened the whole page on a phone (16 Worldviews' audit).
+        'relative flex min-h-svh min-w-0 flex-1 flex-col bg-background',
         'peer-data-[variant=inset]:min-h-[calc(100svh-(--spacing(4)))] md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm',
         className,
       )}

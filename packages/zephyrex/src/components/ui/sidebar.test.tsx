@@ -5,7 +5,7 @@ import Link from 'next/link.js';
 import { usePathname } from 'next/navigation.js';
 import { describe, expect, it, vi } from 'vitest';
 import * as mod from './sidebar';
-import { Sidebar, SidebarMenuSkeleton, SidebarProvider, SidebarRail, useSidebar } from './sidebar';
+import { Sidebar, SidebarInset, SidebarMenuSkeleton, SidebarProvider, SidebarRail, useSidebar } from './sidebar';
 
 const START_X = 100;
 const DEFAULT_WIDTH_PX = 256;
@@ -127,5 +127,18 @@ describe('sidebar', () => {
     expect(width).toMatch(/^\d+%$/);
     rerender(<SidebarMenuSkeleton className='again' />);
     expect(text()?.style.getPropertyValue('--skeleton-width')).toBe(width);
+  });
+});
+
+describe('SidebarInset', () => {
+  it('may shrink below its content, so one long unbreakable line cannot widen the page', () => {
+    render(
+      <SidebarProvider>
+        <SidebarInset>
+          <pre>curl --header Authorization:Bearer_token https://example.com/v1/a/very/long/unbreakable/path</pre>
+        </SidebarInset>
+      </SidebarProvider>,
+    );
+    expect(screen.getByRole('main')).toHaveClass('min-w-0');
   });
 });
