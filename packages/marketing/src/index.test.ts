@@ -6,6 +6,7 @@ describe('@zephyrex/marketing', () => {
   it('exports the landing-page components', () => {
     expect(Object.keys(marketing).sort()).toEqual(
       [
+        'ComparisonTable',
         'CtaBand',
         'FaqList',
         'FeatureCard',
