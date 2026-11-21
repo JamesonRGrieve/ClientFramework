@@ -39,12 +39,15 @@ for (const file of files) {
 }
 
 const modules = files.filter((file) => file.endsWith('.js'));
+// Modules that only run inside a test runner: `testing/setup` registers Vitest hooks when imported,
+// which plain Node can't do. Their relative imports are still checked above.
+const RUNNER_ONLY = new Set(['testing/setup.js']);
 for (const file of modules) {
   if (needsClientDirective(readFileSync(file, 'utf8'))) {
     broken.push(`${relativeName(file)}: calls a browser-only React hook but is not marked 'use client'`);
   }
 }
-for (const file of modules) {
+for (const file of modules.filter((one) => !RUNNER_ONLY.has(relativeName(one)))) {
   try {
     await import(pathToFileURL(file).href);
   } catch (error) {
