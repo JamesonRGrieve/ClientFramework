@@ -34,6 +34,11 @@ The extension adds no pages or menu entries; its pieces go on the app's own reco
 `RecordPicture` shows the newest attachment in its role (`primary_image` by default) at `size='lg'`,
 or as an avatar with the record's initials at `size='sm'`.
 
+`AttachmentGallery` shows a record's files in one role (`gallery` by default): pictures as
+thumbnails, other files (PDFs) as links with their sizes, each opening the file. Someone who may
+edit the record gets an add button and a remove button on each file. It reads each file's name,
+type and size from the record's attachment list (server 939c2c40 or later).
+
 For other uses, `useAttachments(target, role?)` lists a record's attachments, and
 `useAttachmentActions(target)` uploads and attaches (`attachFile`), replaces a role's file
 (`replaceFile`), attaches an asset already uploaded (`attach`) and removes (`remove`), refreshing
@@ -42,11 +47,11 @@ server would, shows the upload's progress and says why a file was not saved.
 
 ## Exports
 
-- Extension and components: `attachmentsExtension`, `RecordPicture`, `FilePicker`.
+- Extension and components: `attachmentsExtension`, `RecordPicture`, `AttachmentGallery`, `FilePicker`.
 - Reads and writes: `useAttachments`, `useAttachmentActions`, `useAssetUpload`.
-- Model: `AssetSchema`, `AttachmentSchema`, `assetContentPath`, `assetName`, `uploadProblem`,
+- Model: `AssetSchema`, `AssetSummarySchema`, `AttachmentSchema`, `fileSize`, `assetContentPath`, `assetName`, `uploadProblem`,
   `isPicture`, `newestIn`, and the server's limits: `ASSET_TYPES`, `MAX_ASSET_BYTES`,
-  `MAX_ASSET_NAME`, `ROLE_PATTERN`, `PRIMARY_IMAGE`, `ASSET_ENDPOINT`, `ATTACHMENT_ENDPOINT`.
+  `MAX_ASSET_NAME`, `ROLE_PATTERN`, `PRIMARY_IMAGE`, `GALLERY`, `ASSET_ENDPOINT`, `ATTACHMENT_ENDPOINT`.
 
 ## License
 

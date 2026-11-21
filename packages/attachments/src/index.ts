@@ -7,10 +7,13 @@ export {
   ASSET_ENDPOINT,
   ASSET_TYPES,
   AssetSchema,
+  AssetSummarySchema,
   assetContentPath,
   assetName,
   ATTACHMENT_ENDPOINT,
   AttachmentSchema,
+  fileSize,
+  GALLERY,
   isPicture,
   MAX_ASSET_BYTES,
   MAX_ASSET_NAME,
@@ -19,7 +22,9 @@ export {
   ROLE_PATTERN,
   uploadProblem,
 } from './attachmentsModel';
-export type { Asset, Attachment, RecordRef } from './attachmentsModel';
+export type { Asset, AssetSummary, Attachment, RecordRef } from './attachmentsModel';
+export { AttachmentGallery } from './AttachmentGallery';
+export type { AttachmentGalleryProps } from './AttachmentGallery';
 export { attachmentsExtension } from './extension';
 export { FilePicker } from './FilePicker';
 export type { FilePickerProps } from './FilePicker';

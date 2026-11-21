@@ -15,10 +15,13 @@ export const MAX_ASSET_NAME = 200;
 export const ASSET_TYPES: readonly string[] = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'application/pdf'];
 /** A role is a short snake_case name: primary_image, header_image, gallery, document… */
 export const ROLE_PATTERN = /^[a-z][a-z\d_]{0,39}$/;
+/** The role a record's gallery of pictures and documents takes. */
+export const GALLERY = 'gallery';
 /** The role a record's own picture takes. */
 export const PRIMARY_IMAGE = 'primary_image';
 
 const BYTES_PER_MB = 1_048_576;
+const BYTES_PER_KB = 1024;
 
 export const AssetSchema = z.looseObject({
   id: z.string(),
@@ -31,6 +34,10 @@ export const AssetSchema = z.looseObject({
 });
 export type Asset = z.infer<typeof AssetSchema>;
 
+/** What a record's viewer may know of an attached file (GET /v1/attachment/of, server 939c2c40). */
+export const AssetSummarySchema = z.looseObject({ name: z.string(), content_type: z.string(), size: z.number() });
+export type AssetSummary = z.infer<typeof AssetSummarySchema>;
+
 export const AttachmentSchema = z.looseObject({
   id: z.string(),
   asset_id: z.string(),
@@ -40,6 +47,8 @@ export const AttachmentSchema = z.looseObject({
   created_at: z.string().nullish(),
   updated_at: z.string().nullish(),
   created_by_user_id: z.string().nullish(),
+  /** The file's name, type and size, as the record's attachment list gives them (absent on a create's answer). */
+  asset: AssetSummarySchema.optional(),
 });
 export type Attachment = z.infer<typeof AttachmentSchema>;
 
@@ -77,4 +86,15 @@ export function assetName(file: File): string {
 /** The newest attachment in `role`, as the server lists them (oldest first); null when there is none. */
 export function newestIn(attachments: readonly Attachment[], role: string): Attachment | null {
   return attachments.filter((one) => one.role === role).at(-1) ?? null;
+}
+
+/** A file's size as a person reads it: "820 bytes", "14 KB", "2.4 MB". */
+export function fileSize(bytes: number): string {
+  if (bytes < BYTES_PER_KB) {
+    return `${String(bytes)} bytes`;
+  }
+  if (bytes < BYTES_PER_MB) {
+    return `${String(Math.round(bytes / BYTES_PER_KB))} KB`;
+  }
+  return `${(bytes / BYTES_PER_MB).toFixed(1)} MB`;
 }

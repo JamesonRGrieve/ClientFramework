@@ -2,7 +2,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   type Attachment,
+  AttachmentSchema,
   assetContentPath,
+  fileSize,
   assetName,
   isPicture,
   MAX_ASSET_BYTES,
@@ -10,6 +12,8 @@ import {
   ROLE_PATTERN,
   uploadProblem,
 } from './attachmentsModel';
+
+const PDF = 'application/pdf';
 
 const fileOf = (size: number, type: string, name = 'map.png'): File => new File([new Uint8Array(size)], name, { type });
 
@@ -24,7 +28,7 @@ const link = (id: string, role: string): Attachment => ({
 describe('uploadProblem', () => {
   it('takes a picture or a PDF within the size', () => {
     expect(uploadProblem(fileOf(10, 'image/png'))).toBeNull();
-    expect(uploadProblem(fileOf(10, 'application/pdf', 'brief.pdf'))).toBeNull();
+    expect(uploadProblem(fileOf(10, PDF, 'brief.pdf'))).toBeNull();
   });
 
   it('refuses what the server refuses, in its words', () => {
@@ -46,7 +50,7 @@ describe('the rest of the model', () => {
 
   it('tells pictures from documents', () => {
     expect(isPicture('image/webp')).toBe(true);
-    expect(isPicture('application/pdf')).toBe(false);
+    expect(isPicture(PDF)).toBe(false);
   });
 
   it('takes the newest attachment in a role', () => {
@@ -59,5 +63,21 @@ describe('the rest of the model', () => {
   it('allows short snake_case roles', () => {
     expect(['primary_image', 'header_image', 'document'].every((role) => ROLE_PATTERN.test(role))).toBe(true);
     expect(['Primary', '1st', 'a-b', 'x'.repeat(41)].some((role) => ROLE_PATTERN.test(role))).toBe(false);
+  });
+});
+
+describe('an attachment as the record’s list gives it', () => {
+  it('carries its file’s name, type and size, and reads without them from a create', () => {
+    const row = { id: 'a1', asset_id: 's1', target_entity_type: 'location', target_entity_id: 'terra', role: 'gallery' };
+    expect(AttachmentSchema.parse({ ...row, asset: { name: 'map.pdf', content_type: PDF, size: 9 } }).asset).toEqual({
+      name: 'map.pdf',
+      content_type: PDF,
+      size: 9,
+    });
+    expect(AttachmentSchema.parse(row).asset).toBeUndefined();
+  });
+
+  it('names a size as a person reads it', () => {
+    expect([fileSize(820), fileSize(14_336), fileSize(2_516_582)]).toEqual(['820 bytes', '14 KB', '2.4 MB']);
   });
 });

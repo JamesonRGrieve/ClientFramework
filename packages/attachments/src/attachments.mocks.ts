@@ -107,9 +107,17 @@ export function attachmentHandlers(store: AttachmentStore): RequestHandler[] {
       if (!store.viewable.has(keyOf(type, id))) {
         return notFound('Record');
       }
-      const attachments = store.attachments.filter(
-        (one) => one.target_entity_type === type && one.target_entity_id === id && (role === null || one.role === role),
-      );
+      // As the server: each row with its file's name, type and size; a row whose file is gone is skipped.
+      const attachments = store.attachments
+        .filter(
+          (one) => one.target_entity_type === type && one.target_entity_id === id && (role === null || one.role === role),
+        )
+        .flatMap((one) => {
+          const file = store.assets.find((asset) => asset.id === one.asset_id);
+          return file === undefined
+            ? []
+            : [{ ...one, asset: { name: file.name, content_type: file.content_type, size: file.size } }];
+        });
       return HttpResponse.json({ attachments });
     }),
     http.post('*/v1/attachment', async ({ request }) => {
