@@ -48,7 +48,8 @@ describe('UserLayout', () => {
   it('gives the account page the app shell instead', () => {
     const view = renderAt('/user/manage');
     expect(view.queryByRole('link', { name: 'Test App' })).not.toBeInTheDocument();
-    expect(view.getByRole('heading', { name: 'Your account' })).toBeInTheDocument();
+    // The account page renders its own h1; the frame adds no second heading.
+    expect(view.queryByRole('heading', { name: 'Your account' })).not.toBeInTheDocument();
     expect(view.getByText('step')).toBeInTheDocument();
   });
 });

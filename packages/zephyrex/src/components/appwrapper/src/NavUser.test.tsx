@@ -2,7 +2,7 @@
 import { render, screen } from '@testing-library/react';
 import { getGravatarUrl } from '@zephyrex/auth/gravatar';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { NavUser, UserAvatar, userInitials } from './NavUser';
+import { emailInitials, NavUser, UserAvatar, userInitials } from './NavUser';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import type * as Hooks from '@/lib/zephyrex/hooks';
 import { useUser } from '@/lib/zephyrex/hooks';
@@ -55,6 +55,23 @@ describe('userInitials', () => {
   });
 });
 
+describe('emailInitials', () => {
+  it('takes the first letters of the address before the @, so a person with no name still has initials', () => {
+    expect(emailInitials('ada.lovelace@example.com')).toBe('AL');
+    expect(emailInitials(ADA.email)).toBe('A');
+    expect(emailInitials('42@example.com')).toBeNull();
+  });
+
+  it('shows them in the avatar when the person gave no name', () => {
+    const view = render(
+      <TestWrapper>
+        <UserAvatar user={{ email: 'sam.rivera@example.com' }} />
+      </TestWrapper>,
+    );
+    expect(view.getByText('SR')).toBeInTheDocument();
+  });
+});
+
 describe('NavUser', () => {
   it('names the account button while the user is still loading', () => {
     // Only skeletons inside: without a label the button has no accessible name (axe button-name).
@@ -67,5 +84,19 @@ describe('NavUser', () => {
       </TestWrapper>,
     );
     expect(screen.getByRole('button', { name: 'Your account' })).toBeInTheDocument();
+  });
+
+  it('offers a signed-out visitor "Sign in" with an icon, not initials', () => {
+    vi.mocked(useUser).mockReturnValue({ data: undefined, error: undefined, isValidating: false, isLoading: false, mutate: vi.fn() });
+    render(
+      <TestWrapper>
+        <SidebarProvider>
+          <NavUser />
+        </SidebarProvider>
+      </TestWrapper>,
+    );
+    const button = screen.getByRole('button', { name: 'Sign in' });
+    expect(button).not.toHaveTextContent('SI');
+    expect(button.querySelector('svg')).not.toBeNull();
   });
 });

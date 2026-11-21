@@ -20,10 +20,8 @@ export function UserLayout({ children }: { children: ReactNode }): ReactNode {
   if (pathname === `${config.auth?.authPath ?? DEFAULT_AUTH_PATH}${MANAGE_PAGE}`) {
     return (
       <SidebarInset>
-        <SidebarPage title=''>
-          <h2 className='sr-only'>Your account</h2>
-          {children}
-        </SidebarPage>
+        {/* The account page renders its own h1 ("Your account"), so the frame adds no heading. */}
+        <SidebarPage title=''>{children}</SidebarPage>
       </SidebarInset>
     );
   }

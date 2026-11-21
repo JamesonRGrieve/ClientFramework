@@ -62,8 +62,9 @@ export function Manage({ heading, returnPath = '/', sections }: ManageProps): Re
 
   return (
     <main className='mx-auto flex w-full max-w-4xl flex-col gap-6 p-4 md:p-10'>
-      <div className='flex items-center justify-between gap-2'>
-        {heading !== undefined && heading !== '' && <h2 className='text-3xl font-semibold'>{heading}</h2>}
+      {/* On a phone the way back sits above the page's title; from 640px up they share a row. */}
+      <div className='flex flex-col-reverse items-start gap-3 sm:flex-row sm:items-center sm:justify-between'>
+        {heading !== undefined && heading !== '' && <h1 className='text-3xl font-semibold text-balance'>{heading}</h1>}
         <Button
           variant='outline'
           onClick={() => {

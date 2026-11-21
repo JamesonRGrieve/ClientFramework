@@ -71,11 +71,12 @@ export default function MarkdownBlock({ content, role, createdAt }: MarkdownBloc
                 a({ children, ...props }) {
                   return <MarkdownLink {...props}>{children}</MarkdownLink>;
                 },
+                // Lists keep a paragraph's space above and below, so a heading after one doesn't sit on it.
                 ul({ children }) {
-                  return <ul className='p-0 ml-6 list-disc list-outside'>{children}</ul>;
+                  return <ul className='my-4 p-0 ml-6 list-disc list-outside'>{children}</ul>;
                 },
                 ol({ children }) {
-                  return <ol className='p-0 ml-8 list-decimal list-outside'>{children}</ol>;
+                  return <ol className='my-4 p-0 ml-8 list-decimal list-outside'>{children}</ol>;
                 },
                 li({ children }) {
                   return <li className='my-1'>{children}</li>;

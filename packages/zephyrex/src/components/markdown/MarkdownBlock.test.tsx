@@ -32,4 +32,12 @@ describe('MarkdownBlock', () => {
     rerender(<MarkdownBlock content={CODE} role='user' />);
     expect(downloadName()).toBe(`Download user-${FIRST_SHOWN_MS}.txt`);
   });
+
+  it('gives lists the space paragraphs have, so a heading after a list does not sit on it', () => {
+    render(<MarkdownBlock content={'- one\n- two\n\n## Next section\n\n1. first\n2. second'} />);
+    for (const list of screen.getAllByRole('list')) {
+      expect(list).toHaveClass('my-4');
+    }
+    expect(screen.getByRole('heading', { name: 'Next section' })).toBeInTheDocument();
+  });
 });

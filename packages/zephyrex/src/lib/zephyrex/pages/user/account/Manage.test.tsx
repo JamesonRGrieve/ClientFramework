@@ -50,7 +50,8 @@ describe('Manage', () => {
         <Manage heading='Your account' sections={<p>Two-factor authentication</p>} />
       </TestWrapper>,
     );
-    expect(view.getByRole('heading', { name: 'Your account' })).toBeInTheDocument();
+    // The page's one h1, not an h2 under the frame's title.
+    expect(view.getByRole('heading', { level: 1, name: 'Your account' })).toBeInTheDocument();
     expect(view.getByRole('button', { name: `Back to ${testConfig.app.name}` })).toBeInTheDocument();
     const teams = await view.findByRole('list', { name: YOUR_TEAMS });
     expect(within(teams).getByRole('link', { name: 'Analytical Engines' })).toHaveAttribute('href', '/team/t1');
@@ -104,7 +105,9 @@ describe('Manage', () => {
       </TestWrapper>,
     );
     expect(await view.findByRole('list', { name: YOUR_TEAMS })).toBeInTheDocument();
-    expect((view.getByRole('combobox', { name: 'Timezone' }) as HTMLInputElement).value).toContain(detectTimezone());
+    // The device's timezone is offered, not filled in: nothing is saved until the person picks it.
+    expect(view.getByRole('combobox', { name: 'Timezone' })).toHaveValue('');
+    expect(view.getByRole('button', { name: `Use this device’s timezone (${detectTimezone()})` })).toBeInTheDocument();
     expect(fetchMock.mock.calls.filter(([, init]) => (init?.method ?? 'GET') !== 'GET')).toEqual([]);
   });
 

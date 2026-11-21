@@ -2,7 +2,7 @@
 'use client';
 
 import { CaretRightIcon } from '@radix-ui/react-icons';
-import { BadgeCheck, LogOut } from 'lucide-react';
+import { BadgeCheck, LogIn, LogOut } from 'lucide-react';
 
 import { getGravatarUrl } from '@zephyrex/auth/gravatar';
 import { useRouter } from 'next/navigation.js';
@@ -34,7 +34,7 @@ export function UserAvatar({ user }: { user: SignedInUser | undefined }) {
       {config.app.gravatar !== false && (
         <AvatarImage src={getGravatarUrl(user?.email ?? '')} {...(firstName === '' ? {} : { alt: firstName })} />
       )}
-      <AvatarFallback className='rounded-lg'>{user === undefined ? null : userInitials(user)}</AvatarFallback>
+      <AvatarFallback className='rounded-lg'>{user === undefined ? null : (userInitials(user) ?? emailInitials(user.email))}</AvatarFallback>
     </Avatar>
   );
 }
@@ -124,9 +124,10 @@ export function NavUser() {
             className='group-data-[collapsible=icon]:my-2 pl-0'
             onClick={() => router.push(authPath)}
           >
-            <Avatar className='w-8 h-8 rounded-lg'>
-              <AvatarFallback className='rounded-lg'>SI</AvatarFallback>
-            </Avatar>
+            {/* An icon, not initials: "SI" read as someone's avatar before anyone had signed in. */}
+            <span className='grid size-8 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground'>
+              <LogIn aria-hidden className='size-4' />
+            </span>
             <div className='grid flex-1 text-sm leading-tight text-left'>
               <span className='font-semibold truncate'>Sign in</span>
             </div>
@@ -143,4 +144,19 @@ export function userInitials(user: Partial<Pick<User, 'first_name' | 'last_name'
   const first = user.first_name?.trim().charAt(0) ?? '';
   const last = user.last_name?.trim().charAt(0) ?? '';
   return first === '' || last === '' ? null : `${first}${last}`.toUpperCase();
+}
+
+/**
+ * Initials from an email address, for a person who gave no name: the first letter of each of the
+ * first two parts of its local part ("ada.lovelace@…" → "AL", "ada@…" → "A"), or null when there's
+ * none, so the avatar is never blank beside the address (Text Mutation's review, 2026-11-21).
+ */
+export function emailInitials(email: string): string | null {
+  const local = email.split('@')[0] ?? '';
+  const parts = local.split(/[._+-]+/).filter((part) => /^[a-z]/i.test(part));
+  const letters = parts
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join('');
+  return letters === '' ? null : letters.toUpperCase();
 }
