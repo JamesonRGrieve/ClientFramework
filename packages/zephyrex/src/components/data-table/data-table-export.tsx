@@ -41,7 +41,7 @@ export function DataTableExport<TData extends RowData>({ table }: { table: DataT
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant='outline' size='sm' className='rounded-lg'>
-          <Download className='w-4 h-4 mr-2' />
+          <Download className='w-4 h-4' />
           Export
         </Button>
       </DropdownMenuTrigger>

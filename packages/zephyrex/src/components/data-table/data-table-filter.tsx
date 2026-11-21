@@ -48,7 +48,7 @@ export function DataTableFilter<TData extends RowData>({ table }: { table: DataT
     <Dialog>
       <DialogTrigger asChild>
         <Button variant='outline' size='sm' className='rounded-lg'>
-          <Filter className='w-4 h-4 mr-2' />
+          <Filter className='w-4 h-4' />
           Filter
         </Button>
       </DialogTrigger>

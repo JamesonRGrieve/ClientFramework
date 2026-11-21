@@ -33,6 +33,17 @@ describe('Button', () => {
     expect(screen.getByRole('button')).toHaveClass('bg-destructive');
   });
 
+  it('spaces an icon from its label, and never squeezes the icon', () => {
+    render(
+      <Button>
+        <svg aria-hidden />
+        Download
+      </Button>,
+    );
+    // Without a gap the icon touched its word ("[icon]Download"); a long label can't shrink the icon.
+    expect(screen.getByRole('button', { name: 'Download' })).toHaveClass('gap-2', '[&_svg]:shrink-0');
+  });
+
   it('applies size classes', () => {
     render(<Button size='sm'>Small</Button>);
     expect(screen.getByRole('button')).toHaveClass('h-9');
