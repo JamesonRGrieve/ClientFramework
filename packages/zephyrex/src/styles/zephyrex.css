@@ -154,6 +154,14 @@
   ::file-selector-button {
     border-color: var(--color-gray-200, currentColor);
   }
+
+  /* A grid with no column template sizes its one column to its widest content (min-width:auto), so
+     a long title or a truncated line inside a plain `grid gap-*` widened the whole page past a phone
+     (rpg-ai: 650-5000 px pages on a 390 px screen). One shrinkable column by default; at zero
+     specificity in the base layer, so any grid-cols-* utility still sets its own. */
+  :where(.grid) {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @utility icons {
