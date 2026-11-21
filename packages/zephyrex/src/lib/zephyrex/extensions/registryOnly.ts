@@ -68,6 +68,13 @@ export const mapsExtension = entry(
   'Maps',
   'Places, routes and the point halfway between people, through OpenStreetMap, Google or Apple Maps',
 );
+// Attachments: @zephyrex/attachments extends this with the upload, attach and gallery pieces an
+// app's record pages use; it has no pages of its own.
+export const attachmentsExtension = entry(
+  'attachments',
+  'Attachments',
+  'Files in cloud storage, attached to any record and read by whoever can view it',
+);
 // Media: @zephyrex/media extends this with the page for shared watch-lists.
 export const mediaExtension = entry('media', 'Media', 'Films and videos from TMDb and YouTube, and shared watch-lists');
 // Rota: @zephyrex/rota extends this with the page for the nights rota and its swaps.
@@ -135,6 +142,7 @@ export const registryOnlyExtensions: readonly ZephyrexClientExtension[] = [
   aiMemoriesExtension,
   aiPromptsExtension,
   aiTuningExtension,
+  attachmentsExtension,
   billingExtension,
   bookExtension,
   conversationsExtension,

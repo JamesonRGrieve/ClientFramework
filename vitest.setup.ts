@@ -23,21 +23,20 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
-// Mock next/image
-vi.mock('next/image', () => ({
-  default: vi.fn(({ src, alt, ...props }: Record<string, unknown>) => {
-    // Return a plain img element for testing
-    const img = document.createElement('img');
-    img.setAttribute('src', typeof src === 'string' ? src : '');
-    img.setAttribute('alt', typeof alt === 'string' ? alt : '');
-    for (const [key, value] of Object.entries(props)) {
-      if (typeof value === 'string') {
-        img.setAttribute(key, value);
-      }
-    }
-    return img;
-  }),
-}));
+// Mock next/image: a plain <img> with the string props (src, alt, className…); Next's loader and
+// sizing props (`unoptimized`, `fill`, numeric width/height) are dropped. It must return a React
+// element: a DOM node is not a valid React child.
+vi.mock('next/image', async () => {
+  const { createElement } = await import('react');
+  return {
+    default: vi.fn((props: Record<string, string | number | boolean | undefined>) =>
+      createElement(
+        'img',
+        Object.fromEntries(Object.entries(props).filter((entry): entry is [string, string] => typeof entry[1] === 'string')),
+      ),
+    ),
+  };
+});
 
 // Mock cookies-next
 vi.mock('cookies-next', () => ({

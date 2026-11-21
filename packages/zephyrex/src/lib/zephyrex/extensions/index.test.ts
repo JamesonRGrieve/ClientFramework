@@ -14,6 +14,7 @@ const SERVER_EXTENSIONS = [
   'ai_memories',
   'ai_prompts',
   'ai_tuning',
+  'attachments',
   'audit_retention',
   'auth_api_keys',
   'auth_device_pairing',
