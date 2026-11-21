@@ -9,7 +9,8 @@ const css = existsSync('src/styles/zephyrex.css')
   : readFileSync('packages/zephyrex/src/styles/zephyrex.css', 'utf8');
 
 /** The four themes a person can choose (useTheme), each a block of HSL tokens in zephyrex.css. */
-const THEMES = [':root', '.dark', '.colorblind', '.colorblind-dark'] as const;
+// Light's tokens are on `:root, .light`; the block is found by its last selector.
+const THEMES = ['.light', '.dark', '.colorblind', '.colorblind-dark'] as const;
 /** WCAG 2.1 1.4.11: a control's edge and state against what is next to it. */
 const NON_TEXT = 3;
 

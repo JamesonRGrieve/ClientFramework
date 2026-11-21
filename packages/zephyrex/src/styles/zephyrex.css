@@ -238,7 +238,9 @@
     color-scheme: dark;
   }
 
-  :root {
+  /* .light too, so a preview of the light theme can sit inside a dark page (ThemePicker). */
+  :root,
+  .light {
     --background: 262.1 28% 95%;
     --foreground: 262.1 5% 4%;
     --card: 262.1 20% 90%;
