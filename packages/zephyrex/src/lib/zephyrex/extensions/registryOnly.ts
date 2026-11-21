@@ -77,6 +77,13 @@ export const attachmentsExtension = entry(
 );
 // Media: @zephyrex/media extends this with the page for shared watch-lists.
 export const mediaExtension = entry('media', 'Media', 'Films and videos from TMDb and YouTube, and shared watch-lists');
+// Rooms: @zephyrex/rooms extends this with useRoom, the live change stream an app's pages follow;
+// it has no pages of its own.
+export const roomsExtension = entry(
+  'rooms',
+  'Rooms',
+  'Live changes to a record for everyone who may see it, so shared pages stay current',
+);
 // Rota: @zephyrex/rota extends this with the page for the nights rota and its swaps.
 export const rotaExtension = entry('rota', 'Nights rota', 'A repeating rota of nights, and swaps both people agree to');
 // Social: @zephyrex/social extends this with the pages for what was published.
@@ -166,6 +173,7 @@ export const registryOnlyExtensions: readonly ZephyrexClientExtension[] = [
   giftsExtension,
   mapsExtension,
   mediaExtension,
+  roomsExtension,
   rotaExtension,
   samlConsumerExtension,
   samlProviderExtension,

@@ -80,6 +80,7 @@ const SERVER_EXTENSIONS = [
   'quota',
   'radius_consumer',
   'radius_provider',
+  'rooms',
   'rota',
   'saml_consumer',
   'saml_provider',
