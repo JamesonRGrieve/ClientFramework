@@ -8,6 +8,7 @@ import { configureApiClient } from '../api/client';
 import { SidebarProvider } from '../../components/ui/sidebar';
 import { Toaster } from '../../components/ui/toaster';
 import { TooltipProvider } from '../../components/ui/tooltip';
+import { AppDrawerProvider } from '../../components/appwrapper/src/AppDrawer';
 import { SidebarContentProvider } from '../../components/appwrapper/src/SidebarContentManager';
 import { RateLimitBanner } from './components/RateLimitBanner';
 import { ManagementTabProvider } from './ManagementTabRegistry';
@@ -38,7 +39,9 @@ export function ZephyrexApp({ config, children }: { config: ZephyrexConfig; chil
           <TooltipProvider>
             <SidebarContentProvider>
               <SidebarProvider>
-                <RateLimitBoundary>{children}</RateLimitBoundary>
+                <AppDrawerProvider>
+                  <RateLimitBoundary>{children}</RateLimitBoundary>
+                </AppDrawerProvider>
                 <Toaster />
               </SidebarProvider>
             </SidebarContentProvider>

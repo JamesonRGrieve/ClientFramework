@@ -41,6 +41,8 @@ export type { FileUpload, UploadResult } from './useFileUpload';
 export { useUpload } from './useUpload';
 export type { Upload, UploadProgress, UploadRequest } from './useUpload';
 export { useSubscription } from './useSubscription';
+export { AppDrawerContent, AppDrawerProvider, useAppDrawer } from '../../components/appwrapper/src/AppDrawer';
+export type { AppDrawerApi } from '../../components/appwrapper/src/AppDrawer';
 export { RETRY_INTERVAL_MS, useRetryCountdown } from './useRetryCountdown';
 export type { RetryCountdown } from './useRetryCountdown';
 export { ENTITLEMENT_PATH, EntitlementSchema, hasFeature, limitOf, useEntitlement, withinLimit } from './useEntitlement';
