@@ -28,7 +28,7 @@ import {
   SIBLING_KINDS,
   useRelationships,
 } from './genealogyApi';
-import { personHue, personInitials, personName } from './people';
+import { personColor, personInitials, personName } from './people';
 import { PersonPicker } from './PersonPicker';
 import type { AppTie } from './options';
 import {
@@ -312,8 +312,7 @@ function RelativeRow({
         <span className='flex min-w-0 items-center gap-3'>
           <span
             aria-hidden='true'
-            className='inline-flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white'
-            style={{ backgroundColor: `hsl(${String(personHue({ id: relative?.id ?? line.relativeId }))} 55% 30%)` }}
+            className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${personColor({ id: relative?.id ?? line.relativeId })}`}
           >
             {personInitials(relative)}
           </span>

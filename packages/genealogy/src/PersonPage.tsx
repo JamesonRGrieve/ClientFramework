@@ -13,7 +13,7 @@ import { genealogyApi, type Person, PersonSchema, usePersons } from './genealogy
 import { KinshipLookup } from './KinshipLookup';
 import { Lineage } from './Lineage';
 import { useGenealogyOptions } from './OptionsProvider';
-import { lifeSpan, personHue, personInitials, personName } from './people';
+import { lifeSpan, personColor, personInitials, personName } from './people';
 import { PersonForm } from './PersonForm';
 import { Relatives } from './Relatives';
 import { SocialCircle } from './SocialCircle';
@@ -132,8 +132,7 @@ export function PersonPage({ params }: { params: Record<string, string> }): Reac
         <div className='flex flex-wrap items-center gap-4'>
           <span
             aria-hidden='true'
-            className='inline-flex size-14 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-white'
-            style={{ backgroundColor: `hsl(${String(personHue(person))} 55% 30%)` }}
+            className={`inline-flex size-14 shrink-0 items-center justify-center rounded-full text-lg font-semibold ${personColor(person)}`}
           >
             {personInitials(person)}
           </span>

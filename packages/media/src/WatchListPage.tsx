@@ -8,6 +8,7 @@ import { useUser, writeProblem } from 'zephyrex';
 import { deferWithUndo, notify } from 'zephyrex/hooks/useToast';
 import { LoadProblem } from 'zephyrex/ui/load-problem';
 import { Button } from 'zephyrex/ui/button';
+import { personTone, personToneClass, personTones } from 'zephyrex/ui/person-tone';
 import { Card, CardContent, CardDescription, CardTitle } from 'zephyrex/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from 'zephyrex/ui/dialog';
 import { Input } from 'zephyrex/ui/input';
@@ -19,26 +20,25 @@ const LINK = 'underline underline-offset-4';
 const TMDB_NOTICE = 'This product uses the TMDB API but is not endorsed or certified by TMDB.';
 const CHIP =
   'inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:text-foreground aria-checked:border-primary aria-checked:bg-primary/10 aria-checked:text-foreground disabled:opacity-55';
-const HUES = 360;
-const HUE_SEED = 31;
 const STACK_MAX = 4;
 
-/** A steady hue per account, so someone is the same colour on every list. */
-function hueOf(userId: string): number {
-  let hash = 0;
-  for (const char of userId) {
-    hash = (hash * HUE_SEED + (char.codePointAt(0) ?? 0)) % HUES;
-  }
-  return hash;
-}
-
-function Avatar({ userId, name, size = 'sm' }: { userId: string; name: string; size?: 'sm' | 'md' }): ReactNode {
+/** Someone's initial in their colour (their own, or the one `tone` gives them in this view). */
+function Avatar({
+  userId,
+  name,
+  size = 'sm',
+  tone,
+}: {
+  userId: string;
+  name: string;
+  size?: 'sm' | 'md';
+  tone?: number | undefined;
+}): ReactNode {
   const box = size === 'md' ? 'size-8 text-xs' : 'size-6 text-[0.65rem]';
   return (
     <span
       aria-hidden='true'
-      className={`${box} inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-white ring-2 ring-background`}
-      style={{ backgroundColor: `hsl(${String(hueOf(userId))} 45% 30%)` }}
+      className={`${box} inline-flex shrink-0 items-center justify-center rounded-full font-semibold ring-2 ring-background ${personToneClass(tone ?? personTone(userId))}`}
     >
       {name === 'You' ? 'Y' : name.charAt(0).toUpperCase()}
     </span>
@@ -431,18 +431,20 @@ function People({
   const keeping = me === list.keeper_id;
   const on = new Set(everyoneOn(list));
   const offered = people.filter((person) => !on.has(person.userId));
+  // One colour each for the people on this list, no two alike.
+  const tones = personTones(everyoneOn(list));
   return (
     <section aria-label='Who is on the list' className='grid content-start gap-3'>
       <h2 className='text-sm font-semibold'>Who is on the list</h2>
       <ul className='grid gap-2 text-sm'>
         <li className='flex items-center gap-2'>
-          <Avatar userId={list.keeper_id} name={nameOf(list.keeper_id)} size='md' />
+          <Avatar userId={list.keeper_id} name={nameOf(list.keeper_id)} size='md' tone={tones.get(list.keeper_id)} />
           <span className='flex-1'>{nameOf(list.keeper_id)}</span>
           <span className='rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'>Keeps the list</span>
         </li>
         {list.member_ids.map((userId) => (
           <li key={userId} className='group flex items-center gap-2'>
-            <Avatar userId={userId} name={nameOf(userId)} size='md' />
+            <Avatar userId={userId} name={nameOf(userId)} size='md' tone={tones.get(userId)} />
             <span className='flex-1'>{nameOf(userId)}</span>
             {keeping && (
               <Button

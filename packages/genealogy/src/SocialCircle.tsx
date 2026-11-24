@@ -11,7 +11,7 @@ import { FRIENDSHIP, type Person, useMetamours, useNetwork } from './genealogyAp
 import { NetworkGraph } from './NetworkGraph';
 import { useGenealogyOptions } from './OptionsProvider';
 import { fromNetwork } from './socialLayout';
-import { personHue, personInitials, personName } from './people';
+import { personColor, personInitials, personName } from './people';
 import { personPath } from './routes';
 
 /** "Directly connected", "Two steps away", "3 steps away", … for a network distance. */
@@ -45,8 +45,7 @@ function PersonLink({ id, people }: { id: string; people: ReadonlyMap<string, Pe
     >
       <span
         aria-hidden='true'
-        className='inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[0.6rem] font-semibold text-white'
-        style={{ backgroundColor: `hsl(${String(personHue({ id }))} 55% 30%)` }}
+        className={`inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[0.6rem] font-semibold ${personColor({ id })}`}
       >
         {personInitials(person)}
       </span>

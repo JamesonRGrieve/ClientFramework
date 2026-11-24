@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { describe, expect, it } from 'vitest';
-import { byGeneration, dateField, dateInput, generationTitle, lifeSpan, personName } from './people';
+import { personTone } from 'zephyrex/ui/person-tone';
+import { byGeneration, dateField, dateInput, generationTitle, lifeSpan, personColor, personName } from './people';
 
 const UNNAMED = 'Unnamed person';
 const DATE = '1900-03-12';
@@ -59,5 +60,12 @@ describe('generationTitle', () => {
     expect(generationTitle(4, 'ancestors')).toBe('2× great-grandparents');
     expect(generationTitle(1, 'descendants')).toBe('Children');
     expect(generationTitle(3, 'descendants')).toBe('Great-grandchildren');
+  });
+});
+
+describe('personColor', () => {
+  it('gives a person their theme colour by id, the same on every page', () => {
+    expect(personColor({ id: 'p-ada' })).toBe(`bg-person-${String(personTone('p-ada'))} text-person-foreground`);
+    expect(personColor({ id: 'p-ada' })).toBe(personColor({ id: 'p-ada' }));
   });
 });

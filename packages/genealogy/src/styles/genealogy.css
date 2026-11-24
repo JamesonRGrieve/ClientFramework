@@ -30,7 +30,6 @@
   --spacing-genealogy-avatar: 1.375rem;
   --spacing-genealogy-avatar-text: 0.6rem;
   --spacing-genealogy-avatar-ring: 1.5px;
-  --color-genealogy-avatar-foreground: #fff;
   --text-genealogy-node: 0.9375rem;
   --text-genealogy-label: 0.8125rem;
   --radius-genealogy-pill: 9999px;
@@ -103,7 +102,9 @@
   width: var(--spacing-genealogy-avatar);
   height: var(--spacing-genealogy-avatar);
   border-radius: 50%;
-  color: var(--color-genealogy-avatar-foreground);
+  /* The person colours' own initials colour (zephyrex's --person-foreground: white on the light
+     themes' deep tones, near-black on the dark themes' light ones). */
+  color: hsl(var(--person-foreground));
   font-size: var(--spacing-genealogy-avatar-text);
   font-weight: 600;
 }

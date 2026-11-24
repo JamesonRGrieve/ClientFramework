@@ -13,6 +13,7 @@ import { Button } from 'zephyrex/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from 'zephyrex/ui/dialog';
 import { Input } from 'zephyrex/ui/input';
+import { personTone, personToneClass, personTones } from 'zephyrex/ui/person-tone';
 import { SkeletonRows } from 'zephyrex/ui/skeleton';
 import { useMyRotas, useRotaActions, useSchedule, useSwaps } from './rotaApi';
 import {
@@ -32,19 +33,8 @@ import {
 const SHOWN_NIGHTS = 14;
 const SELECT = 'h-9 rounded-md border bg-background px-3 text-sm font-normal';
 const OPEN = '';
-const HUES = 360;
-const HUE_SEED = 31;
 /** Up to this many people, a cycle night is chosen with chips; more, with a list. */
 const CHIP_MAX = 3;
-
-/** A stable colour per account, so each person's nights read at a glance. */
-function hueOf(userId: string): number {
-  let hash = 0;
-  for (const char of userId) {
-    hash = (hash * HUE_SEED + (char.codePointAt(0) ?? 0)) % HUES;
-  }
-  return hash;
-}
 
 /** Common cycle lengths, one tap each. */
 const CYCLE_PRESETS: readonly { days: number; label: string }[] = [
@@ -93,7 +83,11 @@ function Schedule({
   const schedule = useSchedule(rota.id, isoDay(new Date()), SHOWN_NIGHTS);
   const { askSwap } = useRotaActions();
   const [problem, setProblem] = useState<string | null>(null);
-  const others = membersOf(rota, people).filter((userId) => userId !== me);
+  const members = membersOf(rota, people);
+  const others = members.filter((userId) => userId !== me);
+  // One colour per member for this rota, no two alike, so whose night it is reads at a glance.
+  const tones = personTones(members);
+  const toneOf = (userId: string): string => personToneClass(tones.get(userId) ?? personTone(userId));
   const ask = async (night: string, toUserId: string): Promise<void> => {
     const failed = await writeProblem(askSwap(rota, night, toUserId), 'The swap could not be asked for.');
     setProblem(failed);
@@ -128,11 +122,9 @@ function Schedule({
               <span className='flex items-center gap-1.5 text-sm'>
                 <span
                   aria-hidden='true'
-                  className='inline-flex size-5 shrink-0 items-center justify-center rounded-full text-[0.6rem] font-semibold text-white'
-                  style={{
-                    backgroundColor:
-                      night.user_id === null ? 'hsl(0 0% 40%)' : `hsl(${String(hueOf(night.user_id))} 55% 30%)`,
-                  }}
+                  className={`inline-flex size-5 shrink-0 items-center justify-center rounded-full text-[0.6rem] font-semibold ${
+                    night.user_id === null ? 'bg-muted-foreground text-background' : toneOf(night.user_id)
+                  }`}
                 >
                   {nameOf(night.user_id).charAt(0)}
                 </span>
@@ -171,8 +163,7 @@ function Schedule({
                       <DropdownMenuItem key={userId} className='gap-2' onSelect={() => void ask(night.night, userId)}>
                         <span
                           aria-hidden='true'
-                          className='inline-flex size-5 items-center justify-center rounded-full text-[0.6rem] font-semibold text-white'
-                          style={{ backgroundColor: `hsl(${String(hueOf(userId))} 55% 30%)` }}
+                          className={`inline-flex size-5 items-center justify-center rounded-full text-[0.6rem] font-semibold ${toneOf(userId)}`}
                         >
                           {nameOf(userId).charAt(0)}
                         </span>

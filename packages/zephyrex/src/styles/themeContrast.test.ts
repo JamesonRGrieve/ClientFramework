@@ -13,6 +13,10 @@ const css = existsSync('src/styles/zephyrex.css')
 const THEMES = ['.light', '.dark', '.colorblind', '.colorblind-dark'] as const;
 /** WCAG 2.1 1.4.11: a control's edge and state against what is next to it. */
 const NON_TEXT = 3;
+/** WCAG 2.1 1.4.3: small text against its background. */
+const TEXT = 4.5;
+/** The person colours each theme defines (person-tone's PERSON_TONES). */
+const PERSON_COLOURS = 8;
 
 /** A theme's tokens: the last block for that selector that sets --background (the colour tokens). */
 function tokensOf(selector: string): Map<string, string> {
@@ -47,6 +51,19 @@ describe('theme contrast for controls', () => {
     expect(background).not.toBe('');
     expect(contrast(tokens.get('muted-foreground') ?? '', background)).toBeGreaterThanOrEqual(NON_TEXT);
     expect(contrast(tokens.get('primary') ?? '', background)).toBeGreaterThanOrEqual(NON_TEXT);
+  });
+
+  it.each(THEMES)('%s: each person colour carries its initials and stands out from the page', (theme) => {
+    const tokens = tokensOf(theme);
+    const background = tokens.get('background') ?? '';
+    const initials = tokens.get('person-foreground') ?? '';
+    expect(initials).not.toBe('');
+    for (let person = 1; person <= PERSON_COLOURS; person += 1) {
+      const colour = tokens.get(`person-${String(person)}`) ?? '';
+      expect(colour).not.toBe('');
+      expect(contrast(colour, initials)).toBeGreaterThanOrEqual(TEXT);
+      expect(contrast(colour, background)).toBeGreaterThanOrEqual(NON_TEXT);
+    }
   });
 
   it('measures as WCAG does: black on white is 21:1', () => {

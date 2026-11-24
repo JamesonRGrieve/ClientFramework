@@ -14,7 +14,7 @@ import { FRIENDSHIP, type LinkedNetwork, PARTNERSHIP, PERSON_ENDPOINT, useLinked
 import { type LegendEntry, TIE_LEGEND } from './legend';
 import { NetworkGraph } from './NetworkGraph';
 import { AddRelative } from './Relatives';
-import { personHue, personInitials } from './people';
+import { personColor, personInitials } from './people';
 import { personPath } from './routes';
 import { StartWithYou } from './StartWithYou';
 import { fromLinkedNetwork } from './socialLayout';
@@ -43,10 +43,7 @@ function MemberAvatar({ node }: { node: LinkedNode }): ReactElement {
   return (
     <span
       aria-hidden='true'
-      className={`inline-flex size-7 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-semibold ${known ? 'text-white' : 'border border-dashed text-muted-foreground'}`}
-      style={
-        known ? { backgroundColor: `hsl(${String(personHue({ id: node.person_id ?? node.key }))} 55% 30%)` } : undefined
-      }
+      className={`inline-flex size-7 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-semibold ${known ? personColor({ id: node.person_id ?? node.key }) : 'border border-dashed text-muted-foreground'}`}
     >
       {known ? personInitials({ name: node.name ?? SOMEONE }) : '?'}
     </span>

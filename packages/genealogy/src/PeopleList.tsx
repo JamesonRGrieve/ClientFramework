@@ -24,7 +24,7 @@ import {
   useRelationships,
 } from './genealogyApi';
 import { relationshipLines } from './relationships';
-import { lifeSpan, personHue, personInitials, personName } from './people';
+import { lifeSpan, personColor, personInitials, personName } from './people';
 import { PersonForm } from './PersonForm';
 import { personPath } from './routes';
 import { StartWithYou } from './StartWithYou';
@@ -41,8 +41,7 @@ function PersonInitials({ person }: { person: Person }): ReactElement {
   return (
     <span
       aria-hidden='true'
-      className='inline-flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white'
-      style={{ backgroundColor: `hsl(${String(personHue(person))} 55% 30%)` }}
+      className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${personColor(person)}`}
     >
       {personInitials(person)}
     </span>

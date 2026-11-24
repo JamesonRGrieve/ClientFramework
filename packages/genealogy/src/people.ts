@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import { personTone, personToneClass } from 'zephyrex/ui/person-tone';
 import type { Lineage, Person } from './genealogyApi';
 
 const DATE_CHARS = 10;
@@ -54,14 +55,10 @@ export function personInitials(person: Pick<Person, 'name'> | undefined): string
   return `${first}${last}`.toUpperCase();
 }
 
-const HUES = 360;
-const HUE_SEED = 31;
-
-/** A stable colour for someone, so they look the same on every page: a hue from their id. */
-export function personHue(person: Pick<Person, 'id'>): number {
-  let hash = 0;
-  for (const char of person.id) {
-    hash = (hash * HUE_SEED + (char.codePointAt(0) ?? 0)) % HUES;
-  }
-  return hash;
+/**
+ * A person's colour classes, so they look the same on every page: their theme colour from their id
+ * (zephyrex's person tones, checked for contrast in every theme) with its initials colour.
+ */
+export function personColor(person: Pick<Person, 'id'>): string {
+  return personToneClass(personTone(person.id));
 }

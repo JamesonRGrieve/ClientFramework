@@ -14,6 +14,7 @@ import { type RowSelection, SelectionBar, useSelection } from 'zephyrex/ui/selec
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from 'zephyrex/ui/dialog';
 import { Input } from 'zephyrex/ui/input';
+import { personTone, personToneClass } from 'zephyrex/ui/person-tone';
 import { Textarea } from 'zephyrex/ui/textarea';
 import { SkeletonRows } from 'zephyrex/ui/skeleton';
 import { giftsApi, useGifts, useShopLink } from './giftsApi';
@@ -39,21 +40,8 @@ function Problem({ problem }: { problem: string | null }): ReactNode {
 }
 
 /** A link to search the shop for `query`, once the server has made it. */
-/** A steady hue per name, so someone's gifts carry the same colour every visit. */
 /** Up to this many people, "For" is a row of chips; beyond it, a list. */
 const CHIP_PEOPLE = 8;
-
-/** A string hash's multiplier, and the hue circle it lands on. */
-const HASH_MULTIPLIER = 31;
-const HUE_DEGREES = 360;
-
-function hueOfName(name: string): number {
-  let hash = 0;
-  for (const char of name) {
-    hash = (hash * HASH_MULTIPLIER + (char.codePointAt(0) ?? 0)) % HUE_DEGREES;
-  }
-  return hash;
-}
 
 function ShopSearch({ query }: { query: string }): ReactNode {
   const [asked, setAsked] = useState(false);
@@ -151,13 +139,11 @@ function AddGift({ people, onAdded }: { people: readonly GiftPerson[]; onAdded: 
                   >
                     <span
                       aria-hidden='true'
-                      className='flex size-6 items-center justify-center rounded-full text-[0.65rem] font-semibold text-white'
-                      style={{
-                        backgroundColor:
-                          choice.ref === SOMEONE_ELSE
-                            ? 'hsl(var(--muted-foreground))'
-                            : `hsl(${String(hueOfName(choice.name))} 45% 30%)`,
-                      }}
+                      className={`flex size-6 items-center justify-center rounded-full text-[0.65rem] font-semibold ${
+                        choice.ref === SOMEONE_ELSE
+                          ? 'bg-muted-foreground text-background'
+                          : personToneClass(personTone(choice.name))
+                      }`}
                     >
                       {choice.ref === SOMEONE_ELSE ? '+' : choice.name.charAt(0).toUpperCase()}
                     </span>
@@ -663,8 +649,7 @@ export function GiftsPage({ people = [], ideas = [], ideasLoading = false }: Gif
                   <h2 className='flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground'>
                     <span
                       aria-hidden='true'
-                      className='inline-flex size-6 items-center justify-center rounded-full text-[0.65rem] font-semibold normal-case text-white'
-                      style={{ backgroundColor: `hsl(${String(hueOfName(name))} 45% 30%)` }}
+                      className={`inline-flex size-6 items-center justify-center rounded-full text-[0.65rem] font-semibold normal-case ${personToneClass(personTone(name))}`}
                     >
                       {name.charAt(0).toUpperCase()}
                     </span>

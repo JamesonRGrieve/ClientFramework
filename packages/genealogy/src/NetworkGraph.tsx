@@ -13,7 +13,7 @@ import {
 } from '@xyflow/react';
 import { useRouter } from 'next/navigation.js';
 import { type ReactElement, type RefObject, useEffect, useMemo, useRef, useState } from 'react';
-import { personHue, personInitials } from './people';
+import { personColor, personInitials } from './people';
 import {
   borderPoint,
   type GraphInput,
@@ -43,12 +43,7 @@ function PersonNodeView({ data }: NodeProps<PersonNode>): ReactElement {
       <Handle type='target' position={Position.Top} style={CENTRED_HANDLE} isConnectable={false} />
       <span
         aria-hidden='true'
-        className={`genealogy-node__avatar${data.personId === null || data.personId === undefined ? ' genealogy-node__avatar--unknown' : ''}`}
-        style={
-          data.personId === null || data.personId === undefined
-            ? undefined
-            : { backgroundColor: `hsl(${String(personHue({ id: data.personId }))} 55% 30%)` }
-        }
+        className={`genealogy-node__avatar ${data.personId === null || data.personId === undefined ? 'genealogy-node__avatar--unknown' : personColor({ id: data.personId })}`}
       >
         {data.personId === null || data.personId === undefined ? '?' : personInitials({ name: data.label })}
       </span>

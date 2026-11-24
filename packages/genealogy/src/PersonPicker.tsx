@@ -5,15 +5,14 @@ import { type ReactElement, useId, useState } from 'react';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from 'zephyrex/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from 'zephyrex/ui/popover';
 import type { Person } from './genealogyApi';
-import { personHue, personInitials, personName } from './people';
+import { personColor, personInitials, personName } from './people';
 
 /** A person's initials in their hue, sized for a list row. */
 function Initials({ person }: { person: Pick<Person, 'id' | 'name'> }): ReactElement {
   return (
     <span
       aria-hidden='true'
-      className='inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-semibold text-white'
-      style={{ backgroundColor: `hsl(${String(personHue(person))} 55% 30%)` }}
+      className={`inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-semibold ${personColor(person)}`}
     >
       {personInitials(person)}
     </span>

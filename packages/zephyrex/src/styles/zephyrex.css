@@ -35,6 +35,16 @@
   --color-destructive: hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
 
+  --color-person-1: hsl(var(--person-1));
+  --color-person-2: hsl(var(--person-2));
+  --color-person-3: hsl(var(--person-3));
+  --color-person-4: hsl(var(--person-4));
+  --color-person-5: hsl(var(--person-5));
+  --color-person-6: hsl(var(--person-6));
+  --color-person-7: hsl(var(--person-7));
+  --color-person-8: hsl(var(--person-8));
+  --color-person-foreground: hsl(var(--person-foreground));
+
   --color-muted: hsl(var(--muted));
   --color-muted-foreground: hsl(var(--muted-foreground));
 
@@ -283,6 +293,16 @@
   /* .light too, so a preview of the light theme can sit inside a dark page (ThemePicker). */
   :root,
   .light {
+    /* People: eight distinct colours with their initials' colour (see personTone). */
+    --person-1: 215 70% 32%;
+    --person-2: 0 70% 32%;
+    --person-3: 150 70% 25%;
+    --person-4: 275 70% 32%;
+    --person-5: 30 70% 30%;
+    --person-6: 190 70% 26%;
+    --person-7: 330 70% 32%;
+    --person-8: 85 70% 23%;
+    --person-foreground: 0 0% 100%;
     --background: 262.1 28% 95%;
     --foreground: 262.1 5% 4%;
     --card: 262.1 20% 90%;
@@ -325,6 +345,16 @@
   }
 
   .dark {
+    /* People: eight distinct colours with their initials' colour (see personTone). */
+    --person-1: 215 70% 70%;
+    --person-2: 0 70% 70%;
+    --person-3: 150 70% 65%;
+    --person-4: 275 70% 72%;
+    --person-5: 30 70% 65%;
+    --person-6: 190 70% 62%;
+    --person-7: 330 70% 70%;
+    --person-8: 85 70% 60%;
+    --person-foreground: 262.1 30% 8%;
     --background: 262.1 28% 5%;
     --foreground: 262.1 5% 90%;
     --card: 262.1 20% 4%;
@@ -368,6 +398,16 @@
   }
 
   .colorblind {
+    /* People: eight distinct colours with their initials' colour (see personTone). */
+    --person-1: 215 70% 32%;
+    --person-2: 0 70% 32%;
+    --person-3: 150 70% 25%;
+    --person-4: 275 70% 32%;
+    --person-5: 30 70% 30%;
+    --person-6: 190 70% 26%;
+    --person-7: 330 70% 32%;
+    --person-8: 85 70% 23%;
+    --person-foreground: 0 0% 100%;
     --background: 0 0% 95%;
     --foreground: 0 0% 4%;
     --card: 0 0% 90%;
@@ -397,6 +437,16 @@
   }
 
   .colorblind-dark {
+    /* People: eight distinct colours with their initials' colour (see personTone). */
+    --person-1: 215 70% 70%;
+    --person-2: 0 70% 70%;
+    --person-3: 150 70% 65%;
+    --person-4: 275 70% 72%;
+    --person-5: 30 70% 65%;
+    --person-6: 190 70% 62%;
+    --person-7: 330 70% 70%;
+    --person-8: 85 70% 60%;
+    --person-foreground: 262.1 30% 8%;
     --background: 0 0% 5%;
     --foreground: 0 0% 90%;
     --card: 0 0% 4%;
