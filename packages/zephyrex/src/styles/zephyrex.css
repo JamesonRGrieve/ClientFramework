@@ -105,6 +105,40 @@
   }
 }
 
+/* Density, one switch for every app: `data-density="compact"` on <html> (the `density` cookie, set
+   from Appearance) tightens controls, table cells, cards and skeleton rows; comfortable, the default,
+   is the sizes the framework always had. Components read these, never a fixed height or padding, so
+   an app never passes a prop: `h-(--control-h)`, `py-(--control-py)`, `p-(--cell-p)`, `p-(--card-p)`. */
+:root {
+  --control-h: 2.5rem;
+  --control-h-sm: 2.25rem;
+  --control-py: 0.5rem;
+  --cell-p: 0.5rem;
+  --card-p: 1rem;
+  --row-py: 0.75rem;
+}
+
+@media (min-width: 40rem) {
+  :root {
+    --card-p: 1.5rem;
+  }
+}
+
+:root[data-density='compact'] {
+  --control-h: 2rem;
+  --control-h-sm: 1.75rem;
+  --control-py: 0.25rem;
+  --cell-p: 0.25rem;
+  --card-p: 0.75rem;
+  --row-py: 0.375rem;
+}
+
+@media (min-width: 40rem) {
+  :root[data-density='compact'] {
+    --card-p: 1rem;
+  }
+}
+
 /* Motion durations, one scale for every app: `duration-(--duration-base)`. Fast is feedback on a
    control (a press, a hover), base is most entrances and exits, slow is a panel or sheet, slower
    a large surface, and tick is a value gliding between one-second updates (a timer). Under

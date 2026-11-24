@@ -27,7 +27,7 @@ function SkeletonRows({
     <div role='status' aria-busy='true' className={cn('divide-y rounded-lg border', className)}>
       <span className='sr-only'>{label}</span>
       {Array.from({ length: rows }, (_, row) => row).map((row) => (
-        <div key={row} aria-hidden='true' className='flex items-center gap-3 px-4 py-3'>
+        <div key={row} aria-hidden='true' className='flex items-center gap-3 px-4 py-(--row-py)'>
           {avatar && <Skeleton className='size-8 shrink-0 rounded-full' />}
           <div className='grid flex-1 gap-1.5'>
             <Skeleton className={cn('h-3.5', LINE_WIDTHS[row % LINE_WIDTHS.length])} />

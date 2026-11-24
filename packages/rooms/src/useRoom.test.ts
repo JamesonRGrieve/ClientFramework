@@ -77,7 +77,7 @@ describe('useRoom', () => {
   it('streams each change once, with the session’s credentials, and goes live', async () => {
     vi.stubGlobal('EventSource', FakeEventSource);
     stubChanges(() => Response.json({}));
-    const seen = vi.fn();
+    const seen = vi.fn<(change: RoomChange) => void>();
     const { result } = renderHook(() => useRoom(SCENE, seen), { wrapper: TestWrapper });
     await waitFor(() => {
       expect(FakeEventSource.opened).toHaveLength(1);
@@ -92,7 +92,7 @@ describe('useRoom', () => {
       source.send('change', change('c2', 'deleted'), 'c2');
     });
     expect(result.current).toBe('live');
-    expect(seen.mock.calls.map(([one]: [RoomChange]) => [one.id, one.op])).toEqual([
+    expect(seen.mock.calls.map(([one]) => [one.id, one.op])).toEqual([
       ['c1', 'updated'],
       ['c2', 'deleted'],
     ]);
@@ -141,7 +141,7 @@ describe('useRoom', () => {
       asked.push(url.searchParams.get('after') ?? '');
       return Response.json(pages.shift() ?? { changes: [], next: 'c9' });
     });
-    const seen = vi.fn();
+    const seen = vi.fn<(change: RoomChange) => void>();
     const onReset = vi.fn();
     const { result, unmount } = renderHook(() => useRoom(SCENE, seen, { transport: 'poll', pollIntervalMs: 5, onReset }), {
       wrapper: TestWrapper,
@@ -150,7 +150,7 @@ describe('useRoom', () => {
       expect(onReset).toHaveBeenCalledOnce();
     });
     expect(result.current).toBe('polling');
-    expect(seen.mock.calls.map(([one]: [RoomChange]) => one.id)).toEqual(['c1']);
+    expect(seen.mock.calls.map(([one]) => one.id)).toEqual(['c1']);
     expect(asked.slice(0, 3)).toEqual(['', 'c0', 'c1']);
     unmount();
   });

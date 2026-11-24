@@ -10,6 +10,7 @@ import { Toaster } from '../../components/ui/toaster';
 import { TooltipProvider } from '../../components/ui/tooltip';
 import { AppDrawerProvider } from '../../components/appwrapper/src/AppDrawer';
 import { SidebarContentProvider } from '../../components/appwrapper/src/SidebarContentManager';
+import { useDensity } from '../../components/theme/useDensity';
 import { RateLimitBanner } from './components/RateLimitBanner';
 import { ManagementTabProvider } from './ManagementTabRegistry';
 import type { ZephyrexConfig } from './types';
@@ -31,6 +32,8 @@ export function ZephyrexApp({ config, children }: { config: ZephyrexConfig; chil
   const extensions = config.extensions ?? [];
   // Configured during render, before any child's first request, so every call uses the app's API base.
   useMemo(() => configureApiClient({ baseUrl: config.server.baseUrl }), [config.server.baseUrl]);
+  // The person's density onto <html>, for an app whose layout doesn't already set it from the cookie.
+  useDensity();
 
   return (
     <AuthServerProvider baseUrl={config.server.baseUrl}>

@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { ZephyrexApp } from 'zephyrex';
 import { SidebarContext } from 'zephyrex/components/appwrapper/src/SidebarContext';
 import { SidebarMain } from 'zephyrex/components/appwrapper/src/SidebarMain';
+import { DENSITY_COOKIE, densityAttribute } from 'zephyrex/components/theme/density';
 import { cn } from 'zephyrex/utils';
 import config from '@/zephyrex.config';
 import './globals.css';
@@ -34,16 +35,18 @@ export default async function RootLayout({ children }: { children: ReactNode }):
   const theme = requestCookies.get('theme')?.value ?? config.app.defaultTheme ?? 'dark';
   const appearance = requestCookies.get('appearance')?.value ?? '';
   const htmlThemeClass = theme === 'dark' || theme === 'colorblind' || theme === 'colorblind-dark' ? theme : '';
+  // The person's density from the first paint (ZephyrexApp applies it too, after hydration).
+  const density = densityAttribute(requestCookies.get(DENSITY_COOKIE)?.value);
 
   if (config.auth?.landingOnly === true) {
     return (
-      <html lang='en' className={htmlThemeClass} suppressHydrationWarning>
+      <html lang='en' className={htmlThemeClass} {...density} suppressHydrationWarning>
         <body className={cn(theme, appearance)}>{children}</body>
       </html>
     );
   }
   return (
-    <html lang='en' className={htmlThemeClass} suppressHydrationWarning>
+    <html lang='en' className={htmlThemeClass} {...density} suppressHydrationWarning>
       <body className={cn(theme, appearance)}>
         <ZephyrexApp config={config}>
           <SidebarMain side='left' />

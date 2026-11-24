@@ -245,7 +245,7 @@ export function LinkedNetworkMap({
           <CardDescription>{description}</CardDescription>
         </CardHeader>
       )}
-      <CardContent className={title === null ? 'grid gap-4 pt-4 sm:pt-6' : 'grid gap-4'}>
+      <CardContent className={title === null ? 'grid gap-4 pt-(--card-p)' : 'grid gap-4'}>
         {linked.data !== undefined && (
           <div className='flex flex-wrap items-center justify-between gap-3'>
             {/* The filters, once there is a map to filter (and while one is on, even if it empties it). */}

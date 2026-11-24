@@ -1,14 +1,17 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ThemeSettings, ThemeSettingsPage } from './ThemeSettingsPage';
 import { TestWrapper } from '@/testing/TestWrapper';
 
-const jar = vi.hoisted(() => ({ theme: undefined as string | undefined }));
+const jar = vi.hoisted(() => ({ theme: undefined as string | undefined, density: undefined as string | undefined }));
 vi.mock('next/headers.js', () => ({
   cookies: async () =>
     Promise.resolve({
-      get: (name: string) => (name === 'theme' && jar.theme !== undefined ? { value: jar.theme } : undefined),
+      get: (name: string) => {
+        const value = name === 'theme' ? jar.theme : name === 'density' ? jar.density : undefined;
+        return value === undefined ? undefined : { value };
+      },
     }),
 }));
 
@@ -23,8 +26,15 @@ describe('ThemeSettings', () => {
     render(<ThemeSettings theme='colorblind' />, { wrapper: TestWrapper });
     expect(screen.getByRole('heading', { level: 1, name: 'Appearance' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Theme' })).toBeInTheDocument();
-    expect(screen.getAllByRole('radio')).toHaveLength(4);
+    expect(within(screen.getByRole('group', { name: 'Theme' })).getAllByRole('radio')).toHaveLength(4);
     expect(screen.getByRole('radio', { name: 'Colour-blind' })).toBeChecked();
+  });
+
+  it('offers the density under its own heading, the given one checked', () => {
+    render(<ThemeSettings theme='dark' density='compact' />, { wrapper: TestWrapper });
+    expect(screen.getByRole('heading', { level: 2, name: 'Density' })).toBeInTheDocument();
+    expect(within(screen.getByRole('group', { name: 'Density' })).getAllByRole('radio')).toHaveLength(2);
+    expect(screen.getByRole('radio', { name: /^Compact/ })).toBeChecked();
   });
 
   it('renders the app’s own settings below the theme', () => {

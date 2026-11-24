@@ -38,4 +38,21 @@ describe('the base styles', () => {
     // Nowhere outside a base layer, where it would beat Tailwind's utilities.
     expect(css.match(/:where\(\.grid\)/g)).toHaveLength(1);
   });
+
+  it('size controls, cells, cards and skeleton rows by density, comfortable by default', () => {
+    const variables = ['--control-h', '--control-h-sm', '--control-py', '--cell-p', '--card-p', '--row-py'];
+    const block = (selector: string): string => {
+      const at = css.indexOf(`${selector} {`);
+      return at === -1 ? '' : css.slice(at, css.indexOf('}', at));
+    };
+    const comfortable = block(':root');
+    const compact = block(":root[data-density='compact']");
+    for (const variable of variables) {
+      expect(css).toContain(`${variable}:`);
+      expect(compact).toContain(`${variable}:`);
+    }
+    // Comfortable is the size the controls always had: h-10.
+    expect(css).toMatch(/--control-h:\s*2\.5rem/);
+    expect(comfortable.length > 0 && compact.length > 0).toBe(true);
+  });
 });

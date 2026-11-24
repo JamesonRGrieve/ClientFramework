@@ -586,7 +586,7 @@ function FirstList({ start }: { start: ReactNode }): ReactNode {
           ))}
         </div>
       </div>
-      <CardContent className='grid gap-6 pt-4 sm:pt-6'>
+      <CardContent className='grid gap-6 pt-(--card-p)'>
         <ol className='grid gap-4 sm:grid-cols-3'>
           {STEPS.map((step, index) => (
             <li key={step.title} className='flex gap-3'>

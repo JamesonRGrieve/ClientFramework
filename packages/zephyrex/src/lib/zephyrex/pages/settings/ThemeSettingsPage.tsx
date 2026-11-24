@@ -2,7 +2,9 @@
 import { cookies } from 'next/headers.js';
 import { type ReactNode, useId } from 'react';
 import { SidebarPage } from '../../../../components/appwrapper/src/SidebarPage';
+import { DensityPicker } from '../../../../components/theme/DensityPicker';
 import { ThemePicker } from '../../../../components/theme/ThemePicker';
+import { DENSITY_COOKIE } from '../../../../components/theme/density';
 import { PageHeader } from '../../../../components/ui/page-header';
 
 /** The cookie the framework keeps the chosen theme in (useTheme's `cookieName`). */
@@ -13,13 +15,19 @@ export interface ThemeSettingsProps {
   theme?: string | undefined;
   /** An app's own themes beside the framework's four. */
   customThemes?: string[];
+  /** The density in force, as the server read it from the density cookie. */
+  density?: string | undefined;
   /** The app's other settings, below the theme. */
   children?: ReactNode;
 }
 
-/** The settings page's body: its heading, the theme picker under a "Theme" heading, then the app's own settings. */
-export function ThemeSettings({ theme, customThemes, children }: ThemeSettingsProps): ReactNode {
+/**
+ * The settings page's body: its heading, the theme picker under a "Theme" heading, the density
+ * picker under a "Density" heading, then the app's own settings.
+ */
+export function ThemeSettings({ theme, customThemes, density, children }: ThemeSettingsProps): ReactNode {
   const heading = useId();
+  const densityHeading = useId();
   return (
     <div className='grid min-w-0 gap-8'>
       <PageHeader title='Appearance' description='How the app looks on this device.' />
@@ -29,12 +37,18 @@ export function ThemeSettings({ theme, customThemes, children }: ThemeSettingsPr
         </h2>
         <ThemePicker initialTheme={theme} customThemes={customThemes} label='Theme' />
       </section>
+      <section aria-labelledby={densityHeading} className='grid gap-3'>
+        <h2 id={densityHeading} className='text-lg font-semibold'>
+          Density
+        </h2>
+        <DensityPicker initialDensity={density} label='Density' />
+      </section>
       {children}
     </div>
   );
 }
 
-export interface ThemeSettingsPageProps extends Omit<ThemeSettingsProps, 'theme'> {
+export interface ThemeSettingsPageProps extends Omit<ThemeSettingsProps, 'theme' | 'density'> {
   /** The theme for someone who has chosen none (the app's `defaultTheme`); the device's setting otherwise. */
   defaultTheme?: string;
 }
@@ -46,10 +60,11 @@ export interface ThemeSettingsPageProps extends Omit<ThemeSettingsProps, 'theme'
  * already marks the person's choice (Zephyrex RPG's finding: read in script it renders "light").
  */
 export async function ThemeSettingsPage({ defaultTheme, ...rest }: ThemeSettingsPageProps): Promise<ReactNode> {
-  const theme = (await cookies()).get(THEME_COOKIE)?.value ?? defaultTheme;
+  const jar = await cookies();
+  const theme = jar.get(THEME_COOKIE)?.value ?? defaultTheme;
   return (
     <SidebarPage title='Settings'>
-      <ThemeSettings theme={theme} {...rest} />
+      <ThemeSettings theme={theme} density={jar.get(DENSITY_COOKIE)?.value} {...rest} />
     </SidebarPage>
   );
 }
