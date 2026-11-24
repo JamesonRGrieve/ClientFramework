@@ -14,13 +14,15 @@ export interface UserPagesProps {
   sections: ReactNode;
   /** Whether sign-up is open (REGISTRATION_MODE isn't closed); when not, the welcome page offers sign-in only. */
   signupOpen?: boolean;
+  /** The app's waitlist page, which the welcome page links to while sign-up is closed. */
+  waitlistPath?: string | undefined;
 }
 
 /**
  * The auth router configured from the app's ZephyrexConfig, with zephyrex's own account page at
  * `<authPath>/manage`, where signing in lands, and the pages the app's extensions add.
  */
-export function UserPages({ slug, sections, signupOpen = true }: UserPagesProps): ReactNode {
+export function UserPages({ slug, sections, signupOpen = true, waitlistPath }: UserPagesProps): ReactNode {
   const { config } = useZephyrexConfig();
   const extensionPages = Object.fromEntries(
     extensionAuthPages(config).map(({ path, component: Page }) => [path, <Page key={path} />]),
@@ -31,6 +33,7 @@ export function UserPages({ slug, sections, signupOpen = true }: UserPagesProps)
       corePagesConfig={{
         ...authPagesConfig(config),
         signupOpen,
+        ...(waitlistPath === undefined ? {} : { waitlistPath }),
         register: { path: '/register', heading: 'Create your account' },
         manage: { path: MANAGE_PATH, heading: 'Your account' },
       }}

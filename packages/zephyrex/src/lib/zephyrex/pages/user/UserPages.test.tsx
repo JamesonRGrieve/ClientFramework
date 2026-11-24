@@ -8,6 +8,9 @@ import { UserPage } from './UserPage';
 import { UserPages } from './UserPages';
 import { TestWrapper } from '@/testing/TestWrapper';
 
+const WAITLIST_LINK = /Join the waitlist/;
+const SIGN_IN_ONLY = 'Enter your email to sign in.';
+
 /** An extension's auth page, showing what of the auth configuration it was handed. */
 function PairingPage(): ReactElement {
   const { authPath, signInAlternatives } = useAuthentication();
@@ -49,7 +52,7 @@ describe('UserPages', () => {
         <UserPages slug={[]} sections={null} signupOpen={false} />
       </TestWrapper>,
     );
-    expect(await closedView.findByText('Enter your email to sign in.')).toBeInTheDocument();
+    expect(await closedView.findByText(SIGN_IN_ONLY)).toBeInTheDocument();
     closedView.unmount();
     const openView = render(
       <TestWrapper>
@@ -73,6 +76,30 @@ describe('UserPage', () => {
     );
     vi.stubEnv('REGISTRATION_MODE', 'closed');
     const view = render(<TestWrapper>{await UserPage({ params: Promise.resolve({}) })}</TestWrapper>);
-    expect(await view.findByText('Enter your email to sign in.')).toBeInTheDocument();
+    expect(await view.findByText(SIGN_IN_ONLY)).toBeInTheDocument();
+    expect(view.queryByRole('link', { name: WAITLIST_LINK })).toBeNull();
+  });
+
+  it('links the welcome page to the app’s waitlist page while sign-up is closed', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Promise.resolve(new Response('{}'))),
+    );
+    vi.stubEnv('REGISTRATION_MODE', 'closed');
+    vi.stubEnv('SIGNUP_DISABLED_PATH', '/waitlist');
+    const view = render(<TestWrapper>{await UserPage({ params: Promise.resolve({}) })}</TestWrapper>);
+    expect(await view.findByRole('link', { name: WAITLIST_LINK })).toHaveAttribute('href', '/waitlist');
+  });
+
+  it('leaves an address on another site to the middleware, with no link', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Promise.resolve(new Response('{}'))),
+    );
+    vi.stubEnv('REGISTRATION_MODE', 'closed');
+    vi.stubEnv('SIGNUP_DISABLED_PATH', 'https://example.org/join');
+    const view = render(<TestWrapper>{await UserPage({ params: Promise.resolve({}) })}</TestWrapper>);
+    await view.findByText(SIGN_IN_ONLY);
+    expect(view.queryByRole('link', { name: WAITLIST_LINK })).toBeNull();
   });
 });
