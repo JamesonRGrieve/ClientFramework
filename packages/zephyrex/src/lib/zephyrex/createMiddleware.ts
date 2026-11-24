@@ -7,6 +7,9 @@ import { sessionOnlyAuthPaths } from './pages/user/authPagesConfig';
 import { type SignupGate, signupDecision, signupGateFromEnv } from './signupGate';
 import type { MiddlewareHook, ZephyrexClientExtension, ZephyrexConfig } from './types';
 
+/** An app that builds its own gate (to log it, say) reads the environment the way this does. */
+export { type RegistrationMode, type SignupGate, signupGateFromEnv } from './signupGate';
+
 const ABSOLUTE_URL = /^https?:\/\//;
 
 /**
