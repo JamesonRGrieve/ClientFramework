@@ -77,12 +77,18 @@ function dayFromToday(offset: number): string {
 const SERVICE_HINTS: Record<CalendarService, string> = {
   google_calendar: 'Through the Google account you linked',
   microsoft_calendar: 'Through the Microsoft account you linked',
-  caldav: 'Any calendar with an address and an app password',
+  caldav: 'iCloud, Fastmail, Nextcloud: any calendar with an address and an app password',
+};
+/** The tiles' titles: short, so the three hints start on the same line (the examples move into the hint). */
+const TILE_NAMES: Record<CalendarService, string> = {
+  google_calendar: 'Google Calendar',
+  microsoft_calendar: 'Microsoft 365 / Outlook',
+  caldav: 'CalDAV',
 };
 /** The tiles' order: the two most people use first. */
 const SERVICE_ORDER: readonly CalendarService[] = ['google_calendar', 'microsoft_calendar', 'caldav'];
 const TILE =
-  'grid gap-0.5 rounded-lg border p-3 text-left text-sm transition-colors hover:bg-muted aria-pressed:border-primary aria-pressed:bg-primary/5 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring';
+  'group grid grid-rows-[auto_1fr_auto] gap-0.5 rounded-lg border p-3 text-left text-sm transition-colors hover:bg-muted aria-pressed:border-primary aria-pressed:bg-primary/5 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring';
 
 function YourCalendars({ accountPage }: { accountPage: string }): ReactNode {
   const client = useClient();
@@ -193,10 +199,15 @@ function YourCalendars({ accountPage }: { accountPage: string }): ReactNode {
                   className={TILE}
                 >
                   <span id={`${ids.service}-${provider}-name`} className='font-medium'>
-                    {serviceLabel(provider)}
+                    {TILE_NAMES[provider]}
                   </span>
                   <span id={`${ids.service}-${provider}`} className='text-xs text-muted-foreground'>
                     {SERVICE_HINTS[provider]}
+                  </span>
+                  {/* What pressing it does, at the foot of every tile; the name and hint carry it for a screen reader. */}
+                  <span aria-hidden='true' className='mt-2 text-xs font-medium text-foreground'>
+                    <span className='group-aria-pressed:hidden'>Connect →</span>
+                    <span className='hidden group-aria-pressed:inline'>Chosen ✓</span>
                   </span>
                 </button>
               ))}

@@ -5,8 +5,6 @@ import { useMemo } from 'react';
 import { z } from 'zod';
 import { type Upload, type UploadRequest, useUpload } from './useUpload';
 
-export type { UploadProgress } from './useUpload';
-
 /** What the file endpoint answers an upload with; other fields it sends pass through. */
 const UploadResultSchema = z.looseObject({
   url: z.string(),

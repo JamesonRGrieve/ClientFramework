@@ -26,10 +26,14 @@ import {
   type AgreementPerson,
   DEFAULT_KINDS,
   dueForRevisit,
+  filledKinds,
   shownKind,
   type Term,
   type TermKindInfo,
 } from './agreementsModel';
+
+/** The sections' columns from lg up, by how many sections have terms: one spans the card. */
+const SECTION_COLUMNS = ['', 'lg:grid-cols-2', 'lg:grid-cols-3'] as const;
 
 /** A term's wording: one line high until it needs more, like an input that wraps. */
 const GROWING = 'field-sizing-content min-h-9 resize-none py-2';
@@ -625,7 +629,8 @@ function AgreementCard({
                     party.confirmed ? 'bg-primary text-primary-foreground' : 'border border-dashed'
                   }`}
                 >
-                  {party.confirmed ? '✓' : nameOf(party.user_id).charAt(0)}
+                  {/* An empty dashed ring for "not yet": the name beside it already says who. */}
+                  {party.confirmed ? '✓' : null}
                 </span>
                 {nameOf(party.user_id)}
                 <span className='text-muted-foreground'>{party.confirmed ? 'Confirmed' : 'To confirm'}</span>
@@ -638,7 +643,8 @@ function AgreementCard({
             </span>
           )}
         </div>
-        <div className='grid gap-4 lg:grid-cols-3'>
+        {/* As many columns as there are sections with terms, so one section spans the card. */}
+        <div className={`grid gap-4 ${SECTION_COLUMNS[filledKinds(agreement, kinds) - 1] ?? 'lg:grid-cols-3'}`}>
           {kinds.map((kind) => {
             const terms = agreement.terms.filter((t) => shownKind(t.kind, kinds) === kind.value);
             return terms.length === 0 ? null : (

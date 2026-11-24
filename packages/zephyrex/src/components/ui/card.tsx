@@ -24,7 +24,7 @@ const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTML
   ({ className, children, level = 3, ...props }, ref) => {
     const Tag = TITLE_TAGS[level];
     return (
-      <Tag ref={ref} className={cn('text-2xl font-semibold leading-none tracking-tight', className)} {...props}>
+      <Tag ref={ref} className={cn('text-lg font-semibold leading-tight tracking-tight', className)} {...props}>
         {children}
       </Tag>
     );

@@ -30,3 +30,14 @@ export const WithValue: Story = {
     defaultValue: 'Hello',
   },
 };
+
+/** Date and time fields: the picker icon sits at the field's right edge, not just after the value. */
+export const DateAndTime: Story = {
+  render: () => (
+    <div className='grid w-96 gap-3'>
+      <Input type='date' aria-label='Starting' defaultValue='2026-11-24' />
+      <Input type='time' aria-label='From' defaultValue='18:00' />
+      <Input type='datetime-local' aria-label='When' defaultValue='2026-11-24T18:00' />
+    </div>
+  ),
+};

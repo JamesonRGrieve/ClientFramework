@@ -66,7 +66,7 @@ export function ManagementSections(): JSX.Element {
       {tabs.map((tab) => {
         const Section = tab.component;
         return (
-          <section key={tab.id} id={managementAnchor(tab)} aria-label={tab.label} className='scroll-mt-16'>
+          <section key={tab.id} id={managementAnchor(tab)} aria-label={tab.label} className='scroll-mt-16 empty:hidden'>
             <Suspense fallback={<p className='text-sm text-muted-foreground'>Loading {tab.label}…</p>}>
               <Section />
             </Suspense>

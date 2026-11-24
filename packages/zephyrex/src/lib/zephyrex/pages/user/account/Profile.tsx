@@ -181,7 +181,16 @@ export function Profile({
   return (
     <Card>
       <CardHeader>
-        <CardTitle level={2}>Profile</CardTitle>
+        {/* The save status sits beside the title, so the card keeps no empty line for it at the bottom. */}
+        <div className='flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1'>
+          <CardTitle level={2}>Profile</CardTitle>
+          <p
+            role={status?.kind === 'failed' ? 'alert' : 'status'}
+            className={status?.kind === 'failed' ? 'text-sm text-destructive' : 'text-sm text-muted-foreground'}
+          >
+            {status?.message ?? ''}
+          </p>
+        </div>
         <CardDescription>
           Signed in as <span className='font-medium text-foreground'>{profile.email}</span>. Changes save as you make them.
         </CardDescription>
@@ -189,7 +198,8 @@ export function Profile({
       <CardContent className='space-y-4'>
         <div className='grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2'>
           {NAME_FIELDS.map((field) => (
-            <div key={field} className='grid gap-1.5'>
+            // dynamic-form's fields beside these stack label and control with gap-2: the same here, so the row lines up.
+            <div key={field} className='flex flex-col gap-2'>
               <Label htmlFor={`${ids.form}-${field}`}>{FIELD_LABELS.get(field)}</Label>
               <Input
                 id={`${ids.form}-${field}`}
@@ -201,7 +211,8 @@ export function Profile({
               />
             </div>
           ))}
-          <div className='grid gap-1.5'>
+          {/* The select brings its own bottom margin; the grid's gap spaces the rows instead. */}
+          <div className='[&>div]:mb-0'>
             <SelectField
               id={`${ids.form}-language`}
               name='language'
@@ -212,7 +223,7 @@ export function Profile({
               onChange={(event) => pick('language', event.target.value)}
             />
           </div>
-          <div className='grid gap-1.5 sm:col-span-2'>
+          <div className='col-span-full grid gap-1.5 [&>div:first-child]:mb-0'>
             <SearchableSelectField
               id={`${ids.form}-timezone`}
               name='timezone'
@@ -265,12 +276,6 @@ export function Profile({
             onDiscard={onDiscard}
           />
         )}
-        <p
-          role={status?.kind === 'failed' ? 'alert' : 'status'}
-          className={status?.kind === 'failed' ? 'text-sm text-destructive' : 'min-h-5 text-sm text-muted-foreground'}
-        >
-          {status?.message ?? ''}
-        </p>
       </CardContent>
     </Card>
   );

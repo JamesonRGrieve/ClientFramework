@@ -58,6 +58,12 @@ export function shownKind(kind: string, kinds: readonly TermKindInfo[]): string 
   return kinds.some((k) => k.value === kind) ? kind : (kinds.at(0)?.value ?? kind);
 }
 
+/** How many of the app's kinds have at least one term in `agreement`: the card's section count. */
+export function filledKinds(agreement: Pick<Agreement, 'terms'>, kinds: readonly TermKindInfo[]): number {
+  const shown = new Set(agreement.terms.map((term) => shownKind(term.kind, kinds)));
+  return kinds.filter((kind) => shown.has(kind.value)).length;
+}
+
 /** Whether `revisitOn` (a date, YYYY-MM-DD) has come, as of `today`. */
 export function dueForRevisit(revisitOn: string | null | undefined, today: string): boolean {
   return revisitOn !== null && revisitOn !== undefined && revisitOn <= today;
