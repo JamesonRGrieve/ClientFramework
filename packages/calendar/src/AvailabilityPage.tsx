@@ -669,13 +669,15 @@ function FindATime({ nameOf }: { nameOf: NameOf }): ReactNode {
                 <label htmlFor={ids.start} className='sr-only'>
                   Between
                 </label>
+                {/* Room for "06:00 PM" and the picker icon (the field is a block since 7a2f443), at the
+                    small control height of whichever density is chosen. */}
                 <Input
                   id={ids.start}
                   type='time'
                   value={dayStart}
                   onChange={(event) => setDayStart(event.target.value)}
                   required
-                  className='h-8 w-28'
+                  className='h-(--control-h-sm) w-36'
                 />
                 to
                 <label htmlFor={ids.end} className='sr-only'>
@@ -687,7 +689,7 @@ function FindATime({ nameOf }: { nameOf: NameOf }): ReactNode {
                   value={dayEnd}
                   onChange={(event) => setDayEnd(event.target.value)}
                   required
-                  className='h-8 w-28'
+                  className='h-(--control-h-sm) w-36'
                 />
               </span>
             </div>
