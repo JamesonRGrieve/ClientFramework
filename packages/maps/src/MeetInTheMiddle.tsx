@@ -312,7 +312,8 @@ export function MeetInTheMiddle({ known = [] }: MeetInTheMiddleProps): ReactNode
               </fieldset>
             )}
             <label htmlFor={ids.typed} className='grid min-w-56 flex-1 gap-1 text-sm font-medium'>
-              Or type an address
+              {/* "Or" only follows the saved places; with none to offer, typing is the only way. */}
+              {offered.length > 0 ? 'Or type an address' : 'Add an address'}
               <Input
                 id={ids.typed}
                 value={typed}

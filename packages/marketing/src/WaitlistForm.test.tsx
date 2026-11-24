@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { WAITLIST_PATH } from './waitlist';
@@ -81,5 +81,47 @@ describe('WaitlistForm', () => {
     await userEvent.click(screen.getByRole('checkbox', { name: CONSENT }));
     await userEvent.click(screen.getByRole('button', { name: JOIN }));
     expect(await screen.findByRole('alert')).toHaveTextContent('You could not be added to the waitlist');
+  });
+});
+
+describe('WaitlistForm interests', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const FULL = 'Full report';
+  const SEATS = 'Group seats';
+  const OFFERS = { full_report: FULL, group_seats: SEATS };
+
+  const fillAndSend = async (): Promise<void> => {
+    await userEvent.type(screen.getByRole('textbox', { name: EMAIL }), ADA);
+    await userEvent.click(screen.getByRole('checkbox', { name: CONSENT }));
+    await userEvent.click(screen.getByRole('button', { name: JOIN }));
+    await screen.findByRole('status');
+  };
+
+  it('sends a fixed interest with no picker shown', async () => {
+    const fake = answering(202, { ok: true });
+    render(<WaitlistForm title={SEATS} body='Seats for a class.' interests={OFFERS} interest='group_seats' />);
+    expect(screen.queryByRole('radiogroup')).toBeNull();
+    await fillAndSend();
+    expect(JSON.parse(sentBody(fake))).toEqual({ email: ADA, consent: true, interest: 'group_seats' });
+  });
+
+  it('starts from the first declared interest when none is given', () => {
+    answering(202, { ok: true });
+    render(<WaitlistForm title='Waitlist' body='Pick one.' interests={OFFERS} initialInterest='nothing_like_it' />);
+    expect(screen.getByRole('radio', { name: FULL })).toBeChecked();
+    expect(screen.getByRole('radio', { name: SEATS })).not.toBeChecked();
+  });
+
+  it('offers the interests as chips, starting from the given one, and sends the chosen one', async () => {
+    const fake = answering(202, { ok: true });
+    render(<WaitlistForm title='Paid plans' body='Pick one.' interests={OFFERS} initialInterest='full_report' />);
+    const group = screen.getByRole('radiogroup', { name: 'What would you like?' });
+    expect(within(group).getByRole('radio', { name: FULL })).toBeChecked();
+    await userEvent.click(within(group).getByRole('radio', { name: SEATS }));
+    await fillAndSend();
+    expect(JSON.parse(sentBody(fake))).toEqual({ email: ADA, consent: true, interest: 'group_seats' });
   });
 });

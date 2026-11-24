@@ -12,11 +12,15 @@ import { z } from 'zod';
 /** Where every app mounts its waitlist route (app/api/waitlist/route.ts), and where WaitlistForm posts. */
 export const WAITLIST_PATH = '/api/waitlist';
 
-/** What the form sends: the email, the visitor's name when they gave one, and their consent to be emailed. */
+/**
+ * What the form sends: the email, the visitor's name when they gave one, their consent to be emailed,
+ * and, where the app offers several things to wait for, which one (`interests`' key).
+ */
 export interface WaitlistEntry {
   email: string;
   name?: string;
   consent: true;
+  interest?: string;
 }
 
 /** Sign-ups the route takes from everyone together: a burst, then one every `everyMs`. */
@@ -32,8 +36,16 @@ export interface WaitlistRouteOptions {
   app: string;
   /** What the person is waiting for, after that prefix (e.g. 'accounts'). */
   enquiry?: string;
-  /** The CRM business the lead belongs to. */
-  business?: string;
+  /**
+   * The CRM business the lead belongs to: 'Zephyrex' by default; `null` sends none, for a CRM
+   * without businesses (Boden's).
+   */
+  business?: string | null;
+  /**
+   * The lead field the "<app> waitlist: …" line goes in: `enquiry` (the Zephyrex ERP's, the default)
+   * or `wp_form_message` (Boden's CRM Lead has no enquiry).
+   */
+  messageField?: 'enquiry' | 'wp_form_message';
   /** The ERP site. */
   erpOrigin?: string;
   /** Entries one address may send in an hour; past that the route answers 429. */
@@ -43,6 +55,13 @@ export interface WaitlistRouteOptions {
    * by default a burst of 10, then one every 6 s (as Chronos paces its own). Past it, 429.
    */
   pace?: WaitlistPace;
+  /**
+   * The things a person can wait for, by key, with the words sales reads (e.g. `{ full_report: 'Full
+   * report' }`). An entry may then name one as `interest`, which must be one of these keys (422
+   * otherwise), and the lead's enquiry becomes "<app> waitlist: <words> (<key>)". Without it, or
+   * without an interest in the entry, the enquiry is as `enquiry` says.
+   */
+  interests?: Readonly<Record<string, string>>;
   /** The fetch that reaches the ERP (tests pass their own). */
   fetch?: typeof fetch;
   /** The clock, in milliseconds (tests pass their own). */
@@ -68,6 +87,7 @@ const MESSAGES = {
   busy: 'That is a lot of tries from one place. Try again in an hour.',
   unreachable: 'The waitlist could not be reached. Try again in a few minutes.',
   consent: 'Joining the waitlist needs your agreement to be emailed.',
+  interest: 'Choose one of the offers this waitlist is for.',
   crowded: 'Many people are joining just now. Try again in a minute.',
 } as const;
 
@@ -91,9 +111,13 @@ const EntryBody = z.looseObject({});
 const Email = z.string().trim().max(MAX_EMAIL).regex(EMAIL);
 const Name = z.string().trim().max(MAX_NAME).optional();
 const Consent = z.literal(true);
+const Interest = z.string().optional();
 
 /** The entry in a parsed body (null when the body wasn't JSON), or why it can't be one. */
-function readEntry(parsed: z.ZodSafeParseResult<z.infer<typeof EntryBody>>): WaitlistEntry | { problem: string } {
+function readEntry(
+  parsed: z.ZodSafeParseResult<z.infer<typeof EntryBody>>,
+  interests: ReadonlyMap<string, string> | undefined,
+): WaitlistEntry | { problem: string } {
   if (!parsed.success) {
     return { problem: MESSAGES.body };
   }
@@ -108,9 +132,22 @@ function readEntry(parsed: z.ZodSafeParseResult<z.infer<typeof EntryBody>>): Wai
   if (!Consent.safeParse(parsed.data.consent).success) {
     return { problem: MESSAGES.consent };
   }
-  return name.data !== undefined && name.data !== ''
-    ? { email: email.data, name: name.data, consent: true }
-    : { email: email.data, consent: true };
+  const entry: WaitlistEntry =
+    name.data !== undefined && name.data !== ''
+      ? { email: email.data, name: name.data, consent: true }
+      : { email: email.data, consent: true };
+  // An interest counts only where the route declares interests; elsewhere it is ignored, as before.
+  if (interests === undefined) {
+    return entry;
+  }
+  const interest = Interest.safeParse(parsed.data.interest);
+  if (!interest.success) {
+    return { problem: MESSAGES.interest };
+  }
+  if (interest.data === undefined || interest.data === '') {
+    return entry;
+  }
+  return interests.has(interest.data) ? { ...entry, interest: interest.data } : { problem: MESSAGES.interest };
 }
 
 /**
@@ -119,7 +156,12 @@ function readEntry(parsed: z.ZodSafeParseResult<z.infer<typeof EntryBody>>): Wai
  * status and business are sent, not left to the form: the ERP applies a web form's hidden defaults
  * only to a browser's submission, never to a server's (Zephyrex ERP, 2026-11-23).
  */
-function leadDocument(entry: WaitlistEntry, options: WaitlistRouteOptions): Record<string, string> {
+function leadDocument(
+  entry: WaitlistEntry,
+  options: WaitlistRouteOptions,
+  interests: ReadonlyMap<string, string> | undefined,
+): Record<string, string> {
+  const wanted = entry.interest === undefined ? undefined : interests?.get(entry.interest);
   const [first = '', ...rest] = (entry.name ?? '').split(/\s+/).filter(Boolean);
   const document: Record<string, string> = {
     doctype: 'CRM Lead',
@@ -128,9 +170,15 @@ function leadDocument(entry: WaitlistEntry, options: WaitlistRouteOptions): Reco
     email: entry.email,
     source: 'Website',
     status: 'New',
-    crm_business: options.business ?? 'Zephyrex',
-    enquiry: `${options.app} waitlist: ${options.enquiry ?? 'joined from the website'}`,
+    [options.messageField ?? 'enquiry']:
+      wanted === undefined
+        ? `${options.app} waitlist: ${options.enquiry ?? 'joined from the website'}`
+        : `${options.app} waitlist: ${wanted} (${entry.interest ?? ''})`,
   };
+  const business = options.business === undefined ? 'Zephyrex' : options.business;
+  if (business !== null) {
+    document.crm_business = business;
+  }
   if (rest.length > 0) {
     document.last_name = rest.join(' ');
   }
@@ -151,6 +199,7 @@ export function createWaitlistRoute(options: WaitlistRouteOptions): { POST: (req
   // module loads, so a test that stubs fetch (or fakes the clock) after importing it would otherwise
   // still reach the real ERP (Text Mutation, 2026-11-24).
   const now = (): number => (options.now ?? Date.now)();
+  const interests = options.interests === undefined ? undefined : new Map(Object.entries(options.interests));
   const recent = new Map<string, number[]>();
   // The shared bucket: full to start, refilled one sign-up every `pace.everyMs`.
   let tokens = pace.burst;
@@ -184,7 +233,7 @@ export function createWaitlistRoute(options: WaitlistRouteOptions): { POST: (req
   };
 
   const POST = async (request: Request): Promise<Response> => {
-    const entry = readEntry(EntryBody.safeParse(await request.json().catch(() => null)));
+    const entry = readEntry(EntryBody.safeParse(await request.json().catch(() => null)), interests);
     if ('problem' in entry) {
       return refusal(STATUS.unusable, entry.problem);
     }
@@ -197,7 +246,7 @@ export function createWaitlistRoute(options: WaitlistRouteOptions): { POST: (req
 
     const form = new URLSearchParams({
       web_form: webForm,
-      data: JSON.stringify(leadDocument(entry, options)),
+      data: JSON.stringify(leadDocument(entry, options, interests)),
     });
     try {
       const answer = await (options.fetch ?? globalThis.fetch)(`${erpOrigin}${ACCEPT_PATH}`, {

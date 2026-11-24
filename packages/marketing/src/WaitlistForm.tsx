@@ -3,7 +3,9 @@
 import Link from 'next/link.js';
 import { type ReactNode, type SyntheticEvent, useId, useState } from 'react';
 import { writeProblem } from 'zephyrex';
+import { chipGroup } from 'zephyrex/hooks/chipKeys';
 import { Button } from 'zephyrex/ui/button';
+import { ChoiceChip } from 'zephyrex/ui/choice-chip';
 import { Input } from 'zephyrex/ui/input';
 import { Label } from 'zephyrex/ui/label';
 import { z } from 'zod';
@@ -28,6 +30,17 @@ export interface WaitlistFormProps {
   consent?: ReactNode;
   /** The app's privacy policy, which the default consent wording links to. */
   privacyHref?: string;
+  /**
+   * The things a person can wait for, by key, with their words (the route's `interests`). Without a
+   * fixed `interest`, the form shows them as chips to choose from.
+   */
+  interests?: Readonly<Record<string, string>>;
+  /** The one thing this form is for (a paywall's form): sent with the entry, with no picker shown. */
+  interest?: string;
+  /** The chip chosen to start with, e.g. from a `/waitlist?offer=` link; the first declared one otherwise. */
+  initialInterest?: string;
+  /** The picker's label. */
+  interestLabel?: string;
 }
 
 /** A form field's text, trimmed; '' for a missing field or a file. */
@@ -65,8 +78,18 @@ export function WaitlistForm({
   submitLabel = 'Join the waitlist',
   consent,
   privacyHref = '/docs/privacy',
+  interests,
+  interest,
+  initialInterest,
+  interestLabel = 'What would you like?',
 }: WaitlistFormProps): ReactNode {
   const id = useId();
+  const choices = interest === undefined && interests !== undefined ? Object.entries(interests) : [];
+  // The given interest when it is one of the choices, else the first one declared.
+  const [chosen, setChosen] = useState<string | undefined>(
+    choices.some(([key]) => key === initialInterest) ? initialInterest : choices.at(0)?.[0],
+  );
+  const wanted = interest ?? chosen;
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [joined, setJoined] = useState<string | null>(null);
@@ -78,7 +101,12 @@ export function WaitlistForm({
     const name = fieldText(data, 'name');
     setBusy(true);
     const failed = await writeProblem(
-      join(name === '' ? { email, consent: true } : { email, name, consent: true }),
+      join({
+        email,
+        ...(name === '' ? {} : { name }),
+        consent: true,
+        ...(wanted === undefined ? {} : { interest: wanted }),
+      }),
       'You could not be added to the waitlist',
     );
     setBusy(false);
@@ -104,6 +132,24 @@ export function WaitlistForm({
             <Label htmlFor={`${id}-name`}>Name (optional)</Label>
             <Input id={`${id}-name`} name='name' autoComplete='name' maxLength={140} />
           </div>
+          {choices.length > 0 && (
+            <div className='grid gap-2'>
+              <span id={`${id}-interest`} className='text-sm font-medium'>
+                {interestLabel}
+              </span>
+              <div role='radiogroup' aria-labelledby={`${id}-interest`} ref={chipGroup} className='flex flex-wrap gap-2'>
+                {choices.map(([key, words]) => (
+                  <ChoiceChip
+                    key={key}
+                    checked={chosen === key}
+                    onClick={() => setChosen((current) => (current === key ? undefined : key))}
+                  >
+                    {words}
+                  </ChoiceChip>
+                ))}
+              </div>
+            </div>
+          )}
           <label className='flex items-start gap-3 text-sm'>
             {/* Required, so the browser asks for it before anything is sent; the route checks it again. */}
             <input type='checkbox' name='consent' required className='mt-0.5 size-4 shrink-0 accent-primary' />

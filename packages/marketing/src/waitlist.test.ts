@@ -7,6 +7,9 @@ const FORM = 'waitlist-app';
 const ADA = 'ada@example.com';
 const BAD_EMAIL = 'Enter an email address';
 const THIRD = 'c@example.com';
+const WEBSITE = 'Website';
+const NEW = 'New';
+const ACCOUNTS_LINE = 'App waitlist: Accounts';
 
 function entry(body: string | object | null, address = '203.0.113.7'): Request {
   return new Request('http://app.test/api/waitlist', {
@@ -49,10 +52,10 @@ describe('the entry the route reads', () => {
       first_name: 'Ada',
       last_name: 'King Lovelace',
       email: ADA,
-      source: 'Website',
-      status: 'New',
+      source: WEBSITE,
+      status: NEW,
       crm_business: 'Zephyrex',
-      enquiry: 'App waitlist: Accounts',
+      enquiry: ACCOUNTS_LINE,
     });
   });
 
@@ -65,8 +68,8 @@ describe('the entry the route reads', () => {
       web_form_name: FORM,
       first_name: 'ada.l',
       email: 'ada.l@example.com',
-      source: 'Website',
-      status: 'New',
+      source: WEBSITE,
+      status: NEW,
       crm_business: 'Zephyrex',
       enquiry: 'App waitlist: joined from the website',
     });
@@ -108,7 +111,7 @@ describe('createWaitlistRoute', () => {
       doctype: 'CRM Lead',
       first_name: 'Ada',
       email: ADA,
-      enquiry: 'App waitlist: Accounts',
+      enquiry: ACCOUNTS_LINE,
     });
   });
 
@@ -156,6 +159,53 @@ describe('createWaitlistRoute', () => {
     clock = 1000;
     expect((await POST(entry({ email: ADA }, '192.0.2.4'))).status).toBe(202);
     expect(erp).toHaveBeenCalledTimes(3);
+  });
+
+  it('records which offer a person waits for, only from the offers the route declares', async () => {
+    const erp = erpThatAccepts();
+    const interests = { full_report: 'Full report', group_seats: 'Group seats' };
+    const { POST } = createWaitlistRoute({ webForm: FORM, app: '16 Worldviews', interests, fetch: erp });
+    expect((await POST(entry({ email: ADA, interest: 'group_seats' }))).status).toBe(202);
+    expect(leadSent(erp).enquiry).toBe('16 Worldviews waitlist: Group seats (group_seats)');
+    expect((await POST(entry({ email: ADA }))).status).toBe(202);
+    expect(leadSent(erp, 1).enquiry).toBe('16 Worldviews waitlist: joined from the website');
+    const refused = await Promise.all(
+      ['research_api', 'toString', 7].map(async (interest) => POST(entry({ email: ADA, interest }))),
+    );
+    expect(refused.map((answer) => answer.status)).toEqual([422, 422, 422]);
+    for (const reason of await Promise.all(refused.map(detail))) {
+      expect(reason).toContain('Choose one of the offers');
+    }
+    expect(erp).toHaveBeenCalledTimes(2);
+  });
+
+  it('writes a Boden-shaped lead: the line in wp_form_message, and no business', async () => {
+    const erp = erpThatAccepts();
+    const { POST } = createWaitlistRoute({
+      webForm: 'waitlist-cule',
+      app: 'Cule',
+      enquiry: 'accounts',
+      erpOrigin: 'https://erp.bodenresearch.com',
+      messageField: 'wp_form_message',
+      business: null,
+      fetch: erp,
+    });
+    expect((await POST(entry({ email: ADA }))).status).toBe(202);
+    expect(erp.mock.calls[0]?.[0]).toBe(
+      'https://erp.bodenresearch.com/api/method/frappe.website.doctype.web_form.web_form.accept',
+    );
+    const lead = leadSent(erp);
+    expect(lead.wp_form_message).toBe('Cule waitlist: accounts');
+    expect(lead).not.toHaveProperty('enquiry');
+    expect(lead).not.toHaveProperty('crm_business');
+    expect(lead).toMatchObject({ source: WEBSITE, status: NEW, web_form_name: 'waitlist-cule' });
+  });
+
+  it('ignores an interest where the route declares none, as before', async () => {
+    const erp = erpThatAccepts();
+    const { POST } = createWaitlistRoute({ webForm: FORM, app: 'App', enquiry: 'Accounts', fetch: erp });
+    expect((await POST(entry({ email: ADA, interest: 'anything' }))).status).toBe(202);
+    expect(leadSent(erp).enquiry).toBe(ACCOUNTS_LINE);
   });
 
   it('reaches the ERP through the fetch in force at each request, so a later stub still catches it', async () => {

@@ -9,7 +9,8 @@ import { renderMaps } from './testing.mocks';
 const ALEX = 'Alex’s place';
 const SAM = 'Sam’s place';
 const PICK = 'Add someone’s place';
-const TYPE = 'Or type an address';
+const TYPE = 'Add an address';
+const OR_TYPE = 'Or type an address';
 const THERE = { name: 'Getting there' };
 const KNOWN = [
   { label: ALEX, location: '53.5461,-113.4938' },
@@ -27,9 +28,13 @@ describe('MeetInTheMiddle', () => {
     const store = mapsFixture();
     const user = userEvent.setup();
     const view = renderMaps(<MeetInTheMiddle known={KNOWN} />, store);
+    // Beside saved places to choose from, typing is the other way.
+    expect(view.getByLabelText(OR_TYPE)).toBeInTheDocument();
     await user.click(within(view.getByRole('group', { name: PICK })).getByRole('button', { name: ALEX }));
     await user.click(within(view.getByRole('group', { name: PICK })).getByRole('button', { name: SAM }));
     expect(view.queryByLabelText(PICK)).toBeNull();
+    // Once every saved place is chosen there are none left to offer either.
+    expect(view.getByLabelText(TYPE)).toBeInTheDocument();
     await user.click(view.getByRole('button', FIND));
     const there = await view.findByRole('list', THERE);
     const legs = within(there).getAllByRole('listitem');
@@ -48,6 +53,8 @@ describe('MeetInTheMiddle', () => {
     const store = mapsFixture();
     const user = userEvent.setup();
     const view = renderMaps(<MeetInTheMiddle />, store);
+    // With no saved places to offer, the field isn't an "or".
+    expect(view.queryByLabelText(OR_TYPE)).toBeNull();
     expect(view.getByRole('button', FIND)).toBeDisabled();
     await user.type(view.getByLabelText(TYPE), 'Edmonton{Enter}');
     await user.type(view.getByLabelText(TYPE), 'Calgary');
