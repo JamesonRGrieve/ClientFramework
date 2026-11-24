@@ -24,11 +24,12 @@ import {
   useRelationships,
 } from './genealogyApi';
 import { relationshipLines } from './relationships';
-import { lifeSpan, personColor, personInitials, personName } from './people';
+import { lifeSpan, personInitials, personName } from './people';
 import { PersonForm } from './PersonForm';
 import { personPath } from './routes';
 import { StartWithYou } from './StartWithYou';
 import { useGenealogyOptions } from './OptionsProvider';
+import { usePersonColor } from './usePersonColor';
 
 /** Above this many people the list gets a search box. */
 const SEARCH_FROM = 6;
@@ -41,10 +42,11 @@ const SUBLINE = 'block truncate text-xs font-normal text-muted-foreground';
 
 /** Someone's face in the list: their initials on their own colour. */
 function PersonInitials({ person }: { person: Person }): ReactElement {
+  const colorOf = usePersonColor();
   return (
     <span
       aria-hidden='true'
-      className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${personColor(person)}`}
+      className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${colorOf(person.id)}`}
     >
       {personInitials(person)}
     </span>

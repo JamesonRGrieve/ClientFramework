@@ -13,11 +13,12 @@ import { genealogyApi, type Person, PersonSchema, usePersons } from './genealogy
 import { KinshipLookup } from './KinshipLookup';
 import { Lineage } from './Lineage';
 import { useGenealogyOptions } from './OptionsProvider';
-import { lifeSpan, personColor, personInitials, personName } from './people';
+import { lifeSpan, personInitials, personName } from './people';
 import { PersonForm } from './PersonForm';
 import { Relatives } from './Relatives';
 import { SocialCircle } from './SocialCircle';
 import { GENEALOGY_PATH } from './routes';
+import { usePersonColor } from './usePersonColor';
 
 const SAVE_FAILURE = 'The details could not be saved.';
 
@@ -78,6 +79,7 @@ function PersonDetails({
 
 /** One person: their details, their relatives, and their ancestors and descendants. */
 export function PersonPage({ params }: { params: Record<string, string> }): ReactElement {
+  const colorOf = usePersonColor();
   const { personId } = params;
   const options = useGenealogyOptions();
   const client = useClient();
@@ -132,7 +134,7 @@ export function PersonPage({ params }: { params: Record<string, string> }): Reac
         <div className='flex flex-wrap items-center gap-4'>
           <span
             aria-hidden='true'
-            className={`inline-flex size-14 shrink-0 items-center justify-center rounded-full text-lg font-semibold ${personColor(person)}`}
+            className={`inline-flex size-14 shrink-0 items-center justify-center rounded-full text-lg font-semibold ${colorOf(person.id)}`}
           >
             {personInitials(person)}
           </span>

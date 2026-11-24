@@ -11,8 +11,9 @@ import { FRIENDSHIP, type Person, useMetamours, useNetwork } from './genealogyAp
 import { NetworkGraph } from './NetworkGraph';
 import { useGenealogyOptions } from './OptionsProvider';
 import { fromNetwork } from './socialLayout';
-import { personColor, personInitials, personName } from './people';
+import { personInitials, personName } from './people';
 import { personPath } from './routes';
+import { usePersonColor } from './usePersonColor';
 
 /** "Directly connected", "Two steps away", "3 steps away", … for a network distance. */
 export function distanceTitle(distance: number): string {
@@ -37,6 +38,7 @@ export function byDistance(
 }
 
 function PersonLink({ id, people }: { id: string; people: ReadonlyMap<string, Person> }): ReactElement {
+  const colorOf = usePersonColor();
   const person = people.get(id);
   return (
     <Link
@@ -45,7 +47,7 @@ function PersonLink({ id, people }: { id: string; people: ReadonlyMap<string, Pe
     >
       <span
         aria-hidden='true'
-        className={`inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[0.6rem] font-semibold ${personColor({ id })}`}
+        className={`inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[0.6rem] font-semibold ${colorOf(id)}`}
       >
         {personInitials(person)}
       </span>

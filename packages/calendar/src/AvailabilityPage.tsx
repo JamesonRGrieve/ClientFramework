@@ -10,6 +10,8 @@ import { Button } from 'zephyrex/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'zephyrex/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from 'zephyrex/ui/dialog';
 import { Input } from 'zephyrex/ui/input';
+import { PersonAvatar } from 'zephyrex/ui/person-avatar';
+import { personTones } from 'zephyrex/ui/person-tone';
 import { SkeletonRows } from 'zephyrex/ui/skeleton';
 import { Switch } from 'zephyrex/ui/switch';
 import { calendarApi, useAvailabilityShares, useCalendarAccounts, useSharedWithMe } from './calendarApi';
@@ -568,6 +570,8 @@ function FindATime({ nameOf }: { nameOf: NameOf }): ReactNode {
     })();
   };
   const unread = (found?.people ?? []).filter((person) => person.unreadable > 0 || person.calendars === 0);
+  // One colour each for the people you can find a time with, no two alike.
+  const tones = personTones((sharing.data ?? []).map((share) => share.user_id));
   return (
     <div className='grid gap-4'>
       <form onSubmit={search} aria-label='Find a time' className='grid gap-3'>
@@ -589,12 +593,12 @@ function FindATime({ nameOf }: { nameOf: NameOf }): ReactNode {
                   onClick={() => toggle(share.user_id, !on)}
                   className={`${CHIP} flex items-center gap-2 py-1 pl-1`}
                 >
-                  <span
-                    aria-hidden='true'
-                    className='inline-flex size-6 items-center justify-center rounded-full bg-primary/20 text-[0.65rem] font-semibold text-foreground'
-                  >
-                    {nameOf(share.user_id).charAt(0)}
-                  </span>
+                  <PersonAvatar
+                    id={share.user_id}
+                    name={nameOf(share.user_id)}
+                    tone={tones.get(share.user_id)}
+                    className='ring-0'
+                  />
                   {nameOf(share.user_id)}
                 </button>
               );

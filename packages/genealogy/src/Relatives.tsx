@@ -28,7 +28,7 @@ import {
   SIBLING_KINDS,
   useRelationships,
 } from './genealogyApi';
-import { personColor, personInitials, personName } from './people';
+import { personInitials, personName } from './people';
 import { PersonPicker } from './PersonPicker';
 import type { AppTie } from './options';
 import {
@@ -41,6 +41,7 @@ import {
 } from './relationships';
 import { personPath } from './routes';
 import { useGenealogyOptions } from './OptionsProvider';
+import { usePersonColor } from './usePersonColor';
 
 /** A one-tap choice; pressed when chosen. */
 const CHIP =
@@ -135,6 +136,7 @@ export function AddRelative({
   people: Person[];
   onAdded: () => Promise<void>;
 }): ReactElement {
+  const colorOf = usePersonColor();
   const ids = { role: useId(), relative: useId(), newName: useId(), detail: useId(), since: useId() };
   const client = useClient();
   const { data: user } = useUser();
@@ -195,6 +197,7 @@ export function AddRelative({
             onChange={setRelativeId}
             placeholder='Choose someone…'
             extra={{ value: SOMEONE_NEW, label: 'Someone new…' }}
+            colorOf={colorOf}
           />
         </div>
         {relativeId === SOMEONE_NEW && (
@@ -279,6 +282,7 @@ function RelativeRow({
   /** Refreshes the relationships once the line's rows are gone. */
   onRemoved: () => Promise<void>;
 }): ReactElement {
+  const colorOf = usePersonColor();
   const client = useClient();
   const [problem, setProblem] = useState<string | null>(null);
   // The rows still to delete after the one a conflict stopped on.
@@ -312,7 +316,7 @@ function RelativeRow({
         <span className='flex min-w-0 items-center gap-3'>
           <span
             aria-hidden='true'
-            className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${personColor({ id: relative?.id ?? line.relativeId })}`}
+            className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${colorOf(relative?.id ?? line.relativeId)}`}
           >
             {personInitials(relative)}
           </span>

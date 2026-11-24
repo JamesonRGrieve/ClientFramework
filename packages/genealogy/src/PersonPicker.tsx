@@ -7,12 +7,16 @@ import { Popover, PopoverContent, PopoverTrigger } from 'zephyrex/ui/popover';
 import type { Person } from './genealogyApi';
 import { personColor, personInitials, personName } from './people';
 
+/** A person's colour classes: their own, unless the page gives the tree's (usePersonColor). */
+type ColorOf = (id: string) => string;
+const ownColor: ColorOf = (id) => personColor({ id });
+
 /** A person's initials in their hue, sized for a list row. */
-function Initials({ person }: { person: Pick<Person, 'id' | 'name'> }): ReactElement {
+function Initials({ person, colorOf }: { person: Pick<Person, 'id' | 'name'>; colorOf: ColorOf }): ReactElement {
   return (
     <span
       aria-hidden='true'
-      className={`inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-semibold ${personColor(person)}`}
+      className={`inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-semibold ${colorOf(person.id)}`}
     >
       {personInitials(person)}
     </span>
@@ -31,6 +35,7 @@ export function PersonPicker({
   onChange,
   placeholder,
   extra,
+  colorOf = ownColor,
 }: {
   id: string;
   people: readonly Pick<Person, 'id' | 'name'>[];
@@ -38,6 +43,8 @@ export function PersonPicker({
   onChange: (value: string) => void;
   placeholder: string;
   extra?: { value: string; label: string };
+  /** Each person's colour classes, so the list matches the page (usePersonColor); their own otherwise. */
+  colorOf?: ColorOf;
 }): ReactElement {
   const [open, setOpen] = useState(false);
   const listId = useId();
@@ -57,7 +64,7 @@ export function PersonPicker({
           aria-controls={listId}
           className='flex h-9 w-full min-w-0 items-center gap-2 rounded-md border bg-background px-2 text-left text-sm shadow-xs transition-colors hover:bg-muted/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none'
         >
-          {picked !== undefined && <Initials person={picked} />}
+          {picked !== undefined && <Initials colorOf={colorOf} person={picked} />}
           <span
             className={`min-w-0 flex-1 truncate ${picked === undefined && value !== extra?.value ? 'text-muted-foreground' : ''}`}
           >
@@ -92,7 +99,7 @@ export function PersonPicker({
                   onSelect={() => choose(person.id)}
                   className='gap-2'
                 >
-                  <Initials person={person} />
+                  <Initials colorOf={colorOf} person={person} />
                   <span className='min-w-0 flex-1 truncate'>{personName(person)}</span>
                   {person.id === value && <Check aria-hidden='true' className='size-4' />}
                 </CommandItem>

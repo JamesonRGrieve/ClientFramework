@@ -13,7 +13,7 @@ import {
 } from '@xyflow/react';
 import { useRouter } from 'next/navigation.js';
 import { type ReactElement, type RefObject, useEffect, useMemo, useRef, useState } from 'react';
-import { personColor, personInitials } from './people';
+import { personInitials } from './people';
 import {
   borderPoint,
   type GraphInput,
@@ -24,6 +24,7 @@ import {
   socialLayout,
 } from './socialLayout';
 import { type LegendEntry, TIE_LEGEND } from './legend';
+import { usePersonColor } from './usePersonColor';
 
 // Both handles sit at the node's centre, unseen, so a tie runs centre to centre in any direction.
 const CENTRED_HANDLE = { top: '50%', left: '50%', opacity: 0, pointerEvents: 'none' } as const;
@@ -38,12 +39,13 @@ const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 1;
 
 function PersonNodeView({ data }: NodeProps<PersonNode>): ReactElement {
+  const colorOf = usePersonColor();
   return (
     <>
       <Handle type='target' position={Position.Top} style={CENTRED_HANDLE} isConnectable={false} />
       <span
         aria-hidden='true'
-        className={`genealogy-node__avatar ${data.personId === null || data.personId === undefined ? 'genealogy-node__avatar--unknown' : personColor({ id: data.personId })}`}
+        className={`genealogy-node__avatar ${data.personId === null || data.personId === undefined ? 'genealogy-node__avatar--unknown' : colorOf(data.personId)}`}
       >
         {data.personId === null || data.personId === undefined ? '?' : personInitials({ name: data.label })}
       </span>

@@ -14,10 +14,11 @@ import { FRIENDSHIP, type LinkedNetwork, PARTNERSHIP, PERSON_ENDPOINT, useLinked
 import { type LegendEntry, TIE_LEGEND } from './legend';
 import { NetworkGraph } from './NetworkGraph';
 import { AddRelative } from './Relatives';
-import { personColor, personInitials } from './people';
+import { personInitials } from './people';
 import { personPath } from './routes';
 import { StartWithYou } from './StartWithYou';
 import { fromLinkedNetwork } from './socialLayout';
+import { usePersonColor } from './usePersonColor';
 
 const SOMEONE = 'Someone';
 const DEFAULT_KINDS: readonly string[] = [PARTNERSHIP];
@@ -39,11 +40,12 @@ export function byGroup(linked: LinkedNetwork): LinkedNode[][] {
 
 /** A member's face: their initials on a colour that follows them (their record, else their place). */
 function MemberAvatar({ node }: { node: LinkedNode }): ReactElement {
+  const colorOf = usePersonColor();
   const known = node.person_id !== null;
   return (
     <span
       aria-hidden='true'
-      className={`inline-flex size-7 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-semibold ${known ? personColor({ id: node.person_id ?? node.key }) : 'border border-dashed text-muted-foreground'}`}
+      className={`inline-flex size-7 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-semibold ${known ? colorOf(node.person_id ?? node.key) : 'border border-dashed text-muted-foreground'}`}
     >
       {known ? personInitials({ name: node.name ?? SOMEONE }) : '?'}
     </span>
