@@ -12,13 +12,15 @@ export interface UserPagesProps {
   slug: string[];
   /** Extra account-page sections (the extensions' management tabs). */
   sections: ReactNode;
+  /** Whether sign-up is open (REGISTRATION_MODE isn't closed); when not, the welcome page offers sign-in only. */
+  signupOpen?: boolean;
 }
 
 /**
  * The auth router configured from the app's ZephyrexConfig, with zephyrex's own account page at
  * `<authPath>/manage`, where signing in lands, and the pages the app's extensions add.
  */
-export function UserPages({ slug, sections }: UserPagesProps): ReactNode {
+export function UserPages({ slug, sections, signupOpen = true }: UserPagesProps): ReactNode {
   const { config } = useZephyrexConfig();
   const extensionPages = Object.fromEntries(
     extensionAuthPages(config).map(({ path, component: Page }) => [path, <Page key={path} />]),
@@ -28,6 +30,7 @@ export function UserPages({ slug, sections }: UserPagesProps): ReactNode {
       params={{ slug }}
       corePagesConfig={{
         ...authPagesConfig(config),
+        signupOpen,
         register: { path: '/register', heading: 'Create your account' },
         manage: { path: MANAGE_PATH, heading: 'Your account' },
       }}

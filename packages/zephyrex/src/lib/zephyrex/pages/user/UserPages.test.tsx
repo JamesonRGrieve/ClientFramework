@@ -4,6 +4,7 @@ import { useAuthentication } from '@zephyrex/auth';
 import type { ReactElement } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ZephyrexClientExtension } from '../../types';
+import { UserPage } from './UserPage';
 import { UserPages } from './UserPages';
 import { TestWrapper } from '@/testing/TestWrapper';
 
@@ -23,6 +24,7 @@ const PAIRING: ZephyrexClientExtension = {
 describe('UserPages', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
   });
 
   it('mounts a registered extension’s auth page inside the auth router, without asking the server', async () => {
@@ -35,5 +37,42 @@ describe('UserPages', () => {
     );
     expect(await view.findByText('Pairing under /user, linked as Sign in with another device')).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalledWith(expect.stringContaining('/v1/extension'), expect.anything());
+  });
+
+  it('offers sign-in only on the welcome page while sign-up is closed, and sign-up beside it otherwise', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Promise.resolve(new Response('{}'))),
+    );
+    const closedView = render(
+      <TestWrapper>
+        <UserPages slug={[]} sections={null} signupOpen={false} />
+      </TestWrapper>,
+    );
+    expect(await closedView.findByText('Enter your email to sign in.')).toBeInTheDocument();
+    closedView.unmount();
+    const openView = render(
+      <TestWrapper>
+        <UserPages slug={[]} sections={null} />
+      </TestWrapper>,
+    );
+    expect(await openView.findByText('Enter your email to sign in or create an account.')).toBeInTheDocument();
+  });
+});
+
+describe('UserPage', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  it('reads REGISTRATION_MODE on the server, as the middleware does', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Promise.resolve(new Response('{}'))),
+    );
+    vi.stubEnv('REGISTRATION_MODE', 'closed');
+    const view = render(<TestWrapper>{await UserPage({ params: Promise.resolve({}) })}</TestWrapper>);
+    expect(await view.findByText('Enter your email to sign in.')).toBeInTheDocument();
   });
 });
