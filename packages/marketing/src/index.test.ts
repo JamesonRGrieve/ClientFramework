@@ -17,6 +17,9 @@ describe('@zephyrex/marketing', () => {
         'SiteFooter',
         'SiteHeader',
         'subLevel',
+        'WAITLIST_PATH',
+        'WaitlistForm',
+        'createWaitlistRoute',
       ].sort(),
     );
   });

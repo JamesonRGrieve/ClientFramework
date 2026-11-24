@@ -1162,6 +1162,9 @@ importers:
       zephyrex:
         specifier: workspace:^
         version: link:../zephyrex
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
 
   packages/media:
     devDependencies:

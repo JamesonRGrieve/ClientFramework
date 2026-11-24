@@ -41,7 +41,8 @@
   "peerDependencies": {
     "next": "^16.2.6",
     "react": "^19.2.8",
-    "zephyrex": "workspace:^"
+    "zephyrex": "workspace:^",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@storybook/nextjs": "^10.6.1",
@@ -51,6 +52,7 @@
     "react": "^19.3.0",
     "storybook": "^10.6.1",
     "vitest": "^5.0.2",
-    "zephyrex": "workspace:^"
+    "zephyrex": "workspace:^",
+    "zod": "^4.6.5"
   }
 }
