@@ -142,6 +142,11 @@ export interface ZephyrexConfig {
      * subscribe page under the auth path when omitted.
      */
     plans?: string;
+    /**
+     * Pages for visitors, shown without the app's sidebar, beside the landing page, the sign-in pages
+     * and `/waitlist` (which every app gets): e.g. `['/pricing', '/about']`.
+     */
+    visitorPaths?: readonly string[];
   };
   auth?: {
     /**

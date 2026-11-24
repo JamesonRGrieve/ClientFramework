@@ -26,7 +26,7 @@ export function NoScriptNav(): ReactNode {
   const { navItems, config } = useZephyrexConfig();
   const pathname = usePathname();
   const links = navItems.flatMap(linksOf);
-  if (links.length === 0 || !sidebarShownOn(pathname, config.auth?.authPath ?? DEFAULT_AUTH_PATH)) {
+  if (links.length === 0 || !sidebarShownOn(pathname, config.auth?.authPath ?? DEFAULT_AUTH_PATH, config.app.visitorPaths)) {
     return null;
   }
   return (

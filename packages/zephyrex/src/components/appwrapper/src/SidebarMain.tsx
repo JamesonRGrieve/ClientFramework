@@ -18,7 +18,7 @@ export function SidebarMain({ children, ...props }: React.ComponentProps<typeof 
   const { config } = useZephyrexConfig();
   const authPath = config.auth?.authPath ?? DEFAULT_AUTH_PATH;
 
-  if (!sidebarShownOn(pathname, authPath)) {
+  if (!sidebarShownOn(pathname, authPath, config.app.visitorPaths)) {
     return null;
   }
 
