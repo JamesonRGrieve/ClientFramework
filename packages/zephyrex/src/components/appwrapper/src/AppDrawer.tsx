@@ -12,6 +12,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { z } from 'zod';
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 
 /** What the drawer shows: a title (its heading, and its accessible name), an optional line under it, the body. */
@@ -31,28 +32,85 @@ export interface AppDrawerApi {
 
 const AppDrawerContext = createContext<AppDrawerApi | undefined>(undefined);
 
+/** Marks the history entry the open drawer holds, so the back button closes it instead of leaving. */
+const DRAWER_ENTRY = '__zephyrexAppDrawer';
+
+/** Whatever object the router keeps in the entry, kept as is; anything else counts as none. */
+const EntryState = z.looseObject({});
+const DrawerEntry = z.looseObject({ [DRAWER_ENTRY]: z.literal(true) });
+
+/** Whether the entry on top of history is the one the drawer pushed. */
+function isDrawerEntry(): boolean {
+  return DrawerEntry.safeParse(window.history.state).success;
+}
+
+/**
+ * Opening pushes one same-URL entry on top of the page's, keeping the router's own state in it, so a
+ * phone's back button pops that entry (closing the drawer) instead of the page.
+ */
+function pushDrawerEntry(): void {
+  const kept = EntryState.safeParse(window.history.state).data ?? {};
+  window.history.pushState({ ...kept, [DRAWER_ENTRY]: true }, '');
+}
+
 /**
  * The app wrapper's bottom drawer, beside its two side menus: one drawer for the whole app, which a
  * page fills with `useAppDrawer().open(…)` or `<AppDrawerContent>`. It slides up from the bottom,
  * drags down to dismiss, stops at 85% of the screen's height and clears a phone's home indicator.
+ * While it is up it holds one history entry, so a phone's back button closes it and stays on the page.
  * ZephyrexApp mounts it, as it does the context sidebar.
  */
 export function AppDrawerProvider({ children }: { children: ReactNode }): ReactElement {
   const [shown, setShown] = useState<DrawerShown | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  // Whether the drawer's history entry is still in the stack: set on open, cleared by back or close.
+  const holdsEntry = useRef(false);
   const open = useCallback((content: ReactNode, title: string, description?: string): void => {
     setShown({ title, description, content });
     setIsOpen(true);
+    // A second open while one is up replaces the content and keeps the one entry.
+    if (!holdsEntry.current) {
+      holdsEntry.current = true;
+      pushDrawerEntry();
+    }
   }, []);
   const close = useCallback((): void => {
     setIsOpen(false);
+    if (holdsEntry.current) {
+      holdsEntry.current = false;
+      // Closed some other way than back (button, swipe, scrim, Escape): pop the entry so history keeps
+      // no dead step. If a navigation has already put a page on top of it, leave history alone.
+      if (isDrawerEntry()) {
+        window.history.back();
+      }
+    }
   }, []);
+  useEffect(() => {
+    const onPop = (): void => {
+      if (holdsEntry.current && !isDrawerEntry()) {
+        holdsEntry.current = false;
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener('popstate', onPop);
+    return () => {
+      window.removeEventListener('popstate', onPop);
+    };
+  }, []);
+  const onOpenChange = useCallback(
+    (next: boolean): void => {
+      if (!next) {
+        close();
+      }
+    },
+    [close],
+  );
   const api = useMemo<AppDrawerApi>(() => ({ open, close, isOpen }), [open, close, isOpen]);
 
   return (
     <AppDrawerContext.Provider value={api}>
       {children}
-      <Drawer open={isOpen} onOpenChange={setIsOpen} shouldScaleBackground={false}>
+      <Drawer open={isOpen} onOpenChange={onOpenChange} shouldScaleBackground={false}>
         <DrawerContent className='mx-auto max-h-[85svh] w-full max-w-3xl pb-[env(safe-area-inset-bottom)]'>
           <DrawerHeader className='text-left'>
             <DrawerTitle>{shown?.title ?? ''}</DrawerTitle>

@@ -83,6 +83,58 @@ describe('AppDrawer', () => {
     });
   });
 
+  it('holds one history entry while up: a second open keeps it, a close pops it once', async () => {
+    const push = vi.spyOn(window.history, 'pushState');
+    const back = vi.spyOn(window.history, 'back');
+    render(
+      <AppDrawerProvider>
+        <Opener />
+      </AppDrawerProvider>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Details' }));
+    await screen.findByRole('dialog', { name: TITLE });
+    act(() => {
+      screen.getByRole('button', { name: 'Details', hidden: true }).click();
+    });
+    const pushes = push.mock.calls.length;
+    const marked = JSON.stringify(window.history.state);
+    act(() => {
+      screen.getByRole('button', { name: 'Done', hidden: true }).click();
+    });
+    act(() => {
+      screen.getByRole('button', { name: 'Done', hidden: true }).click();
+    });
+    const backs = back.mock.calls.length;
+    push.mockRestore();
+    back.mockRestore();
+    // The back the close asked for lands asynchronously; let it, so the next test starts on the page.
+    await waitFor(() => {
+      expect(JSON.stringify(window.history.state)).not.toContain('__zephyrexAppDrawer');
+    });
+    expect(pushes).toBe(1);
+    expect(marked).toBe('{"__zephyrexAppDrawer":true}');
+    expect(backs).toBe(1);
+  });
+
+  it('closes on back and stays on the page', async () => {
+    render(
+      <AppDrawerProvider>
+        <Opener />
+      </AppDrawerProvider>,
+    );
+    const page = window.location.href;
+    fireEvent.click(screen.getByRole('button', { name: 'Details' }));
+    await screen.findByRole('dialog', { name: TITLE });
+    act(() => {
+      window.history.back();
+    });
+    await waitFor(() => {
+      expect(screen.getByText('shut', { ignore: '[role=dialog] *' })).toBeInTheDocument();
+    });
+    expect(window.location.href).toBe(page);
+    expect(window.history.state).not.toMatchObject({ __zephyrexAppDrawer: true });
+  });
+
   it('is only available inside its provider', () => {
     expect(() => renderHook(() => useAppDrawer())).toThrow('useAppDrawer must be used within an AppDrawerProvider');
   });
