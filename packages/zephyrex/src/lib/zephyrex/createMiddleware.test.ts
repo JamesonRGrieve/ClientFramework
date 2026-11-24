@@ -11,6 +11,10 @@ const API_ORIGIN = 'https://api.example.com';
 const CONTINUES = 'x-middleware-next';
 const UPSTREAM_REQUIRED = 'upstreamUrl is required';
 const UPSTREAM = 'http://server:1996';
+/** The header Next sets on a continuing request to carry this response's nonce. */
+const SENT_NONCE = 'x-middleware-request-x-nonce';
+const CSP = 'content-security-policy';
+const REGISTER = '/user/register';
 
 const request = (path = '/team/1', session?: string): NextRequest => {
   const req = new NextRequest(`${ORIGIN}${path}`);
@@ -67,14 +71,14 @@ describe('createMiddleware', () => {
   it('sends a fresh-nonce CSP on every response, and hands the nonce on with a continuing request', async () => {
     const middleware = createMiddleware(CONFIG, { builtinHooks: [] });
     const first = await middleware(request());
-    const policy = first.headers.get('content-security-policy') ?? '';
-    const nonce = first.headers.get('x-middleware-request-x-nonce') ?? '';
+    const policy = first.headers.get(CSP) ?? '';
+    const nonce = first.headers.get(SENT_NONCE) ?? '';
     expect(nonce).not.toBe('');
     expect(policy).toContain(`'nonce-${nonce}'`);
     // Next reads the policy from the request to stamp the nonce on its own scripts.
     expect(first.headers.get('x-middleware-request-content-security-policy')).toBe(policy);
     const second = await middleware(request());
-    expect(second.headers.get('x-middleware-request-x-nonce')).not.toBe(nonce);
+    expect(second.headers.get(SENT_NONCE)).not.toBe(nonce);
   });
 
   it('puts the CSP on a hook’s own answer too, and adds the app’s sources', async () => {
@@ -84,7 +88,7 @@ describe('createMiddleware', () => {
     );
     const response = await middleware(request());
     expect(response.headers.get('location')).toBe(`${ORIGIN}/elsewhere`);
-    expect(response.headers.get('content-security-policy')).toContain('https://analytics.example.org');
+    expect(response.headers.get(CSP)).toContain('https://analytics.example.org');
   });
 
   it('guards nothing, and needs no API, for an app without accounts', async () => {
@@ -124,6 +128,36 @@ describe('createMiddleware', () => {
     const approve = await middleware(request('/user/pair/approve?token=t1'));
     expect(approve.headers.get('location')).toBe(`${ORIGIN}/user`);
     expect((await middleware(request('/user/pair'))).headers.get(CONTINUES)).toBe('1');
+  });
+
+  it('turns the sign-up page away while sign-up is closed: not found, or to the app’s target', async () => {
+    const log: string[] = [];
+    const closedWith = (disabledPath?: string): ReturnType<typeof createMiddleware> =>
+      createMiddleware(CONFIG, {
+        builtinHooks: [recording(log, 'builtin')],
+        signupGate: { mode: 'closed', disabledPath },
+      });
+    const notFound = await closedWith()(request(REGISTER));
+    expect(notFound.headers.get('x-middleware-rewrite')).toBe(`${ORIGIN}/_not-found`);
+    // The not-found page still gets this response's nonce for its scripts.
+    expect(notFound.headers.get(SENT_NONCE)).not.toBeNull();
+    expect(notFound.headers.get(CSP)).not.toBeNull();
+    const waitlist = await closedWith('/waitlist')(request(REGISTER));
+    expect(waitlist.headers.get('location')).toBe(`${ORIGIN}/waitlist`);
+    expect(log).toEqual([]);
+    // Signing in is never turned away.
+    expect((await closedWith('/waitlist')(request('/user/login'))).headers.get(CONTINUES)).toBe('1');
+    expect(log).toEqual(['builtin']);
+  });
+
+  it('leaves the sign-up page alone while sign-up is open, and in an app without accounts', async () => {
+    const open = createMiddleware(CONFIG, { builtinHooks: [], signupGate: { mode: 'open', disabledPath: '/waitlist' } });
+    expect((await open(request(REGISTER))).headers.get(CONTINUES)).toBe('1');
+    const noAccounts = createMiddleware(
+      { server: { baseUrl: '' }, auth: { enabled: false } },
+      { signupGate: { mode: 'closed', disabledPath: '/waitlist' } },
+    );
+    expect((await noAccounts(request(REGISTER))).headers.get(CONTINUES)).toBe('1');
   });
 
   it('checks a session against the upstream API', async () => {

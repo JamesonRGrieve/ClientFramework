@@ -139,13 +139,23 @@ import { useUser, useRole, useTeams, useClient, useProviders } from 'zephyrex';
 
 ## Environment Variables
 
-The template app reads these in `zephyrex.config.ts` and `next.config.js`; the framework itself reads none.
+The template app reads these in `zephyrex.config.ts` and `next.config.js`:
 
 ```
 API_URI=http://localhost:1996      # where the Next server reaches the API (proxy target)
 APP_URI=http://localhost:1109      # the app's public address (cookie domain, metadata)
 PRIVATE_ROUTES=/team,/provider
 ```
+
+The framework's middleware reads two itself, so sign-up can be switched off without a code change:
+
+```
+REGISTRATION_MODE=closed           # the server's own setting: open (default), invite, sso or closed
+SIGNUP_DISABLED_PATH=/waitlist     # where <authPath>/register goes while closed; unset, it is not found (404)
+```
+
+Only `closed` turns the sign-up page away; signing in is never affected. Give the client the same
+`REGISTRATION_MODE` as the server, which refuses sign-ups by it too.
 
 Linked packages are installed as injected copies until they are published; after rebuilding one, refresh
 the copy without rewriting the version specifiers:
