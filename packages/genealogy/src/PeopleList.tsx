@@ -33,10 +33,13 @@ import { useGenealogyOptions } from './OptionsProvider';
 /** Above this many people the list gets a search box. */
 const SEARCH_FROM = 6;
 
-/** Someone's face in the list: their initials on their own colour. */
 /** The kinds the Connection column reads from relationships rather than connections. */
 const FAMILY_KINDS: ReadonlySet<string> = new Set([ANCESTRY, SIBLING_OF]);
 
+/** A row's quiet second line. */
+const SUBLINE = 'block truncate text-xs font-normal text-muted-foreground';
+
+/** Someone's face in the list: their initials on their own colour. */
 function PersonInitials({ person }: { person: Person }): ReactElement {
   return (
     <span
@@ -160,8 +163,12 @@ function TiesOrNone({
   );
 }
 
-/** Everyone the user has recorded, as a searchable table, with a dialog to add someone. */
-export function PeopleList(): ReactElement {
+/**
+ * Everyone the user has recorded, as a searchable table, with a dialog to add someone. Given a
+ * `title`, the list heads the page: the title is its h1, with the count beside it, and there is no
+ * second heading inside.
+ */
+export function PeopleList({ title }: { title?: string } = {}): ReactElement {
   const options = useGenealogyOptions();
   const persons = usePersons();
   const me = useUser().data?.id;
@@ -182,40 +189,51 @@ export function PeopleList(): ReactElement {
 
   return (
     <section aria-labelledby={`${searchId}-title`} className='grid gap-4'>
-      <div className='flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between'>
-        <div className='grid gap-1'>
-          <h2 id={`${searchId}-title`} className='text-lg font-semibold'>
-            {options.lineage ? 'People' : 'Everyone'}
-            {sorted.length > 0 && (
-              <span className='ml-2 text-sm font-normal tabular-nums text-muted-foreground'>{String(sorted.length)}</span>
-            )}
-          </h2>
-          <p className='text-sm text-muted-foreground'>
-            {options.lineage
-              ? 'Everyone in your family tree. Open someone to record their relatives.'
-              : 'Everyone you have recorded. Open someone to record how you are connected.'}
-          </p>
-        </div>
-        <div className='flex flex-wrap items-center gap-2'>
-          {sorted.length >= SEARCH_FROM && (
-            <span className='relative'>
-              <Search
-                aria-hidden='true'
-                className='pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground'
-              />
-              <Input
-                id={searchId}
-                type='search'
-                aria-label='Search people'
-                placeholder='Search people'
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                className='w-52 pl-8'
-              />
+      <header className='grid gap-1'>
+        <div className='flex items-baseline gap-2'>
+          {title === undefined ? (
+            <h2 id={`${searchId}-title`} className='text-lg font-semibold'>
+              {options.lineage ? 'People' : 'Everyone'}
+            </h2>
+          ) : (
+            <h1 id={`${searchId}-title`} className='text-2xl font-semibold tracking-tight text-balance sm:text-3xl'>
+              {title}
+            </h1>
+          )}
+          {sorted.length > 0 && (
+            <span className={`${title === undefined ? 'text-sm' : 'text-lg sm:text-xl'} tabular-nums text-muted-foreground`}>
+              · {String(sorted.length)}
             </span>
           )}
-          <AddPerson onAdded={async () => persons.mutate()} />
         </div>
+        <p className='text-sm text-muted-foreground'>
+          {options.lineage
+            ? 'Everyone in your family tree. Open someone to record their relatives.'
+            : 'Everyone you have recorded. Open someone to record how you are connected.'}
+        </p>
+      </header>
+      {/* The tools get a row of their own, so the heading never squeezes beside them. */}
+      <div className='flex flex-wrap items-center gap-2'>
+        {sorted.length >= SEARCH_FROM && (
+          <span className='relative min-w-0 flex-1 sm:max-w-xs'>
+            <Search
+              aria-hidden='true'
+              className='pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground'
+            />
+            <Input
+              id={searchId}
+              type='search'
+              aria-label='Search people'
+              placeholder='Search people'
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              className='w-full pl-8'
+            />
+          </span>
+        )}
+        <span className='ml-auto'>
+          <AddPerson onAdded={async () => persons.mutate()} />
+        </span>
       </div>
       {persons.error !== undefined && (
         <LoadProblem what='your tree' error={persons.error} onRetry={async () => persons.mutate()} />
@@ -237,7 +255,8 @@ export function PeopleList(): ReactElement {
           {(ties) => (
             <div className='overflow-x-auto rounded-lg border'>
               <table aria-label='People' className='w-full text-sm'>
-                <thead className='bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground'>
+                {/* One column on a phone needs no column names. */}
+                <thead className='hidden bg-muted/40 text-left sm:table-header-group text-xs uppercase tracking-wide text-muted-foreground'>
                   <tr>
                     <th scope='col' className='px-4 py-2 font-medium'>
                       Name
@@ -262,15 +281,12 @@ export function PeopleList(): ReactElement {
                           <span className='min-w-0'>
                             <span className='block truncate group-hover:underline'>{personName(person)}</span>
                             {person.description !== null && person.description !== '' && (
-                              <span className='block truncate text-xs font-normal text-muted-foreground'>
-                                {person.description}
-                              </span>
+                              <span className={SUBLINE}>{person.description}</span>
                             )}
-                            {/* The Connection column shows from lg; below it, the tie sits under the name. */}
-                            {person.id !== selfId && ties.get(person.id) !== undefined && (
-                              <span className='block truncate text-xs font-normal text-muted-foreground lg:hidden'>
-                                {ties.get(person.id)}
-                              </span>
+                            {/* The Connection column shows from lg; below it, the tie sits under the name,
+                                and someone with none says so, so every row keeps the same rhythm. */}
+                            {selfId !== null && person.id !== selfId && (
+                              <span className={`${SUBLINE} lg:hidden`}>{ties.get(person.id) ?? 'Not connected yet'}</span>
                             )}
                           </span>
                         </Link>

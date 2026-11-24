@@ -12,7 +12,7 @@ function Chosen({ ids }: { ids: readonly string[] }): React.JSX.Element {
     toggleAll(ids);
   }, [ids, toggleAll]);
   return (
-    <SelectionBar selection={selection} noun='gift'>
+    <SelectionBar selection={selection} noun='gift' all={['g1', 'g2', 'g3']}>
       <Button type='button' size='sm' variant='outline'>
         Mark bought
       </Button>
@@ -30,7 +30,7 @@ export default meta;
 
 type Story = StoryObj<typeof Chosen>;
 
-/** Two rows ticked: the count, the action, and Clear. */
+/** Two of three rows ticked: the count with Choose all and Clear, then the action. */
 export const TwoChosen: Story = {
   play: async ({ canvasElement }) => {
     await expect(await within(canvasElement).findByRole('status')).toHaveTextContent('2 gifts chosen');

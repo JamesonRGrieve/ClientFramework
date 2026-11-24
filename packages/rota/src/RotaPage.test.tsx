@@ -66,6 +66,21 @@ describe('RotaPage', () => {
     expect(await view.findByText('Waiting for Sam')).toBeInTheDocument();
   });
 
+  it('opens a day’s actions under the phone strip when the day is tapped, and closes on a second tap', async () => {
+    const view = renderRota(<RotaPage people={PEOPLE} />);
+    const weeks = await view.findByRole('region', { name: WEEKS });
+    const sams = nth(await within(weeks).findAllByRole('listitem'), 2);
+    const day = within(sams).getByRole('button', { name: /^Choose / });
+    await userEvent.click(day);
+    expect(day).toHaveAttribute('aria-pressed', 'true');
+    const label = day.getAttribute('aria-label')?.replace('Choose ', '') ?? '';
+    const panel = within(weeks).getByRole('group', { name: label });
+    expect(panel).toHaveTextContent('Sam');
+    await userEvent.click(within(panel).getByRole('button', { name: 'Ask for it' }));
+    expect(await view.findByText('Waiting for Sam')).toBeInTheDocument();
+    expect(within(weeks).queryByRole('group', { name: label })).toBeNull();
+  });
+
   it('hands your own night to someone', async () => {
     const store = rotaFixture();
     store.nights.push({ id: 'n3', rota_id: 'r1', day_index: 3, user_id: ME, created_at: null, updated_at: null });

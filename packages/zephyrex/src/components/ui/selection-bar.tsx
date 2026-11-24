@@ -39,37 +39,53 @@ export function useSelection(): RowSelection {
 }
 
 /**
- * The bar that appears once rows are ticked: how many, the actions for them, and a way to clear the
- * ticks. It sits where the list starts, so the actions are in reach without scrolling.
+ * The bar that appears once rows are ticked. On the left, how many, with the quiet controls that
+ * change the ticks (Choose all, Clear); on the right, the actions for the ticked rows as one group,
+ * which wraps under the count as a whole when the bar is narrow. It sits where the list starts, so
+ * the actions are in reach without scrolling.
  */
 export function SelectionBar({
   selection,
   noun,
+  all,
   children,
 }: {
   selection: RowSelection;
   /** What a row is, for the count: "gift" gives "2 gifts chosen". */
   noun: string;
-  /** The actions for the ticked rows, as buttons. */
+  /** Every row's id; when given, "Choose all" shows until they are all ticked. */
+  all?: readonly string[];
+  /** The actions for the ticked rows, as buttons, with any destructive one last. */
   children: ReactNode;
 }): ReactElement | null {
   const count = selection.chosen.size;
   if (count === 0) {
     return null;
   }
+  // Comparing the optional chain to true narrows `all` to defined wherever `more` is true.
+  const more = all?.some((id) => !selection.has(id)) === true;
   return (
     // A labelled section is a region: the bar's name, for screen readers and tests alike.
     <section
       aria-label='Chosen'
-      className='flex flex-wrap items-center gap-2 rounded-md border bg-muted/50 px-3 py-2 text-sm animate-in fade-in-0 slide-in-from-top-1 motion-reduce:animate-none'
+      className='flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md border bg-muted/50 px-3 py-2 text-sm animate-in fade-in-0 slide-in-from-top-1 motion-reduce:animate-none'
     >
-      <span role='status' className='mr-auto font-medium'>
-        {`${String(count)} ${noun}${count === 1 ? '' : 's'} chosen`}
-      </span>
-      {children}
-      <Button type='button' size='sm' variant='ghost' onClick={selection.clear}>
-        Clear
-      </Button>
+      <div className='mr-auto flex flex-wrap items-center gap-x-1'>
+        <span role='status' className='mr-1 font-medium'>
+          {`${String(count)} ${noun}${count === 1 ? '' : 's'} chosen`}
+        </span>
+        {more && (
+          <Button type='button' size='sm' variant='ghost' onClick={() => selection.toggleAll(all)}>
+            Choose all
+          </Button>
+        )}
+        <Button type='button' size='sm' variant='ghost' onClick={selection.clear}>
+          Clear
+        </Button>
+      </div>
+      <fieldset aria-label='For the chosen' className='flex min-w-0 flex-wrap items-center gap-2'>
+        {children}
+      </fieldset>
     </section>
   );
 }

@@ -26,6 +26,8 @@ const giftId = (gift: Gift): string => gift.id;
 
 const SELECT = 'h-9 rounded-md border bg-background px-3 text-sm font-normal';
 const LINK = 'underline underline-offset-4';
+/** Delete among the bulk actions: outlined like its neighbours, in the destructive colour. */
+const DESTRUCTIVE_OUTLINE = 'border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive';
 const SOMEONE_ELSE = '';
 
 /** A title as a heading: its first letter in capitals ("peonies" → "Peonies"). */
@@ -39,10 +41,10 @@ function Problem({ problem }: { problem: string | null }): ReactNode {
   );
 }
 
-/** A link to search the shop for `query`, once the server has made it. */
 /** Up to this many people, "For" is a row of chips; beyond it, a list. */
 const CHIP_PEOPLE = 8;
 
+/** A link to search the shop for `query`, once the server has made it. */
 function ShopSearch({ query }: { query: string }): ReactNode {
   const [asked, setAsked] = useState(false);
   const link = useShopLink(asked ? query : null);
@@ -50,7 +52,7 @@ function ShopSearch({ query }: { query: string }): ReactNode {
     return (
       <button
         type='button'
-        className='justify-self-start text-sm font-medium text-primary underline-offset-4 hover:underline'
+        className='justify-self-start whitespace-nowrap text-sm font-medium text-primary underline-offset-4 hover:underline'
         onClick={() => setAsked(true)}
         aria-label={`Find it at the shop: ${query}`}
       >
@@ -276,23 +278,23 @@ function GiftRow({
             className={gift.status === 'given' ? 'font-medium text-muted-foreground line-through' : 'font-medium'}
           />
           <div className='flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground'>
-            <InlineText
-              value={gift.note ?? ''}
-              label='Note'
-              placeholder='Add a note'
-              onSave={async (note) => change({ note }, 'The note could not be saved.')}
-            />
-            {/* The dot and its link wrap together, so a narrow row never ends on a bare dot. */}
-            <span className='inline-flex items-center gap-x-2 whitespace-nowrap'>
+            {/* The dot stays with the note it follows, so a wrapped link never starts a line with it. */}
+            <span className='inline-flex min-w-0 items-center gap-x-2'>
+              <InlineText
+                value={gift.note ?? ''}
+                label='Note'
+                placeholder='Add a note'
+                onSave={async (note) => change({ note }, 'The note could not be saved.')}
+              />
               <span aria-hidden='true'>·</span>
-              {link === null ? (
-                <ShopSearch query={gift.title} />
-              ) : (
-                <a className={LINK} href={link} target='_blank' rel='noopener noreferrer sponsored'>
-                  Where to buy it
-                </a>
-              )}
             </span>
+            {link === null ? (
+              <ShopSearch query={gift.title} />
+            ) : (
+              <a className={`${LINK} whitespace-nowrap`} href={link} target='_blank' rel='noopener noreferrer sponsored'>
+                Where to buy it
+              </a>
+            )}
           </div>
         </div>
       </div>
@@ -486,12 +488,7 @@ function BulkGifts({
   };
   return (
     <div className='grid gap-2'>
-      <SelectionBar selection={selection} noun='gift'>
-        {chosen.length < gifts.length && (
-          <Button type='button' size='sm' variant='ghost' onClick={() => selection.toggleAll(gifts.map((gift) => gift.id))}>
-            Choose all
-          </Button>
-        )}
+      <SelectionBar selection={selection} noun='gift' all={gifts.map((gift) => gift.id)}>
         <Button
           type='button'
           size='sm'
@@ -549,14 +546,7 @@ function BulkGifts({
             ))}
           </select>
         )}
-        <Button
-          type='button'
-          size='sm'
-          variant='outline'
-          disabled={busy}
-          onClick={remove}
-          className='hover:text-destructive'
-        >
+        <Button type='button' size='sm' variant='outline' disabled={busy} onClick={remove} className={DESTRUCTIVE_OUTLINE}>
           Delete
         </Button>
       </SelectionBar>

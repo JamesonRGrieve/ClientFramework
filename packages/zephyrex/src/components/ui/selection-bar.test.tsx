@@ -19,7 +19,7 @@ function Picker({ onBought }: { onBought: (ids: readonly string[]) => void }): R
           {id}
         </label>
       ))}
-      <SelectionBar selection={selection} noun='gift'>
+      <SelectionBar selection={selection} noun='gift' all={IDS}>
         <button type='button' onClick={() => onBought([...selection.chosen])}>
           Mark bought
         </button>
@@ -52,5 +52,17 @@ describe('SelectionBar', () => {
     expect(view.getByRole('status')).toHaveTextContent('1 gift chosen');
     await user.click(view.getByRole('button', { name: 'Clear' }));
     expect(view.queryByRole('region', { name: 'Chosen' })).toBeNull();
+  });
+
+  it('offers Choose all beside the count until every row is ticked, apart from the actions', async () => {
+    const user = userEvent.setup();
+    const view = render(<Picker onBought={vi.fn()} />);
+    await user.click(view.getByRole('checkbox', { name: 'g1' }));
+    const actions = view.getByRole('group', { name: 'For the chosen' });
+    expect(actions).toContainElement(view.getByRole('button', { name: 'Mark bought' }));
+    expect(actions).not.toContainElement(view.getByRole('button', { name: 'Clear' }));
+    await user.click(view.getByRole('button', { name: 'Choose all' }));
+    expect(view.getByRole('status')).toHaveTextContent('3 gifts chosen');
+    expect(view.queryByRole('button', { name: 'Choose all' })).toBeNull();
   });
 });

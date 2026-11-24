@@ -1,15 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import { within } from '@testing-library/react';
+import { render, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { http, HttpResponse } from 'msw';
 import { useRouter } from 'next/navigation.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { familyFixture } from './genealogy.mocks';
+import { nth, TestWrapper } from 'zephyrex/testing';
+import { fetchFrom } from 'zephyrex/testing/msw';
+import { familyFixture, genealogyHandlers } from './genealogy.mocks';
 import { PeopleList } from './PeopleList';
 import { renderGenealogy } from './testing.mocks';
 
 describe('PeopleList', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    document.cookie = 'zx_csrf=; path=/; max-age=0';
   });
 
   it('lists everyone by name with their years, each linking to their page', async () => {
@@ -47,5 +51,36 @@ describe('PeopleList', () => {
   it('says when nobody is recorded yet', async () => {
     const view = renderGenealogy(<PeopleList />, { persons: [], relationships: [] });
     expect(await view.findByText(/^Nobody is recorded yet\./)).toBeInTheDocument();
+  });
+
+  it('heads the page with the count beside the title, and no second heading', async () => {
+    const view = renderGenealogy(<PeopleList title='People' />);
+    await view.findByRole('table', { name: 'People' });
+    expect(view.getByRole('heading', { level: 1, name: 'People' })).toBeInTheDocument();
+    expect(view.getByText('· 7')).toBeInTheDocument();
+    expect(view.queryByRole('heading', { level: 2 })).toBeNull();
+  });
+
+  it('says when someone is not connected to you yet, so every row has a second line', async () => {
+    const { persons } = familyFixture();
+    const ada = nth(persons, 2);
+    const ralph = nth(persons, 6);
+    const store = { persons: [{ ...ada, linked_user_id: 'user-1' }, ralph], relationships: [] };
+    const user = { id: 'user-1', email: 'ada@example.com', first_name: 'Ada', last_name: 'Lovelace' };
+    // A session, as far as the client can tell: its readable CSRF cookie.
+    document.cookie = 'zx_csrf=csrf-1; path=/';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(fetchFrom([http.get('*/v1/user', () => HttpResponse.json({ user })), ...genealogyHandlers(store)])),
+    );
+    const view = render(
+      <TestWrapper>
+        <PeopleList />
+      </TestWrapper>,
+    );
+    // The table re-renders once your own record is known, so look the rows up after that.
+    const line = await view.findByText('Not connected yet');
+    expect(view.getByRole('link', { name: /Ralph King-Milbanke/ })).toContainElement(line);
+    expect(within(view.getByRole('link', { name: /Ada Lovelace/ })).queryByText('Not connected yet')).toBeNull();
   });
 });

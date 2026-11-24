@@ -26,6 +26,7 @@ import {
   dayOf,
   type Rota,
   type RotaPerson,
+  type ScheduledNight,
   type Swap,
 } from './rotaModel';
 
@@ -68,7 +69,97 @@ function Problem({ problem }: { problem: string | null }): ReactElement | null {
   );
 }
 
-/** The next two weeks: whom each night is with, and a swap from each that is yours or someone else's. */
+const REVEAL =
+  'h-7 text-xs transition-opacity pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100';
+
+/** A member's initial on their colour; an open night's in grey. */
+function Initial({ userId, nameOf, toneOf }: { userId: string | null; nameOf: NameOf; toneOf: (userId: string) => string }) {
+  return (
+    <span
+      aria-hidden='true'
+      className={`inline-flex size-5 shrink-0 items-center justify-center rounded-full text-[0.6rem] font-semibold ${
+        userId === null ? 'bg-muted-foreground text-background' : toneOf(userId)
+      }`}
+    >
+      {nameOf(userId).charAt(0)}
+    </span>
+  );
+}
+
+/** What can be done with one night: offer yours to someone, or ask for theirs. */
+function NightActions({
+  night,
+  me,
+  others,
+  nameOf,
+  toneOf,
+  ask,
+  reveal,
+}: {
+  night: ScheduledNight;
+  me: string | undefined;
+  others: readonly string[];
+  nameOf: NameOf;
+  toneOf: (userId: string) => string;
+  ask: (night: string, toUserId: string) => Promise<void>;
+  /** The tile's classes, shown on hover with a fine pointer; none in the phone's day panel. */
+  reveal: string;
+}): ReactNode {
+  const mine = night.user_id !== null && night.user_id === me;
+  if (mine && others.length === 1) {
+    const first = nameOf(others[0] ?? '').split(' ')[0] ?? '';
+    return (
+      <Button
+        variant='outline'
+        size='sm'
+        className={reveal}
+        aria-label={`Offer to ${first}: ${nightLabel(night.night)}`}
+        onClick={() => void ask(night.night, others[0] ?? OPEN)}
+      >
+        Offer to {first}
+      </Button>
+    );
+  }
+  if (mine && others.length > 1) {
+    return (
+      <DropdownMenu modal={false}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant='outline'
+            size='sm'
+            className={`${reveal} data-[state=open]:opacity-100`}
+            aria-label={`Offer to someone: ${nightLabel(night.night)}`}
+          >
+            Offer to… <span aria-hidden='true'>▾</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align='start'>
+          {others.map((userId) => (
+            <DropdownMenuItem key={userId} className='gap-2' onSelect={() => void ask(night.night, userId)}>
+              <Initial userId={userId} nameOf={nameOf} toneOf={toneOf} />
+              {nameOf(userId)}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+  if (night.user_id !== null && !mine && me !== undefined) {
+    return (
+      <Button variant='outline' size='sm' className={reveal} onClick={() => void ask(night.night, me)}>
+        Ask for it
+      </Button>
+    );
+  }
+  return null;
+}
+
+/**
+ * The next two weeks: whom each night is with, and a swap from each that is yours or someone else's.
+ * From sm each night is a tile with its own actions. On a phone the fortnight is a strip of two
+ * seven-day rows (day letter, date, whose night by their colour); tapping a day opens its actions
+ * under the strip.
+ */
 function Schedule({
   rota,
   people,
@@ -83,6 +174,7 @@ function Schedule({
   const schedule = useSchedule(rota.id, isoDay(new Date()), SHOWN_NIGHTS);
   const { askSwap } = useRotaActions();
   const [problem, setProblem] = useState<string | null>(null);
+  const [picked, setPicked] = useState<string | null>(null);
   const members = membersOf(rota, people);
   const others = members.filter((userId) => userId !== me);
   // One colour per member for this rota, no two alike, so whose night it is reads at a glance.
@@ -92,15 +184,19 @@ function Schedule({
     const failed = await writeProblem(askSwap(rota, night, toUserId), 'The swap could not be asked for.');
     setProblem(failed);
     if (failed === null) {
+      setPicked(null);
       notify('Swap asked for', `${nameOf(toUserId)} answers it.`);
     }
   };
+  const nights = schedule.data ?? [];
+  const chosen = nights.find((night) => night.night === picked);
+  const shared = { me, others, nameOf, toneOf, ask };
   return (
     <section aria-label={`${rota.name}: the next two weeks`} className='grid gap-2'>
       <h3 className='text-sm font-medium text-muted-foreground'>The next two weeks</h3>
       <Problem problem={problem} />
-      <ol className='grid grid-cols-2 gap-1.5 sm:grid-cols-4 lg:grid-cols-7'>
-        {(schedule.data ?? []).map((night) => {
+      <ol className='grid grid-cols-7 gap-1 sm:grid-cols-4 sm:gap-1.5 lg:grid-cols-7'>
+        {nights.map((night) => {
           const mine = night.user_id !== null && night.user_id === me;
           const day = dayOf(night.night);
           const today = day.toDateString() === new Date().toDateString();
@@ -109,84 +205,59 @@ function Schedule({
               key={night.night}
               aria-label={`${nightLabel(night.night)}: ${nameOf(night.user_id)}`}
               aria-current={today ? 'date' : undefined}
-              className={`group grid content-start gap-2 rounded-lg border p-2 ${mine ? 'border-primary/50 bg-primary/10' : 'bg-muted/20'} ${today ? 'ring-2 ring-primary/70' : ''}`}
+              className={`group relative grid content-start justify-items-center gap-1 rounded-lg border p-1 sm:justify-items-stretch sm:gap-2 sm:p-2 ${mine ? 'border-primary/50 bg-primary/10' : 'bg-muted/20'} ${today ? 'ring-2 ring-primary/70' : ''} ${night.night === picked ? 'max-sm:border-primary' : ''}`}
             >
-              <span className='flex items-baseline justify-between gap-1'>
+              {/* On a phone the whole cell is the way in to the night's actions. */}
+              <button
+                type='button'
+                className='absolute inset-0 rounded-lg focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring sm:hidden'
+                aria-label={`Choose ${nightLabel(night.night)}`}
+                aria-pressed={night.night === picked}
+                onClick={() => setPicked(night.night === picked ? null : night.night)}
+              />
+              <span className='flex flex-col items-center sm:flex-row sm:items-baseline sm:justify-between sm:gap-1'>
                 <span
                   className={`text-xs uppercase tracking-wide ${today ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}
                 >
-                  {today ? 'Today' : day.toLocaleDateString('en-GB', { weekday: 'short' })}
+                  <span className='sm:hidden'>{day.toLocaleDateString('en-GB', { weekday: 'narrow' })}</span>
+                  <span className='hidden sm:inline'>
+                    {today ? 'Today' : day.toLocaleDateString('en-GB', { weekday: 'short' })}
+                  </span>
                 </span>
-                <span className='text-lg font-semibold tabular-nums'>{String(day.getDate())}</span>
+                <span className='text-base font-semibold tabular-nums sm:text-lg'>{String(day.getDate())}</span>
               </span>
               <span className='flex items-center gap-1.5 text-sm'>
-                <span
-                  aria-hidden='true'
-                  className={`inline-flex size-5 shrink-0 items-center justify-center rounded-full text-[0.6rem] font-semibold ${
-                    night.user_id === null ? 'bg-muted-foreground text-background' : toneOf(night.user_id)
-                  }`}
-                >
-                  {nameOf(night.user_id).charAt(0)}
-                </span>
-                <span className='truncate font-medium'>{nameOf(night.user_id)}</span>
+                <Initial userId={night.user_id} nameOf={nameOf} toneOf={toneOf} />
+                <span className='hidden truncate font-medium sm:inline'>{nameOf(night.user_id)}</span>
               </span>
               {night.swapped && (
-                <Badge variant='secondary' className='justify-self-start text-[0.65rem]'>
-                  Swapped
-                </Badge>
+                <>
+                  <span aria-hidden='true' className='size-1.5 rounded-full bg-muted-foreground sm:hidden' />
+                  <Badge variant='secondary' className='hidden justify-self-start text-[0.65rem] sm:inline-flex'>
+                    Swapped
+                  </Badge>
+                </>
               )}
-              {mine && others.length === 1 && (
-                <Button
-                  variant='outline'
-                  size='sm'
-                  className='h-7 text-xs transition-opacity pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100'
-                  aria-label={`Offer to ${nameOf(others[0] ?? '').split(' ')[0] ?? ''}: ${nightLabel(night.night)}`}
-                  onClick={() => void ask(night.night, others[0] ?? OPEN)}
-                >
-                  Offer to {nameOf(others[0] ?? '').split(' ')[0]}
-                </Button>
-              )}
-              {mine && others.length > 1 && (
-                <DropdownMenu modal={false}>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant='outline'
-                      size='sm'
-                      className='h-7 text-xs transition-opacity pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100 data-[state=open]:opacity-100'
-                      aria-label={`Offer to someone: ${nightLabel(night.night)}`}
-                    >
-                      Offer to… <span aria-hidden='true'>▾</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align='start'>
-                    {others.map((userId) => (
-                      <DropdownMenuItem key={userId} className='gap-2' onSelect={() => void ask(night.night, userId)}>
-                        <span
-                          aria-hidden='true'
-                          className={`inline-flex size-5 items-center justify-center rounded-full text-[0.6rem] font-semibold ${toneOf(userId)}`}
-                        >
-                          {nameOf(userId).charAt(0)}
-                        </span>
-                        {nameOf(userId)}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-              {night.user_id !== null && !mine && me !== undefined && (
-                <Button
-                  variant='outline'
-                  size='sm'
-                  className='h-7 text-xs transition-opacity pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100'
-                  onClick={() => void ask(night.night, me)}
-                >
-                  Ask for it
-                </Button>
-              )}
+              <span className='hidden sm:contents'>
+                <NightActions night={night} reveal={REVEAL} {...shared} />
+              </span>
             </li>
           );
         })}
       </ol>
+      {chosen !== undefined && (
+        <fieldset
+          aria-label={nightLabel(chosen.night)}
+          className='flex min-w-0 flex-wrap items-center gap-2 rounded-lg border bg-muted/30 p-3 text-sm sm:hidden'
+        >
+          <Initial userId={chosen.user_id} nameOf={nameOf} toneOf={toneOf} />
+          <span className='mr-auto font-medium'>
+            {nightLabel(chosen.night)} · {nameOf(chosen.user_id)}
+            {chosen.swapped && <span className='font-normal text-muted-foreground'> · swapped</span>}
+          </span>
+          <NightActions night={chosen} reveal='h-8' {...shared} />
+        </fieldset>
+      )}
     </section>
   );
 }

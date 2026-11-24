@@ -65,7 +65,7 @@ function ModeIcon({ mode }: { mode: string }): ReactElement | null {
       strokeWidth={2}
       strokeLinecap='round'
       strokeLinejoin='round'
-      className='size-3.5 shrink-0'
+      className='size-4 shrink-0 sm:size-3.5'
     >
       {paths.map((d) => (
         <path key={d} d={d} />
@@ -76,6 +76,9 @@ function ModeIcon({ mode }: { mode: string }): ReactElement | null {
 
 const CHIP =
   'rounded-full border px-3 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted aria-checked:border-primary aria-checked:bg-primary/10 aria-checked:text-foreground';
+/** A travel mode's chip: a rounded tile with the icon above the word on a phone, a pill from sm. */
+const MODE_CHIP =
+  'flex min-w-0 flex-col items-center justify-center gap-1 rounded-md px-1 py-2 text-xs sm:inline-flex sm:flex-row sm:gap-1.5 sm:rounded-full sm:px-3 sm:py-1 sm:text-sm';
 const LINK = 'underline underline-offset-4';
 const OSM_COPYRIGHT = 'https://www.openstreetmap.org/copyright';
 const MIN_LOCATIONS = 2;
@@ -337,13 +340,14 @@ export function MeetInTheMiddle({ known = [] }: MeetInTheMiddleProps): ReactNode
               <span id={ids.mode} className='text-sm font-medium'>
                 Travelling
               </span>
-              <div className='flex flex-wrap gap-2'>
+              {/* On a phone the four modes share one row, icon over word; from sm they sit inline as chips. */}
+              <div className='grid grid-cols-4 gap-1.5 sm:flex sm:flex-wrap sm:gap-2'>
                 {MODES.map((item) => (
                   <ChoiceChip
                     key={item.mode}
                     checked={mode === item.mode}
                     onClick={() => setMode(item.mode)}
-                    className={`${CHIP} inline-flex items-center gap-1.5`}
+                    className={`${CHIP} ${MODE_CHIP}`}
                   >
                     <ModeIcon mode={item.mode} />
                     {item.label}
