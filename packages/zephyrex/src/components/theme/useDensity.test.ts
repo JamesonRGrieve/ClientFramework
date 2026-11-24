@@ -25,6 +25,10 @@ describe('useDensity', () => {
     expect(document.documentElement.dataset.density).toBe(COMPACT);
     expect(document.cookie).toContain('density=compact');
     act(() => {
+      result.current.setDensity('sparse');
+    });
+    expect(document.documentElement.dataset.density).toBe('sparse');
+    act(() => {
       result.current.setDensity('comfortable');
     });
     expect(document.documentElement.dataset.density).toBeUndefined();

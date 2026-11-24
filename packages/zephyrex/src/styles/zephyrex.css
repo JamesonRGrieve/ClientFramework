@@ -116,8 +116,8 @@
 }
 
 /* Density, one switch for every app: `data-density="compact"` on <html> (the `density` cookie, set
-   from Appearance) tightens controls, table cells, cards and skeleton rows; comfortable, the default,
-   is the sizes the framework always had. Components read these, never a fixed height or padding, so
+   from Appearance) tightens controls, table cells, cards and skeleton rows, and `data-density="sparse"`
+   gives them more room; comfortable, the default, is the sizes the framework always had. Components read these, never a fixed height or padding, so
    an app never passes a prop: `h-(--control-h)`, `py-(--control-py)`, `p-(--cell-p)`, `p-(--card-p)`. */
 :root {
   --control-h: 2.5rem;
@@ -146,6 +146,21 @@
 @media (min-width: 40rem) {
   :root[data-density='compact'] {
     --card-p: 1rem;
+  }
+}
+
+:root[data-density='sparse'] {
+  --control-h: 3rem;
+  --control-h-sm: 2.5rem;
+  --control-py: 0.75rem;
+  --cell-p: 0.75rem;
+  --card-p: 1.25rem;
+  --row-py: 1rem;
+}
+
+@media (min-width: 40rem) {
+  :root[data-density='sparse'] {
+    --card-p: 2rem;
   }
 }
 

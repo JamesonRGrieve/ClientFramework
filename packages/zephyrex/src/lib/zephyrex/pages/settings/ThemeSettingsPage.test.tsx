@@ -33,7 +33,7 @@ describe('ThemeSettings', () => {
   it('offers the density under its own heading, the given one checked', () => {
     render(<ThemeSettings theme='dark' density='compact' />, { wrapper: TestWrapper });
     expect(screen.getByRole('heading', { level: 2, name: 'Density' })).toBeInTheDocument();
-    expect(within(screen.getByRole('group', { name: 'Density' })).getAllByRole('radio')).toHaveLength(2);
+    expect(within(screen.getByRole('group', { name: 'Density' })).getAllByRole('radio')).toHaveLength(3);
     expect(screen.getByRole('radio', { name: /^Compact/ })).toBeChecked();
   });
 

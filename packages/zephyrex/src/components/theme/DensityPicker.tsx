@@ -5,9 +5,10 @@ import { type ReactElement, useId } from 'react';
 import { DENSITIES, type Density } from './density';
 import { useDensity } from './useDensity';
 
-const CHOICES: Readonly<Record<Density, { label: string; hint: string; rows: readonly string[] }>> = {
-  comfortable: { label: 'Comfortable', hint: 'More room around each control', rows: ['r1', 'r2', 'r3'] },
-  compact: { label: 'Compact', hint: 'More on screen at once', rows: ['r1', 'r2', 'r3', 'r4', 'r5'] },
+const CHOICES: Readonly<Record<Density, { label: string; hint: string; rows: readonly string[]; bar: string }>> = {
+  sparse: { label: 'Sparse', hint: 'Room to breathe, easier to tap', rows: ['r1', 'r2'], bar: 'h-3' },
+  comfortable: { label: 'Comfortable', hint: 'More room around each control', rows: ['r1', 'r2', 'r3'], bar: 'h-2' },
+  compact: { label: 'Compact', hint: 'More on screen at once', rows: ['r1', 'r2', 'r3', 'r4', 'r5'], bar: 'h-1' },
 };
 
 /**
@@ -26,7 +27,7 @@ export function DensityPicker({
   const { density, setDensity } = useDensity(initialDensity);
   const name = useId();
   return (
-    <fieldset className='grid grid-cols-2 gap-3 sm:max-w-md'>
+    <fieldset className='grid grid-cols-3 gap-3 sm:max-w-xl'>
       <legend className='sr-only'>{label}</legend>
       {DENSITIES.map((choice) => (
         <label
@@ -41,17 +42,10 @@ export function DensityPicker({
             onChange={() => setDensity(choice)}
             className='sr-only'
           />
-          {/* The preview: the same height holds three rows when comfortable, five when compact. */}
+          {/* The preview: the same height holds two rows when sparse, three when comfortable, five when compact. */}
           <span aria-hidden className='grid h-14 content-start gap-1 overflow-hidden rounded-md border bg-background p-2'>
             {CHOICES[choice].rows.map((row) => (
-              <span
-                key={row}
-                className={
-                  choice === 'compact'
-                    ? 'h-1 w-full rounded-full bg-muted-foreground'
-                    : 'h-2 w-full rounded-full bg-muted-foreground'
-                }
-              />
+              <span key={row} className={`${CHOICES[choice].bar} w-full rounded-full bg-muted-foreground`} />
             ))}
           </span>
           <span className='font-medium'>{CHOICES[choice].label}</span>

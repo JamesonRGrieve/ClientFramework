@@ -20,10 +20,10 @@ export function useDensity(initial?: string): { density: Density; setDensity: (d
 
   useEffect(() => {
     const root = document.documentElement;
-    if (density === 'compact') {
-      root.dataset.density = 'compact';
-    } else {
+    if (density === 'comfortable') {
       delete root.dataset.density;
+    } else {
+      root.dataset.density = density;
     }
     setCookie(DENSITY_COOKIE, density, {
       expires: new Date(Date.now() + COOKIE_MAX_AGE_MS),

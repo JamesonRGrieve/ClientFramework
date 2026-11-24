@@ -12,9 +12,11 @@ describe('DensityPicker', () => {
     delete document.documentElement.dataset.density;
   });
 
-  it('offers comfortable and compact as a named radio group, comfortable checked by default', () => {
+  it('offers sparse, comfortable and compact as a named radio group, comfortable checked by default', () => {
     render(<DensityPicker />);
     expect(screen.getByRole('group', { name: 'Density' })).toBeInTheDocument();
+    expect(screen.getAllByRole('radio')).toHaveLength(3);
+    expect(screen.getByRole('radio', { name: /^Sparse/ })).not.toBeChecked();
     expect(screen.getByRole('radio', { name: COMFORTABLE })).toBeChecked();
     expect(screen.getByRole('radio', { name: COMPACT })).not.toBeChecked();
   });

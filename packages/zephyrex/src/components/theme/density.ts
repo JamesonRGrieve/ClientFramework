@@ -4,15 +4,15 @@
 /** The cookie the chosen density is kept in, read by the server too (see `densityAttribute`). */
 export const DENSITY_COOKIE = 'density';
 
-/** The densities: comfortable is the framework's usual sizes, compact tightens them. */
-export const DENSITIES = ['comfortable', 'compact'] as const;
+/** The densities: sparse gives controls more room, comfortable is the framework's usual sizes, compact tightens them. */
+export const DENSITIES = ['sparse', 'comfortable', 'compact'] as const;
 export type Density = (typeof DENSITIES)[number];
 
 const DEFAULT_DENSITY: Density = 'comfortable';
 
-/** A density from a stored value: anything but `compact` is comfortable. */
+/** A density from a stored value: anything but `sparse` or `compact` is comfortable. */
 export function densityFrom(value: string | undefined | null): Density {
-  return value === 'compact' ? 'compact' : DEFAULT_DENSITY;
+  return value === 'sparse' || value === 'compact' ? value : DEFAULT_DENSITY;
 }
 
 /**
@@ -20,6 +20,7 @@ export function densityFrom(value: string | undefined | null): Density {
  * paint is already the person's density: `<html {...densityAttribute(cookies.get('density')?.value)}>`.
  * Comfortable needs no attribute.
  */
-export function densityAttribute(value: string | undefined): { 'data-density'?: 'compact' } {
-  return densityFrom(value) === 'compact' ? { 'data-density': 'compact' } : {};
+export function densityAttribute(value: string | undefined): { 'data-density'?: 'sparse' | 'compact' } {
+  const density = densityFrom(value);
+  return density === 'comfortable' ? {} : { 'data-density': density };
 }
