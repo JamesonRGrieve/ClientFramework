@@ -2,10 +2,11 @@
 /**
  * Where sign-up goes when the app has it switched off. The client reads the server's own setting,
  * `REGISTRATION_MODE` (open | invite | sso | closed; unset is open), which the pipeline renders into
- * both env files, so the pages and the API agree. Only `closed` turns sign-up away here: an invite or
- * a single-sign-on account still registers through these pages. `SIGNUP_DISABLED_PATH` names where a
- * visitor to the sign-up page is sent instead (an app's waitlist, say); unset, the page is not found.
- * Signing in is never affected.
+ * both env files, so the pages and the API agree. `closed` turns sign-up away: `SIGNUP_DISABLED_PATH`
+ * names where a visitor to the sign-up page is sent instead (an app's waitlist, say); unset, the page
+ * is not found. Under `sso` new accounts come only from the identity provider, so the email sign-up
+ * page, which the server would refuse, sends its visitor to the welcome page and its provider buttons.
+ * An invite still registers through these pages. Signing in is never affected.
  */
 
 /** The server's sign-up modes. */
@@ -21,7 +22,8 @@ export interface SignupGate {
 export type SignupDecision = { kind: 'pass' } | { kind: 'notFound' } | { kind: 'redirect'; url: URL };
 
 const CLOSED: RegistrationMode = 'closed';
-const MODES: ReadonlySet<string> = new Set(['open', 'invite', 'sso', CLOSED]);
+const SSO: RegistrationMode = 'sso';
+const MODES: ReadonlySet<string> = new Set(['open', 'invite', SSO, CLOSED]);
 const PASS: SignupDecision = { kind: 'pass' };
 
 function isMode(value: string): value is RegistrationMode {
@@ -36,13 +38,20 @@ export function signupGateFromEnv(env: Readonly<Record<string, string | undefine
 
 /**
  * The decision for `url` under `authPath`: the sign-up page (`<authPath>/register`, and anything under
- * it) is sent away while sign-up is closed; every other page passes. A target that leads back to the
- * page itself counts as unset, so it can never loop.
+ * it) is sent away while sign-up is closed, and to the welcome page (`authPath`) under single sign-on;
+ * every other page passes. A target that leads back to the page itself counts as unset, so it can
+ * never loop.
  */
 export function signupDecision(url: URL, authPath: string, gate: SignupGate): SignupDecision {
   const register = `${authPath}/register`;
   const signup = url.pathname === register || url.pathname.startsWith(`${register}/`);
-  if (gate.mode !== CLOSED || !signup) {
+  if (!signup) {
+    return PASS;
+  }
+  if (gate.mode === SSO) {
+    return { kind: 'redirect', url: new URL(authPath === '' ? '/' : authPath, url) };
+  }
+  if (gate.mode !== CLOSED) {
     return PASS;
   }
   const target = gate.disabledPath?.trim() ?? '';

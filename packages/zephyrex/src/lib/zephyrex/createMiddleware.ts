@@ -45,8 +45,8 @@ const CSP_HEADER = 'Content-Security-Policy';
 const NOT_FOUND_ROUTE = '/_not-found';
 
 /**
- * Next.js middleware that first turns the sign-up page away when sign-up is closed (`REGISTRATION_MODE`,
- * see signupGate), then runs the session guard, then any app hooks, then every extension's
+ * Next.js middleware that first turns the sign-up page away when sign-up is closed, or sends it to the
+ * welcome page under single sign-on (`REGISTRATION_MODE`, see signupGate), then runs the session guard, then any app hooks, then every extension's
  * hooks, in that order. The first hook that activates answers the request; otherwise the request
  * continues. Every response carries `x-next-pathname` and a Content-Security-Policy with a fresh
  * nonce, which the continuing request also carries so Next stamps it on its own scripts.

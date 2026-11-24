@@ -22,8 +22,8 @@ describe('signupGateFromEnv', () => {
 });
 
 describe('signupDecision', () => {
-  it('lets every page through while sign-up is open, invite-only or single sign-on', () => {
-    for (const mode of ['open', 'invite', 'sso'] as const) {
+  it('lets every page through while sign-up is open or invite-only', () => {
+    for (const mode of ['open', 'invite'] as const) {
       expect(signupDecision(new URL(REGISTER), AUTH, { mode, disabledPath: '/waitlist' })).toEqual({ kind: 'pass' });
     }
   });
@@ -53,5 +53,15 @@ describe('signupDecision', () => {
     expect(signupDecision(new URL(REGISTER), AUTH, { ...CLOSED, disabledPath: `${AUTH}/register` })).toEqual({
       kind: 'notFound',
     });
+  });
+
+  it('sends the email sign-up page to the welcome page under single sign-on, whatever the target', () => {
+    const sso = { mode: 'sso', disabledPath: '/waitlist' } as const;
+    expect(signupDecision(new URL(REGISTER), AUTH, sso)).toEqual({ kind: 'redirect', url: at(AUTH) });
+    expect(signupDecision(at(`${AUTH}/register/verify`), AUTH, sso)).toEqual({ kind: 'redirect', url: at(AUTH) });
+    expect(signupDecision(at('/register'), '', sso)).toEqual({ kind: 'redirect', url: at('/') });
+    for (const path of [AUTH, `${AUTH}/login`, `${AUTH}/close/authentik`]) {
+      expect(signupDecision(at(path), AUTH, sso)).toEqual({ kind: 'pass' });
+    }
   });
 });
