@@ -158,6 +158,18 @@ describe('createWaitlistRoute', () => {
     expect(erp).toHaveBeenCalledTimes(3);
   });
 
+  it('reaches the ERP through the fetch in force at each request, so a later stub still catches it', async () => {
+    const { POST } = createWaitlistRoute({ webForm: FORM, app: 'App' });
+    const stub = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ message: {} }));
+    vi.stubGlobal('fetch', stub);
+    try {
+      expect((await POST(entry({ email: ADA }))).status).toBe(202);
+      expect(stub).toHaveBeenCalledOnce();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('answers 502 when the ERP refuses or cannot be reached', async () => {
     const refusing = createWaitlistRoute({
       webForm: FORM,

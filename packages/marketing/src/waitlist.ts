@@ -147,8 +147,10 @@ function leadDocument(entry: WaitlistEntry, options: WaitlistRouteOptions): Reco
  */
 export function createWaitlistRoute(options: WaitlistRouteOptions): { POST: (request: Request) => Promise<Response> } {
   const { webForm, erpOrigin = ERP_ORIGIN, perHour = 5, pace = DEFAULT_PACE } = options;
-  const send = options.fetch ?? fetch;
-  const now = options.now ?? Date.now;
+  // Both are looked up on each call, never kept from creation: an app creates the route when its
+  // module loads, so a test that stubs fetch (or fakes the clock) after importing it would otherwise
+  // still reach the real ERP (Text Mutation, 2026-11-24).
+  const now = (): number => (options.now ?? Date.now)();
   const recent = new Map<string, number[]>();
   // The shared bucket: full to start, refilled one sign-up every `pace.everyMs`.
   let tokens = pace.burst;
@@ -198,7 +200,7 @@ export function createWaitlistRoute(options: WaitlistRouteOptions): { POST: (req
       data: JSON.stringify(leadDocument(entry, options)),
     });
     try {
-      const answer = await send(`${erpOrigin}${ACCEPT_PATH}`, {
+      const answer = await (options.fetch ?? globalThis.fetch)(`${erpOrigin}${ACCEPT_PATH}`, {
         method: 'POST',
         headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
         body: form.toString(),
