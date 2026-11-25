@@ -7,9 +7,61 @@ import { LuCheck as Check, LuChevronRight as ChevronRight, LuCircle as Circle } 
 
 import { cn } from '@/lib/utils';
 
-const DropdownMenu = DropdownMenuPrimitive.Root;
+/** The open state, for the trigger to toggle a menu on a finished touch tap. */
+const MenuOpen = React.createContext<{ open: boolean; setOpen: (open: boolean) => void } | null>(null);
 
-const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
+/** Radix's menu root, holding its open state (controlled or not) so the trigger can toggle it. */
+function DropdownMenu(props: React.ComponentProps<typeof DropdownMenuPrimitive.Root>): React.JSX.Element {
+  const { open, defaultOpen = false, ...rest } = props;
+  const [own, setOwn] = React.useState(defaultOpen);
+  const shown = open ?? own;
+  const setOpen = (next: boolean): void => {
+    setOwn(next);
+    props.onOpenChange?.(next);
+  };
+  return (
+    <MenuOpen.Provider value={{ open: shown, setOpen }}>
+      <DropdownMenuPrimitive.Root {...rest} open={shown} onOpenChange={setOpen} />
+    </MenuOpen.Provider>
+  );
+}
+
+/**
+ * Radix's trigger, but a touch opens the menu on a finished tap, not on touching down: Radix opens on
+ * pointer-down, so on a phone a finger that starts a scroll over a ⋯ button opened its menu (the
+ * operator, 2026-11-25). A touch's pointer-down is kept from Radix and its click toggles the menu; a
+ * scroll cancels the pointer and never clicks. The pointer type is the one pointer-down recorded,
+ * since older iOS gives its clicks none. Mouse and keyboard open as Radix does.
+ */
+const DropdownMenuTrigger = React.forwardRef<
+  React.ComponentRef<typeof DropdownMenuPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Trigger>
+>(({ onPointerDown, onClick, ...props }, ref) => {
+  const menu = React.useContext(MenuOpen);
+  const pressed = React.useRef<string | null>(null);
+  return (
+    <DropdownMenuPrimitive.Trigger
+      ref={ref}
+      onPointerDown={(event) => {
+        onPointerDown?.(event);
+        pressed.current = event.pointerType;
+        if (menu !== null && event.pointerType === 'touch') {
+          event.preventDefault();
+        }
+      }}
+      onClick={(event) => {
+        onClick?.(event);
+        const touched = pressed.current === 'touch';
+        pressed.current = null;
+        if (menu !== null && touched && !event.defaultPrevented) {
+          menu.setOpen(!menu.open);
+        }
+      }}
+      {...props}
+    />
+  );
+});
+DropdownMenuTrigger.displayName = DropdownMenuPrimitive.Trigger.displayName;
 
 const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 
