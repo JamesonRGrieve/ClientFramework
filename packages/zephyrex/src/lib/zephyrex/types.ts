@@ -122,6 +122,12 @@ export interface ZephyrexConfig {
     baseUrl: string;
     /** Where the Next server reaches the API (the proxy target), e.g. `http://server:1996`. */
     upstreamUrl?: string;
+    /**
+     * Whether the middleware proxies `/v1` and `/graphql` under a relative `baseUrl` to `upstreamUrl`
+     * (default true). False for an app whose own route handlers answer those paths (a lite edition,
+     * whose upstream is itself): the session check still uses `upstreamUrl`.
+     */
+    proxyApi?: boolean;
     graphqlPath?: string;
   };
   app: {

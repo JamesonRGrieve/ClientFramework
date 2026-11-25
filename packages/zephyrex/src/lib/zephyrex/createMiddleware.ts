@@ -48,12 +48,13 @@ const API_PATHS = ['/v1/', '/graphql'];
 /**
  * The proxy to the API for a same-origin app: `/v1/*` and `/graphql` (under a relative `baseUrl`) go
  * to the upstream from runtime env. A next.config rewrite would be fixed at build, so one build could
- * not reach a dev and a prod API. None for an absolute `baseUrl`, or with no upstream.
+ * not reach a dev and a prod API. None for an absolute `baseUrl`, with no upstream, or with `proxyApi`
+ * false (an app that answers those paths itself).
  */
 export function apiProxyFor({ server }: Pick<ZephyrexConfig, 'server'>): ((url: URL) => URL | undefined) | undefined {
   const prefix = server.baseUrl.replace(/\/$/, '');
   const upstream = server.upstreamUrl?.trim().replace(/\/$/, '') ?? '';
-  if (ABSOLUTE_URL.test(prefix) || !ABSOLUTE_URL.test(upstream)) {
+  if (server.proxyApi === false || ABSOLUTE_URL.test(prefix) || !ABSOLUTE_URL.test(upstream)) {
     return undefined;
   }
   return (url) => {

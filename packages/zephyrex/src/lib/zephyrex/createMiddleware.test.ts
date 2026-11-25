@@ -242,9 +242,13 @@ describe('apiProxyFor', () => {
     expect(api?.(at('/v1/user'))).toBeUndefined();
   });
 
-  it('proxies nothing for an absolute base, or with no upstream', () => {
+  it('proxies nothing for an absolute base, with no upstream, or when the app opts out', () => {
     expect(apiProxyFor({ server: { baseUrl: API_ORIGIN, upstreamUrl: UPSTREAM } })).toBeUndefined();
     expect(apiProxyFor({ server: { baseUrl: '' } })).toBeUndefined();
+    // A lite edition answers /api/v1 itself, with its own origin as the upstream: no proxy loop.
+    expect(
+      apiProxyFor({ server: { baseUrl: '/api', upstreamUrl: 'http://127.0.0.1:1109/api', proxyApi: false } }),
+    ).toBeUndefined();
   });
 });
 
