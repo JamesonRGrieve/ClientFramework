@@ -70,6 +70,10 @@
       "types": "./dist/lib/zephyrex/createMiddleware.d.ts",
       "default": "./dist/lib/zephyrex/createMiddleware.js"
     },
+    "./publicEnv": {
+      "types": "./dist/lib/zephyrex/publicEnv.d.ts",
+      "default": "./dist/lib/zephyrex/publicEnv.js"
+    },
     "./api": {
       "types": "./dist/lib/api/index.d.ts",
       "default": "./dist/lib/api/index.js"

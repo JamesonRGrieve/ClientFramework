@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { deleteCookie, getCookie } from 'cookies-next/client';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { ACTIVE_TEAM_COOKIE, activeTeamId, cookieDomainOptions, setActiveTeam, teamToActivate } from './cookies';
+import { PUBLIC_ENV_COOKIE, publicEnvCookieValue } from './publicEnv';
 
 describe('the active team', () => {
   afterEach(() => {
@@ -19,14 +20,18 @@ describe('the active team', () => {
 });
 
 describe('cookieDomainOptions', () => {
+  const instance = (values: Record<string, string>): void => {
+    document.cookie = `${PUBLIC_ENV_COOKIE}=${encodeURIComponent(publicEnvCookieValue(values))}; path=/`;
+  };
+
   afterEach(() => {
-    vi.unstubAllEnvs();
+    document.cookie = `${PUBLIC_ENV_COOKIE}=; path=/; max-age=0`;
   });
 
-  it('shares cookies across subdomains only when a domain is configured', () => {
-    vi.stubEnv('NEXT_PUBLIC_COOKIE_DOMAIN', '.example.com');
+  it('shares cookies across subdomains only when the instance has a cookie domain', () => {
+    instance({ COOKIE_DOMAIN: '.example.com' });
     expect(cookieDomainOptions()).toEqual({ domain: '.example.com' });
-    vi.stubEnv('NEXT_PUBLIC_COOKIE_DOMAIN', '');
+    instance({});
     expect(cookieDomainOptions()).toEqual({});
   });
 });

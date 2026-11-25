@@ -177,6 +177,11 @@ export interface ZephyrexConfig {
   };
   /** Sources the app adds to the framework's Content-Security-Policy, e.g. an analytics host. */
   contentSecurityPolicy?: CspAdditions;
+  /**
+   * Public values beyond APP_URI, COOKIE_DOMAIN and ENV that this app reads from runtime env with
+   * `publicEnv`, so one build serves every instance. Served to the browser: never a secret.
+   */
+  runtimeEnv?: readonly string[];
   extensions?: ZephyrexClientExtension[];
   pages?: RouteDefinition[];
   navItems?: NavItemDefinition[];

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import { NextRequest, NextResponse } from 'next/server.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { apiBaseFor, createMiddleware } from './createMiddleware';
+import { apiBaseFor, apiProxyFor, createMiddleware } from './createMiddleware';
+import { PUBLIC_ENV_COOKIE } from './publicEnv';
 import type { MiddlewareHook } from './types';
 
 const ORIGIN = 'https://app.example.com';
@@ -15,6 +16,7 @@ const UPSTREAM = 'http://server:1996';
 const SENT_NONCE = 'x-middleware-request-x-nonce';
 const CSP = 'content-security-policy';
 const REGISTER = '/user/register';
+const PROD_ORIGIN = 'https://rpg.example.com';
 
 const request = (path = '/team/1', session?: string): NextRequest => {
   const req = new NextRequest(`${ORIGIN}${path}`);
@@ -36,6 +38,7 @@ const CONFIG = { server: { baseUrl: '/api' } };
 describe('createMiddleware', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
   });
 
   it('runs built-in, app, then extension hooks in order and continues when none activates', async () => {
@@ -170,6 +173,78 @@ describe('createMiddleware', () => {
     const response = await middleware(request('/team/1', 'sess-1'));
     expect(response.headers.get(CONTINUES)).toBe('1');
     expect(fetchMock).toHaveBeenCalledWith('http://server:1996/v1/user', expect.anything());
+  });
+});
+
+describe('createMiddleware, one build for every instance', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  const NO_HOOKS = { builtinHooks: [] };
+  const served = async (appUri: string): Promise<Record<string, string>> => {
+    vi.stubEnv('APP_URI', appUri);
+    const response = await createMiddleware(CONFIG, NO_HOOKS)(request());
+    return JSON.parse(response.cookies.get(PUBLIC_ENV_COOKIE)?.value ?? '{}') as Record<string, string>;
+  };
+
+  it('serves each instance its own origin and cookie domain from runtime env alone', async () => {
+    expect(await served(PROD_ORIGIN)).toEqual({
+      APP_URI: PROD_ORIGIN,
+      COOKIE_DOMAIN: 'example.com',
+    });
+    expect(await served('https://dev.rpg.test')).toEqual({ APP_URI: 'https://dev.rpg.test', COOKIE_DOMAIN: 'rpg.test' });
+  });
+
+  it('upgrades insecure requests by the instance’s own origin', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('APP_URI', 'http://127.0.0.1:1109');
+    const plain = await createMiddleware(CONFIG, NO_HOOKS)(request());
+    expect(plain.headers.get(CSP)).not.toContain('upgrade-insecure-requests');
+    vi.stubEnv('APP_URI', PROD_ORIGIN);
+    const secure = await createMiddleware(CONFIG, NO_HOOKS)(request());
+    expect(secure.headers.get(CSP)).toContain('upgrade-insecure-requests');
+  });
+
+  it('sends the cookie again only when the browser’s copy is stale', async () => {
+    vi.stubEnv('APP_URI', ORIGIN);
+    const middleware = createMiddleware(CONFIG, NO_HOOKS);
+    const first = await middleware(request());
+    const value = first.cookies.get(PUBLIC_ENV_COOKIE)?.value ?? '';
+    const again = request();
+    again.cookies.set(PUBLIC_ENV_COOKIE, value);
+    expect((await middleware(again)).cookies.get(PUBLIC_ENV_COOKIE)).toBeUndefined();
+  });
+
+  it('refuses an app’s runtime name that reads as a secret', () => {
+    expect(() => createMiddleware({ ...CONFIG, runtimeEnv: ['STRIPE_SECRET'] }, NO_HOOKS)).toThrow('looks like a secret');
+  });
+
+  it('proxies the API to the upstream it was started with', async () => {
+    const middleware = createMiddleware({ server: { baseUrl: '', upstreamUrl: UPSTREAM } }, NO_HOOKS);
+    const response = await middleware(request('/v1/user?x=1'));
+    expect(response.headers.get('x-middleware-rewrite')).toBe(`${UPSTREAM}/v1/user?x=1`);
+    expect(response.cookies.get(PUBLIC_ENV_COOKIE)).toBeUndefined();
+  });
+});
+
+describe('apiProxyFor', () => {
+  const at = (path: string): URL => new URL(`${ORIGIN}${path}`);
+
+  it('sends the API paths under a relative base to the upstream, and nothing else', () => {
+    const root = apiProxyFor({ server: { baseUrl: '', upstreamUrl: `${UPSTREAM}/` } });
+    expect(root?.(at('/graphql'))?.href).toBe(`${UPSTREAM}/graphql`);
+    expect(root?.(at('/v1/team/1'))?.href).toBe(`${UPSTREAM}/v1/team/1`);
+    expect(root?.(at('/team/1'))).toBeUndefined();
+    expect(root?.(at('/graphql-docs'))).toBeUndefined();
+    const api = apiProxyFor({ server: { baseUrl: '/api', upstreamUrl: UPSTREAM } });
+    expect(api?.(at('/api/v1/user'))?.href).toBe(`${UPSTREAM}/v1/user`);
+    expect(api?.(at('/v1/user'))).toBeUndefined();
+  });
+
+  it('proxies nothing for an absolute base, or with no upstream', () => {
+    expect(apiProxyFor({ server: { baseUrl: API_ORIGIN, upstreamUrl: UPSTREAM } })).toBeUndefined();
+    expect(apiProxyFor({ server: { baseUrl: '' } })).toBeUndefined();
   });
 });
 

@@ -6,15 +6,13 @@ const withSerwist = require('@serwist/next').default({
 });
 
 const ENV = (process.env.ENV || process.env.NODE_ENV || 'development').toLowerCase();
+/**
+ * The build's public origin, for what pages prerender for search and sharing (OG URLs). What the app
+ * does with its origin at runtime (CSP, cookies, the API proxy) comes from runtime env through
+ * zephyrex's middleware and publicEnv, so one build serves every instance: APP_URI, API_URI and
+ * COOKIE_DOMAIN stay out of `env` below, which Next would inline at build.
+ */
 const APP_URI = process.env.APP_URI || 'http://localhost:1109';
-/** Where the Next server reaches the API; the browser only ever talks to this app's origin. */
-const API_URI = (process.env.API_URI || 'http://localhost:1996').replace(/\/$/, '');
-
-/** The registrable domain of APP_URI, so cookies the app sets are shared with its subdomains. */
-const cookieDomain = () => {
-  const host = ((APP_URI.split('://')[1] ?? '').split('/')[0] ?? '').split(':')[0] ?? '';
-  return /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host) ? host : host.split('.').slice(-2).join('.');
-};
 
 const SECURITY_HEADERS = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -36,20 +34,13 @@ const nextConfig = {
     NEXT_PUBLIC_ADSENSE_ACCOUNT: process.env.ADSENSE_ACCOUNT || '',
     NEXT_PUBLIC_ENV: ENV,
     NEXT_PUBLIC_LOG_VERBOSITY_CLIENT: process.env.NEXT_PUBLIC_LOG_VERBOSITY_CLIENT || '3',
-    NEXT_PUBLIC_COOKIE_DOMAIN: cookieDomain(),
-    API_URI,
     PRIVATE_ROUTES: process.env.PRIVATE_ROUTES || '/team,/provider',
   },
   devIndicators: {
     position: 'bottom-right',
   },
-  // The API is served on this origin, so its HttpOnly session cookie is first-party.
-  async rewrites() {
-    return [
-      { source: '/v1/:path*', destination: `${API_URI}/v1/:path*` },
-      { source: '/graphql', destination: `${API_URI}/graphql` },
-    ];
-  },
+  // The API is served on this origin, so its HttpOnly session cookie is first-party: zephyrex's
+  // middleware proxies /v1 and /graphql to the runtime API_URI (a rewrite here is fixed at build).
   async headers() {
     return [
       { source: '/:path*', headers: SECURITY_HEADERS },
