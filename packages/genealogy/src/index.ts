@@ -83,5 +83,6 @@ export { fromLinkedNetwork, fromNetwork, socialLayout } from './socialLayout';
 export type { GraphInput, GraphPerson, GraphTie } from './socialLayout';
 export { PeopleList } from './PeopleList';
 export { PersonPage } from './PersonPage';
+export { usePersonColor, usePersonTone } from './usePersonColor';
 export { SocialCircle } from './SocialCircle';
 export { GENEALOGY_PATH, personPath } from './routes';

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { personTone, personToneClass } from 'zephyrex/ui/person-tone';
 import { familyFixture } from './genealogy.mocks';
 import { renderGenealogy } from './testing.mocks';
-import { usePersonColor } from './usePersonColor';
+import { usePersonColor, usePersonTone } from './usePersonColor';
 
 const IDS = familyFixture().persons.map((person) => person.id);
 
@@ -13,6 +13,18 @@ function Colours({ ids }: { ids: readonly string[] }): React.JSX.Element {
     <ul>
       {ids.map((id) => (
         <li key={id}>{colorOf(id)}</li>
+      ))}
+    </ul>
+  );
+}
+
+function Tones({ ids }: { ids: readonly string[] }): React.JSX.Element {
+  const toneOf = usePersonTone();
+  const colorOf = usePersonColor();
+  return (
+    <ul>
+      {ids.map((id) => (
+        <li key={id}>{personToneClass(toneOf(id)) === colorOf(id) ? String(toneOf(id)) : 'mismatch'}</li>
       ))}
     </ul>
   );
@@ -44,5 +56,13 @@ describe('usePersonColor', () => {
   it('keeps their own colour for someone not in the tree', () => {
     const view = renderGenealogy(<Colours ids={['stranger']} />);
     expect(view.container.querySelector('li')).toHaveTextContent(personToneClass(personTone('stranger')));
+  });
+
+  it('gives the tone behind each colour, for PersonAvatar', async () => {
+    const view = renderGenealogy(<Tones ids={IDS} />);
+    await vi.waitFor(() => {
+      expect(new Set(shown(view.container)).size).toBe(IDS.length);
+    });
+    expect(shown(view.container)).not.toContain('mismatch');
   });
 });
