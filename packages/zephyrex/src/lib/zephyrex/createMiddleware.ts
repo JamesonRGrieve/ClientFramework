@@ -50,6 +50,12 @@ const API_PATHS = ['/v1/', '/graphql'];
  * to the upstream from runtime env. A next.config rewrite would be fixed at build, so one build could
  * not reach a dev and a prod API. None for an absolute `baseUrl`, with no upstream, or with `proxyApi`
  * false (an app that answers those paths itself).
+ *
+ * The middleware only proxies what its matcher sends it. An app whose `proxy.ts` (or `middleware.ts`)
+ * exports a `config.matcher` that leaves out `api` (the common `/((?!api|_next/static|…).*)`) must
+ * add the API paths, `['/v1/:path*', '/graphql', …]` or under its base `'/api/v1/:path*'`, when it
+ * drops its next.config rewrites, or every API call 404s (rpg-ai build77 dev, 2026-11-25). Next reads
+ * the matcher statically from the app's own file, so the framework cannot supply or check it.
  */
 export function apiProxyFor({ server }: Pick<ZephyrexConfig, 'server'>): ((url: URL) => URL | undefined) | undefined {
   const prefix = server.baseUrl.replace(/\/$/, '');
