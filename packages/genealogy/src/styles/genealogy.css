@@ -102,9 +102,12 @@
   width: var(--spacing-genealogy-avatar);
   height: var(--spacing-genealogy-avatar);
   border-radius: 50%;
-  /* The person colours' own initials colour (zephyrex's --person-foreground: white on the light
-     themes' deep tones, near-black on the dark themes' light ones). */
-  color: hsl(var(--person-foreground));
+  /* The person colours' own initials colour (white on the light themes' deep tones, near-black on
+     the dark themes' light ones). The theme token, not the raw variable: React Flow puts a `light`
+     class on its wrapper, and zephyrex's `.light` redefines the raw variable inside it, so a dark
+     page drew white initials on its light tones (2:1, Cule's finding 20). The token resolves on the
+     root, as the bg-person-N behind it does. */
+  color: var(--color-person-foreground);
   font-size: var(--spacing-genealogy-avatar-text);
   font-weight: 600;
 }
