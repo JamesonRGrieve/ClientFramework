@@ -38,10 +38,15 @@ export const BookedSchema = z.object({
 });
 export type Booked = z.infer<typeof BookedSchema>;
 
-/** Someone the app knows: their account and what to call them. */
+/** Someone the app knows: their account, what to call them, and their colour if the app has one. */
 export interface CalendarPerson {
   userId: string;
   name: string;
+  /**
+   * Their person tone (1 to 8), so they wear the colour they have elsewhere in the app (a genealogy
+   * app passes its tree's, from usePersonTone). Without one, the page gives each a colour of its own.
+   */
+  tone?: number;
 }
 
 export function serviceLabel(provider: string): string {

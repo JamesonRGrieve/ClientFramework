@@ -13,6 +13,7 @@ const PEOPLE = [
   { userId: JO, name: 'Jo' },
 ];
 const FIND = { name: 'Find free times' };
+const FINDER = { name: 'Find a time' };
 const CONNECT = { name: 'Connect a calendar' };
 const PASSWORD = 'App password';
 const CALDAV = /^CalDAV/;
@@ -28,7 +29,7 @@ describe('AvailabilityPage', () => {
     const store = calendarFixture();
     const user = userEvent.setup({ delay: null });
     const view = renderCalendar(<AvailabilityPage people={PEOPLE} />, store);
-    const finder = view.getByRole('form', { name: 'Find a time' });
+    const finder = view.getByRole('form', FINDER);
     // Everyone who shares with you starts chosen.
     expect(await within(finder).findByRole('button', { name: 'Alex' })).toHaveAttribute(PRESSED, 'true');
     expect(within(finder).getByRole('button', { name: 'Jo' })).toHaveAttribute(PRESSED, 'true');
@@ -38,6 +39,15 @@ describe('AvailabilityPage', () => {
     await user.click(within(finder).getByRole('button', FIND));
     expect(await view.findByRole('list', { name: 'Free times' })).toBeInTheDocument();
     expect(store.asked).toEqual([{ user_ids: [ALEX, JO], duration_minutes: 180 }]);
+  });
+
+  it('colours someone as the app does when it gives their tone', async () => {
+    const tone = 5;
+    const people = PEOPLE.map((person) => (person.userId === ALEX ? { ...person, tone } : person));
+    const view = renderCalendar(<AvailabilityPage people={people} />, calendarFixture());
+    const finder = view.getByRole('form', FINDER);
+    const alex = await within(finder).findByRole('button', { name: 'Alex' });
+    expect(alex.querySelector(`[data-tone="${String(tone)}"]`)).not.toBeNull();
   });
 
   it('books a free time into the calendars where it may go, and says who to tell', async () => {
@@ -61,7 +71,7 @@ describe('AvailabilityPage', () => {
   it('wraps finding a time, for an app that holds it to a plan', () => {
     const view = renderCalendar(<AvailabilityPage wrapFind={() => <p>Upgrade to find a time</p>} />);
     expect(view.getByText('Upgrade to find a time')).toBeInTheDocument();
-    expect(view.queryByRole('form', { name: 'Find a time' })).toBeNull();
+    expect(view.queryByRole('form', FINDER)).toBeNull();
     expect(view.getByRole('form', CONNECT)).toBeInTheDocument();
   });
 

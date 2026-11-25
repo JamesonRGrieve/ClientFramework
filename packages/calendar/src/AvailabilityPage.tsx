@@ -527,7 +527,7 @@ export function bookedMessage(booked: Booked, me: string | undefined, nameOf: Na
   return parts.join(' ');
 }
 
-function FindATime({ nameOf }: { nameOf: NameOf }): ReactNode {
+function FindATime({ people, nameOf }: { people: readonly CalendarPerson[]; nameOf: NameOf }): ReactNode {
   const client = useClient();
   const me = useUser().data?.id;
   const ids = { from: useId(), days: useId(), length: useId(), start: useId(), end: useId() };
@@ -570,8 +570,11 @@ function FindATime({ nameOf }: { nameOf: NameOf }): ReactNode {
     })();
   };
   const unread = (found?.people ?? []).filter((person) => person.unreadable > 0 || person.calendars === 0);
-  // One colour each for the people you can find a time with, no two alike.
+  // The colour the app gives someone, so they match the rest of it; otherwise one each for the people
+  // you can find a time with, no two alike.
   const tones = personTones((sharing.data ?? []).map((share) => share.user_id));
+  const toneOf = (userId: string): number | undefined =>
+    people.find((person) => person.userId === userId)?.tone ?? tones.get(userId);
   return (
     <div className='grid gap-4'>
       <form onSubmit={search} aria-label='Find a time' className='grid gap-3'>
@@ -596,7 +599,7 @@ function FindATime({ nameOf }: { nameOf: NameOf }): ReactNode {
                   <PersonAvatar
                     id={share.user_id}
                     name={nameOf(share.user_id)}
-                    tone={tones.get(share.user_id)}
+                    tone={toneOf(share.user_id)}
                     className='ring-0'
                   />
                   {nameOf(share.user_id)}
@@ -834,7 +837,7 @@ export function AvailabilityPage({
           <CardTitle>Find a time together</CardTitle>
           <CardDescription>The times you and the people you choose are all free.</CardDescription>
         </CardHeader>
-        <CardContent>{wrapFind(<FindATime nameOf={nameOf} />)}</CardContent>
+        <CardContent>{wrapFind(<FindATime people={people} nameOf={nameOf} />)}</CardContent>
       </Card>
       {/* The setup, side by side on a wide screen: where busy times come from, and who sees them. */}
       <div className='grid items-start gap-6 xl:grid-cols-2'>
